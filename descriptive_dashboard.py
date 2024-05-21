@@ -7,9 +7,9 @@ from dash.dependencies import Input, Output, State, ALL
 import plotly.express as px
 import pandas as pd
 import plotly.graph_objs as go
-import IsaricDraw as idw
 import numpy as np
 import getREDCapData as getRC
+import IsaricDraw as idw
 #import PatientCharacteristics as patChars
 #import SymptomsComorbidities as symComor
 #import Treatments as treat
