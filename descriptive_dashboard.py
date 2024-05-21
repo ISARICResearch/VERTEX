@@ -8,12 +8,12 @@ import plotly.express as px
 import pandas as pd
 import plotly.graph_objs as go
 import IsaricDraw as idw
+import numpy as np
+import getREDCapData as getRC
 #import PatientCharacteristics as patChars
 #import SymptomsComorbidities as symComor
 #import Treatments as treat
-import numpy as np
 #import VarScreening as varScr
-import getREDCapData as getRC
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
 
