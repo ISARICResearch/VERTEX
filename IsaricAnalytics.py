@@ -1,4 +1,5 @@
 import pandas as pd
+from scipy.stats import chi2_contingency
 
 def get_variables_type(data):
     final_binary_variables = []
@@ -25,3 +26,132 @@ def get_variables_type(data):
                 final_categorical_variables.append(column)
 
     return final_binary_variables, final_numeric_variables, final_categorical_variables
+
+
+def categorical_feature_outcome(data, outcome):
+    categoricals, numeric_variables, categorical_variables = get_variables_type(data)
+    try:
+        categoricals.remove(outcome)
+    except:
+        print('Outcome not in dataframe')
+    suitable_cat = []
+    
+    categorical_results = []
+    categorical_results_t = []
+    for variable in categoricals: 
+
+        # variable = 'MaritalStatus'
+
+        data_variable = data[[variable, outcome]].dropna()
+        x = data_variable[variable]
+        y = data_variable[outcome]
+        data_crosstab = pd.crosstab(x, y, margins=False)
+        stat, p, dof, expected = chi2_contingency(data_crosstab) 
+        if p < 0.2:
+            suitable_cat.append(variable)   
+
+        if p < 0.001:
+            p = '<0.001'
+        elif p <= 0.05:
+            p = str(round(p, 3))   
+        else:
+            p = str(round(p, 2))         
+
+        data_variable0 = data_variable.loc[data_variable[outcome] == 0]
+        data_variable1 = data_variable.loc[data_variable[outcome] == 1]
+        for category_variable in [1]:
+            data_aux_cat = data_variable.loc[data_variable[variable] == category_variable]
+            n = len(data_aux_cat)
+            count = data_aux_cat[outcome].value_counts().reset_index()
+            n0 = count['count'].loc[count[outcome] == 0]
+            n1 = count['count'].loc[count[outcome] == 1]
+            p0 = round(100 * (n0 / len(data_variable0)), 1)
+            p1 = round(100 * (n1 / len(data_variable1)), 1)
+            pe = round(100 * (n / len(data_variable)), 1)
+            if len(n0) == 0:
+                n0, p0 = 0, 0
+            else:
+                n0 = n0.iloc[0]
+                p0 = p0.iloc[0]
+            if len(n1) == 0:
+                n1, p1 = 0, 0
+            else:
+                n1 = n1.iloc[0]
+                p1 = p1.iloc[0]
+
+            categorical_results.append([str(variable),
+                                        str(n1) + ' (' + str(p1) + ')',
+                                        str(n0) + ' (' + str(p0) + ')',
+                                        str(n) + ' (' + str(pe) + ')',
+                                        p])
+            categorical_results_t.append([str(variable) + ': ' + str(category_variable),
+                                          str(n) + ' (' + str(pe) + ')'])  
+
+    column1 = 'Characteristic'
+    column2 = outcome + '=1 (n=' + str(round(data[outcome].sum())) + ')'
+    column3 = outcome + '=0 (n=' + str(round(len(data) - data[outcome].sum())) + ')'
+    column4 = 'All cohort (n=' + str(round(len(data))) + ')'
+
+    categorical_results = pd.DataFrame(data=categorical_results, columns=[column1, column2, column3, column4, 'p-value'])
+
+    categorical_results_t = pd.DataFrame(data=categorical_results_t, columns=['Variable', 'Count'])
+    return categorical_results, suitable_cat, categorical_results_t
+
+
+def numeric_outcome_results(data, outcome):    
+    categoricals, numeric_variables, categorical_variables = get_variables_type(data)
+    results = []
+    results_t = []
+    suitable_num = []
+    for variable in numeric_variables: 
+        try:
+            data[variable] = pd.to_numeric(data[variable], errors='coerce')
+            data_variable = data[[variable, outcome]].dropna()
+            data0 = data_variable[variable][data_variable[outcome] == 0]
+            data1 = data_variable[variable][data_variable[outcome] == 1]
+            data_t = data_variable[variable]
+            complete = round((100 * (len(data_variable) / len(data))), 1)
+            if len(data_variable) > 2:
+                stat, p = stats.shapiro(data_variable[variable]) # On the whole variable
+
+                alpha = 0.05
+                if p < alpha:
+                    # print('Not normal')
+                    w, p = mannwhitneyu(data0, y=data1, alternative="two-sided")    
+                else:
+                    summary, results = rp.ttest(group1=data[variable].loc[data[outcome] == 0], group1_name="0",
+                                                group2=data[variable].loc[data[outcome] == 1], group2_name="1")    
+                    p = results['results'].loc[3]
+
+                detail0 = str(round(data0.median(), 1)) + ' (' + str(round(data0.quantile(0.25), 1)) + '-' + str(round(data0.quantile(0.75), 1)) + ')'
+                detail1 = str(round(data1.median(), 1)) + ' (' + str(round(data1.quantile(0.25), 1)) + '-' + str(round(data1.quantile(0.75), 1)) + ')'
+                detail_t = str(round(data_t.median(), 1)) + ' (' + str(round(data_t.quantile(0.25), 1)) + '-' + str(round(data_t.quantile(0.75), 1)) + ')'
+                if p < 0.2:
+                    suitable_num.append(variable)
+                if p < 0.001:
+                    p = '<0.001'
+                elif p <= 0.05:
+                    p = str(round(p, 3))   
+                else:
+                    p = str(round(p, 2))   
+
+            else:
+                # results.append([variable, 'Cannot be calculated', 'Conforming Data: ' + str(complete) + '%']) 
+                detail0 = str(round(data0.mean(), 1)) + ' (' + str(round(data0.std(), 1)) + ')'
+                detail1 = str(round(data1.mean(), 1)) + ' (' + str(round(data1.std(), 1)) + ')'
+                detail_t = str(round(data_t.mean(), 1)) + ' (' + str(round(data_t.std(), 1)) + ')'
+                p = 'N/A'
+
+            results.append([variable, detail1, detail0, detail_t, p])
+            results_t.append([variable, detail_t])
+        except:
+            print(variable)
+
+    column1 = 'Characteristic'
+    column2 = outcome + '=1 (n=' + str(round(data[outcome].sum())) + ')'
+    column3 = outcome + '=0 (n=' + str(round(len(data) - data[outcome].sum())) + ')'
+    column4 = 'All cohort (n=' + str(round(len(data))) + ')'
+
+    results = pd.DataFrame(data=results, columns=[column1, column2, column3, column4, 'p-value'])
+    results_t = pd.DataFrame(data=results_t, columns=['Variable', 'median(IQR)'])
+    return results, suitable_num, results_t  

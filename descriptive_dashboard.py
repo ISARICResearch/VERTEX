@@ -205,6 +205,9 @@ def update_map(genders, age_range, outcomes,countries):
     df_outcomes = []
     for outcome in outcomes:
         df_outcomes.extend(outcome_mapping.get(outcome, []))
+    #df_map['age']=df_map['age'].astype(int)
+    df_map['age']=df_map['age'].astype(float)
+    df_map['age']=np.round(df_map['age'])
     df_map['age']=df_map['age'].astype(int)
     filtered_df = df_map[(df_map['slider_sex'].isin(genders))& 
                      (df_map['age'] >= age_range[0]) & 
