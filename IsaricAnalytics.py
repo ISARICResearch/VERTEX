@@ -1,6 +1,27 @@
 import pandas as pd
 from scipy.stats import chi2_contingency
 
+def mapOutcomes(df):
+    mapping_dict = {
+        "Discharged alive": "Discharge",
+        "Transfer to other facility": "Censored",
+        "Discharged against medical advice": "Discharge",
+        "Death": "Death",
+        "Still hospitalised": "Censored",
+        "Palliative discharge": "Censored"
+    }
+    df['outco_outcome'] = df['outco_outcome'].map(mapping_dict)
+
+    return df
+
+def harmonizeAge(df):
+    df['demog_age']=df['demog_age'].astype(float)
+    df['demog_age'].loc[df['demog_age_units'] == 'Months'] = df['demog_age'] / 12
+    df['demog_age'].loc[df['demog_age_units'] == 'Days'] = df['demog_age']/ 365
+    df['demog_age_units'] = 'Years'  # Standardize the units to 'Years'
+    return df
+
+
 def get_variables_type(data):
     final_binary_variables = []
     final_numeric_variables = []

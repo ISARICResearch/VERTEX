@@ -10,6 +10,7 @@ import plotly.graph_objs as go
 import numpy as np
 import getREDCapData as getRC
 import IsaricDraw as idw
+import IsaricAnalytics as ia
 #import PatientCharacteristics as patChars
 #import SymptomsComorbidities as symComor
 #import Treatments as treat
@@ -31,7 +32,9 @@ path_data='C:/Users/egarcia/OneDrive - Nexus365/Projects/ISARIC3.0/Data Analysis
 #df_map=pd.read_csv('assets/data/map.csv')
 
 df_map=getRC.read_data_from_REDCAP()
+
 df_map=df_map.dropna()
+
 '''
 df_map1=df_map.copy().loc[df_map['country_iso'].isin(['COL'])]
 df_map1=df_map1.sample(100)
@@ -41,6 +44,7 @@ df_map=pd.concat([df_map1,df_map2])'''
 
 #print(df_map)
 df_map_count=df_map[['country_iso','slider_country','usubjid']].groupby(['country_iso','slider_country']).count().reset_index()
+
 unique_countries = df_map[['slider_country', 'country_iso']].drop_duplicates().sort_values(by='slider_country')
 country_dropdown_options = [{'label': row['slider_country'], 'value': row['country_iso']}
                     for index, row in unique_countries.iterrows()]
@@ -62,7 +66,7 @@ for i, cutoff in enumerate(cutoffs):
     color = colors[i]
     custom_scale.append([value_start, color])
     custom_scale.append([value_end, color])
-
+print(df_map_count)
 fig = go.Figure(go.Choroplethmapbox(
     geojson="https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json",
     locations=df_map_count['country_iso'],
@@ -191,29 +195,18 @@ def update_modal_content(n1, n2):
 )
 def update_map(genders, age_range, outcomes,countries):
 
-    outcome_mapping = {
-        'Discharge': ['discharge', 'cured (confirmed by a negative covid test)', 
-                    'released with home care', 'released without instructions', 
-                    'recovery (confirmed by a negative test)', 
-                    'recovered (confirmed by negative covid-19 test)', 'released','Discharged alive'],
-        'Death': ['death','Death'],
-        'Censored':['ongoing care', np.nan, 'transferred', 
-                    'unknown outcome', 'lost to follow-up',
-                    'moved to facility', 'unreachable by phone', 'ran away/unknown']
-        # Add other mappings here
-    }    
-    df_outcomes = []
-    for outcome in outcomes:
-        df_outcomes.extend(outcome_mapping.get(outcome, []))
+
     #df_map['age']=df_map['age'].astype(int)
     df_map['age']=df_map['age'].astype(float)
-    df_map['age']=np.round(df_map['age'])
+    #df_map['age']=np.round(df_map['age'])
     df_map['age']=df_map['age'].astype(int)
     filtered_df = df_map[(df_map['slider_sex'].isin(genders))& 
                      (df_map['age'] >= age_range[0]) & 
                      (df_map['age'] <= age_range[1]) & 
-                     (df_map['outcome'].isin(df_outcomes)) &
+                     (df_map['outcome'].isin(outcomes)) &
                      (df_map['country_iso'].isin(countries)) ]
+
+
     if filtered_df.empty:
         fig = go.Figure(go.Choroplethmapbox(
             geojson="https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json",

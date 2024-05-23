@@ -2,6 +2,7 @@ import requests
 import json
 import pandas as pd
 import os
+import IsaricAnalytics as ia
 
 def read_data_from_REDCAP():
     # Assuming your JSON content is in a file named 'data.json'
@@ -46,6 +47,9 @@ def read_data_from_REDCAP():
                 elif i['redcap_event_name']=='Outcome / End of study':
                     form2.append(i)
             df = pd.concat([pd.DataFrame(form1),pd.DataFrame(form2)]).drop(columns='redcap_event_name').groupby('subjid').max().reset_index()
+            df=ia.mapOutcomes(df)
+            df=ia.harmonizeAge(df)
+            
             country_name=countries['Country'].loc[countries['Code']==row['country_iso']].iloc[0]
             country_income=countries['Income group'].loc[countries['Code']==row['country_iso']].iloc[0]
             country_region=countries['Region'].loc[countries['Code']==row['country_iso']].iloc[0]
@@ -65,5 +69,6 @@ def read_data_from_REDCAP():
         
         except Exception as e:
             print(e)
+    
     return complete_data
 

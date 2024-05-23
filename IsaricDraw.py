@@ -54,10 +54,10 @@ def define_menu(country_dropdown_options):
               dcc.RangeSlider(
                   id='age-slider',
                   min=0,
-                  max=90,
+                  max=101,
                   step=10,
                   marks={i: str(i) for i in range(0, 91, 10)},
-                  value=[0,90]
+                  value=[0,101]
               ),
               html.Div(style={'margin-top': '20px'}),
               html.Label("Outcome:"),
