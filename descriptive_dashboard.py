@@ -11,7 +11,7 @@ import numpy as np
 import getREDCapData as getRC
 import IsaricDraw as idw
 import IsaricAnalytics as ia
-#import PatientCharacteristics as patChars
+import PatientCharacteristics as patChars
 #import SymptomsComorbidities as symComor
 #import Treatments as treat
 #import VarScreening as varScr
@@ -100,22 +100,27 @@ app.layout = html.Div([
 ])
 
 @app.callback(
-  Output("modal", "is_open"),
+  [Output("modal", "is_open"),Output("modal", "children")],
   [Input({'type': 'open-modal', 'index': ALL}, 'n_clicks')],
   [State("modal", "is_open")],
 )
 def toggle_modal(n,   is_open):
-  
+  print('ggg')
   ctx = callback_context
 
   if not ctx.triggered:
+      print('not trigger')
       button_id = 'No buttons have been clicked yet'
   else:
       button_id = ctx.triggered[0]['prop_id'].split('.')[0]
       print(button_id)
-      return not is_open
+      if button_id =='{"index":"patientChar","type":"open-modal"}':
+          print('aqui entro')
+          return  not is_open, patChars.create_patient_characteristics_modal()
+          #return not is_open
+      return not is_open,[]
   
-  return is_open
+  return is_open,[]
 
 
 '''
@@ -134,7 +139,9 @@ def toggle_modal(n1, n2,   is_open):
     #if n1 or n2 or n3:
     if n1 or n2 :
         return not is_open
-    return is_open
+    return is_open'''
+
+'''
 @app.callback(
     Output("modal", "children"),
     [Input("open-patient-char", "n_clicks"),
@@ -152,12 +159,12 @@ def update_modal_content(n1, n2):
         return [dbc.ModalBody("Please wait")]
 
     button_id = ctx.triggered[0]['prop_id'].split('.')[0]
-    print("aqui entro 0")
+    print("aqui entro "+button_id)
     
     if button_id == "open-patient-char":
         try:
-            #return patChars.create_patient_characteristics_modal()
-          return None
+          return patChars.create_patient_characteristics_modal()
+          #return None
         except:
 
             modal = [
@@ -172,13 +179,16 @@ def update_modal_content(n1, n2):
                 ]            
             return modal
     elif button_id == "open-screening":
+        print('screening')
         #return varScr.create_screening_modal()    
-      return None
+            
+        return None
     elif button_id == "open-symptoms":
+        print('symComor')
         #return symComor.create_symptoms_comorbidities_modal()
         return []
-
 '''
+
 
         
 
@@ -328,7 +338,7 @@ def update_country_display(selected_values, all_options):
         return f"Country: {display_text}"
 
 
-#patChars.register_callbacks(app)
+patChars.register_callbacks(app)
 #symComor.register_callbacks(app)
 '''treat.register_callbacks(app)'''
 if __name__ == '__main__':
