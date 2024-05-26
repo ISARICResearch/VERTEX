@@ -337,7 +337,7 @@ def update_country_display(selected_values, all_options):
         return f"Country: {display_text}"
 
 
-patChars.register_callbacks(app)
+patChars.register_callbacks(app,'pc')
 #symComor.register_callbacks(app)
 '''treat.register_callbacks(app)'''
 if __name__ == '__main__':

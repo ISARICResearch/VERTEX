@@ -12,6 +12,13 @@ import IsaricDraw as idw
 import IsaricAnalytics as ia
 import getREDCapData as getRC
 
+
+############################################
+############################################
+## Data reading and initial proccesing 
+############################################
+############################################
+
 countries = [{'label': country.name, 'value': country.alpha_3} for country in pycountry.countries]
 
 #df_map=pd.read_csv('Vertex Dashboard/assets/data/map.csv')
@@ -25,18 +32,7 @@ bins = [0, 6, 11, 16, 21, 26, 31, 36, 41, 46, 51, 56, 61, 66, 71, 76, 81, 86, 91
 labels = ['0-5', '6-10', '11-15', '16-20', '21-25', '26-30', '31-35', '36-40', '41-45', '46-50', '51-55', '56-60', '61-65', '66-70', '71-75', '76-80', '81-85', '86-90', '91-95', '96-100']
 df_map['age_group'] = pd.cut(df_map['age'], bins=bins, labels=labels, right=False)
 
-'''outcome_mapping = {
-    'Discharge': ['discharge', 'cured (confirmed by a negative covid test)', 
-                'released with home care', 'released without instructions', 
-                'recovery (confirmed by a negative test)', 
-                'recovered (confirmed by negative covid-19 test)', 'released'],
-    'Death': ['death'],
-    'Censored':['ongoing care', np.nan, 'transferred', 
-                'unknown outcome', 'lost to follow-up',
-                'moved to facility', 'unreachable by phone', 'ran away/unknown']
-}
-inverted_mapping = {outcome: category for category, outcomes in outcome_mapping.items() for outcome in outcomes}
-df_map['mapped_outcome'] = df_map['outcome'].apply(lambda x: inverted_mapping.get(x, 'Other'))'''
+
 df_map['mapped_outcome'] = df_map['outcome']
 
 df_age_gender=df_map[['age_group','usubjid','mapped_outcome','slider_sex']].groupby(['age_group','mapped_outcome','slider_sex']).count().reset_index()
@@ -53,83 +49,11 @@ df_los.rename(columns={'dur_ho': 'length of hospital stay', 'age': 'age', 'slide
 
 #proportions_comorbidities, set_data_comorbidities = ia.get_proportions(df_map,'comorbidities')
 
-
-
-def filters_controls():
-    row = dbc.Row([
-        dbc.Col([html.H6("Gender:", style={'margin-right': '10px'}),
-            html.Div([
-                
-                dcc.Checklist(
-                    id='gender-checkboxes_pc',
-                    options=[
-                        {'label': 'Male', 'value': 'Male'},
-                        {'label': 'Female', 'value': 'Female'},
-                        {'label': 'Unknown', 'value': 'U'}
-                    ],
-                    value=['Male', 'Female', 'U']
-                )
-            ])
-        ], width=2),
-        
-        dbc.Col([html.H6("Age:", style={'margin-right': '10px'}),
-            html.Div([
-                
-                html.Div([
-                    dcc.RangeSlider(
-                        id='age-slider_pc',
-                        min=0,
-                        max=90,
-                        step=10,
-                        marks={i: str(i) for i in range(0, 91, 10)},
-                        value=[0, 90]
-                    )
-                ], style={'width': '100%'})  # Apply style to this div
-            ])
-        ], width=3),
-
-        dbc.Col([html.H6("Country:", style={'margin-right': '10px'}),
-                html.Div([
-
-                    html.Div(id="country-display_pc", children="Country:", style={"cursor": "pointer"}),
-                    dbc.Fade(
-                        html.Div([
-                            dcc.Checklist(
-                                id='country-selectall_pc',
-                                options=[{'label': 'Select all', 'value': 'all'}],
-                                value=['all']
-                            ),
-                            dcc.Checklist(
-                                id='country-checkboxes_pc',
-                                options=country_dropdown_options,
-                                value=[option['value'] for option in country_dropdown_options],
-                                style={'overflowY': 'auto', 'maxHeight': '100px'}
-                            )
-                        ]),
-                        id="country-fade_pc",
-                        is_in=False,
-                        appear=False,
-                    )
-                ]),
-            
-        ], width=5),
-
-        dbc.Col([html.H6("Outcome:", style={'margin-right': '10px'}),
-            html.Div([
-                
-                dcc.Checklist(
-                    id='outcome-checkboxes_pc',
-                    options=[
-                        {'label': 'Death', 'value': 'Death'},
-                        {'label': 'Censored', 'value': 'Censored'},
-                        {'label': 'Discharge', 'value': 'Discharge'}
-                    ],
-                    value=['Death', 'Censored', 'Discharge']
-                )
-            ])
-        ], width=2)
-    ])
-    return row
+############################################
+############################################
+## Modal creation
+############################################
+############################################
 
 
 def create_patient_characteristics_modal():
@@ -186,7 +110,7 @@ def create_patient_characteristics_modal():
             dbc.Accordion([
                 dbc.AccordionItem(
                     title="Filters and Controls",  
-                    children=[filters_controls()]
+                    children=[idw.filters_controls('pc',country_dropdown_options)]
                 ),                
                 dbc.AccordionItem(
                     title="Insights",  
@@ -274,29 +198,30 @@ def create_patient_characteristics_modal():
     return modal    
 
 
-
-########################################################################
-########################################################################
-########## Patient characteristic 
-def register_callbacks(app):
+############################################
+############################################
+## Callbacks
+############################################
+############################################
+def register_callbacks(app, suffix):
     @app.callback(
-        [Output('country-checkboxes_pc', 'value'),
-        Output('country-selectall_pc', 'options'),
-        Output('country-selectall_pc', 'value')],
-        [Input('country-selectall_pc', 'value'),
-        Input('country-checkboxes_pc', 'value')],
-        [State('country-checkboxes_pc', 'options')]
+        [Output(f'country-checkboxes_{suffix}', 'value'),
+         Output(f'country-selectall_{suffix}', 'options'),
+         Output(f'country-selectall_{suffix}', 'value')],
+        [Input(f'country-selectall_{suffix}', 'value'),
+         Input(f'country-checkboxes_{suffix}', 'value')],
+        [State(f'country-checkboxes_{suffix}', 'options')]
     )
-    def update_country_selection_pc(select_all_value, selected_countries, all_countries_options):
+    def update_country_selection(select_all_value, selected_countries, all_countries_options):
         ctx = dash.callback_context
-        
+
         if not ctx.triggered:
             # Initial load, no input has triggered the callback yet
             return [selected_countries, [{'label': 'Unselect all', 'value': 'all'}], ['all']]
 
         trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
-        if trigger_id == 'country-selectall_pc':
+        if trigger_id == f'country-selectall_{suffix}':
             if 'all' in select_all_value:
                 # "Select all" (now "Unselect all") is checked
                 return [[option['value'] for option in all_countries_options], [{'label': 'Unselect all', 'value': 'all'}], ['all']]
@@ -304,7 +229,7 @@ def register_callbacks(app):
                 # "Unselect all" is unchecked
                 return [[], [{'label': 'Select all', 'value': 'all'}], []]
 
-        elif trigger_id == 'country-checkboxes':
+        elif trigger_id == f'country-checkboxes_{suffix}':
             if len(selected_countries) == len(all_countries_options):
                 # All countries are selected manually
                 return [selected_countries, [{'label': 'Unselect all', 'value': 'all'}], ['all']]
@@ -315,22 +240,21 @@ def register_callbacks(app):
         return [selected_countries, [{'label': 'Select all', 'value': 'all'}], select_all_value]
 
     @app.callback(
-        Output("country-fade_pc", "is_in"),
-        [Input("country-display_pc", "n_clicks")],
-        [State("country-fade_pc", "is_in")]
+        Output(f"country-fade_{suffix}", "is_in"),
+        [Input(f"country-display_{suffix}", "n_clicks")],
+        [State(f"country-fade_{suffix}", "is_in")]
     )
-    def toggle_fade_pc(n_clicks, is_in):
+    def toggle_fade(n_clicks, is_in):
         if n_clicks:
             return not is_in
         return is_in
 
-    
     @app.callback(
-        Output('country-display_pc', 'children'),
-        [Input('country-checkboxes_pc', 'value')],
-        [State('country-checkboxes_pc', 'options')]
+        Output(f'country-display_{suffix}', 'children'),
+        [Input(f'country-checkboxes_{suffix}', 'value')],
+        [State(f'country-checkboxes_{suffix}', 'options')]
     )
-    def update_country_display_pc(selected_values, all_options):
+    def update_country_display(selected_values, all_options):
         if not selected_values:
             return "Country:"
 
@@ -346,22 +270,27 @@ def register_callbacks(app):
         else:
             return f"Country: {display_text}"
 
-    
+
+    ############################################
+    ############################################
+    ## Specific Callbacks
+    ## Modify outputs
+    ############################################
+    ############################################
+
     @app.callback(
-        [Output('pyramid-chart-col', 'children'),Output('freqSympt_chart', 'children'),Output('upsetSympt_chart', 'children')],
-        [
-            Input('gender-checkboxes_pc', 'value'),
-            Input('age-slider_pc', 'value'),
-            Input('outcome-checkboxes_pc', 'value'),
-            Input('country-checkboxes_pc', 'value')
-        ]
+        [Output('pyramid-chart-col', 'children'),
+         Output('freqSympt_chart', 'children'),
+         Output('upsetSympt_chart', 'children')],
+        [Input(f'submit-button_{suffix}', 'n_clicks')],
+        [State(f'gender-checkboxes_{suffix}', 'value'),
+         State(f'age-slider_{suffix}', 'value'),
+         State(f'outcome-checkboxes_{suffix}', 'value'),
+         State(f'country-checkboxes_{suffix}', 'value')]
     )
-    def update_figures(genders, age_range, outcomes,countries):
-
-
-
+    def update_figures(click, genders, age_range, outcomes, countries):
         filtered_df = df_map[
-                        #(df_map['slider_sex'].isin(genders))& 
+                        (df_map['slider_sex'].isin(genders))& 
                         (df_map['age'] >= age_range[0]) & 
                         (df_map['age'] <= age_range[1]) & 
                         (df_map['outcome'].isin(outcomes)) &
@@ -381,70 +310,4 @@ def register_callbacks(app):
         freq_chart_sympt = idw.frequency_chart(proportions_symptoms, title='Frequency of signs and symptoms on presentation')
         upset_plot_sympt = idw.upset(set_data_symptoms, title='Frequency of combinations of the five most common signs or symptoms')
         return [pyramid_chart,freq_chart_sympt,upset_plot_sympt]
-    '''
-    @app.callback(
-        [Output('pyramid-chart-col', 'children'),
-         #Output('cumulative_chart-col', 'children'), 
-         #Output('sex_boxplot_graph-col', 'children'),
-         #Output('boxplot_graph-col', 'children'),    
-        ],
-        [
-            Input('gender-checkboxes_pc', 'value'),
-            Input('age-slider_pc', 'value'),
-            Input('outcome-checkboxes_pc', 'value'),
-            Input('country-checkboxes_pc', 'value')
-        ]
-    )
-    def update_figures(genders, age_range, outcomes,countries):
-        print('entro aqui')
 
-        outcome_mapping = {
-            'Discharge': ['discharge', 'cured (confirmed by a negative covid test)', 
-                        'released with home care', 'released without instructions', 
-                        'recovery (confirmed by a negative test)', 
-                        'recovered (confirmed by negative covid-19 test)', 'released'],
-            'Death': ['death'],
-            'Censored':['ongoing care', np.nan, 'transferred', 
-                        'unknown outcome', 'lost to follow-up',
-                        'moved to facility', 'unreachable by phone', 'ran away/unknown']
-            # Add other mappings here
-        }    
-        df_outcomes = []
-        for outcome in outcomes:
-            df_outcomes.extend(outcome_mapping.get(outcome, []))
-
-        filtered_df = df_map[(df_map['slider_sex'].isin(genders))& 
-                        (df_map['age'] >= age_range[0]) & 
-                        (df_map['age'] <= age_range[1]) & 
-                        (df_map['outcome'].isin(df_outcomes)) &
-                        (df_map['country_iso'].isin(countries)) ]
-        print(len(filtered_df))
-
-        if filtered_df.empty:
-            
-            return None
-        df_age_gender=filtered_df[['age_group','usubjid','mapped_outcome','slider_sex']].groupby(['age_group','mapped_outcome','slider_sex']).count().reset_index()
-        df_age_gender.rename(columns={'slider_sex': 'side', 'mapped_outcome': 'stack_group', 'usubjid': 'value', 'age_group': 'y_axis'}, inplace=True)
-        print(len(df_age_gender))
-        color_map = {'Discharge': '#00C26F', 'Censored': '#FFF500', 'Death': '#DF0069'}
-        pyramid_chart = idw.dual_stack_pyramid(df_age_gender, base_color_map=color_map, graph_id='age_gender_pyramid_chart')
-        return [pyramid_chart]
-        '''
-        
-        #df_epiweek=filtered_df[['mapped_outcome','epiweek.admit','usubjid']].groupby(['mapped_outcome','epiweek.admit']).count().reset_index()
-#        df_epiweek.rename(columns={'mapped_outcome': 'stack_group', 'epiweek.admit': 'timepoint', 'usubjid': 'value'}, inplace=True)
-
-
-#        cumulative_chart = idw.cumulative_bar_chart(df_epiweek, title='Cumulative Patient Outcomes by Timepoint', base_color_map=color_map, graph_id='my-cumulative-chart')
-
-#        df_los=filtered_df[['age','slider_sex','dur_ho']].sample(5000)
-#        df_los.rename(columns={'dur_ho': 'length of hospital stay', 'age': 'age', 'slider_sex': 'sex'}, inplace=True)
-#        color_map = {'Female': '#750AC8', 'Male': '#00C279'}
-#        boxplot_graph = idw.age_group_boxplot(df_los, base_color_map=color_map,label='Length of hospital stay')
-#        sex_boxplot_graph = idw.sex_boxplot(df_los, base_color_map=color_map,label='Length of hospital stay')
-        #return [pyramid_chart,cumulative_chart,sex_boxplot_graph,boxplot_graph]
-        
-
-
-########################################################################
-#######################################################################

@@ -13,6 +13,91 @@ from collections import OrderedDict
 
 default_height=430
 
+def filters_controls(suffix,country_dropdown_options):
+    row = dbc.Row([
+        dbc.Col([html.H6("Gender:", style={'margin-right': '10px'}),
+            html.Div([
+                dcc.Checklist(
+                    id=f'gender-checkboxes_{suffix}',
+                    options=[
+                        {'label': 'Male', 'value': 'Male'},
+                        {'label': 'Female', 'value': 'Female'},
+                        {'label': 'Unknown', 'value': 'U'}
+                    ],
+                    value=['Male', 'Female', 'U']
+                )
+            ])
+        ], width=2),
+
+        dbc.Col([html.H6("Age:", style={'margin-right': '10px'}),
+            html.Div([
+                html.Div([
+                    dcc.RangeSlider(
+                        id=f'age-slider_{suffix}',
+                        min=0,
+                        max=90,
+                        step=10,
+                        marks={i: str(i) for i in range(0, 91, 10)},
+                        value=[0, 90]
+                    )
+                ], style={'width': '100%'})  # Apply style to this div
+            ])
+        ], width=3),
+
+        dbc.Col([html.H6("Country:", style={'margin-right': '10px'}),
+                html.Div([
+                    html.Div(id=f"country-display_{suffix}", children="Country:", style={"cursor": "pointer"}),
+                    dbc.Fade(
+                        html.Div([
+                            dcc.Checklist(
+                                id=f'country-selectall_{suffix}',
+                                options=[{'label': 'Select all', 'value': 'all'}],
+                                value=['all']
+                            ),
+                            dcc.Checklist(
+                                id=f'country-checkboxes_{suffix}',
+                                options=country_dropdown_options,
+                                value=[option['value'] for option in country_dropdown_options],
+                                style={'overflowY': 'auto', 'maxHeight': '100px'}
+                            )
+                        ]),
+                        id=f"country-fade_{suffix}",
+                        is_in=False,
+                        appear=False,
+                    )
+                ]),
+
+        ], width=5),
+
+        dbc.Col([html.H6("Outcome:", style={'margin-right': '10px'}),
+            html.Div([
+                dcc.Checklist(
+                    id=f'outcome-checkboxes_{suffix}',
+                    options=[
+                        {'label': 'Death', 'value': 'Death'},
+                        {'label': 'Censored', 'value': 'Censored'},
+                        {'label': 'Discharge', 'value': 'Discharge'}
+                    ],
+                    value=['Death', 'Censored', 'Discharge']
+                )
+            ])
+        ], width=2)
+    ])
+
+    row_button=dbc.Row([
+        dbc.Col([
+            row,
+            dbc.Row([
+                dbc.Col([
+                    dbc.Button("Submit", id=f'submit-button_{suffix}', color="primary", className="mr-2")
+                ], width={"size": 6, "offset": 3}, style={'text-align': 'center'})  # Center the button
+            ])
+        ])
+    ])
+    
+    
+    return row_button
+
 def define_menu(country_dropdown_options):
 
 
