@@ -16,7 +16,7 @@ default_height=430
 def define_menu(country_dropdown_options):
 
 
-  patient_char_btn=dbc.Button("Patient Characteristics", id={"type": "open-modal", "index": "patientChar"}, className="mb-2", style={'width': '100%'})
+  patient_char_btn=dbc.Button("Clinical Features", id={"type": "open-modal", "index": "patientChar"}, className="mb-2", style={'width': '100%'})
   
   symptoms_btn=dbc.Button("Symptoms and Comorbidities", id={"type": "open-modal", "index": "symptoms"}, className="mb-2", style={'width': '100%'})
   
@@ -30,7 +30,7 @@ def define_menu(country_dropdown_options):
       is_open=False,
       size='xl'
   )
-  characterization_children=[patient_char_btn,symptoms_btn,initial_modal]
+  characterization_children=[patient_char_btn,initial_modal]
   risk_children=[feature_outcome_btn,risk_factor_btn,initial_modal]
   
   return dbc.Accordion([
@@ -572,6 +572,24 @@ def forest_plot(dataframe, title='Forest Plot', graph_id='forest-plot', labels=[
     return dcc.Graph(
         id=graph_id,
         figure={'data': traces, 'layout': layout}
+    )
+    
+def table(df):
+    fig = go.Figure(data=[go.Table(
+        header=dict(values=list(df.columns),
+                    fill_color='#bbbbbb',
+                    align='left'),
+        cells=dict(values=[df[col] for col in df.columns],
+                   fill_color='#e9e9e9',
+                   align='left'))
+    ])
+    fig.update_layout(
+        #width=width,
+        height=500
+    )
+    return dcc.Graph(
+        id='table-graph',
+        figure=fig
     )
 
 

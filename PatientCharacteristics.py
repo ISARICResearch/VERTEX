@@ -9,6 +9,7 @@ from dash.dependencies import Input, Output, State
 import dash
 import numpy as np
 import IsaricDraw as idw
+import IsaricAnalytics as ia
 import getREDCapData as getRC
 
 countries = [{'label': country.name, 'value': country.alpha_3} for country in pycountry.countries]
@@ -48,6 +49,11 @@ df_epiweek=df_epiweek.dropna()
 
 df_los=df_map[['age','slider_sex','dur_ho']].sample(5000)
 df_los.rename(columns={'dur_ho': 'length of hospital stay', 'age': 'age', 'slider_sex': 'sex'}, inplace=True)'''
+
+
+#proportions_comorbidities, set_data_comorbidities = ia.get_proportions(df_map,'comorbidities')
+
+
 
 def filters_controls():
     row = dbc.Row([
@@ -146,6 +152,16 @@ def create_patient_characteristics_modal():
 
     color_map = {'Discharge': '#00C26F', 'Censored': '#FFF500', 'Death': '#DF0069'}
     pyramid_chart = idw.dual_stack_pyramid(df_age_gender, base_color_map=color_map, graph_id='age_gender_pyramid_chart')
+
+    proportions_symptoms, set_data_symptoms = ia.get_proportions(df_map,'symptoms')
+    freq_chart_sympt = idw.frequency_chart(proportions_symptoms, title='Frequency of signs and symptoms on presentation')
+    upset_plot_sympt = idw.upset(set_data_symptoms, title='Frequency of combinations of the five most common signs or symptoms')
+
+    descriptive = ia.descriptive_table(ia.obtain_variables(df_map, 'symptoms'))
+    fig_table_symp=idw.table(descriptive)
+
+
+    
     #cumulative_chart = idw.cumulative_bar_chart(df_epiweek, title='Cumulative Patient Outcomes by Timepoint', base_color_map=color_map, graph_id='my-cumulative-chart')
     np.random.seed(0)
 
@@ -164,7 +180,7 @@ def create_patient_characteristics_modal():
     boxplot_graph = idw.age_group_boxplot(df_los, base_color_map=color_map,label='Length of hospital stay')
     sex_boxplot_graph = idw.sex_boxplot(df_los, base_color_map=color_map,label='Length of hospital stay')'''
     modal = [
-        dbc.ModalHeader(html.H3("Patient Characteristics", id="line-graph-modal-title", style={"fontSize": "2vmin", "fontWeight": "bold"})),  
+        dbc.ModalHeader(html.H3("Clinical Features", id="line-graph-modal-title", style={"fontSize": "2vmin", "fontWeight": "bold"})),  
 
         dbc.ModalBody([
             dbc.Accordion([
@@ -176,9 +192,10 @@ def create_patient_characteristics_modal():
                     title="Insights",  
                     children=[
                         dbc.Tabs([
+                            dbc.Tab(dbc.Row([dbc.Col([fig_table_symp],id='table_symo')]), label='Descriptive table'),
                             dbc.Tab(dbc.Row([dbc.Col(pyramid_chart,id='pyramid-chart-col')]), label='Age and Sex'),
-                            #dbc.Tab(dbc.Row([dbc.Col(cumulative_chart,id='cumulative_chart-col')]), label='Patient outcomes'),
-                            #dbc.Tab(dbc.Row([dbc.Col(sex_boxplot_graph,id='sex_boxplot_graph-col')]), label='Length of hospital stay by sex'),
+                            dbc.Tab(dbc.Row([dbc.Col(freq_chart_sympt,id='freqSympt_chart')]), label='Signs and symptoms on presentation: Frequency'),
+                            dbc.Tab(dbc.Row([dbc.Col(upset_plot_sympt,id='upsetSympt_chart')]), label='Signs and symptoms on presentation:Intersections'),
                             #dbc.Tab(dbc.Row([dbc.Col(boxplot_graph,id='boxplot_graph-col')]), label='Length of hospital stay by age group'),
                         ])
                     ]
@@ -306,6 +323,8 @@ def register_callbacks(app):
         if n_clicks:
             return not is_in
         return is_in
+
+    
     @app.callback(
         Output('country-display_pc', 'children'),
         [Input('country-checkboxes_pc', 'value')],
@@ -326,8 +345,10 @@ def register_callbacks(app):
             return f"Country: {selected_labels[0]}, +{len(selected_labels) - 1} more..."
         else:
             return f"Country: {display_text}"
+
+    
     @app.callback(
-        Output('pyramid-chart-col', 'children'),
+        [Output('pyramid-chart-col', 'children'),Output('freqSympt_chart', 'children'),Output('upsetSympt_chart', 'children')],
         [
             Input('gender-checkboxes_pc', 'value'),
             Input('age-slider_pc', 'value'),
@@ -355,7 +376,11 @@ def register_callbacks(app):
         print(len(df_age_gender))
         color_map = {'Discharge': '#00C26F', 'Censored': '#FFF500', 'Death': '#DF0069'}
         pyramid_chart = idw.dual_stack_pyramid(df_age_gender, base_color_map=color_map, graph_id='age_gender_pyramid_chart')
-        return pyramid_chart
+
+        proportions_symptoms, set_data_symptoms = ia.get_proportions(filtered_df,'symptoms')
+        freq_chart_sympt = idw.frequency_chart(proportions_symptoms, title='Frequency of signs and symptoms on presentation')
+        upset_plot_sympt = idw.upset(set_data_symptoms, title='Frequency of combinations of the five most common signs or symptoms')
+        return [pyramid_chart,freq_chart_sympt,upset_plot_sympt]
     '''
     @app.callback(
         [Output('pyramid-chart-col', 'children'),

@@ -105,7 +105,6 @@ app.layout = html.Div([
   [State("modal", "is_open")],
 )
 def toggle_modal(n,   is_open):
-  print('ggg')
   ctx = callback_context
 
   if not ctx.triggered:

@@ -1,6 +1,46 @@
 import pandas as pd
 from scipy.stats import chi2_contingency
 
+
+def obtain_variables(data,data_type):
+    if data_type == 'symptoms':
+        prefix='adsym_'
+    elif data_type == 'comorbidities':
+        prefix='comor_'
+    variables=[]
+
+    for i in data:
+        if prefix in i :
+            variables.append(i)
+
+    df=data[['usubjid','age','slider_sex','slider_country','outcome','country_iso']+variables].copy()
+    if data_type == 'symptoms' or data_type == 'comorbidities':
+        df = df.applymap(lambda x: x.lower() if isinstance(x, str) else x)
+        df[variables]=df[variables]!='no'
+    return df
+    
+
+def get_proportions(data,data_type):
+    if data_type == 'symptoms':
+        prefix='adsym_'
+    elif data_type == 'comorbidities':
+        prefix='comor_'
+    variables=[]
+
+    for i in data:
+        if prefix in i :
+            variables.append(i)
+            
+    df=data[['usubjid','age','slider_sex','slider_country','outcome','country_iso']+variables].copy()
+    df = df.applymap(lambda x: x.lower() if isinstance(x, str) else x)
+    df=df!='no'
+    proportions = df[variables].apply(lambda x: x.sum() / x.count()).reset_index()
+    proportions.columns=['Condition', 'Proportion']
+    proportions=proportions.sort_values(by=['Proportion'], ascending=False)
+    Condition_top=proportions['Condition'].head(5)
+    set_data=df[Condition_top]
+    return proportions,set_data
+
 def mapOutcomes(df):
     mapping_dict = {
         "Discharged alive": "Discharge",
@@ -134,8 +174,26 @@ def categorical_feature(data):
 
         categorical_results_t.append([str(variable) + ': ' + str(category_variable),
                                       str(n) + ' (' + str(pe) + ')'])  
-    categorical_results_t = pd.DataFrame(data=categorical_results_t, columns=['Variable', 'Count'])
-    return categorical_results_t
+    categorical_results_t = pd.DataFrame(data=categorical_results_t, columns=['Variable', 'Count (%)'])
+
+    prefix_dict = {col: col for col in categorical_variables}
+    df_with_dummies = pd.get_dummies(data, columns=categorical_variables, prefix=prefix_dict)
+
+    
+    dummy_columns = [col for col in df_with_dummies.columns if any(prefix in col for prefix in categorical_variables)]
+    df_dummies = df_with_dummies[dummy_columns]
+    for variable in df_dummies: 
+        data_variable=df_dummies[[variable]].dropna()
+        category_variable =1
+        data_aux_cat = data_variable.loc[data_variable[variable] == 1]
+        n = len(data_aux_cat)
+        pe = round(100 * (n / len(data_variable)), 1)
+
+        categorical_results.append([str(variable) + ': ' + str(category_variable),
+                                      str(n) + ' (' + str(pe) + ')'])  
+    categorical_results = pd.DataFrame(data=categorical_results, columns=['Variable', 'Count (%)'])
+    
+    return pd.concat([categorical_results_t,categorical_results])
 
 
 def numeric_outcome_results(data, outcome):    
@@ -195,3 +253,35 @@ def numeric_outcome_results(data, outcome):
     results = pd.DataFrame(data=results, columns=[column1, column2, column3, column4, 'p-value'])
     results_t = pd.DataFrame(data=results_t, columns=['Variable', 'median(IQR)'])
     return results, suitable_num, results_t  
+
+def numeric_results(data):    
+    categoricals, numeric_variables, categorical_variables = get_variables_type(data)
+    results = []
+    results_t = []
+    suitable_num = []
+    for variable in numeric_variables: 
+        try:
+            data[variable] = pd.to_numeric(data[variable], errors='coerce')
+            data_variable = data[[variable]].dropna()
+            data_t = data_variable[variable]
+            complete = round((100 * (len(data_variable) / len(data))), 1)
+            if len(data_variable) > 2:    
+                detail_t = str(round(data_t.median(), 1)) + ' (' + str(round(data_t.quantile(0.25), 1)) + '-' + str(round(data_t.quantile(0.75), 1)) + ')'
+            else:
+                detail_t = str(round(data_t.mean(), 1)) + ' (' + str(round(data_t.std(), 1)) + ')'
+                p = 'N/A'
+            results_t.append([variable, detail_t])
+        except:
+            print(variable)
+    results_t = pd.DataFrame(data=results_t, columns=['Variable', 'median(IQR)'])
+    return results_t  
+
+
+
+def descriptive_table(data):
+    categorical_results_t=categorical_feature(data)
+    numeric_results_t=numeric_results(data)
+    table=pd.merge(categorical_results_t, numeric_results_t,on='Variable',how='outer')
+
+    table=table.fillna(' ')
+    return table
