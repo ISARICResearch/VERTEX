@@ -12,6 +12,7 @@ import getREDCapData as getRC
 import IsaricDraw as idw
 import IsaricAnalytics as ia
 import PatientCharacteristics as patChars
+import risk_feature_outcome as risk_fo
 #import SymptomsComorbidities as symComor
 #import Treatments as treat
 #import VarScreening as varScr
@@ -114,8 +115,9 @@ def toggle_modal(n,   is_open):
       button_id = ctx.triggered[0]['prop_id'].split('.')[0]
       print(button_id)
       if button_id =='{"index":"patientChar","type":"open-modal"}':
-          print('aqui entro')
           return  not is_open, patChars.create_patient_characteristics_modal()
+      elif button_id =='{"index":"feature-outcome","type":"open-modal"}':
+          return  not is_open, risk_fo.create_modal()
           #return not is_open
       return not is_open,[]
   
@@ -338,6 +340,7 @@ def update_country_display(selected_values, all_options):
 
 
 patChars.register_callbacks(app,'pc')
+risk_fo.register_callbacks(app,'risk_features')
 #symComor.register_callbacks(app)
 '''treat.register_callbacks(app)'''
 if __name__ == '__main__':

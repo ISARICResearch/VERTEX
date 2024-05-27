@@ -98,6 +98,73 @@ def filters_controls(suffix,country_dropdown_options):
     
     return row_button
 
+
+def ModalFooter(suffix,instructions,about):
+    footer=dbc.ModalFooter([
+
+
+        html.Div([
+            dbc.Button("About", id=f'modal_about_popover_{suffix}', color='info', size='sm',style={'margin-right': '5px'}),
+            dbc.Button("Instructions", id=f'modal_instruction_popover_{suffix}',  size='sm',style={'margin-right': '5px'}),
+            dbc.Button("Download", id=f'modal_download_popover_{suffix}', size='sm',style={'margin-right': '5px'}),
+            #dbc.Button("Close", id="modal_patChar_close_popover",  size='sm')
+        ], className='ml-auto'),
+
+
+
+        dbc.Popover(
+            [
+                dbc.PopoverHeader("Instructions", style={'fontWeight':'bold'}),
+                dbc.PopoverBody(instructions)
+            ],
+            #id="modal-line-instructions-popover",
+            #is_open=False,
+            target=f'modal_instruction_popover_{suffix}',
+            trigger="hover",
+            placement="top",
+            hide_arrow=False,
+            #style={"zIndex":1}
+        ),
+
+        dbc.Popover(
+            [
+                dbc.PopoverHeader("About", style={'fontWeight':'bold'}),
+                dbc.PopoverBody(about),
+            ],
+            #id="modal-line-guide-popover",
+            #is_open=False,
+            target=f'modal_about_popover_{suffix}',
+            trigger="hover",
+            placement="top",
+            hide_arrow=False,                        
+            #style={"zIndex":1}
+        ),
+
+        dbc.Popover(
+                [
+                dbc.PopoverHeader("Download", style={'fontWeight':'bold'}),
+                dbc.PopoverBody([          
+                    html.Div('Raw data'),
+                    dbc.Button(".csv", outline=True, color="secondary", className="mr-1", id= f'csv_download_{suffix}', style={}, size='sm'),
+                    html.Div('Chart', style={'marginTop':5}),
+                    dbc.Button(".png", outline=True, color="secondary", className="mr-1", id=f'png_download_{suffix}', style={}, size='sm'),
+                    html.Div('Advanced', style={'marginTop':5,'display':'none'}),
+                    dbc.Button("Downloads Area", outline=True, color="secondary", className="mr-1", id="btn-popover-line-download-land", style={'display':'none'}, size='sm'),
+                    ]),
+                ],
+                id=f'modal_download_popover_menu_{suffix}',                                        
+                target=f'modal_download_popover_{suffix}',
+                #style={'maxHeight': '300px', 'overflowY': 'auto'},
+                trigger="legacy",
+                placement="top",
+                hide_arrow=False,
+
+        ), 
+
+    ])
+    return footer
+
+
 def define_menu(country_dropdown_options):
 
 
@@ -229,6 +296,14 @@ def hex_to_rgba(hex_color, opacity):
     return 'rgba(' + ', '.join(str(int(hex_color[i:i+hlen//3], 16)) for i in range(0, hlen, hlen//3)) + f', {opacity})'
 
 
+def fig_placeholder():
+    x = [1, 2, 3, 4, 5]
+    y = [10, 14, 12, 15, 13]
+    fig = go.Figure(data=go.Scatter(x=x, y=y, mode='markers', marker=dict(size=10, color='blue')))
+    fig.update_layout(title='Sample Scatter Plot',
+                      xaxis_title='X Axis',
+                      yaxis_title='Y Axis')
+    return fig
 
 def compute_intersections(dataframe):
     # Find all combinations of categories and their intersection sizes
