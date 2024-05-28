@@ -5,6 +5,13 @@ from scipy.stats import chi2_contingency
 import scipy.stats as stats
 from scipy.stats import mannwhitneyu
 import researchpy as rp
+from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_curve
+from sklearn.metrics import accuracy_score
+import re
+import xgboost as xgb
+import numpy as np
+from sklearn.preprocessing import LabelEncoder
 
 
 def risk_preprocessing(data):
@@ -215,7 +222,7 @@ def categorical_feature_outcome(data, outcome):
 
 def numeric_outcome_results(data, outcome):    
         categoricals, numeric_variables, categorical_variables = get_variables_type(data)
-        results = []
+        results_array = []
         results_t = []
         suitable_num = []
         for variable in numeric_variables: 
@@ -257,7 +264,7 @@ def numeric_outcome_results(data, outcome):
                     detail_t = str(round(data_t.mean(), 1)) + ' (' + str(round(data_t.std(), 1)) + ')'
                     p = 'N/A'
 
-                results.append([variable, detail1, detail0, detail_t, p])
+                results_array.append([variable, detail1, detail0, detail_t, p])
                 results_t.append([variable, detail_t])
             except:
                 print(variable)
@@ -267,9 +274,9 @@ def numeric_outcome_results(data, outcome):
         column3 = outcome + '=0 (n=' + str(round(len(data) - data[outcome].sum())) + ')'
         column4 = 'All cohort (n=' + str(round(len(data))) + ')'
 
-        results = pd.DataFrame(data=results, columns=[column1, column2, column3, column4, 'p-value'])
+        results_df = pd.DataFrame(data=results_array, columns=[column1, column2, column3, column4, 'p-value'])
         results_t = pd.DataFrame(data=results_t, columns=['Variable', 'median(IQR)'])
-        return results, suitable_num, results_t  
+        return results_df, suitable_num, results_t  
 
 
 def numeric_results(data):    
@@ -303,3 +310,63 @@ def descriptive_table(data):
 
     table=table.fillna(' ')
     return table
+
+def binary_model1(data,variables,outcome,num_estimators=10):
+    data_path=data.dropna(subset=[outcome])
+    
+    combined_df = data_path.dropna(subset=[outcome])
+    
+    
+    X_Transm=combined_df[variables]    
+
+    #X_Transm=X_Transm.drop(columns=delete_columns)
+
+    y = combined_df[outcome]
+    le = LabelEncoder()
+    y = list(le.fit_transform(y) )
+    X = X_Transm
+    # Initialize XGBoost model for classification
+    
+    xgb_model = xgb.XGBClassifier(objective="multi:softmax", num_class=len(set(y)), 
+                                  random_state=182, use_label_encoder=False, eval_metric="mlogloss",
+                                  enable_categorical=True,max_depth=4,n_estimators=num_estimators)
+    for X_x in X:
+        X[X_x]=X[X_x].astype("category")
+    # Train the model
+    xgb_model.fit(X, y)
+    # Make predictions
+    predictions = xgb_model.predict(X)
+    probabilities = xgb_model.predict_proba(X)
+    combined_df['Predictions']=predictions
+    if len(set(y)) == 2:
+        probabilities=pd.DataFrame(data=probabilities)
+        combined_df['probabilities']=probabilities[1]
+    
+    # Evaluate the model using a classification metric
+    accuracy = accuracy_score(y, predictions)
+    #print( f" Accuracy: {accuracy}")
+    roc=roc_auc_score(y, combined_df['probabilities'])
+    
+    fpr, tpr, thresholds = roc_curve(y, combined_df['probabilities'])
+    
+    # Calculate the Youden's index
+    optimal_idx = np.argmax(tpr - fpr)
+    optimal_threshold = thresholds[optimal_idx]
+    
+    
+    # Feature importances
+    importances = xgb_model.feature_importances_
+    feature_names = X.columns
+    feature_importances = pd.DataFrame({'Feature': feature_names, 'Importance': importances})
+    
+    # Sort the features by importance
+    feature_importances = feature_importances.sort_values(by='Importance', ascending=False)
+    #feature_importances = feature_importances.head(20)
+      # Assuming variable_labels is a DataFrame that maps 'Standard_names' to 'Feature'
+    #feature_importances = pd.merge(feature_importances, variable_labels, left_on='Feature', right_on='Standard names')
+    
+    # Display the sorted feature importances
+    #print(feature_importances)
+    
+    
+    return feature_importances,accuracy,roc,optimal_threshold,combined_df
