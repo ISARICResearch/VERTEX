@@ -63,14 +63,13 @@ def create_modal():
     color_map = {'Discharge': '#00C26F', 'Censored': '#FFF500', 'Death': '#DF0069'}
 
     ## Proccessing
+    risk_df=ia.risk_preprocessing(df_map)
+    categorical_results, suitable_cat, categorical_results_t=ia.categorical_feature_outcome(risk_df,'outcome')
+    fig_table_categorical=idw.table(categorical_results)
 
-    #categorical_results, suitable_cat, categorical_results_t=ia.categorical_feature_outcome(df_map,'outcome')
-    #fig_table_categorical=idw.table(categorical_results)
-
-    fig_table_categorical=idw.table(pd.DataFrame(data=[[1,2,3],[4,5,6]],columns=list('abc')))
-    #results, suitable_num, results_t  =ia.numeric_outcome_results(df_map,'outcome')
-    #fig_table_numerical=idw.table(results)
-    fig_table_numerical=idw.table(pd.DataFrame(data=[[9,8,7],[6,5,4]],columns=list('xyz')))
+    results, suitable_num, results_t =ia.numeric_outcome_results(risk_df,'outcome')
+    print(results)
+    fig_table_numerical=idw.table(results)
     
     fig_table_symp=idw.fig_placeholder()
     modal = [
@@ -212,8 +211,12 @@ def register_callbacks(app, suffix):
 
         #results, suitable_num, results_t  =ia.numeric_outcome_results(filtered_df,'outcome')
         #fig_table_numerical=idw.table(results)
-        fig_table_categorical=idw.table(pd.DataFrame(data=[[1,2,3],[4,5,6]],columns=list('abc')))
-        fig_table_numerical=idw.table(pd.DataFrame(data=[[9,8,7],[6,5,4]],columns=list('xyz')))
-        
+        #fig_table_categorical=idw.table(pd.DataFrame(data=[[1,2,3],[4,5,6]],columns=list('abc')))
+        risk_df=ia.risk_preprocessing(filtered_df)
+        categorical_results, suitable_cat, categorical_results_t=ia.categorical_feature_outcome(risk_df,'outcome')
+        fig_table_categorical=idw.table(categorical_results)
+
+        results, suitable_num, results_t  =ia.numeric_outcome_results(risk_df,'outcome')
+        fig_table_numerical=idw.table(results)
         return [fig_table_categorical,fig_table_numerical]
 

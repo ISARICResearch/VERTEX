@@ -17,6 +17,7 @@ numpy = "^1.26.4"
 pandas = "^2.2.1"
 plotly = "^5.19.0"
 statsmodels = "^0.14.1"
+researchpy = "^0.3.6"
 
 [tool.pyright]
 # https://github.com/microsoft/pyright/blob/main/docs/configuration.md

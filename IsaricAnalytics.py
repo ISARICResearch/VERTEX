@@ -1,6 +1,35 @@
 import pandas as pd
+import scipy.stats as stats
+import os
 from scipy.stats import chi2_contingency
+import scipy.stats as stats
+from scipy.stats import mannwhitneyu
+import researchpy as rp
 
+
+def risk_preprocessing(data):
+    df_map=data
+    comor=[]
+    for i in df_map:
+        if 'comor_' in i :
+            comor.append(i)
+    sympt=[]
+    for i in df_map:
+        if 'adsym_' in i :
+            sympt.append(i)
+    
+    sdata=df_map[sympt+comor+['age','slider_sex','outcome']]  
+
+    sdata = sdata.applymap(lambda x: x.lower() if isinstance(x, str) else x)
+    sdata2=sdata
+    sdata2[sympt+comor]=sdata[sympt+comor]!='no'
+    sdata2=sdata2.loc[sdata2['outcome']!='censored']
+
+    outcome_binary_map={'discharge':0,  'death':1}
+    sex_binary_map={'female':0,  'male':1}
+    sdata2['outcome'] = sdata2['outcome'].map(outcome_binary_map)
+    sdata2['slider_sex'] = sdata2['slider_sex'].map(sex_binary_map)
+    return sdata2
 
 def obtain_variables(data,data_type):
     if data_type == 'symptoms':
@@ -79,7 +108,13 @@ def get_variables_type(data):
             if len(unique_values) == 2 and set(unique_values) == {0, 1}:
                 final_binary_variables.append(column)
             else:
-                final_numeric_variables.append(column)
+                try:
+                    pd.to_numeric(column_data)
+                    final_numeric_variables.append(column)
+                except ValueError as e:
+                    print(f"An error occurred: {e}")
+                    for col_value_i in column_data:
+                        print(col_value_i)
         else:
             unique_values = column_data.unique()
             # Consider column as categorical if it has a few unique values
@@ -158,101 +193,66 @@ def categorical_feature_outcome(data, outcome):
     categorical_results_t = pd.DataFrame(data=categorical_results_t, columns=['Variable', 'Count'])
     return categorical_results, suitable_cat, categorical_results_t
 
-def categorical_feature(data):
-    categoricals, numeric_variables, categorical_variables = get_variables_type(data)
-
-    suitable_cat = []
-
-    categorical_results = []
-    categorical_results_t = []
-    for variable in categoricals: 
-        data_variable=data[[variable]].dropna()
-        category_variable =1
-        data_aux_cat = data_variable.loc[data_variable[variable] == 1]
-        n = len(data_aux_cat)
-        pe = round(100 * (n / len(data_variable)), 1)
-
-        categorical_results_t.append([str(variable) + ': ' + str(category_variable),
-                                      str(n) + ' (' + str(pe) + ')'])  
-    categorical_results_t = pd.DataFrame(data=categorical_results_t, columns=['Variable', 'Count (%)'])
-
-    prefix_dict = {col: col for col in categorical_variables}
-    df_with_dummies = pd.get_dummies(data, columns=categorical_variables, prefix=prefix_dict)
-
-    
-    dummy_columns = [col for col in df_with_dummies.columns if any(prefix in col for prefix in categorical_variables)]
-    df_dummies = df_with_dummies[dummy_columns]
-    for variable in df_dummies: 
-        data_variable=df_dummies[[variable]].dropna()
-        category_variable =1
-        data_aux_cat = data_variable.loc[data_variable[variable] == 1]
-        n = len(data_aux_cat)
-        pe = round(100 * (n / len(data_variable)), 1)
-
-        categorical_results.append([str(variable) + ': ' + str(category_variable),
-                                      str(n) + ' (' + str(pe) + ')'])  
-    categorical_results = pd.DataFrame(data=categorical_results, columns=['Variable', 'Count (%)'])
-    
-    return pd.concat([categorical_results_t,categorical_results])
 
 
 def numeric_outcome_results(data, outcome):    
-    categoricals, numeric_variables, categorical_variables = get_variables_type(data)
-    results = []
-    results_t = []
-    suitable_num = []
-    for variable in numeric_variables: 
-        try:
-            data[variable] = pd.to_numeric(data[variable], errors='coerce')
-            data_variable = data[[variable, outcome]].dropna()
-            data0 = data_variable[variable][data_variable[outcome] == 0]
-            data1 = data_variable[variable][data_variable[outcome] == 1]
-            data_t = data_variable[variable]
-            complete = round((100 * (len(data_variable) / len(data))), 1)
-            if len(data_variable) > 2:
-                stat, p = stats.shapiro(data_variable[variable]) # On the whole variable
+        categoricals, numeric_variables, categorical_variables = get_variables_type(data)
+        results = []
+        results_t = []
+        suitable_num = []
+        for variable in numeric_variables: 
+            try:
+                data[variable] = pd.to_numeric(data[variable], errors='coerce')
+                data_variable = data[[variable, outcome]].dropna()
+                data0 = data_variable[variable][data_variable[outcome] == 0]
+                data1 = data_variable[variable][data_variable[outcome] == 1]
+                data_t = data_variable[variable]
+                complete = round((100 * (len(data_variable) / len(data))), 1)
+                if len(data_variable) > 2:
+                    stat, p = stats.shapiro(data_variable[variable]) # On the whole variable
 
-                alpha = 0.05
-                if p < alpha:
-                    # print('Not normal')
-                    w, p = mannwhitneyu(data0, y=data1, alternative="two-sided")    
+                    alpha = 0.05
+                    if p < alpha:
+                        # print('Not normal')
+                        w, p = mannwhitneyu(data0, y=data1, alternative="two-sided")    
+                    else:
+                        summary, results = rp.ttest(group1=data[variable].loc[data[outcome] == 0], group1_name="0",
+                                                    group2=data[variable].loc[data[outcome] == 1], group2_name="1")    
+                        p = results['results'].loc[3]
+
+                    detail0 = str(round(data0.median(), 1)) + ' (' + str(round(data0.quantile(0.25), 1)) + '-' + str(round(data0.quantile(0.75), 1)) + ')'
+                    detail1 = str(round(data1.median(), 1)) + ' (' + str(round(data1.quantile(0.25), 1)) + '-' + str(round(data1.quantile(0.75), 1)) + ')'
+                    detail_t = str(round(data_t.median(), 1)) + ' (' + str(round(data_t.quantile(0.25), 1)) + '-' + str(round(data_t.quantile(0.75), 1)) + ')'
+                    if p < 0.2:
+                        suitable_num.append(variable)
+                    if p < 0.001:
+                        p = '<0.001'
+                    elif p <= 0.05:
+                        p = str(round(p, 3))   
+                    else:
+                        p = str(round(p, 2))   
+
                 else:
-                    summary, results = rp.ttest(group1=data[variable].loc[data[outcome] == 0], group1_name="0",
-                                                group2=data[variable].loc[data[outcome] == 1], group2_name="1")    
-                    p = results['results'].loc[3]
+                    # results.append([variable, 'Cannot be calculated', 'Conforming Data: ' + str(complete) + '%']) 
+                    detail0 = str(round(data0.mean(), 1)) + ' (' + str(round(data0.std(), 1)) + ')'
+                    detail1 = str(round(data1.mean(), 1)) + ' (' + str(round(data1.std(), 1)) + ')'
+                    detail_t = str(round(data_t.mean(), 1)) + ' (' + str(round(data_t.std(), 1)) + ')'
+                    p = 'N/A'
 
-                detail0 = str(round(data0.median(), 1)) + ' (' + str(round(data0.quantile(0.25), 1)) + '-' + str(round(data0.quantile(0.75), 1)) + ')'
-                detail1 = str(round(data1.median(), 1)) + ' (' + str(round(data1.quantile(0.25), 1)) + '-' + str(round(data1.quantile(0.75), 1)) + ')'
-                detail_t = str(round(data_t.median(), 1)) + ' (' + str(round(data_t.quantile(0.25), 1)) + '-' + str(round(data_t.quantile(0.75), 1)) + ')'
-                if p < 0.2:
-                    suitable_num.append(variable)
-                if p < 0.001:
-                    p = '<0.001'
-                elif p <= 0.05:
-                    p = str(round(p, 3))   
-                else:
-                    p = str(round(p, 2))   
+                results.append([variable, detail1, detail0, detail_t, p])
+                results_t.append([variable, detail_t])
+            except:
+                print(variable)
 
-            else:
-                # results.append([variable, 'Cannot be calculated', 'Conforming Data: ' + str(complete) + '%']) 
-                detail0 = str(round(data0.mean(), 1)) + ' (' + str(round(data0.std(), 1)) + ')'
-                detail1 = str(round(data1.mean(), 1)) + ' (' + str(round(data1.std(), 1)) + ')'
-                detail_t = str(round(data_t.mean(), 1)) + ' (' + str(round(data_t.std(), 1)) + ')'
-                p = 'N/A'
+        column1 = 'Characteristic'
+        column2 = outcome + '=1 (n=' + str(round(data[outcome].sum())) + ')'
+        column3 = outcome + '=0 (n=' + str(round(len(data) - data[outcome].sum())) + ')'
+        column4 = 'All cohort (n=' + str(round(len(data))) + ')'
 
-            results.append([variable, detail1, detail0, detail_t, p])
-            results_t.append([variable, detail_t])
-        except:
-            print(variable)
+        results = pd.DataFrame(data=results, columns=[column1, column2, column3, column4, 'p-value'])
+        results_t = pd.DataFrame(data=results_t, columns=['Variable', 'median(IQR)'])
+        return results, suitable_num, results_t  
 
-    column1 = 'Characteristic'
-    column2 = outcome + '=1 (n=' + str(round(data[outcome].sum())) + ')'
-    column3 = outcome + '=0 (n=' + str(round(len(data) - data[outcome].sum())) + ')'
-    column4 = 'All cohort (n=' + str(round(len(data))) + ')'
-
-    results = pd.DataFrame(data=results, columns=[column1, column2, column3, column4, 'p-value'])
-    results_t = pd.DataFrame(data=results_t, columns=['Variable', 'median(IQR)'])
-    return results, suitable_num, results_t  
 
 def numeric_results(data):    
     categoricals, numeric_variables, categorical_variables = get_variables_type(data)
