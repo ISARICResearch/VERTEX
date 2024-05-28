@@ -123,6 +123,24 @@ def get_variables_type(data):
 
     return final_binary_variables, final_numeric_variables, final_categorical_variables
 
+def categorical_feature(data):
+    categoricals, numeric_variables, categorical_variables = get_variables_type(data)
+
+    suitable_cat = []
+
+    categorical_results = []
+    categorical_results_t = []
+    for variable in categoricals: 
+        data_variable=data[[variable]].dropna()
+        category_variable =1
+        data_aux_cat = data_variable.loc[data_variable[variable] == 1]
+        n = len(data_aux_cat)
+        pe = round(100 * (n / len(data_variable)), 1)
+
+        categorical_results_t.append([str(variable) + ': ' + str(category_variable),
+                                      str(n) + ' (' + str(pe) + ')'])  
+    categorical_results_t = pd.DataFrame(data=categorical_results_t, columns=['Variable', 'Count'])
+    return categorical_results_t
 
 def categorical_feature_outcome(data, outcome):
     categoricals, numeric_variables, categorical_variables = get_variables_type(data)
