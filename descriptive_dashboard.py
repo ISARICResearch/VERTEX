@@ -13,6 +13,7 @@ import IsaricDraw as idw
 import IsaricAnalytics as ia
 import PatientCharacteristics as patChars
 import risk_feature_outcome as risk_fo
+import risk_factors as risk_factors
 #import SymptomsComorbidities as symComor
 #import Treatments as treat
 #import VarScreening as varScr
@@ -119,6 +120,8 @@ def toggle_modal(n,   is_open):
       elif button_id =='{"index":"feature-outcome","type":"open-modal"}':
           return  not is_open, risk_fo.create_modal()
           #return not is_open
+      #elif button_id =='{"index":"risk-factor","type":"open-modal"}':
+      #    return not is_open,risk_factors.create_modal()
       return not is_open,[]
   
   return is_open,[]
@@ -341,6 +344,7 @@ def update_country_display(selected_values, all_options):
 
 patChars.register_callbacks(app,'pc')
 risk_fo.register_callbacks(app,'risk_features')
+risk_factors.register_callbacks(app,'risk_factors')
 #symComor.register_callbacks(app)
 '''treat.register_callbacks(app)'''
 if __name__ == '__main__':
