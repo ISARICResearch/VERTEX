@@ -30,7 +30,6 @@ path_data='C:/Users/egarcia/OneDrive - Nexus365/Projects/ISARIC3.0/Data Analysis
 #################################
 
 
-
 #df_map=pd.read_csv('assets/data/map.csv')
 
 df_map=getRC.read_data_from_REDCAP()
