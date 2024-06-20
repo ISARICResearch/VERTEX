@@ -17,8 +17,8 @@ def read_data_from_REDCAP():
         if ele_var.startswith("study_site"):
           dfs.append(pd.DataFrame([eval(os.environ[ele_var])], columns=['key', 'country_iso', 'site_id']))
     # Concatenate the DataFrames
-    sites = pd.concat(dfs, ignore_index=True)
-    #sites = pd.DataFrame(data=[['7FA9ACD7DAB3B9BF51AE9CE797135EFD','COL','1'],['25689E7C5B69F326B03B864B6FF97729','GBR','2']] ,columns=['key', 'country_iso', 'site_id'])
+    #sites = pd.concat(dfs, ignore_index=True)
+    sites = pd.DataFrame(data=[['7FA9ACD7DAB3B9BF51AE9CE797135EFD','COL','1'],['25689E7C5B69F326B03B864B6FF97729','GBR','2']] ,columns=['key', 'country_iso', 'site_id'])
     complete_data=pd.DataFrame()
     for index, row in sites.iterrows():
         try:
