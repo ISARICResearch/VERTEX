@@ -15,8 +15,10 @@ import PatientCharacteristics as patChars
 import risk_feature_outcome as risk_fo
 import risk_factors as risk_factors
 #import SymptomsComorbidities as symComor
-#import Treatments as treat
+import TreatmentsNew as treat
 #import VarScreening as varScr
+import redcap_config as rc_config
+import genericPanel as genericFuns
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
 
@@ -26,15 +28,154 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_
 
 path_data='C:/Users/egarcia/OneDrive - Nexus365/Projects/ISARIC3.0/Data Analysis/Descriptive Dashboard/assets/data/'
 
+
+site_mapping=rc_config.site_mapping
+redcap_api_key=rc_config.redcap_api_key
+redcap_url=rc_config.redcap_url
+
+requiered_variables=['subjid',
+'dates_enrolment',
+'dates_onsetdate',
+'dates_adm',
+'dates_admdate',
+'demog_sex',
+'demog_age',
+'demog_age_units',
+'demog_height_cm',
+'demog_weight_kg',
+'demog_occupation',
+'demog_occupation_oth',
+'demog_residence',
+'demog_residence_oth',
+'preg_pregnant',
+'comor_chrcardiac',
+'comor_hypertensi',
+'comor_chrpulmona',
+'comor_asthma',
+'comor_chrkidney',
+'comor_obesity',
+'comor_liverdisea_gnrl',
+'comor_hepbc',
+'comor_asplenia',
+'comor_chrneurolo',
+'comor_malignantn',
+'comor_chrhematol',
+'comor_rheumatolo',
+'comor_aids',
+'comor_aids_cd4',
+'comor_diabetes',
+'comor_hba1c',
+'comor_hba1c_units',
+'comor_dementia',
+'comor_tuberculos',
+'comor_malnutriti',
+'comor_smoking',
+'adsym_feverplus',
+'adsym_cough',
+'adsym_shortbreat',
+'adsym_headache',
+'adsym_retroorbit',
+'adsym_seizconv',
+'adsym_restlessne',
+'adsym_fatigue',
+'adsym_myalgia',
+'adsym_arthralgia',
+'adsym_abdpain',
+'adsym_diarrhoea',
+'adsym_vomit',
+'adsym_vomit2d',
+'adsym_anorexia',
+'adsym_skinrash',
+'adsym_haemorrhag_yn',
+'daily_date',
+'daily_care',
+'vital_highesttem',
+'vital_highesttem_units',
+'vital_hr',
+'vital_rr',
+'vital_systolicbp',
+'vital_diastolicbp',
+'vital_spo2',
+'vital_fio2low',
+'vital_fio2spo2',
+'vital_fio2spo2_units',
+'vital_capillaryr',
+'vital_avpu',
+'vital_gcs',
+'vital_urineflow',
+'daily_datalab',
+'labs_haemo',
+'labs_haemo_units',
+'labs_wbccount',
+'labs_lymphocyte',
+'labs_lymphocyte_units',
+'labs_neutrophil',
+'labs_neutrophil_units',
+'labs_hematocrit',
+'labs_hematocrit_units',
+'labs_platelets_109l',
+'labs_aptt',
+'labs_aptr',
+'labs_prothrombin_sec',
+'labs_tqinr',
+'labs_altsgpt',
+'labs_bilirubin',
+'labs_bilirubin_units',
+'labs_astsgot',
+'labs_glucose_mmoll',
+'labs_ggt',
+'labs_ureanitro',
+'labs_ureanitro_units',
+'labs_lactate',
+'labs_lactate_units',
+'labs_creatinine',
+'labs_creatinine_units',
+'labs_sodium_mmoll',
+'labs_potassium_mmoll',
+'labs_procalcito_ngml',
+'labs_crp_mgl',
+'labs_ldh_ul',
+'labs_creatineki_ul',
+'labs_tropi',
+'labs_tropi_units',
+'labs_ddimer_mgl',
+'labs_ferritin_ngml',
+'labs_il6_pgml',
+'labs_fibrinogen',
+'labs_fibrinogen_units',
+'labs_albumin_gl',
+'labs_protein_gl',
+'labs_paco2',
+'labs_paco2_units',
+'labs_ph',
+'labs_hco3',
+'labs_hco3_units',
+'labs_baseexcess',
+'outco_date',
+'outco_outcome']
+
 ##################################
 #################################
 
 
 #df_map=pd.read_csv('assets/data/map.csv')
 
-df_map=getRC.read_data_from_REDCAP()
+#df_map=getRC.read_data_from_REDCAP()
 
-df_map=df_map.dropna()
+
+
+
+
+#site_mapping={'01820':'PAK'}
+
+sections=getRC.getDataSections(redcap_api_key)
+
+vari_list=getRC.getVariableList(redcap_api_key,['dates','demog','comor','daily','outco','labs','vital','adsym','inter','treat'])
+
+#df_map=getRC.get_REDCAP_Single_DB(redcap_url, apis_dengue,site_mapping,vari_list)
+df_map=getRC.get_REDCAP_Single_DB(redcap_url, redcap_api_key,site_mapping,vari_list)
+
+#df_map=df_map.dropna()
 
 '''
 df_map1=df_map.copy().loc[df_map['country_iso'].isin(['COL'])]
@@ -46,9 +187,22 @@ df_map=pd.concat([df_map1,df_map2])'''
 #print(df_map)
 df_map_count=df_map[['country_iso','slider_country','usubjid']].groupby(['country_iso','slider_country']).count().reset_index()
 
-unique_countries = df_map[['slider_country', 'country_iso']].drop_duplicates().sort_values(by='slider_country')
-country_dropdown_options = [{'label': row['slider_country'], 'value': row['country_iso']}
-                    for index, row in unique_countries.iterrows()]
+unique_countries = df_map[['slider_country', 'country_iso']].drop_duplicates().sort_values(by='slider_country').reset_index(drop=True)
+#country_dropdown_options = [{'label': row['slider_country'], 'value': row['country_iso']}
+#                    for index, row in unique_countries.iterrows()]
+#country_dropdown_options = [{'label': row['slider_country'], 'value': row['country_iso']}
+#                            for index,row in unique_countries.iterrows() if row is not None]
+
+
+#country_dropdown_options = [{'label': 'Pakistan', 'value': 'PAK'}, {'label': 'India', 'value': 'IND'},
+#                            {'label': 'Sri Lanka', 'value': 'LKA'},{'label': 'Nepal', 'value': 'NPL'}]
+country_dropdown_options=[]
+for uniq_county in range(len(unique_countries)):
+    name_country=unique_countries['slider_country'].iloc[uniq_county]
+    code_country=unique_countries['country_iso'].iloc[uniq_county]
+    country_dropdown_options.append({'label': name_country, 'value': code_country})
+
+
 #country_dropdown_options = [{'label': 'Colombia', 'value': 'COL'}, {'label': 'United Kingdom', 'value': 'GBR'}]
 
 
@@ -115,12 +269,15 @@ def toggle_modal(n,   is_open):
       button_id = ctx.triggered[0]['prop_id'].split('.')[0]
       print(button_id)
       if button_id =='{"index":"patientChar","type":"open-modal"}':
-          return  not is_open, patChars.create_patient_characteristics_modal()
+          return  not is_open, patChars.create_modal()
       elif button_id =='{"index":"feature-outcome","type":"open-modal"}':
           return  not is_open, risk_fo.create_modal()
-          #return not is_open
-      #elif button_id =='{"index":"risk-factor","type":"open-modal"}':
-      #    return not is_open,risk_factors.create_modal()
+      elif button_id =='{"index":"risk-factor","type":"open-modal"}':
+          return not is_open,risk_factors.create_modal()
+      elif button_id =='{"index":"treat","type":"open-modal"}':
+          return not is_open,treat.create_modal()
+      elif button_id =='{"index":"generic","type":"open-modal"}':
+          return not is_open,genericFuns.create_modal()
       return not is_open,[]
   
   return is_open,[]
@@ -212,7 +369,7 @@ def update_map(genders, age_range, outcomes,countries):
     #df_map['age']=df_map['age'].astype(int)
     df_map['age']=df_map['age'].astype(float)
     #df_map['age']=np.round(df_map['age'])
-    df_map['age']=df_map['age'].astype(int)
+    #df_map['age']=df_map['age'].astype(int)
     filtered_df = df_map[(df_map['slider_sex'].isin(genders))& 
                      (df_map['age'] >= age_range[0]) & 
                      (df_map['age'] <= age_range[1]) & 
@@ -344,6 +501,8 @@ def update_country_display(selected_values, all_options):
 patChars.register_callbacks(app,'pc')
 risk_fo.register_callbacks(app,'risk_features')
 risk_factors.register_callbacks(app,'risk_factors')
+treat.register_callbacks(app,'treat')
+
 #symComor.register_callbacks(app)
 '''treat.register_callbacks(app)'''
 if __name__ == '__main__':

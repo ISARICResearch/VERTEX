@@ -11,7 +11,7 @@ import numpy as np
 import IsaricDraw as idw
 import IsaricAnalytics as ia
 import getREDCapData as getRC
-
+import redcap_config as rc_config
 
 ############################################
 ############################################
@@ -21,19 +21,83 @@ import getREDCapData as getRC
 
 suffix='risk_factors'
 
+
+############################################
+############################################
+## Data reading and initial proccesing 
+############################################
+############################################
+
 countries = [{'label': country.name, 'value': country.alpha_3} for country in pycountry.countries]
 
 #df_map=pd.read_csv('Vertex Dashboard/assets/data/map.csv')
-df_map=getRC.read_data_from_REDCAP()
-df_map=df_map.dropna()
+#df_map=getRC.read_data_from_REDCAP()
+
+###########################
+site_mapping=rc_config.site_mapping
+redcap_api_key=rc_config.redcap_api_key
+redcap_url=rc_config.redcap_url
+
+
+sections=getRC.getDataSections(redcap_api_key)
+
+vari_list=getRC.getVariableList(redcap_api_key,['dates','demog','comor','daily','outco','labs','vital','adsym','inter','treat'])
+
+RF_vari_list=['outco_outcome']+getRC.getVariableList(redcap_api_key,['demog','comor','labs','vital','adsym'])
+
+#df_map=getRC.get_REDCAP_Single_DB(redcap_url, apis_dengue,site_mapping,vari_list)
+df_map=getRC.get_REDCAP_Single_DB(redcap_url, redcap_api_key,site_mapping,vari_list)
+
+#Aqui
+'''
+df_RF=df_map[['age','slider_sex','income','outcome']+list(set(RF_vari_list).intersection(set(df_map.columns)))]
+
+data=ia.remove_columns(df_RF,limit_var=90)
+data=ia.num_imputation_nn(data)
+coef_df,roc_auc,best_C=ia.lasso_rf(data,outcome_var='outcome')
+'''
+
+#########################################
+########################################
+
+data = {
+    'Feature': ['Age', 'Diabetes', 'Hypertension', 'Cardiovascular_Disease', 
+                'Chronic_Respiratory_Disease', 'Cancer', 'Renal_Disease', 'Obesity'],
+    'Coefficient': [0.012, 1.235, 1.432, 1.765, 0.812, 1.125, 1.432, 0.589],
+    'Odds Ratio': [1.012, 3.439, 4.187, 5.843, 2.253, 3.080, 4.187, 1.802],
+    'CI Lower 95%': [1.002, 2.453, 3.276, 4.192, 1.678, 2.143, 3.276, 1.307],
+    'CI Upper 95%': [1.023, 4.832, 5.360, 8.142, 3.024, 4.424, 5.360, 2.482],
+    'P-value': ['0.041', '<0.005', '<0.005', '<0.005', '0.027', '<0.005', '<0.005', '0.049']
+}
+
+# Convert to DataFrame
+coef_df = pd.DataFrame(data)
+
+fig_table_coef_df=idw.table(coef_df)
+########################################
+
+##############
+
+###########################
+
+#df_map=getRC.get_REDCAP_Single_DB(redcap_url, redcap_api_key,site_mapping,requiered_variables)
+#df_map=df_map.dropna()
 df_map_count=df_map[['country_iso','slider_country','usubjid']].groupby(['country_iso','slider_country']).count().reset_index()
 unique_countries = df_map[['slider_country', 'country_iso']].drop_duplicates().sort_values(by='slider_country')
-country_dropdown_options = [{'label': row['slider_country'], 'value': row['country_iso']}
-                    for index, row in unique_countries.iterrows()]
+country_dropdown_options=[]
+for uniq_county in range(len(unique_countries)):
+    name_country=unique_countries['slider_country'].iloc[uniq_county]
+    code_country=unique_countries['country_iso'].iloc[uniq_county]
+    country_dropdown_options.append({'label': name_country, 'value': code_country})
 bins = [0, 6, 11, 16, 21, 26, 31, 36, 41, 46, 51, 56, 61, 66, 71, 76, 81, 86, 91, 96, 101]
 labels = ['0-5', '6-10', '11-15', '16-20', '21-25', '26-30', '31-35', '36-40', '41-45', '46-50', '51-55', '56-60', '61-65', '66-70', '71-75', '76-80', '81-85', '86-90', '91-95', '96-100']
 df_map['age_group'] = pd.cut(df_map['age'], bins=bins, labels=labels, right=False)
+
+
 df_map['mapped_outcome'] = df_map['outcome']
+
+df_age_gender=df_map[['age_group','usubjid','mapped_outcome','slider_sex']].groupby(['age_group','mapped_outcome','slider_sex']).count().reset_index()
+df_age_gender.rename(columns={'slider_sex': 'side', 'mapped_outcome': 'stack_group', 'usubjid': 'value', 'age_group': 'y_axis'}, inplace=True)
 
 
 
@@ -62,22 +126,7 @@ def create_modal():
 
     color_map = {'Discharge': '#00C26F', 'Censored': '#FFF500', 'Death': '#DF0069'}
 
-    ## Proccessing
 
-    
-    
-    risk_df=ia.risk_preprocessing(df_map)
-
-    feature_importances,accuracy,roc,optimal_threshold,combined_df=ia.binary_model1(risk_df,risk_df.columns,'outcome')
-    
-    categorical_results, suitable_cat, categorical_results_t=ia.categorical_feature_outcome(risk_df,'outcome')
-    fig_table_categorical=idw.table(categorical_results)
-
-    results, suitable_num, results_t =ia.numeric_outcome_results(risk_df,'outcome')
-    print(results)
-    fig_table_numerical=idw.table(results)
-    
-    fig_table_symp=idw.fig_placeholder()
     modal = [
         dbc.ModalHeader(html.H3("Clinical Features", id="line-graph-modal-title", style={"fontSize": "2vmin", "fontWeight": "bold"})),  
 
@@ -91,8 +140,9 @@ def create_modal():
                     title="Insights",  
                     children=[
                         dbc.Tabs([
-                            dbc.Tab(dbc.Row([dbc.Col([fig_table_categorical],id='fig_table_cat_risk')]), label='Categorical variables description by outcome'),
-                            dbc.Tab(dbc.Row([dbc.Col([fig_table_numerical],id='fig_table_num_risk')]), label='Continuous variables description by outcome'),
+                            #dbc.Tab(dbc.Row([dbc.Col([fig_table_categorical],id='fig_table_cat_risk')]), label='Categorical variables description by outcome'),
+                            #dbc.Tab(dbc.Row([dbc.Col([fig_table_numerical],id='fig_table_num_risk')]), label='Continuous variables description by outcome'),
+                            dbc.Tab(dbc.Row([dbc.Col([fig_table_coef_df],id='table_symo')]), label='Risk Factors'),
                             ##Add more tabs if needed
                         ])
                     ]

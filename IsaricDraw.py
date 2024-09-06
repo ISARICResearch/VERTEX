@@ -10,6 +10,9 @@ import plotly.graph_objs as go
 import itertools
 from plotly.subplots import make_subplots
 from collections import OrderedDict
+from scipy.cluster.hierarchy import linkage
+import plotly.figure_factory as ff
+
 
 default_height=430
 
@@ -165,28 +168,8 @@ def ModalFooter(suffix,instructions,about):
     return footer
 
 
-def define_menu(country_dropdown_options):
-
-
-  patient_char_btn=dbc.Button("Clinical Features", id={"type": "open-modal", "index": "patientChar"}, className="mb-2", style={'width': '100%'})
-  
-  symptoms_btn=dbc.Button("Symptoms and Comorbidities", id={"type": "open-modal", "index": "symptoms"}, className="mb-2", style={'width': '100%'})
-  
-  feature_outcome_btn=dbc.Button("Clinical features by patient outcome", id={"type": "open-modal", "index": "feature-outcome"}, className="mb-2", style={'width': '100%'})
-  
-  risk_factor_btn=dbc.Button("Risk factors for patient outcomes", id={"type": "open-modal", "index": "risk-factor"}, className="mb-2", style={'width': '100%'})
-  
-  initial_modal=dbc.Modal(
-      id="modal",
-      children=[dbc.ModalBody("Initial content")],  # Placeholder content
-      is_open=False,
-      size='xl'
-  )
-  characterization_children=[patient_char_btn,initial_modal]
-  risk_children=[feature_outcome_btn,risk_factor_btn,initial_modal]
-  
-  return dbc.Accordion([
-      dbc.AccordionItem(
+def filters_and_controls_base_AccordionItem(country_dropdown_options):
+    return dbc.AccordionItem(
           title="Filters and Controls",
           children=[
 
@@ -247,10 +230,74 @@ def define_menu(country_dropdown_options):
               ]),
 
           ],
+      )
+
+
+
+
+
+
+def define_menu(country_dropdown_options):
+
+
+  generic_btn=dbc.Button("Generic Panel", id={"type": "open-modal", "index": "generic"}, className="mb-2", style={'width': '100%'})
+
+  patient_char_btn=dbc.Button("Clinical Features", id={"type": "open-modal", "index": "patientChar"}, className="mb-2", style={'width': '100%'})
+  
+  symptoms_btn=dbc.Button("Symptoms and Comorbidities", id={"type": "open-modal", "index": "symptoms"}, className="mb-2", style={'width': '100%'})
+  
+  feature_outcome_btn=dbc.Button("Clinical features by patient outcome", id={"type": "open-modal", "index": "feature-outcome"}, className="mb-2", style={'width': '100%'})
+  
+  risk_factor_btn=dbc.Button("Risk factors for patient outcomes", id={"type": "open-modal", "index": "risk-factor"}, className="mb-2", style={'width': '100%'})
+  
+  treatments_btn=dbc.Button("Treatments", id={"type": "open-modal", "index": "treat"}, className="mb-2", style={'width': '100%'})
+
+  initial_modal=dbc.Modal(
+      id="modal",
+      children=[dbc.ModalBody("Initial content")],  # Placeholder content
+      is_open=False,
+      size='xl'
+  )
+  characterization_children=[patient_char_btn,initial_modal]
+  #risk_children=[feature_outcome_btn,risk_factor_btn,initial_modal]
+  risk_children=[feature_outcome_btn,risk_factor_btn]
+  treat_children=[treatments_btn]
+  #risk_children=[]
+
+  buttons=[["Characterization","Clinical Features","patientChar"],
+      ["Characterization","Symptoms and Comorbidities","symptoms"],
+      ["Treatments","Treatments","symptoms"],
+      ["Risk/Prognosis" ,"Clinical features by patient outcome","feature-outcome"],
+      ["Risk/Prognosis" ,"Risk factors for patient outcomes","treat"]]
+  
+  menu=pd.DataFrame(data=buttons,columns=['Item','Label','Index'])
+
+  menu_items=[filters_and_controls_base_AccordionItem(country_dropdown_options)]
+  for item in menu['Item'].unique() :
+      item_children=[]
+      for index,row in menu.loc[menu['Item']==item].iterrows():
+          item_children.append(dbc.Button(row['Label'], id={"type": "open-modal", "index": row['Index']}, className="mb-2", style={'width': '100%'}))
+      menu_items.append(dbc.AccordionItem(
+        title=item ,
+        children=item_children
+      ))
+          
+  return dbc.Accordion([
+    
+    filters_and_controls_base_AccordionItem(country_dropdown_options),
+
+    dbc.AccordionItem(
+        title="Examples"  ,
+        children=[generic_btn]
       ),
       dbc.AccordionItem(
         title="Characterization"  ,
         children=characterization_children
+      ),
+
+    dbc.AccordionItem(
+        title="Treatments"  ,
+        children=treat_children,
       ),
 
     dbc.AccordionItem(
@@ -296,14 +343,17 @@ def hex_to_rgba(hex_color, opacity):
     return 'rgba(' + ', '.join(str(int(hex_color[i:i+hlen//3], 16)) for i in range(0, hlen, hlen//3)) + f', {opacity})'
 
 
-def fig_placeholder():
+def fig_placeholder(graph_id):
     x = [1, 2, 3, 4, 5]
     y = [10, 14, 12, 15, 13]
     fig = go.Figure(data=go.Scatter(x=x, y=y, mode='markers', marker=dict(size=10, color='blue')))
     fig.update_layout(title='Sample Scatter Plot',
                       xaxis_title='X Axis',
                       yaxis_title='Y Axis')
-    return fig
+    return dcc.Graph(
+        id=graph_id,
+        figure=fig
+    )
 
 def compute_intersections(dataframe):
     # Find all combinations of categories and their intersection sizes
@@ -458,8 +508,7 @@ def cumulative_bar_chart(dataframe, title='Cumulative Bar by Timepoint', base_co
 
 def dual_stack_pyramid(dataframe, title='Dual-Sided Stacked Pyramid Chart', base_color_map=None, graph_id='stacked-bar-chart'):
     
-    left_side_label = dataframe['side'].unique()[0]
-    right_side_label = dataframe['side'].unique()[1]
+    dataframe=dataframe.loc[dataframe['side']!= "Not specified/Unknown"]
     # Error Handling
     required_columns = {'y_axis', 'side', 'stack_group', 'value'}
     if not required_columns.issubset(dataframe.columns):
@@ -467,7 +516,17 @@ def dual_stack_pyramid(dataframe, title='Dual-Sided Stacked Pyramid Chart', base
     if dataframe.empty:
         raise ValueError("The DataFrame is empty.")
     if len(dataframe['side'].unique()) != 2:
-        raise ValueError("The DataFrame must have exactly two unique values for the 'side' column.")
+        return dcc.Graph(
+        id=graph_id,
+        figure={}
+    )
+        #raise ValueError("The DataFrame must have exactly two unique values for the 'side' column.")
+      
+
+
+    left_side_label = dataframe['side'].unique()[0]
+    right_side_label = dataframe['side'].unique()[1]
+
 
     # Dynamic Color Mapping
     if base_color_map is not None and not isinstance(base_color_map, dict):
@@ -632,7 +691,7 @@ def age_group_boxplot(dataframe, title='Hospital Stay Length by Age Group', grap
 def frequency_chart(dataframe, title='Frequency Chart', base_color_map=None, graph_id='freq-chart', labels=['Condition', 'Proportion']):
     
     dataframe=dataframe.sort_values(by=['Proportion'], ascending=False)
-    if len(dataframe)>10:
+    if len(dataframe)>15:
         dataframe = dataframe.head(10)
 
     # Error Handling
@@ -752,7 +811,133 @@ def table(df):
         figure=fig
     )
 
+def heatmap (df1,df2,title,graph_id) :
+    
+    xcolumn = df1.columns
+    ycolumn = df2.columns
+    
+    # Empty frequency matrix
+    frequency_matrix = pd.DataFrame(index=xcolumn, columns=ycolumn, data=0)
+    
+    # Fill frequency matrix with count of co-occurrences
+    for x_col in xcolumn:
+        for y_col in ycolumn:
+            frequency_matrix.loc[x_col, y_col] = ((df1[x_col] == 1) & (df2[y_col] == 1)).sum()
+    
+    # Map labels
+    #label_map = labels_df.set_index(original_column)[label_column].to_dict()
+    
+    # Replace column names
+  # frequency_matrix.columns = [label_map.get(col, col) for col in frequency_matrix.columns]
+   # frequency_matrix.index = [label_map.get(col, col) for col in frequency_matrix.index]
+    
+    # Create linkage matrices for dendrograms
+    linkage_rows = linkage(frequency_matrix.values, method='average', metric='euclidean')
+    linkage_cols = linkage(frequency_matrix.values.T, method='average', metric='euclidean')
+    
+    # Create Dendrograms
+    dendro_side = ff.create_dendrogram(frequency_matrix.values, orientation='right',
+                                       labels=frequency_matrix.index.tolist(), linkagefun=lambda x: linkage_rows)
+    dendro_top = ff.create_dendrogram(frequency_matrix.values.T, orientation='bottom',
+                                      labels=frequency_matrix.columns.tolist(), linkagefun=lambda x: linkage_cols)
+    
+    # Remove labels from dendrograms
+    for trace in dendro_top['data']:
+        trace['showlegend'] = False
+        trace['hoverinfo'] = 'none'
+        if trace['text'] is not None:
+            trace['text'] = [''] * len(trace['text'])
+    
+    for trace in dendro_side['data']:
+        trace['showlegend'] = False
+        trace['hoverinfo'] = 'none'
+        if trace['text'] is not None:
+            trace['text'] = [''] * len(trace['text'])
+    
+    # Reorder data according to the dendrogram leaves
+    dendro_leaves_rows = dendro_side['layout']['yaxis']['ticktext']
+    dendro_leaves_cols = dendro_top['layout']['xaxis']['ticktext']
+    frequency_matrix = frequency_matrix.loc[dendro_leaves_rows, dendro_leaves_cols]
+    
+    # Create Heatmap
+    heatmap = go.Heatmap(
+        z=frequency_matrix.values,
+        x=dendro_leaves_cols,
+        y=dendro_leaves_rows,
+        colorscale='jet',
+        showscale=True,
+        colorbar=dict(showticklabels = True,
+                      title ='Frequency',
+            x=0.08,  
+            xanchor='left',
+            y=0.85,
+            yanchor='middle',
+            len = 0.36,
+            lenmode='fraction',
+            thickness=10,
+            thicknessmode='pixels',
+        )
+    )
+    
+    # Combine heatmap and dendrograms using subplots
+    fig = make_subplots(
+        rows=2, cols=2,
+        column_widths=[0.4, 0.8], row_heights=[0.4, 0.8],
+        specs=[[{'type': 'xy'}, {'type': 'xy'}],
+               [{'type': 'xy'}, {'type': 'heatmap'}]],
+        horizontal_spacing=0, vertical_spacing=0
+    )
+    
+    # Add Dendrogram data
+    for trace in dendro_top['data']:
+        fig.add_trace(trace, row=1, col=2)
+    
+    for trace in dendro_side['data']:
+        fig.add_trace(trace, row=2, col=1)
+        
+        
+    # Add Heatmap data
+    fig.add_trace(heatmap, row=2, col=2)
+    
+    # Update Layout
+    fig.update_layout({
+        'width': 800,
+        'height': 800,
+        'showlegend': True,
+        'hovermode': 'closest',
+        'title': title
+    })
+    
+    # Hide axes on the dendrograms
+    fig.update_xaxes(showgrid=False, zeroline=False, showline=False, showticklabels=False, ticks="", row=1, col=2)
+    fig.update_yaxes(showgrid=False, zeroline=False, showline=False, showticklabels=False, ticks="", row=2, col=1)
+    
+    fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+    
+    # Update xaxis
+    fig.update_xaxes(domain=[0.3, 1], row=2, col=2)
+    fig.update_xaxes(domain=[0.3, 1], row=1, col=2)
+    
+    # Update yaxis
+    fig.update_yaxes(domain=[0, 0.7], row=2, col=2)
+    fig.update_yaxes(domain=[0, 0.7], row=2, col=1)
+    
+    # Show tick labels for y-axis on the right side
+    fig.update_yaxes(showticklabels=False, row=2, col=1)
+    fig.update_yaxes(showticklabels=True, side='right', row=2, col=2)
+    
+    # Hide tick labels for top dendrogram
+    fig.update_xaxes(showticklabels=False, row=1, col=2)
+    
+    #Legend update
+    fig.update_layout(showlegend=True)
+ 
+    return dcc.Graph(
+        id=graph_id,
+        figure=fig
+    )
 
+'''
 def forest_plot(dataframe, title='Forest Plot', labels=['Variable', 'Odds Ratio'], graph_id='forest-plot'):
     dataframe = dataframe.sort_values(by='Odds Ratio', ascending=False)
     #dataframe=dataframe.loc[dataframe['P-Value']<=0.2]
@@ -805,4 +990,4 @@ def forest_plot(dataframe, title='Forest Plot', labels=['Variable', 'Odds Ratio'
     return dcc.Graph(
         id=graph_id,
         figure={'data': data, 'layout': layout}
-    )
+    )'''
