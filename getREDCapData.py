@@ -220,16 +220,18 @@ def get_REDCAP_Single_DB(redcap_url,redcap_api_key,site_mapping,requiered_variab
     form2=pd.merge(form2,dates,on='subjid',how='left')
     
     # Ensure both columns are in datetime format
-    form2['daily_date'] = pd.to_datetime(form2['daily_date'])
-    form2['dates_admdate'] = pd.to_datetime(form2['dates_admdate'])
+    form2['daily_date'] = pd.to_datetime(form2['daily_date'], errors='coerce')
+
+  
+    form2['dates_admdate'] = pd.to_datetime(form2['dates_admdate'], errors='coerce')
     
     # Calculate the difference in days and create a new column
     form2['relative_day'] = (form2['daily_date'] - form2['dates_admdate']).dt.days
 
     form3=pd.merge(form3,dates,on='subjid',how='left')
     # Ensure both columns are in datetime format
-    form3['outco_date'] = pd.to_datetime(form3['outco_date'])
-    form3['dates_admdate'] = pd.to_datetime(form3['dates_admdate'])
+    form3['outco_date'] = pd.to_datetime(form3['outco_date'], errors='coerce')
+    form3['dates_admdate'] = pd.to_datetime(form3['dates_admdate'], errors='coerce')
     
     # Calculate the difference in days and create a new column
     form3['outcome_day'] = (form3['outco_date'] - form3['dates_admdate']).dt.days
@@ -279,7 +281,10 @@ def get_REDCAP_Single_DB(redcap_url,redcap_api_key,site_mapping,requiered_variab
     df_encoded = pd.get_dummies(df_converted, columns=[col for col in variables_categoricas if col in df_converted.columns], prefix_sep='@')        
     dummy_columns = [col for col in df_encoded.columns if any(cat in col for cat in variables_categoricas)]
     remove_dummy_columns = [element for element in dummy_columns if  (element.endswith('@No') or element.endswith('@no') or element.endswith('@NO') or element.endswith('@Never smoked'))]
-    df_encoded[dummy_columns] = df_encoded[dummy_columns].astype(int)
+    #df_encoded[dummy_columns] = df_encoded[dummy_columns].astype(int)
+    for d_c in dummy_columns:
+        df_encoded[d_c] = pd.to_numeric(df_encoded[d_c], errors='coerce')
+
 
 
    
@@ -294,7 +299,10 @@ def get_REDCAP_Single_DB(redcap_url,redcap_api_key,site_mapping,requiered_variab
                         'outcome_original':'outcome'}, inplace=True)    
     df_encoded=df_encoded.drop(columns=remove_dummy_columns)
 
-    df_encoded=df_encoded.drop(columns=['comor_hba1c'])
+    try:
+        df_encoded=df_encoded.drop(columns=['comor_hba1c'])
+    except:
+        pass
 
     '''rename_df=dd[['field_name','field_label']]
     # Splitting the column by '_'

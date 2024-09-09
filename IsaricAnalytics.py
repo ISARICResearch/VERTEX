@@ -100,7 +100,10 @@ def mapOutcomes(df):
     return df
 
 def harmonizeAge(df):
-    df['demog_age']=df['demog_age'].astype(float)
+    #df['demog_age']=df['demog_age'].astype(float)
+    df['demog_age'] = pd.to_numeric(df['demog_age'], errors='coerce')
+
+    
     df['demog_age'].loc[df['demog_age_units'] == 'Months'] = df['demog_age'] / 12
     df['demog_age'].loc[df['demog_age_units'] == 'Days'] = df['demog_age']/ 365
     df['demog_age_units'] = 'Years'  # Standardize the units to 'Years'
