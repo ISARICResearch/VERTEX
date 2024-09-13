@@ -237,9 +237,15 @@ def filters_and_controls_base_AccordionItem(country_dropdown_options):
 
 
 
-def define_menu(country_dropdown_options):
+def define_menu(buttons,country_dropdown_options):
+  initial_modal=dbc.Modal(
+      id="modal",
+      children=[dbc.ModalBody("Initial content")],  # Placeholder content
+      is_open=False,
+      size='xl'
+  )
 
-
+  '''
   generic_btn=dbc.Button("Generic Panel", id={"type": "open-modal", "index": "generic"}, className="mb-2", style={'width': '100%'})
 
   patient_char_btn=dbc.Button("Clinical Features", id={"type": "open-modal", "index": "patientChar"}, className="mb-2", style={'width': '100%'})
@@ -251,38 +257,33 @@ def define_menu(country_dropdown_options):
   risk_factor_btn=dbc.Button("Risk factors for patient outcomes", id={"type": "open-modal", "index": "risk-factor"}, className="mb-2", style={'width': '100%'})
   
   treatments_btn=dbc.Button("Treatments", id={"type": "open-modal", "index": "treat"}, className="mb-2", style={'width': '100%'})
-
-  initial_modal=dbc.Modal(
-      id="modal",
-      children=[dbc.ModalBody("Initial content")],  # Placeholder content
-      is_open=False,
-      size='xl'
-  )
   characterization_children=[patient_char_btn,initial_modal]
   #risk_children=[feature_outcome_btn,risk_factor_btn,initial_modal]
   risk_children=[feature_outcome_btn,risk_factor_btn]
   treat_children=[treatments_btn]
   #risk_children=[]
+  '''
 
-  buttons=[["Characterization","Clinical Features","patientChar"],
-      ["Characterization","Symptoms and Comorbidities","symptoms"],
-      ["Treatments","Treatments","symptoms"],
-      ["Risk/Prognosis" ,"Clinical features by patient outcome","feature-outcome"],
-      ["Risk/Prognosis" ,"Risk factors for patient outcomes","treat"]]
   
   menu=pd.DataFrame(data=buttons,columns=['Item','Label','Index'])
 
   menu_items=[filters_and_controls_base_AccordionItem(country_dropdown_options)]
+  cont=0
   for item in menu['Item'].unique() :
-      item_children=[]
+      if cont==0:
+            item_children=[initial_modal]
+      else:
+            item_children=[]
+      cont+=1
       for index,row in menu.loc[menu['Item']==item].iterrows():
           item_children.append(dbc.Button(row['Label'], id={"type": "open-modal", "index": row['Index']}, className="mb-2", style={'width': '100%'}))
       menu_items.append(dbc.AccordionItem(
         title=item ,
         children=item_children
       ))
+  return dbc.Accordion(menu_items,start_collapsed=True, style={'width': '300px','position': 'fixed', 'bottom': 0, 'left': 0, 'z-index': 1000, 'background-color': 'rgba(255, 255, 255, 0.8)', 'padding': '10px'})
           
-  return dbc.Accordion([
+'''  return dbc.Accordion([
     
     filters_and_controls_base_AccordionItem(country_dropdown_options),
 
@@ -306,6 +307,7 @@ def define_menu(country_dropdown_options):
     ),
 
   ], start_collapsed=True, style={'width': '300px','position': 'fixed', 'bottom': 0, 'left': 0, 'z-index': 1000, 'background-color': 'rgba(255, 255, 255, 0.8)', 'padding': '10px'})
+'''
 
 def hex_to_rgb(hex_color):
     """ Convert a hex color to an RGB tuple. """
@@ -508,7 +510,7 @@ def cumulative_bar_chart(dataframe, title='Cumulative Bar by Timepoint', base_co
 
 def dual_stack_pyramid(dataframe, title='Dual-Sided Stacked Pyramid Chart', base_color_map=None, graph_id='stacked-bar-chart'):
     
-    dataframe=dataframe.loc[dataframe['side']!= "Not specified/Unknown"]
+    dataframe=dataframe.loc[dataframe['side'].isin(['Female', 'Male']) ]
     # Error Handling
     required_columns = {'y_axis', 'side', 'stack_group', 'value'}
     if not required_columns.issubset(dataframe.columns):

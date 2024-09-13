@@ -5,18 +5,15 @@ from scipy.stats import chi2_contingency
 import scipy.stats as stats
 from scipy.stats import mannwhitneyu
 import researchpy as rp
-from sklearn.metrics import roc_auc_score
-from sklearn.metrics import roc_curve
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import roc_auc_score, roc_curve, accuracy_score
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.linear_model import LogisticRegression
+from sklearn.impute import KNNImputer
+
 import re
 import xgboost as xgb
 import numpy as np
-from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.linear_model import LogisticRegression
-from sklearn.preprocessing import StandardScaler
-from sklearn.impute import KNNImputer
-
 
 
 def risk_preprocessing(data):
@@ -44,6 +41,7 @@ def risk_preprocessing(data):
     return sdata2
 
 def obtain_variables(data,data_type):
+    prefix=''
     if data_type == 'symptoms':
         prefix='adsym_'
     elif data_type == 'comorbidities':
@@ -62,12 +60,14 @@ def obtain_variables(data,data_type):
     
 
 def get_proportions(data,data_type):
+    prefix=''
     if data_type == 'symptoms':
         prefix='adsym_'
     elif data_type == 'comorbidities':
         prefix='comor_'
     elif data_type == 'treatments':
         prefix='treat_'
+    
     variables=[]
 
     for i in data:
@@ -98,6 +98,14 @@ def mapOutcomes(df):
     df['outco_outcome'] = df['outco_outcome'].map(mapping_dict)
 
     return df
+
+def remove_MissingDataCodes(df):
+    MissingDataCodes = ['Unknown', 'No information', 'Not asked', 'Not applicable']
+    df.replace('', np.nan, inplace=True)
+    df.replace(MissingDataCodes, np.nan, inplace=True)
+
+    return df
+
 
 def harmonizeAge(df):
     #df['demog_age']=df['demog_age'].astype(float)
@@ -228,11 +236,14 @@ def categorical_feature(data,categoricals):
         data_variable=data[[variable]].dropna()
         category_variable =1
         data_aux_cat = data_variable.loc[data_variable[variable] == 1]
-        n = len(data_aux_cat)
-        pe = round(100 * (n / len(data_variable)), 1)
-
-        categorical_results_t.append([str(variable) + ': ' + str(category_variable),
+        try:
+            n = len(data_aux_cat)
+            pe = round(100 * (n / len(data_variable)), 1)
+            categorical_results_t.append([str(variable) + ': ' + str(category_variable),
                                       str(n) + ' (' + str(pe) + ')'])  
+        except:
+            print(variable)
+
     categorical_results_t = pd.DataFrame(data=categorical_results_t, columns=['Variable', 'Count'])
     return categorical_results_t
 

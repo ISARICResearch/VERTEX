@@ -174,6 +174,8 @@ def get_REDCAP_Single_DB(redcap_url,redcap_api_key,site_mapping,requiered_variab
         events.append(i['redcap_event_name'])
     events=list(set(events))
     
+    
+
     form1=[]
     form2=[]
     form3=[]
@@ -188,9 +190,11 @@ def get_REDCAP_Single_DB(redcap_url,redcap_api_key,site_mapping,requiered_variab
     form1=pd.DataFrame(form1)
     form2=pd.DataFrame(form2)
     form3=pd.DataFrame(form3)
-    form1.replace('', np.nan, inplace=True)
-    form2.replace('', np.nan, inplace=True)
-    form3.replace('', np.nan, inplace=True)
+    form1=ia.remove_MissingDataCodes(form1)
+    form2=ia.remove_MissingDataCodes(form2)
+    form3=ia.remove_MissingDataCodes(form3)
+
+
     
     #form1=form1[requiered_variables]
     #form2=form2[requiered_variables]

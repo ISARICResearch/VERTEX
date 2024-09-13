@@ -19,6 +19,10 @@ import TreatmentsNew as treat
 #import VarScreening as varScr
 import redcap_config as rc_config
 import genericPanel as genericFuns
+import ClinicalPresentation_Demographics as demogra
+import ClinicalPresentation_Comorbidities as comorbid
+import ClinicalPresentation_Signs as signs
+import AdministeredTreatments_Treatments as treatments
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
 
@@ -33,140 +37,23 @@ site_mapping=rc_config.site_mapping
 redcap_api_key=rc_config.redcap_api_key
 redcap_url=rc_config.redcap_url
 
-requiered_variables=['subjid',
-'dates_enrolment',
-'dates_onsetdate',
-'dates_adm',
-'dates_admdate',
-'demog_sex',
-'demog_age',
-'demog_age_units',
-'demog_height_cm',
-'demog_weight_kg',
-'demog_occupation',
-'demog_occupation_oth',
-'demog_residence',
-'demog_residence_oth',
-'preg_pregnant',
-'comor_chrcardiac',
-'comor_hypertensi',
-'comor_chrpulmona',
-'comor_asthma',
-'comor_chrkidney',
-'comor_obesity',
-'comor_liverdisea_gnrl',
-'comor_hepbc',
-'comor_asplenia',
-'comor_chrneurolo',
-'comor_malignantn',
-'comor_chrhematol',
-'comor_rheumatolo',
-'comor_aids',
-'comor_aids_cd4',
-'comor_diabetes',
-'comor_hba1c',
-'comor_hba1c_units',
-'comor_dementia',
-'comor_tuberculos',
-'comor_malnutriti',
-'comor_smoking',
-'adsym_feverplus',
-'adsym_cough',
-'adsym_shortbreat',
-'adsym_headache',
-'adsym_retroorbit',
-'adsym_seizconv',
-'adsym_restlessne',
-'adsym_fatigue',
-'adsym_myalgia',
-'adsym_arthralgia',
-'adsym_abdpain',
-'adsym_diarrhoea',
-'adsym_vomit',
-'adsym_vomit2d',
-'adsym_anorexia',
-'adsym_skinrash',
-'adsym_haemorrhag_yn',
-'daily_date',
-'daily_care',
-'vital_highesttem',
-'vital_highesttem_units',
-'vital_hr',
-'vital_rr',
-'vital_systolicbp',
-'vital_diastolicbp',
-'vital_spo2',
-'vital_fio2low',
-'vital_fio2spo2',
-'vital_fio2spo2_units',
-'vital_capillaryr',
-'vital_avpu',
-'vital_gcs',
-'vital_urineflow',
-'daily_datalab',
-'labs_haemo',
-'labs_haemo_units',
-'labs_wbccount',
-'labs_lymphocyte',
-'labs_lymphocyte_units',
-'labs_neutrophil',
-'labs_neutrophil_units',
-'labs_hematocrit',
-'labs_hematocrit_units',
-'labs_platelets_109l',
-'labs_aptt',
-'labs_aptr',
-'labs_prothrombin_sec',
-'labs_tqinr',
-'labs_altsgpt',
-'labs_bilirubin',
-'labs_bilirubin_units',
-'labs_astsgot',
-'labs_glucose_mmoll',
-'labs_ggt',
-'labs_ureanitro',
-'labs_ureanitro_units',
-'labs_lactate',
-'labs_lactate_units',
-'labs_creatinine',
-'labs_creatinine_units',
-'labs_sodium_mmoll',
-'labs_potassium_mmoll',
-'labs_procalcito_ngml',
-'labs_crp_mgl',
-'labs_ldh_ul',
-'labs_creatineki_ul',
-'labs_tropi',
-'labs_tropi_units',
-'labs_ddimer_mgl',
-'labs_ferritin_ngml',
-'labs_il6_pgml',
-'labs_fibrinogen',
-'labs_fibrinogen_units',
-'labs_albumin_gl',
-'labs_protein_gl',
-'labs_paco2',
-'labs_paco2_units',
-'labs_ph',
-'labs_hco3',
-'labs_hco3_units',
-'labs_baseexcess',
-'outco_date',
-'outco_outcome']
+buttons=[
+    ['Examples','Generic Panel','generic'],
+    ["Clinical Presentation","Demographics","demogra"],
+    ["Clinical Presentation","Comorbidities","comorbid"],
+    ["Clinical Presentation","Signs and Symptoms","signs"],
+    ["Administered Treatments","Treatments","treatments"],
+    #["Clinical Presentation","Signs and Symptoms","patientChar"],
+    #["Characterization","Symptoms and Comorbidities","symptoms"],
+    #["Treatments","Treatments","symptoms"],
+    #["Risk/Prognosis" ,"Clinical features by patient outcome","feature-outcome"],
+    #["Risk/Prognosis" ,"Risk factors for patient outcomes","treat"]
+    ]
 
 ##################################
 #################################
 
 
-#df_map=pd.read_csv('assets/data/map.csv')
-
-#df_map=getRC.read_data_from_REDCAP()
-
-
-
-
-
-#site_mapping={'01820':'PAK'}
 
 sections=getRC.getDataSections(redcap_api_key)
 
@@ -175,27 +62,11 @@ vari_list=getRC.getVariableList(redcap_api_key,['dates','demog','comor','daily',
 #df_map=getRC.get_REDCAP_Single_DB(redcap_url, apis_dengue,site_mapping,vari_list)
 df_map=getRC.get_REDCAP_Single_DB(redcap_url, redcap_api_key,site_mapping,vari_list)
 
-#df_map=df_map.dropna()
 
-'''
-df_map1=df_map.copy().loc[df_map['country_iso'].isin(['COL'])]
-df_map1=df_map1.sample(100)
-df_map2=df_map.copy().loc[df_map['country_iso'].isin(['GBR'])]
-df_map2=df_map2.sample(100)
-df_map=pd.concat([df_map1,df_map2])'''
-
-#print(df_map)
 df_map_count=df_map[['country_iso','slider_country','usubjid']].groupby(['country_iso','slider_country']).count().reset_index()
 
 unique_countries = df_map[['slider_country', 'country_iso']].drop_duplicates().sort_values(by='slider_country').reset_index(drop=True)
-#country_dropdown_options = [{'label': row['slider_country'], 'value': row['country_iso']}
-#                    for index, row in unique_countries.iterrows()]
-#country_dropdown_options = [{'label': row['slider_country'], 'value': row['country_iso']}
-#                            for index,row in unique_countries.iterrows() if row is not None]
 
-
-#country_dropdown_options = [{'label': 'Pakistan', 'value': 'PAK'}, {'label': 'India', 'value': 'IND'},
-#                            {'label': 'Sri Lanka', 'value': 'LKA'},{'label': 'Nepal', 'value': 'NPL'}]
 country_dropdown_options=[]
 for uniq_county in range(len(unique_countries)):
     name_country=unique_countries['slider_country'].iloc[uniq_county]
@@ -211,7 +82,7 @@ max_value = df_map_count['usubjid'].max()
 custom_scale = []
 cutoffs = np.percentile(df_map_count['usubjid'], [10,20,30, 40,50, 60,70, 80,90,99, 100]) 
 num_colors = len(cutoffs)
-colors = idw.interpolate_colors(['FF3500','FF7400','FFBE00','A7FA00', '00EA66', '0000FF'], num_colors)
+colors = idw.interpolate_colors(['0000FF', '00EA66','A7FA00','FFBE00','FF7400','FF3500'], num_colors)
 
 max_value = num_colors  # Assuming the maximum value is 10 for demonstration
 custom_scale = []
@@ -251,7 +122,7 @@ app.layout = html.Div([
         html.P("Visual Evidence, Vital Answers")
     ], style={'position': 'absolute', 'top': 0, 'left': 10, 'z-index': 1000}),
 
-    idw.define_menu(country_dropdown_options)
+    idw.define_menu(buttons,country_dropdown_options)
 ])
 
 @app.callback(
@@ -263,91 +134,29 @@ def toggle_modal(n,   is_open):
   ctx = callback_context
 
   if not ctx.triggered:
-      print('not trigger')
+      print('not trigger')  
       button_id = 'No buttons have been clicked yet'
   else:
       button_id = ctx.triggered[0]['prop_id'].split('.')[0]
       print(button_id)
       if button_id =='{"index":"patientChar","type":"open-modal"}':
           return  not is_open, patChars.create_modal()
-      elif button_id =='{"index":"feature-outcome","type":"open-modal"}':
-          return  not is_open, risk_fo.create_modal()
-      elif button_id =='{"index":"risk-factor","type":"open-modal"}':
-          return not is_open,risk_factors.create_modal()
+      elif button_id =='{"index":"demogra","type":"open-modal"}':
+          return  not is_open, demogra.create_modal()
+      elif button_id =='{"index":"comorbid","type":"open-modal"}':
+          return not is_open,comorbid.create_modal()
       elif button_id =='{"index":"treat","type":"open-modal"}':
           return not is_open,treat.create_modal()
       elif button_id =='{"index":"generic","type":"open-modal"}':
           return not is_open,genericFuns.create_modal()
-      return not is_open,[]
+      elif button_id =='{"index":"signs","type":"open-modal"}':
+          return not is_open,signs.create_modal()
+      elif button_id == '{"index":"treatments","type":"open-modal"}':
+          return not is_open,treatments.create_modal()
+      return not is_open
   
   return is_open,[]
 
-
-'''
-@app.callback(
-    Output("modal", "is_open"),
-    [Input("open-patient-char", "n_clicks"), 
-     Input("open-symptoms", "n_clicks"), 
-     #Input("open-treatment", "n_clicks"), 
-     #Input("open-screening", "n_clicks")
-     ],
-    [State("modal", "is_open")],
-)
-#def toggle_modal(n1, n2, n3, n4,  is_open):
-#def toggle_modal(n1, n2, n3,  is_open):
-def toggle_modal(n1, n2,   is_open):
-    #if n1 or n2 or n3:
-    if n1 or n2 :
-        return not is_open
-    return is_open'''
-
-'''
-@app.callback(
-    Output("modal", "children"),
-    [Input("open-patient-char", "n_clicks"),
-     Input("open-symptoms", "n_clicks"),
-     #Input("open-treatment", "n_clicks"),
-     #Input("open-screening", "n_clicks")
-     ],
-)
-#def update_modal_content(n1, n2, n3, n4):
-#def update_modal_content(n1, n2, n3):
-def update_modal_content(n1, n2):
-    ctx = dash.callback_context
-    print("aqui entro 0")
-    if not ctx.triggered:
-        return [dbc.ModalBody("Please wait")]
-
-    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
-    print("aqui entro "+button_id)
-    
-    if button_id == "open-patient-char":
-        try:
-          return patChars.create_patient_characteristics_modal()
-          #return None
-        except:
-
-            modal = [
-
-
-                    dbc.ModalBody([
-                     html.H1("Notice: Insufficient patient data to operate analytic pipeline effectively. Additional data collection required", id="line-graph-modal-title", style={"fontSize": "2vmin", "fontWeight": "bold"})
-                    ], style={ 'overflowY': 'auto','minHeight': '75vh','maxHeight': '75vh'}),
-
-                    dbc.ModalFooter([ 
-                    ]),
-                ]            
-            return modal
-    elif button_id == "open-screening":
-        print('screening')
-        #return varScr.create_screening_modal()    
-            
-        return None
-    elif button_id == "open-symptoms":
-        print('symComor')
-        #return symComor.create_symptoms_comorbidities_modal()
-        return []
-'''
 
 
         
@@ -502,9 +311,11 @@ patChars.register_callbacks(app,'pc')
 risk_fo.register_callbacks(app,'risk_features')
 risk_factors.register_callbacks(app,'risk_factors')
 treat.register_callbacks(app,'treat')
+genericFuns.register_callbacks(app,'generic')
+demogra.register_callbacks(app,'demogra')
+comorbid.register_callbacks(app,'comorbid')
+signs.register_callbacks(app,'signs')
 
-#symComor.register_callbacks(app)
-'''treat.register_callbacks(app)'''
 if __name__ == '__main__':
     #app.run_server(debug=True, host='0.0.0.0', port='8080')
     app.run_server(debug=True)

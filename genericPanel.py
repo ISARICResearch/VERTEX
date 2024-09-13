@@ -31,7 +31,8 @@ redcap_url=rc_config.redcap_url
 ############################################
 ############################################
 
-countries = [{'label': country.name, 'value': country.alpha_3} for country in pycountry.countries]
+all_countries=pycountry.countries
+countries = [{'label': country.name, 'value': country.alpha_3} for country in all_countries]
 sections=getRC.getDataSections(redcap_api_key)
 vari_list=getRC.getVariableList(redcap_api_key,['dates','demog','comor','daily','outco','labs','vital','adsym','inter','treat'])
 df_map=getRC.get_REDCAP_Single_DB(redcap_url, redcap_api_key,site_mapping,vari_list)
@@ -54,10 +55,11 @@ def visuals_creation(df_map):
     ############################################
     dd=getRC.getDataDictionary(redcap_api_key)        
     variables_binary,variables_date,variables_number,variables_freeText,variables_units,variables_categoricas=getRC.getVaribleType(dd)   
+    
     correct_names=dd[['field_name','field_label']]#Variable and label dictionary
     
-    fig1=idw.fig_placeholder('Plh1')
-    fig2=idw.fig_placeholder('Plh2')
+    fig1=idw.fig_placeholder('Plh1_'+suffix)
+    fig2=idw.fig_placeholder('Plh2_'+suffix)
     return fig1,fig2
 
 
@@ -120,8 +122,8 @@ def create_modal():
                     children=[
                         dbc.Tabs([
                             
-                            dbc.Tab(dbc.Row([dbc.Col(fig1,id='fig1_id')]), label='Figure 1'),
-                            dbc.Tab(dbc.Row([dbc.Col(fig2,id='fig2_id')]), label='Figure 2'),
+                            dbc.Tab(dbc.Row([dbc.Col(fig1,id='fig1_id'+suffix)]), label='Figure 1'),
+                            dbc.Tab(dbc.Row([dbc.Col(fig2,id='fig2_id'+suffix)]), label='Figure 2'),
                            
                         ])
                     ]
@@ -217,8 +219,8 @@ def register_callbacks(app, suffix):
     ############################################
 
     @app.callback(
-        [Output('fig1_id', 'children'),
-         Output('fig2_id', 'children')],
+        [Output('fig1_id'+suffix, 'children'),
+         Output('fig2_id'+suffix, 'children')],
         [Input(f'submit-button_{suffix}', 'n_clicks')],
         [State(f'gender-checkboxes_{suffix}', 'value'),
          State(f'age-slider_{suffix}', 'value'),

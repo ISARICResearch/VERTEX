@@ -11,6 +11,18 @@ import numpy as np
 import IsaricDraw as idw
 import IsaricAnalytics as ia
 import getREDCapData as getRC
+import redcap_config as rc_config
+
+
+suffix='symptoms'
+Panel_title='Clinical Presentation: Signs and Symptoms'
+
+############################################
+#REDCap elements
+site_mapping=rc_config.site_mapping
+redcap_api_key=rc_config.redcap_api_key
+redcap_url=rc_config.redcap_url
+
 
 
 ############################################
@@ -19,22 +31,46 @@ import getREDCapData as getRC
 ############################################
 ############################################
 
-suffix='risk_features'
-
-countries = [{'label': country.name, 'value': country.alpha_3} for country in pycountry.countries]
-
-#df_map=pd.read_csv('Vertex Dashboard/assets/data/map.csv')
-df_map=getRC.read_data_from_REDCAP()
-df_map=df_map.dropna()
+all_countries=pycountry.countries
+countries = [{'label': country.name, 'value': country.alpha_3} for country in all_countries]
+sections=getRC.getDataSections(redcap_api_key)
+vari_list=getRC.getVariableList(redcap_api_key,['dates','demog','daily','outco','adsym'])
+df_map=getRC.get_REDCAP_Single_DB(redcap_url, redcap_api_key,site_mapping,vari_list)
 df_map_count=df_map[['country_iso','slider_country','usubjid']].groupby(['country_iso','slider_country']).count().reset_index()
 unique_countries = df_map[['slider_country', 'country_iso']].drop_duplicates().sort_values(by='slider_country')
-country_dropdown_options = [{'label': row['slider_country'], 'value': row['country_iso']}
-                    for index, row in unique_countries.iterrows()]
+country_dropdown_options=[]
+for uniq_county in range(len(unique_countries)):
+    name_country=unique_countries['slider_country'].iloc[uniq_county]
+    code_country=unique_countries['country_iso'].iloc[uniq_county]
+    country_dropdown_options.append({'label': name_country, 'value': code_country})
 bins = [0, 6, 11, 16, 21, 26, 31, 36, 41, 46, 51, 56, 61, 66, 71, 76, 81, 86, 91, 96, 101]
 labels = ['0-5', '6-10', '11-15', '16-20', '21-25', '26-30', '31-35', '36-40', '41-45', '46-50', '51-55', '56-60', '61-65', '66-70', '71-75', '76-80', '81-85', '86-90', '91-95', '96-100']
 df_map['age_group'] = pd.cut(df_map['age'], bins=bins, labels=labels, right=False)
 df_map['mapped_outcome'] = df_map['outcome']
 
+
+def visuals_creation(df_map):
+    ############################################
+    #get Variable type
+    ############################################
+    dd=getRC.getDataDictionary(redcap_api_key)        
+    variables_binary,variables_date,variables_number,variables_freeText,variables_units,variables_categoricas=getRC.getVaribleType(dd)   
+    
+    correct_names=dd[['field_name','field_label']]#Variable and label dictionary
+    
+
+
+    proportions_signs, set_data_signs= ia.get_proportions(df_map,'symptoms')
+    freq_chart_signs = idw.frequency_chart(proportions_signs, title='Frequency of comorbidities on presentation')
+    upset_plot_signs = idw.upset(set_data_signs, title='Frequency of combinations of the five most common comorbidities')
+
+    #descriptive = ia.descriptive_table(ia.obtain_variables(df_map, 'symptoms'))
+    descriptive = ia.descriptive_table(df_map,correct_names,variables_binary,variables_number)
+    fig_table_symp=idw.table(descriptive)
+
+
+
+    return fig_table_symp,freq_chart_signs,upset_plot_signs
 
 
 ############################################
@@ -45,6 +81,22 @@ df_map['mapped_outcome'] = df_map['outcome']
 
 
 def create_modal():
+    ############################################
+    #Modal Intructions
+    ############################################
+    linegraph_about= html.Div([
+        html.Div("1. Select/remove countries using the dropdown (type directly into the dropdowns to search faster)"),
+        html.Br(),
+        html.Div("2. Change datasets using the dropdown (country selections are remembered)"),
+        html.Br(),
+        html.Div("3. Hover mouse on chart for tooltip data "),
+        html.Br(),
+        html.Div("4. Zoom-in with lasso-select (left-click-drag on a section of the chart). To reset the chart, double-click on it."),
+        html.Br(),
+        html.Div("5. Toggle selected countries on/off by clicking on the legend (far right)"),
+        html.Br(),
+        html.Div("6. Download button will export all countries and available years for the selected dataset"),    
+    ])   
     linegraph_instructions = html.Div([
         html.Div("1. Select/remove countries using the dropdown (type directly into the dropdowns to search faster)"),
         html.Br(),
@@ -60,20 +112,14 @@ def create_modal():
     ])   
 
 
-    color_map = {'Discharge': '#00C26F', 'Censored': '#FFF500', 'Death': '#DF0069'}
-
-    ## Proccessing
-    risk_df=ia.risk_preprocessing(df_map)
-    categorical_results, suitable_cat, categorical_results_t=ia.categorical_feature_outcome(risk_df,'outcome')
-    fig_table_categorical=idw.table(categorical_results)
-
-    results, suitable_num, results_t =ia.numeric_outcome_results(risk_df,'outcome')
-    print(results)
-    fig_table_numerical=idw.table(results)
+    fig_table_symp,freq_chart_signs,upset_plot_signs=visuals_creation(df_map)
     
-    
+
+    np.random.seed(0)
+
+
     modal = [
-        dbc.ModalHeader(html.H3("Clinical Features", id="line-graph-modal-title", style={"fontSize": "2vmin", "fontWeight": "bold"})),  
+        dbc.ModalHeader(html.H3(Panel_title, id="line-graph-modal-title", style={"fontSize": "2vmin", "fontWeight": "bold"})),  
 
         dbc.ModalBody([
             dbc.Accordion([
@@ -85,16 +131,20 @@ def create_modal():
                     title="Insights",  
                     children=[
                         dbc.Tabs([
-                            dbc.Tab(dbc.Row([dbc.Col([fig_table_categorical],id='fig_table_cat')]), label='Categorical variables description by outcome'),
-                            dbc.Tab(dbc.Row([dbc.Col([fig_table_numerical],id='fig_table_num')]), label='Continuous variables description by outcome'),
-                            ##Add more tabs if needed
+                            
+                            dbc.Tab(dbc.Row([dbc.Col(fig_table_symp,id='table_'+suffix)]), label='Descriptive Table'),
+                            dbc.Tab(dbc.Row([dbc.Col(freq_chart_signs,id='freq_'+suffix)]), label='Signs and Symptomson on presentation: Frequency'),
+                            dbc.Tab(dbc.Row([dbc.Col(upset_plot_signs,id='upset_'+suffix)]), label='Signs and Symptomson on presentation: Intersections'),
+                           
                         ])
                     ]
                 )
             ])
         ], style={ 'overflowY': 'auto','minHeight': '75vh','maxHeight': '75vh'}),
 
-        idw.ModalFooter(suffix,linegraph_instructions,linegraph_instructions),
+        idw.ModalFooter(suffix,linegraph_instructions,linegraph_about)
+
+
     ]
     return modal    
 
@@ -180,8 +230,9 @@ def register_callbacks(app, suffix):
     ############################################
 
     @app.callback(
-        [Output('fig_table_cat', 'children'),
-         Output('fig_table_num', 'children')],
+        [Output('table_'+suffix, 'children'),
+         Output('freq_'+suffix, 'children'),
+         Output('upset_'+suffix, 'children')],
         [Input(f'submit-button_{suffix}', 'n_clicks')],
         [State(f'gender-checkboxes_{suffix}', 'value'),
          State(f'age-slider_{suffix}', 'value'),
@@ -200,23 +251,7 @@ def register_callbacks(app, suffix):
         if filtered_df.empty:
 
             return None
-        df_age_gender=filtered_df[['age_group','usubjid','mapped_outcome','slider_sex']].groupby(['age_group','mapped_outcome','slider_sex']).count().reset_index()
-        df_age_gender.rename(columns={'slider_sex': 'side', 'mapped_outcome': 'stack_group', 'usubjid': 'value', 'age_group': 'y_axis'}, inplace=True)
-        print(len(df_age_gender))
-        color_map = {'Discharge': '#00C26F', 'Censored': '#FFF500', 'Death': '#DF0069'}
 
-
-        #categorical_results, suitable_cat, categorical_results_t=ia.categorical_feature_outcome(filtered_df,'outcome')
-        #fig_table_categorical=idw.table(categorical_results)
-
-        #results, suitable_num, results_t  =ia.numeric_outcome_results(filtered_df,'outcome')
-        #fig_table_numerical=idw.table(results)
-        #fig_table_categorical=idw.table(pd.DataFrame(data=[[1,2,3],[4,5,6]],columns=list('abc')))
-        risk_df=ia.risk_preprocessing(filtered_df)
-        categorical_results, suitable_cat, categorical_results_t=ia.categorical_feature_outcome(risk_df,'outcome')
-        fig_table_categorical=idw.table(categorical_results)
-
-        results, suitable_num, results_t  =ia.numeric_outcome_results(risk_df,'outcome')
-        fig_table_numerical=idw.table(results)
-        return [fig_table_categorical,fig_table_numerical]
+        fig_table_symp,freq_chart_signs,upset_plot_signs=visuals_creation(filtered_df)
+        return [ fig_table_symp,freq_chart_signs,upset_plot_signs]
 
