@@ -10,7 +10,7 @@ import numpy as np
 #
 #     dfs = []
 #     for ele_var in os.environ:
-#         if ele_var.startswith("study_site"):
+#         if ele_var.startswith('study_site'):
 #             dfs.append(pd.DataFrame(
 #                 [eval(os.environ[ele_var])],
 #                 columns=['key', 'country_iso', 'site_id']))
@@ -178,7 +178,7 @@ def getVariableType(dd):
 
 def get_REDCAP_Single_DB(
         redcap_url, redcap_api_key, site_mapping, required_variables):
-    contries_path = "assets/countries.csv"
+    contries_path = 'assets/countries.csv'
     countries = pd.read_csv(contries_path, encoding='latin-1')
     conex = {
         'token': redcap_api_key,

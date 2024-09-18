@@ -26,10 +26,8 @@ ip_list = [
     module for name, module in sys.modules.items()
     if name.startswith('insight_panels.') & (name.split('.')[-1] in ip_list)]
 
-# ip_list = [generic, demog_comor]
-
 buttons = [
-    [ip.research_question, ip.panel_title, ip.suffix]
+    [ip.research_question, ip.clinical_measure, ip.suffix]
     for ip in ip_list]
 
 for insight_panel in ip_list:

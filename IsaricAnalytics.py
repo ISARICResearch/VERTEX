@@ -411,6 +411,10 @@ def descriptive_table(data, correct_names, categoricals, numericals):
     table = pd.merge(
         categorical_results_t, numeric_results_t, on='Variable', how='outer')
 
+    table['Variable'] = table['Variable'].apply(lambda x: x.split(':')[0])
+    table['Variable'] = table['Variable'].replace(
+        dict(zip(correct_names['field_name'], correct_names['field_label'])))
+    # table['Variable'] = table['Variable'].replace(correct_names)
     table = table.fillna('')
     return table
 

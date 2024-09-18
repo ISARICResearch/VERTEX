@@ -354,7 +354,7 @@ def compute_intersections(df):
 ############################################
 
 
-def fig_placeholder(df, graph_id, graph_label=None):
+def fig_placeholder(df, graph_id='table', graph_label='', graph_about=''):
     x = [1, 2, 3, 4, 5]
     y = [10, 14, 12, 15, 13]
     fig = go.Figure(data=go.Scatter(
@@ -366,11 +366,13 @@ def fig_placeholder(df, graph_id, graph_label=None):
     graph = dcc.Graph(
         id=graph_id,
         figure=fig)
-    return graph, graph_label
+    return graph, graph_label, graph_about
 
 
 def fig_upset(
-        df, title='UpSet Plot', graph_id='upset-chart', graph_label=None):
+        df,
+        title='UpSet Plot',
+        graph_id='upset-chart', graph_label='', graph_about=''):
     categories = df.columns
     intersections = compute_intersections(df)
 
@@ -456,14 +458,14 @@ def fig_upset(
     graph = dcc.Graph(
         id=graph_id,
         figure=fig)
-    return graph, graph_label
+    return graph, graph_label, graph_about
 
 
 def fig_cumulative_bar_chart(
         df,
         title='Cumulative Bar by Timepoint', xlabel='x', ylabel='y',
         base_color_map=None,
-        graph_id='cumulative-bar-chart', graph_label=None):
+        graph_id='cumulative-bar-chart', graph_label='', graph_about=''):
     # Pivot the DataFrame to get cumulative sums for each stack_group
     # at each timepoint
     # Ensure the 'timepoint' column is sorted or create a complete range if
@@ -521,13 +523,13 @@ def fig_cumulative_bar_chart(
         id=graph_id,
         figure={'data': traces, 'layout': layout}
     )
-    return graph, graph_label
+    return graph, graph_label, graph_about
 
 
 def fig_dual_stack_pyramid(
         df,
         title='Dual-Sided Stacked Pyramid Chart', base_color_map=None,
-        graph_id='stacked-bar-chart', graph_label=None):
+        graph_id='stacked-bar-chart', graph_label='', graph_about=''):
 
     df = df.loc[df['side'].isin(['Female', 'Male'])]
     # Error Handling
@@ -664,13 +666,13 @@ def fig_dual_stack_pyramid(
         id=graph_id,
         figure={'data': traces, 'layout': layout}
     )
-    return graph, graph_label
+    return graph, graph_label, graph_about
 
 
 def fig_sex_boxplot(
         df,
         title='Hospital Stay Length by Sex', ylabel='y', base_color_map=None,
-        graph_id='sex-boxplot', graph_label=None):
+        graph_id='sex-boxplot', graph_label='', graph_about=''):
     # Default color map if none provided
     if base_color_map is None:
         # Default colors for M and F
@@ -698,14 +700,14 @@ def fig_sex_boxplot(
         id=graph_id,
         figure={'data': traces, 'layout': layout}
     )
-    return graph, graph_label
+    return graph, graph_label, graph_about
 
 
 def fig_age_group_boxplot(
         df,
         title='Hospital Stay Length by Age Group', ylabel='y',
         base_color_map=None,
-        graph_id='age-group-boxplot', graph_label=None):
+        graph_id='age-group-boxplot', graph_label='', graph_about=''):
     # Define age groups
     age_bins = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, float('inf')]
     age_labels = [
@@ -742,14 +744,14 @@ def fig_age_group_boxplot(
         id=graph_id,
         figure={'data': traces, 'layout': layout}
     )
-    return graph, graph_label
+    return graph, graph_label, graph_about
 
 
 def fig_frequency_chart(
         df,
         title='Frequency Chart', labels=['Condition', 'Proportion'],
         base_color_map=None,
-        graph_id='freq-chart', graph_label=None):
+        graph_id='freq-chart', graph_label='', graph_about=''):
 
     df = df.sort_values(by=['Proportion'], ascending=False)
     if (len(df) > 15):
@@ -822,14 +824,14 @@ def fig_frequency_chart(
         id=graph_id,
         figure={'data': traces, 'layout': layout}
     )
-    return graph, graph_label
+    return graph, graph_label, graph_about
 
 
 def fig_forest_plot(
         df,
         title='Forest Plot',
         labels=['Study', 'OddsRatio', 'LowerCI', 'UpperCI'],
-        graph_id='forest-plot', graph_label=None):
+        graph_id='forest-plot', graph_label='', graph_about=''):
     # Error Handling
     if not set(labels).issubset(df.columns):
         error_str = f'Dataframe must contain the following columns: {labels}'
@@ -880,10 +882,10 @@ def fig_forest_plot(
         id=graph_id,
         figure={'data': traces, 'layout': layout}
     )
-    return graph, graph_label
+    return graph, graph_label, graph_about
 
 
-def fig_table(df, graph_id='table-graph', graph_label=None):
+def fig_table(df, graph_id='table-graph', graph_label='', graph_about=''):
     fig = go.Figure(data=[go.Table(
         header=dict(
             values=list(df.columns),
@@ -899,10 +901,11 @@ def fig_table(df, graph_id='table-graph', graph_label=None):
         id=graph_id,
         figure=fig
     )
-    return graph, graph_label
+    return graph, graph_label, graph_about
 
 
-def fig_heatmap(df1, df2, title, graph_id='heatmap', graph_label=None):
+def fig_heatmap(
+        df1, df2, title, graph_id='heatmap', graph_label='', graph_about=''):
     x_columns = df1.columns
     y_columns = df2.columns
 
@@ -1034,7 +1037,7 @@ def fig_heatmap(df1, df2, title, graph_id='heatmap', graph_label=None):
         id=graph_id,
         figure=fig
     )
-    return graph, graph_label
+    return graph, graph_label, graph_about
 
 
 # def forest_plot(
