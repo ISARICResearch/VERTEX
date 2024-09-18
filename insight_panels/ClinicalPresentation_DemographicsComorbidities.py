@@ -86,29 +86,6 @@ def create_visuals(df_map):
         graph_label='Demographics: Descriptive Table')
 
     return pyramid_chart, fig_table_symp
-    # proportions_comor, set_data_comor = ia.get_proportions(
-    #     df_map, 'comorbidities')
-    # freq_chart_comor = idw.fig_frequency_chart(
-    #     proportions_comor,
-    #     title='Frequency of comorbidities on presentation',
-    #     graph_id='comor_freq_' + suffix,
-    #     graph_label='Comorbidities on presentation: Frequency')
-    # upset_plot_comor = idw.fig_upset(
-    #     set_data_comor,
-    #     title='Frequency of combinations of the five most common comorbidities',
-    #     graph_id='comor_upset_' + suffix,
-    #     graph_label='Comorbidities on presentation: Intersections')
-    #
-    # comor_columns = [col for col in df_map.columns if col.startswith('comor')]
-    # descriptive = ia.descriptive_table(
-    #     df_map[comor_columns], correct_names,
-    #     variables_binary, variables_number)
-    # fig_table_comor = idw.fig_table(
-    #     descriptive,
-    #     graph_id='comor_table_' + suffix,
-    #     graph_label='Comorbidities on presentation: Descriptive Table')
-    #
-    # return pyramid_chart, fig_table_symp, freq_chart_comor, upset_plot_comor, fig_table_comor
 
 
 ############################################
