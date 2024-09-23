@@ -97,9 +97,9 @@ def getDataDictionary(redcap_url, redcap_api_key):
         # Convert response JSON to DataFrame
         metadata = response.json()
         df = pd.DataFrame(metadata)
-        return df
     else:
-        return None
+        df = None
+    return df
 
 
 def getDataSections(redcap_url, redcap_api_key):
@@ -120,9 +120,10 @@ def getDataSections(redcap_url, redcap_api_key):
         for var_name in df['field_name']:
             sectionx = var_name.split('_')[0]
             sections.append(sectionx)
-        return list(set(sections))
+        section_list = list(set(sections))
     else:
-        return None
+        section_list = None
+    return section_list
 
 
 def getVariableList(redcap_url, redcap_api_key, sections):
