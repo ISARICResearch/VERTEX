@@ -32,6 +32,7 @@ sections = [
     'preg',  # Pregnancy
     'infa',  # Infant
     'comor',  # Co-morbidities and risk factors
+    'asses',  # Assessment
     'daily',  # Daily sections
     'outco',  # Outcome
 ]

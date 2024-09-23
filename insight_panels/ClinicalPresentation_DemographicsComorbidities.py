@@ -30,6 +30,7 @@ sections = [
     'dates',  # Onset & presentation
     'demog',  # Demographics
     'comor',  # Co-morbidities and risk factors
+    'asses',  # Assessment
     'daily',  # Daily sections
     'outco',  # Outcome
 ]

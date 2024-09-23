@@ -43,7 +43,7 @@ sections = getRC.getDataSections(redcap_url, redcap_api_key)
 vari_list = getRC.getVariableList(
     redcap_url, redcap_api_key,
     ['dates', 'demog', 'comor', 'daily', 'outco', 'labs', 'vital',
-        'adsym', 'inter', 'treat'])
+        'adsym', 'inter', 'treat','asses'])
 
 df_map = getRC.get_REDCAP_Single_DB(
     redcap_url, redcap_api_key, site_mapping, vari_list)
