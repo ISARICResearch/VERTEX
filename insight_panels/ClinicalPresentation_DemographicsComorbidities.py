@@ -26,7 +26,13 @@ clinical_measure = 'Demographics / Comorbidities'
 
 # Provide a list of all ARCH data sections needed in the RAP dataframe
 # Only variables from these sections will appear in the visuals
-sections = ['dates', 'demog', 'comor', 'daily', 'outco']
+sections = [
+    'dates',  # Onset & presentation
+    'demog',  # Demographics
+    'comor',  # Co-morbidities and risk factors
+    'daily',  # Daily sections
+    'outco',  # Outcome
+]
 
 
 def create_visuals(df_map):

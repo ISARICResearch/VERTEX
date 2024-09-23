@@ -17,47 +17,23 @@ import redcap_config as rc_config
 ############################################
 
 # The suffix must be unique to each insight panel, it is used by the dashboard
-suffix = 'generic'
+suffix = 'PregInfant'
 # Multiple insight panels can share the same research question
 # Insight panels are grouped in the dashboard menu according to this
-research_question = 'Examples'
+research_question = 'Clinical Presentation'
 # The combination of research question and clinical measure must be unique
-clinical_measure = 'Generic Panel'
+clinical_measure = 'Pregnancy / Infants'
 
 # Provide a list of all ARCH data sections needed in the RAP dataframe
 # Only variables from these sections will appear in the visuals
 sections = [
-    'inclu',  # Inclusion criteria
     'dates',  # Onset & presentation
-    'readm',  # Re-admission and previous pin
     'demog',  # Demographics
-    'travel',  # Travel history
-    'expo14',  # Exposure history in previous 14 days
     'preg',  # Pregnancy
     'infa',  # Infant
     'comor',  # Co-morbidities and risk factors
-    'medic',  # Medical history
-    'drug7',  # Medication previous 7-days
-    'drug14',  # Medication previous 14-days
-    'vacci',  # Vaccination
-    'advital',  # Vital signs & assessments on admission
-    'adsym',  # Signs and symptoms on admission
-    'asses',  # Assessment
     'daily',  # Daily sections
-    'vital',  # Vital signs & assessments
-    'sympt',  # Signs and symptoms
-    'lesion',  # Skin & mucosa assessment
-    'treat',  # Treatments & interventions
-    'labs',  # Laboratory results
-    'imagi',  # Imaging
-    'medi',  # Medication
-    'test',  # Pathogen testing
-    'diagn',  # Diagnosis
-    'compl',  # Complications
-    'inter',  # Interventions
     'outco',  # Outcome
-    'follow',  # Follow-up assessment
-    'withd',  # Withdrawal
 ]
 
 
@@ -65,18 +41,99 @@ def create_visuals(df_map):
     '''
     Create all visuals in the insight panel from the RAP dataframe
     '''
-    # dd = getRC.getDataDictionary(redcap_url, redcap_api_key)
-    # # variable_dict is a dictionary of lists according to variable type, which
-    # # are: 'binary', 'date', 'number', 'freeText', 'units', 'categorical'
-    # variable_dict = getRC.getVariableType(dd)
+    dd = getRC.getDataDictionary(redcap_url, redcap_api_key)
+    # variable_dict is a dictionary of lists according to variable type, which
+    # are: 'binary', 'date', 'number', 'freeText', 'units', 'categorical'
+    variable_dict = getRC.getVariableType(dd)
 
-    fig1 = idw.fig_placeholder(
-        df_map,
-        graph_id='fig1_id' + suffix, graph_label='Figure 1', graph_about='')
-    fig2 = idw.fig_placeholder(
-        df_map,
-        graph_id='fig2_id' + suffix, graph_label='Figure 2', graph_about='')
-    return fig1, fig2
+    # Pregnancy descriptive table
+    preg_columns = ['age']  # This doesn't get renamed by correct_names?
+    preg_columns += [col for col in df_map.columns if col.startswith('demog')]
+    preg_columns += [col for col in df_map.columns if col.startswith('preg')]
+    preg_all_women = ia.descriptive_table(
+        df_map.loc[df_map['slider_sex'] == 2, preg_columns],
+        correct_names=dd[['field_name', 'field_label']],
+        categoricals=variable_dict['binary'],
+        numericals=['age'] + variable_dict['number'])
+    preg_pregnant_women = ia.descriptive_table(
+        df_map.loc[df_map['preg_pregnant'] == 2, preg_columns],
+        correct_names=dd[['field_name', 'field_label']],
+        categoricals=variable_dict['binary'],
+        numericals=['age'] + variable_dict['number'])
+    fig_table_preg = idw.fig_table(
+        pd.merge(
+            preg_all_women, preg_pregnant_women, on='Variable',
+            suffixes=(' (All women)', ' (Pregnant women)')),
+        graph_id='table_preg_' + suffix,
+        graph_label='Pregnancy: Descriptive Table',
+        graph_about='Summary of demographics for Women/Pregnant Women.')
+
+    # Infants descriptive table
+    infa_columns = ['age']  # This doesn't get renamed by correct_names?
+    infa_columns += [col for col in df_map.columns if col.startswith('demog')]
+    infa_columns += [col for col in df_map.columns if col.startswith('infa')]
+    table_infa = ia.descriptive_table(
+        df_map.loc[df_map['age'] < 1, infa_columns],
+        correct_names=dd[['field_name', 'field_label']],
+        categoricals=variable_dict['binary'],
+        numericals=['age'] + variable_dict['number'])
+    fig_table_infa = idw.fig_table(
+        table_infa,
+        graph_id='table_infa_' + suffix,
+        graph_label='Infants: Descriptive Table',
+        graph_about='Summary of demographics for Infants <12 months.')
+
+    # Comorbodities frequency and upset charts
+    proportions_infa_comor, set_data_infa_comor = ia.get_proportions(
+        df_map.loc[df_map['age'] < 1], 'comorbidities')
+    freq_chart_infa_comor = idw.fig_frequency_chart(
+        proportions_infa_comor,
+        title='Frequency of comorbidities',
+        graph_id='infa_comor_freq_' + suffix,
+        graph_label='Infants: Frequency of comorbidities',
+        graph_about='Frequency of the ten most common comorbodities on presentation (infants only)')
+    upset_plot_infa_comor = idw.fig_upset(
+        set_data_infa_comor,
+        title='Frequency of combinations of the five most common comorbidities',
+        graph_id='infa_comor_upset_' + suffix,
+        graph_label='Infants: Intersections of comorbidities',
+        graph_about='Frequency of combinations of the five most common comorbidities on presentation (infants only)')
+
+    # # Population pyramid
+    # color_map = {
+    #     'Discharge': '#00C26F',
+    #     'Censored': '#FFF500',
+    #     'Death': '#DF0069'}
+    # filter_columns = ['age_group', 'mapped_outcome', 'slider_sex']
+    # df_age_gender = df_map[filter_columns + ['usubjid']].groupby(
+    #     filter_columns, observed=True).count().reset_index()
+    # df_age_gender.rename(
+    #     columns={
+    #         'slider_sex': 'side',
+    #         'mapped_outcome': 'stack_group',
+    #         'usubjid': 'value',
+    #         'age_group': 'y_axis'},
+    #     inplace=True)
+    # pyramid_chart = idw.fig_dual_stack_pyramid(
+    #     df_age_gender, base_color_map=color_map,
+    #     graph_id='age_gender_pyramid_chart_' + suffix,
+    #     graph_label='Demographics: Population Pyramid',
+    #     graph_about='Dual-sided population pyramid, showing age, sex and outcome.')
+    #
+    # # Comorbidities descriptive table
+    # comor_columns = [col for col in df_map.columns if col.startswith('comor')]
+    # descriptive = ia.descriptive_table(
+    #     df_map[comor_columns],
+    #     correct_names=dd[['field_name', 'field_label']],
+    #     categoricals=variable_dict['binary'],
+    #     numericals=variable_dict['number'])
+    # fig_table_comor = idw.fig_table(
+    #     descriptive,
+    #     graph_id='comor_table_' + suffix,
+    #     graph_label='Comorbidities: Descriptive Table',
+    #     graph_about='Summary of comorbodities.')
+
+    return fig_table_preg, fig_table_infa, freq_chart_infa_comor, upset_plot_infa_comor
 
 
 ############################################
@@ -127,7 +184,9 @@ countries = [
     for country in all_countries]
 sections = getRC.getDataSections(redcap_url, redcap_api_key)
 vari_list = getRC.getVariableList(
-    redcap_url, redcap_api_key, sections)
+    redcap_url, redcap_api_key,
+    ['dates', 'demog', 'comor', 'daily', 'outco', 'labs', 'vital',
+        'adsym', 'inter', 'treat'])
 
 unique_countries = df_map[['slider_country', 'country_iso']].drop_duplicates(
     ).sort_values(by='slider_country')
@@ -198,12 +257,13 @@ def create_modal():
                     children=[
                         dbc.Tabs([
                             dbc.Tab(dbc.Row([
-                                dbc.Col(visual, id='col-' + visual.id)
+                                dbc.Col(visual, id='col-'+visual.id)
                                 ]), label=label)
-                            for visual, label, _ in visuals])]
-                    )]
+                            for visual, label, _ in visuals])
+                    ]
                 )
-            ], style={
+            ])
+        ], style={
                 'overflowY': 'auto', 'minHeight': '75vh', 'maxHeight': '75vh'}
         ),
         idw.ModalFooter(
