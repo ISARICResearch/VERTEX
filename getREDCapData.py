@@ -165,6 +165,10 @@ def getVariableType(dd):
             (dd['select_choices_or_calculations'] != '1, Yes | 0, No | 99, Unknown') &
             (dd['select_choices_or_calculations'] != '1, Yes | 0, No')) &
         (dd['field_name'].isin(variables_units) == 0)), 'field_name'])
+    
+    variables_oneHotEncoded= list(dd.loc[
+            (dd['field_type'] == 'checkbox') ,
+        'field_name'])
 
     variable_dict = {
         'binary': variables_binary,
@@ -172,7 +176,8 @@ def getVariableType(dd):
         'number': variables_number,
         'freeText': variables_freeText,
         'units': variables_units,
-        'categorical': variables_categorical
+        'categorical': variables_categorical,
+        'OneHot':variables_oneHotEncoded
     }
     return variable_dict
 
@@ -222,20 +227,76 @@ def get_REDCAP_Single_DB(
     form2 = ia.remove_MissingDataCodes(form2)
     form3 = ia.remove_MissingDataCodes(form3)
 
-    form1 = form1[
-        list(set(required_variables).intersection(set(form1.columns)))]
-    form2 = form2[
-        list(set(required_variables).intersection(set(form2.columns)))]
-    form3 = form3[
-        list(set(required_variables).intersection(set(form3.columns)))]
-
+    #form1 = form1[list(set(required_variables).intersection(set(form1.columns)))]
+    #form2 = form2[list(set(required_variables).intersection(set(form2.columns)))]
+    #form3 = form3[list(set(required_variables).intersection(set(form3.columns)))]
+    
+    ###
     non_nan_columns_f1 = form1.columns[form1.notna().any()].tolist()
     non_nan_columns_f2 = form2.columns[form2.notna().any()].tolist()
     non_nan_columns_f3 = form3.columns[form3.notna().any()].tolist()
 
+
+
+
     form1 = form1[non_nan_columns_f1]
     form2 = form2[non_nan_columns_f2]
     form3 = form3[non_nan_columns_f3]
+
+    oneHotEncoded=[]
+
+    selected_columns_1 = []
+    selected_columns_2 = []
+    selected_columns_3 = []
+    for var in required_variables:
+        # Check for exact matches first
+        not_in_data_dict=True
+        if var in form1.columns:
+            selected_columns_1.append(var)
+            not_in_data_dict=False
+        if var in form2.columns:
+            selected_columns_2.append(var)
+            not_in_data_dict=False
+        if var in form3.columns:
+            selected_columns_3.append(var)
+            not_in_data_dict=False            
+        if not_in_data_dict:
+            # Check for any columns that start with the variable prefix
+            #selected_columns_1.extend([col for col in form1.columns if col.startswith(var)])
+            #selected_columns_2.extend([col for col in form2.columns if col.startswith(var)])
+            #selected_columns_3.extend([col for col in form3.columns if col.startswith(var)])
+            for col in form1 :
+                if col.startswith(var):
+                    if form1[col].eq('Unchecked').all():
+                        pass
+                    else:
+                        if ('___' in col):
+                            oneHotEncoded.append(col)
+                            selected_columns_1.append(col)
+            for col in form2 :
+                if ( col.startswith(var) and ('___' not in col)):
+                    if form2[col].eq('Unchecked').all():
+                        pass
+                    else:
+                        if ('___' in col):
+                            oneHotEncoded.append(col)
+                            selected_columns_2.append(col)                        
+            for col in form3 :
+                if ( col.startswith(var) and ('___' not in col)):
+                    if form3[col].eq('Unchecked').all():
+                        pass
+                    else:
+                        if ('___' in col):
+                            oneHotEncoded.append(col)
+                            selected_columns_3.append(col)                 
+
+
+    # Now filter form1 using the selected columns
+    form1 = form1[selected_columns_1]
+    form2 = form2[selected_columns_2]
+    form3 = form3[selected_columns_3]    
+    
+    ###
 
     form1['country'] = form1['subjid'].str.split('-').str[0]
     form1['country'] = form1['country'].map(site_mapping)
@@ -280,20 +341,34 @@ def get_REDCAP_Single_DB(
     elements = ['subjid', 'country'] + list(variable_dict['binary'])
     elements += list(variable_dict['number'])
     elements += list(variable_dict['categorical'])
+    elements += oneHotEncoded
     elements = [col for col in elements if col in df_converted.columns]
-    df_converted = df_converted[elements]
+
+    ##AQUI no sigue los onehotencoded
+
+    df_converted = df_converted[list(set(elements))]
+    df_converted = df_converted.loc[:, ~df_converted.columns.duplicated()]
 
     for col in variable_dict['binary']:
         if col in df_converted.columns:
             df_converted[col] = df_converted[col].apply(
                 lambda x: 1 if x == 'Yes' else (0 if x == 'No' else np.nan))
+    
+    for col in oneHotEncoded:
+        if col in df_converted.columns:
+            try:
+                df_converted[col] = df_converted[col].apply(
+                    lambda x: 1 if x == 'Checked' else (0 if x == 'Unchecked' else np.nan))   
+            except:
+                print(col)
+                pass         
 
     for col in variable_dict['number']:
         if col in df_converted.columns:
             df_converted[col] = pd.to_numeric(df_converted[col], errors='coerce')
 
+    df_converted['sex_orig']=df_converted['demog_sex']
     df_converted.rename(columns={
-        'demog_sex': 'sex_orig',
         'outco_outcome': 'outcome_original'
     }, inplace=True)
     df_encoded = pd.get_dummies(
@@ -301,18 +376,20 @@ def get_REDCAP_Single_DB(
         columns=[
             col for col in variable_dict['categorical']
             if col in df_converted.columns],
-        prefix_sep='__')
+        prefix_sep='___')
     dummy_columns = [
         col for col in df_encoded.columns
         if any(cat in col for cat in variable_dict['categorical'])]
     remove_dummy_columns = [
         element for element in dummy_columns if (
-            element.endswith('__No') or element.endswith('__no') or
-            element.endswith('__NO') or element.endswith('__Never smoked'))]
+            element.endswith('___No') or element.endswith('___no') or
+            element.endswith('___NO') or element.endswith('___Never smoked'))]
 
-    # df_encoded[dummy_columns] = df_encoded[dummy_columns].astype(int)
-    for d_c in dummy_columns:
-        df_encoded[d_c] = pd.to_numeric(df_encoded[d_c], errors='coerce')
+    df_encoded[dummy_columns] = df_encoded[dummy_columns].astype(float)
+    #for d_c in dummy_columns:
+        #df_encoded[d_c] = pd.to_numeric(df_encoded[d_c], errors='coerce')
+    #    df_encoded[d_c] = df_encoded[d_c].apply(
+    #            lambda x: 1 if x  else (0 if x else np.nan))
 
     df_encoded = pd.merge(
         df_encoded, countries,
@@ -332,5 +409,7 @@ def get_REDCAP_Single_DB(
         df_encoded = df_encoded.drop(columns=['comor_hba1c'])
     except Exception:
         pass
+
+
 
     return df_encoded

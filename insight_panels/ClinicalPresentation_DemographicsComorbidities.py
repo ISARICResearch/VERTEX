@@ -69,16 +69,24 @@ def create_visuals(df_map):
     # Demographics descriptive table
     demog_columns = [col for col in df_map.columns if col.startswith('demog')]
     demog_columns += ['age']  # This doesn't get renamed by correct_names?
-    descriptive = ia.descriptive_table(
+
+    oneHot_variable=[]
+    for oneHE_var in df_map:
+         if '___' in oneHE_var:
+                oneHot_variable.append(oneHE_var)
+
+
+    descriptive_demog = ia.descriptive_table(
         df_map[demog_columns],
         correct_names=dd[['field_name', 'field_label']],
-        categoricals=variable_dict['binary'],
+        categoricals=variable_dict['binary']+oneHot_variable,
         numericals=['age'] + variable_dict['number'])
-    fig_table_symp = idw.fig_table(
-        descriptive,
-        graph_id='demog_table_' + suffix,
-        graph_label='Demographics: Descriptive Table',
-        graph_about='Summary of demographics.')
+    #fig_table_symp = idw.fig_table(
+    #    descriptive,
+    #    graph_id='demog_table_' + suffix,
+    #    graph_label='Demographics: Descriptive Table',
+    #    graph_about='Summary of demographics.')
+
 
     # Comorbodities frequency and upset charts
     proportions_comor, set_data_comor = ia.get_proportions(
@@ -101,15 +109,18 @@ def create_visuals(df_map):
     descriptive = ia.descriptive_table(
         df_map[comor_columns],
         correct_names=dd[['field_name', 'field_label']],
-        categoricals=variable_dict['binary'],
+        categoricals=variable_dict['binary']+oneHot_variable,
         numericals=variable_dict['number'])
+    
+    descriptive=pd.concat([descriptive,descriptive_demog])
+
     fig_table_comor = idw.fig_table(
         descriptive,
         graph_id='comor_table_' + suffix,
-        graph_label='Comorbidities: Descriptive Table',
-        graph_about='Summary of comorbodities.')
+        graph_label='Descriptive Table',
+        graph_about='Summary of demographics and comorbodities.')
 
-    return pyramid_chart, fig_table_symp, freq_chart_comor, upset_plot_comor, fig_table_comor
+    return fig_table_comor, pyramid_chart, freq_chart_comor, upset_plot_comor
 
 
 ############################################
