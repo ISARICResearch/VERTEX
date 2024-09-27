@@ -894,7 +894,7 @@ def fig_table(df, graph_id='table-graph', graph_label='', graph_about=''):
         cells=dict(
             values=[df[col] for col in df.columns],
             fill_color='#e9e9e9',
-            align='left'))
+            align='right'))
     ])
     fig.update_layout(height=500)
     graph = dcc.Graph(

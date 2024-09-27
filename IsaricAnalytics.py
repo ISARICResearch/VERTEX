@@ -89,17 +89,20 @@ def get_proportions(data, data_type):
 def mapOutcomes(df):
     mapping_dict = {
         'Discharged alive': 'Discharge',
-        'Transfer to other facility': 'Censored',
         'Discharged against medical advice': 'Discharge',
         'Death': 'Death',
-        'Still hospitalised': 'Censored',
-        'Palliative discharge': 'Censored'
+        # 'Transfer to other facility': 'Censored',
+        # 'Still hospitalised': 'Censored',
+        # 'Palliative care': 'Censored',
+        # 'Other': 'Censored'
     }
     df['outco_outcome'] = df['outco_outcome'].map(mapping_dict)
+    other_outcome = (df['outco_outcome'].isin(mapping_dict.keys()) == 0)
+    df.loc[other_outcome, 'outco_outcome'] = 'Censored'
     return df
 
 
-def remove_MissingDataCodes(df):
+def remove_MissingDataCodes(df):  # TODO: read this from API
     MissingDataCodes = [
         'Unknown', 'No information', 'Not asked', 'Not applicable']
     with pd.option_context('future.no_silent_downcasting', True):
@@ -210,212 +213,288 @@ def get_variables_type(data):
     return final_binary_variables, final_numeric_variables, final_categorical_variables
 
 
-def categorical_feature(data, categoricals):
-    categorical_results_t = []
-    for variable in categoricals:
-        data_variable = data[[variable]].dropna()
-        category_variable = 1
-        data_aux_cat = data_variable.loc[(data_variable[variable] == 1)]
-        try:
-            n = len(data_aux_cat)
-            pe = round(100 * (n / len(data_variable)), 1)
-            categorical_results_t.append([
-                str(variable) + ': ' + str(category_variable),
-                str(n) + ' (' + str(pe) + ')'])
-        except Exception:
-            print(variable)
-    categorical_results_t = pd.DataFrame(
-        data=categorical_results_t, columns=['Variable', 'Count'])
-    return categorical_results_t
+# def categorical_feature(data, categoricals):
+#     categorical_results_t = []
+#     for variable in categoricals:
+#         data_variable = data[[variable]].dropna()
+#         category_variable = 1
+#         data_aux_cat = data_variable.loc[(data_variable[variable] == 1)]
+#         try:
+#             n = len(data_aux_cat)
+#             pe = round(100 * (n / len(data_variable)), 1)
+#             categorical_results_t.append([
+#                 str(variable) + ': ' + str(category_variable),
+#                 str(n) + ' (' + str(pe) + ')'])
+#         except Exception:
+#             print(variable)
+#     categorical_results_t = pd.DataFrame(
+#         data=categorical_results_t, columns=['Variable', 'Count'])
+#     return categorical_results_t
+#
+#
+# def categorical_feature_outcome(data, outcome):
+#     binary_variables, numeric_variables, categorical_variables = get_variables_type(data)
+#     try:
+#         binary_variables.remove(outcome)
+#     except Exception:
+#         print('Outcome not in dataframe')
+#     suitable_cat = []
+#
+#     categorical_results = []
+#     categorical_results_t = []
+#     for variable in binary_variables:
+#         data_variable = data[[variable, outcome]].dropna()
+#         x = data_variable[variable]
+#         y = data_variable[outcome]
+#         data_crosstab = pd.crosstab(x, y, margins=False)
+#         stat, p, dof, expected = stats.chi2_contingency(data_crosstab)
+#
+#         if p < 0.2:
+#             suitable_cat.append(variable)
+#         if p < 0.001:
+#             p = '<0.001'
+#         elif p <= 0.05:
+#             p = str(round(p, 3))
+#         else:
+#             p = str(round(p, 2))
+#
+#         data_variable0 = data_variable.loc[(data_variable[outcome] == 0)]
+#         data_variable1 = data_variable.loc[(data_variable[outcome] == 1)]
+#         for category_variable in [1]:
+#             data_aux_cat = data_variable.loc[(
+#                 data_variable[variable] == category_variable)]
+#             n = len(data_aux_cat)
+#             count = data_aux_cat[outcome].value_counts().reset_index()
+#             n0 = count.loc[(count[outcome] == 0), 'count']
+#             n1 = count.loc[(count[outcome] == 1), 'count']
+#             p0 = round(100*(n0 / len(data_variable0)), 1)
+#             p1 = round(100*(n1 / len(data_variable1)), 1)
+#             pe = round(100*(n / len(data_variable)), 1)
+#             if len(n0) == 0:
+#                 n0, p0 = 0, 0
+#             else:
+#                 n0 = n0.iloc[0]
+#                 p0 = p0.iloc[0]
+#             if len(n1) == 0:
+#                 n1, p1 = 0, 0
+#             else:
+#                 n1 = n1.iloc[0]
+#                 p1 = p1.iloc[0]
+#
+#             categorical_results.append([
+#                 str(variable),
+#                 str(n1) + ' (' + str(p1) + ')',
+#                 str(n0) + ' (' + str(p0) + ')',
+#                 str(n) + ' (' + str(pe) + ')',
+#                 p])
+#             categorical_results_t.append([
+#                 str(variable) + ': ' + str(category_variable),
+#                 str(n) + ' (' + str(pe) + ')'])
+#
+#     column1 = 'Characteristic'
+#     column2 = outcome + '=1 (n=' + str(round(data[outcome].sum())) + ')'
+#     column3 = outcome + '=0 (n=' + str(round(len(data) - data[outcome].sum()))
+#     column3 += ')'
+#     column4 = 'All cohort (n=' + str(round(len(data))) + ')'
+#
+#     categorical_results = pd.DataFrame(
+#         data=categorical_results,
+#         columns=[column1, column2, column3, column4, 'p-value'])
+#
+#     categorical_results_t = pd.DataFrame(
+#         data=categorical_results_t, columns=['Variable', 'Count'])
+#     return categorical_results, suitable_cat, categorical_results_t
+#
+#
+# def numeric_outcome_results(data, outcome):
+#     binary_variables, numeric_variables, categorical_variables = get_variables_type(data)
+#     results_array = []
+#     results_t = []
+#     suitable_num = []
+#     for variable in numeric_variables:
+#         try:
+#             data[variable] = pd.to_numeric(data[variable], errors='coerce')
+#             data_variable = data[[variable, outcome]].dropna()
+#             data0 = data_variable.loc[(data_variable[outcome] == 0), variable]
+#             data1 = data_variable.loc[(data_variable[outcome] == 1), variable]
+#             data_t = data_variable[variable]
+#             # complete = round((100 * (len(data_variable) / len(data))), 1)
+#             if len(data_variable) > 2:
+#                 # On the whole variable
+#                 stat, p = stats.shapiro(data_variable[variable])
+#                 alpha = 0.05
+#                 if p < alpha:
+#                     # print('Not normal')
+#                     w, p = stats.mannwhitneyu(
+#                         data0, y=data1, alternative='two-sided')
+#                 else:
+#                     summary, results = rp.ttest(
+#                         group1=data.loc[(data[outcome] == 0), variable],
+#                         group1_name='0',
+#                         group2=data.loc[(data[outcome] == 1), variable],
+#                         group2_name='1')
+#                     p = results['results'].loc[3]
+#
+#                 detail0 = str(round(data0.median(), 1)) + ' ('
+#                 detail0 += str(round(data0.quantile(0.25), 1)) + '-'
+#                 detail0 += str(round(data0.quantile(0.75), 1)) + ')'
+#                 detail1 = str(round(data1.median(), 1)) + ' ('
+#                 detail1 += str(round(data1.quantile(0.25), 1)) + '-'
+#                 detail1 += str(round(data1.quantile(0.75), 1)) + ')'
+#                 detail_t = str(round(data_t.median(), 1)) + ' ('
+#                 detail_t += str(round(data_t.quantile(0.25), 1)) + '-'
+#                 detail_t += str(round(data_t.quantile(0.75), 1)) + ')'
+#                 if p < 0.2:
+#                     suitable_num.append(variable)
+#                 if p < 0.001:
+#                     p = '<0.001'
+#                 elif p <= 0.05:
+#                     p = str(round(p, 3))
+#                 else:
+#                     p = str(round(p, 2))
+#             else:
+#                 detail0 = str(round(data0.mean(), 1)) + ' ('
+#                 detail0 += str(round(data0.std(), 1)) + ')'
+#                 detail1 = str(round(data1.mean(), 1)) + ' ('
+#                 detail1 += str(round(data1.std(), 1)) + ')'
+#                 detail_t = str(round(data_t.mean(), 1)) + ' ('
+#                 detail_t += str(round(data_t.std(), 1)) + ')'
+#                 p = 'N/A'
+#
+#             results_array.append([variable, detail1, detail0, detail_t, p])
+#             results_t.append([variable, detail_t])
+#         except Exception:
+#             print(variable)
+#
+#     column1 = 'Characteristic'
+#     column2 = outcome + '=1 (n=' + str(round(data[outcome].sum())) + ')'
+#     column3 = outcome + '=0 (n=' + str(round(len(data) - data[outcome].sum()))
+#     column3 += ')'
+#     column4 = 'All cohort (n=' + str(round(len(data))) + ')'
+#
+#     results_df = pd.DataFrame(
+#         data=results_array,
+#         columns=[column1, column2, column3, column4, 'p-value'])
+#     results_t = pd.DataFrame(
+#         data=results_t,
+#         columns=['Variable', 'median(IQR)'])
+#     return results_df, suitable_num, results_t
+#
+#
+# def numeric_results(data, numeric_variables):
+#     results_t = []
+#     for variable in numeric_variables:
+#         try:
+#             data[variable] = pd.to_numeric(
+#                 data[variable], errors='coerce')
+#             data_variable = data[[variable]].dropna()
+#             data_t = data_variable[variable]
+#             # complete = round((100 * (len(data_variable) / len(data))), 1)
+#             if len(data_variable) > 2:
+#                 detail_t = str(round(data_t.median(), 1)) + ' ('
+#                 detail_t += str(round(data_t.quantile(0.25), 1)) + '-'
+#                 detail_t += str(round(data_t.quantile(0.75), 1)) + ')'
+#             else:
+#                 detail_t = str(round(data_t.mean(), 1)) + ' ('
+#                 detail_t += str(round(data_t.std(), 1)) + ')'
+#             results_t.append([variable, detail_t])
+#         except Exception:
+#             print(variable)
+#     results_t = pd.DataFrame(
+#         data=results_t, columns=['Variable', 'median(IQR)'])
+#     return results_t
+#
+#
+# def descriptive_table(data, correct_names, categoricals, numericals):
+#     categorical_results_t = categorical_feature(
+#         data, list(set(categoricals).intersection(set(data.columns))))
+#     numeric_results_t = numeric_results(
+#         data, list(set(numericals).intersection(set(data.columns))))
+#
+#     table = pd.merge(
+#         categorical_results_t, numeric_results_t, on='Variable', how='outer')
+#
+#     table['Variable'] = table['Variable'].apply(lambda x: x.split(':')[0])
+#     table['Variable'] = table['Variable'].replace(
+#         dict(zip(correct_names['field_name'], correct_names['field_label'])))
+#     # table['Variable'] = table['Variable'].replace(correct_names)
+#     table = table.fillna('')
+#     return table
 
 
-def categorical_feature_outcome(data, outcome):
-    binary_variables, numeric_variables, categorical_variables = get_variables_type(data)
-    try:
-        binary_variables.remove(outcome)
-    except Exception:
-        print('Outcome not in dataframe')
-    suitable_cat = []
-
-    categorical_results = []
-    categorical_results_t = []
-    for variable in binary_variables:
-        data_variable = data[[variable, outcome]].dropna()
-        x = data_variable[variable]
-        y = data_variable[outcome]
-        data_crosstab = pd.crosstab(x, y, margins=False)
-        stat, p, dof, expected = stats.chi2_contingency(data_crosstab)
-
-        if p < 0.2:
-            suitable_cat.append(variable)
-        if p < 0.001:
-            p = '<0.001'
-        elif p <= 0.05:
-            p = str(round(p, 3))
-        else:
-            p = str(round(p, 2))
-
-        data_variable0 = data_variable.loc[(data_variable[outcome] == 0)]
-        data_variable1 = data_variable.loc[(data_variable[outcome] == 1)]
-        for category_variable in [1]:
-            data_aux_cat = data_variable.loc[(
-                data_variable[variable] == category_variable)]
-            n = len(data_aux_cat)
-            count = data_aux_cat[outcome].value_counts().reset_index()
-            n0 = count.loc[(count[outcome] == 0), 'count']
-            n1 = count.loc[(count[outcome] == 1), 'count']
-            p0 = round(100*(n0 / len(data_variable0)), 1)
-            p1 = round(100*(n1 / len(data_variable1)), 1)
-            pe = round(100*(n / len(data_variable)), 1)
-            if len(n0) == 0:
-                n0, p0 = 0, 0
-            else:
-                n0 = n0.iloc[0]
-                p0 = p0.iloc[0]
-            if len(n1) == 0:
-                n1, p1 = 0, 0
-            else:
-                n1 = n1.iloc[0]
-                p1 = p1.iloc[0]
-
-            categorical_results.append([
-                str(variable),
-                str(n1) + ' (' + str(p1) + ')',
-                str(n0) + ' (' + str(p0) + ')',
-                str(n) + ' (' + str(pe) + ')',
-                p])
-            categorical_results_t.append([
-                str(variable) + ': ' + str(category_variable),
-                str(n) + ' (' + str(pe) + ')'])
-
-    column1 = 'Characteristic'
-    column2 = outcome + '=1 (n=' + str(round(data[outcome].sum())) + ')'
-    column3 = outcome + '=0 (n=' + str(round(len(data) - data[outcome].sum()))
-    column3 += ')'
-    column4 = 'All cohort (n=' + str(round(len(data))) + ')'
-
-    categorical_results = pd.DataFrame(
-        data=categorical_results,
-        columns=[column1, column2, column3, column4, 'p-value'])
-
-    categorical_results_t = pd.DataFrame(
-        data=categorical_results_t, columns=['Variable', 'Count'])
-    return categorical_results, suitable_cat, categorical_results_t
+def median_iqr_str(series, dp=1, mfw=4):
+    mfw_f = int(np.log10(series.quantile(0.75))) + 2 + dp
+    output_str = '%*.*f' % (mfw_f, dp, series.median()) + ' ('
+    output_str += '%*.*f' % (mfw_f, dp, series.quantile(0.25)) + '-'
+    output_str += '%*.*f' % (mfw_f, dp, series.quantile(0.75)) + '), '
+    output_str += '%*g' % (mfw, int(series.notna().sum()))
+    return output_str
 
 
-def numeric_outcome_results(data, outcome):
-    binary_variables, numeric_variables, categorical_variables = get_variables_type(data)
-    results_array = []
-    results_t = []
-    suitable_num = []
-    for variable in numeric_variables:
-        try:
-            data[variable] = pd.to_numeric(data[variable], errors='coerce')
-            data_variable = data[[variable, outcome]].dropna()
-            data0 = data_variable.loc[(data_variable[outcome] == 0), variable]
-            data1 = data_variable.loc[(data_variable[outcome] == 1), variable]
-            data_t = data_variable[variable]
-            # complete = round((100 * (len(data_variable) / len(data))), 1)
-            if len(data_variable) > 2:
-                # On the whole variable
-                stat, p = stats.shapiro(data_variable[variable])
-                alpha = 0.05
-                if p < alpha:
-                    # print('Not normal')
-                    w, p = stats.mannwhitneyu(
-                        data0, y=data1, alternative='two-sided')
-                else:
-                    summary, results = rp.ttest(
-                        group1=data.loc[(data[outcome] == 0), variable],
-                        group1_name='0',
-                        group2=data.loc[(data[outcome] == 1), variable],
-                        group2_name='1')
-                    p = results['results'].loc[3]
-
-                detail0 = str(round(data0.median(), 1)) + ' ('
-                detail0 += str(round(data0.quantile(0.25), 1)) + '-'
-                detail0 += str(round(data0.quantile(0.75), 1)) + ')'
-                detail1 = str(round(data1.median(), 1)) + ' ('
-                detail1 += str(round(data1.quantile(0.25), 1)) + '-'
-                detail1 += str(round(data1.quantile(0.75), 1)) + ')'
-                detail_t = str(round(data_t.median(), 1)) + ' ('
-                detail_t += str(round(data_t.quantile(0.25), 1)) + '-'
-                detail_t += str(round(data_t.quantile(0.75), 1)) + ')'
-                if p < 0.2:
-                    suitable_num.append(variable)
-                if p < 0.001:
-                    p = '<0.001'
-                elif p <= 0.05:
-                    p = str(round(p, 3))
-                else:
-                    p = str(round(p, 2))
-            else:
-                detail0 = str(round(data0.mean(), 1)) + ' ('
-                detail0 += str(round(data0.std(), 1)) + ')'
-                detail1 = str(round(data1.mean(), 1)) + ' ('
-                detail1 += str(round(data1.std(), 1)) + ')'
-                detail_t = str(round(data_t.mean(), 1)) + ' ('
-                detail_t += str(round(data_t.std(), 1)) + ')'
-                p = 'N/A'
-
-            results_array.append([variable, detail1, detail0, detail_t, p])
-            results_t.append([variable, detail_t])
-        except Exception:
-            print(variable)
-
-    column1 = 'Characteristic'
-    column2 = outcome + '=1 (n=' + str(round(data[outcome].sum())) + ')'
-    column3 = outcome + '=0 (n=' + str(round(len(data) - data[outcome].sum()))
-    column3 += ')'
-    column4 = 'All cohort (n=' + str(round(len(data))) + ')'
-
-    results_df = pd.DataFrame(
-        data=results_array,
-        columns=[column1, column2, column3, column4, 'p-value'])
-    results_t = pd.DataFrame(
-        data=results_t,
-        columns=['Variable', 'median(IQR)'])
-    return results_df, suitable_num, results_t
+def mean_std_str(series, dp=1, mfw=4):
+    mfw_f = int(np.log10(series.mean())) + 2 + dp
+    output_str = '%*.*f' % (mfw_f, dp, series.mean()) + ' ('
+    output_str += '%*.*f' % (mfw_f, dp, series.std()) + '), '
+    output_str += '%*g' % (mfw, int(series.notna().sum()))
+    return output_str
 
 
-def numeric_results(data, numeric_variables):
-    results_t = []
-    for variable in numeric_variables:
-        try:
-            data[variable] = pd.to_numeric(
-                data[variable], errors='coerce')
-            data_variable = data[[variable]].dropna()
-            data_t = data_variable[variable]
-            # complete = round((100 * (len(data_variable) / len(data))), 1)
-            if len(data_variable) > 2:
-                detail_t = str(round(data_t.median(), 1)) + ' ('
-                detail_t += str(round(data_t.quantile(0.25), 1)) + '-'
-                detail_t += str(round(data_t.quantile(0.75), 1)) + ')'
-            else:
-                detail_t = str(round(data_t.mean(), 1)) + ' ('
-                detail_t += str(round(data_t.std(), 1)) + ')'
-            results_t.append([variable, detail_t])
-        except Exception:
-            print(variable)
-    results_t = pd.DataFrame(
-        data=results_t, columns=['Variable', 'median(IQR)'])
-    return results_t
+def n_percent_str(series, dp=1, mfw=4):
+    output_str = '%*g' % (mfw, int(series.sum())) + ' / '
+    output_str += '%*g' % (mfw, int(series.notna().sum())) + ' ('
+    percent = 100*series.mean()
+    if percent == 100:
+        output_str += '100.)'
+    else:
+        output_str += '%4.*f' % (dp, percent) + ')'
+    return output_str
 
 
-def descriptive_table(data, correct_names, categoricals, numericals):
-    categorical_results_t = categorical_feature(
-        data, list(set(categoricals).intersection(set(data.columns))))
-    numeric_results_t = numeric_results(
-        data, list(set(numericals).intersection(set(data.columns))))
+def from_dummies(data, split_column, sep='___'):
+    df_new = data.copy()
+    columns = df_new.columns[df_new.columns.str.startswith(split_column + sep)]
+    df_new[split_column + sep + 'No'] = (df_new[columns].any(axis=1) == 0)
+    df_new[split_column] = pd.from_dummies(
+        df_new[list(columns) + [split_column + sep + 'No']], sep=sep)
+    df_new = df_new.drop(columns=columns)
+    return df_new
 
-    table = pd.merge(
-        categorical_results_t, numeric_results_t, on='Variable', how='outer')
 
-    table['Variable'] = table['Variable'].apply(lambda x: x.split(':')[0])
-    table['Variable'] = table['Variable'].replace(
-        dict(zip(correct_names['field_name'], correct_names['field_label'])))
-    # table['Variable'] = table['Variable'].replace(correct_names)
-    table = table.fillna('')
+def descriptive_table(data, split_column):
+    binary_var, numeric_var, categorical_var = get_variables_type(data)
+
+    e = 'split_column must be a binary or categorical variable'
+    assert (split_column in categorical_var or split_column in binary_var), e
+
+    binary_var = [x for x in binary_var if x != split_column]
+    categorical_var = [x for x in categorical_var if x != split_column]
+
+    # data.dropna(axis=1, inplace=True)
+
+    data.fillna({split_column: 'Unknown'}, inplace=True)
+    cat_values = data[split_column].unique()
+
+    table = pd.DataFrame(
+        columns=['Reported', 'All'] + list(cat_values),
+        index=data.drop(columns=split_column).columns)
+
+    table.loc[numeric_var, 'Reported'] = 'Median (IQR), N'
+    table.loc[(binary_var + categorical_var), 'Reported'] = 'n / N (%)'
+
+    mfw = int(np.log10(data.shape[0])) + 1
+    table.loc[numeric_var, 'All'] = data[numeric_var].apply(
+        lambda x: median_iqr_str(x, mfw=mfw) if x.notna().sum() > 3 else 'N/A')
+    table.loc[binary_var, 'All'] = data[binary_var].apply(
+        lambda x: n_percent_str(x, mfw=mfw) if x.sum() > 0 else 'N/A')
+
+    for value in cat_values:
+        ind = (data[split_column] == value)
+        mfw = int(np.log10(ind.sum())) + 1
+        table.loc[numeric_var, value] = data.loc[ind, numeric_var].apply(
+            lambda x: median_iqr_str(x, mfw=mfw) if x.notna().sum() > 3 else 'N/A')
+        table.loc[binary_var, value] = data.loc[ind, binary_var].apply(
+            lambda x: n_percent_str(x, mfw=mfw) if x.sum() > 0 else 'N/A')
+    table.reset_index(inplace=True)
     return table
 
 
