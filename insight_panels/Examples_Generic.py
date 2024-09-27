@@ -192,7 +192,7 @@ def create_modal():
                     title='Filters and Controls',
                     children=[
                         idw.filters_controls(suffix, country_dropdown_options)]
-                ),
+                    ),
                 dbc.AccordionItem(
                     title='Insights',
                     children=[
@@ -201,8 +201,8 @@ def create_modal():
                                 dbc.Col(visual, id='col-' + visual.id)
                                 ]), label=label)
                             for visual, label, _ in visuals])]
-                    )]
-                )
+                    )
+                ])
             ], style={
                 'overflowY': 'auto', 'minHeight': '75vh', 'maxHeight': '75vh'}
         ),

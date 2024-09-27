@@ -32,7 +32,6 @@ sections = [
     'preg',  # Pregnancy
     'infa',  # Infant
     'comor',  # Co-morbidities and risk factors
-    'asses',  # Assessment
     'daily',  # Daily sections
     'outco',  # Outcome
 ]
@@ -50,34 +49,25 @@ def create_visuals(df_map):
     # Pregnancy descriptive table
     preg_columns = ['age']  # This doesn't get renamed by correct_names?
     preg_columns += [col for col in df_map.columns if col.startswith('demog')]
+    preg_columns += [col for col in df_map.columns if col.startswith('comor')]
     preg_columns += [col for col in df_map.columns if col.startswith('preg')]
-    preg_all_women = ia.descriptive_table(
-        df_map.loc[df_map['slider_sex'] == 2, preg_columns],
-        correct_names=dd[['field_name', 'field_label']],
-        categoricals=variable_dict['binary'],
-        numericals=['age'] + variable_dict['number'])
-    preg_pregnant_women = ia.descriptive_table(
-        df_map.loc[df_map['preg_pregnant'] == 2, preg_columns],
-        correct_names=dd[['field_name', 'field_label']],
-        categoricals=variable_dict['binary'],
-        numericals=['age'] + variable_dict['number'])
+    preg_columns = [col for col in preg_columns if col.startswith('demog_sex') == 0]
+    table_preg = ia.descriptive_table(
+        df_map.loc[df_map['slider_sex'] == 'Female', preg_columns],
+        split_column='preg_pregnant')
     fig_table_preg = idw.fig_table(
-        pd.merge(
-            preg_all_women, preg_pregnant_women, on='Variable',
-            suffixes=(' (All women)', ' (Pregnant women)')),
+        table_preg,
         graph_id='table_preg_' + suffix,
         graph_label='Pregnancy: Descriptive Table',
         graph_about='Summary of demographics for Women/Pregnant Women.')
 
     # Infants descriptive table
-    infa_columns = ['age']  # This doesn't get renamed by correct_names?
+    infa_columns = ['age', 'slider_sex']  # This doesn't get renamed by correct_names?
     infa_columns += [col for col in df_map.columns if col.startswith('demog')]
     infa_columns += [col for col in df_map.columns if col.startswith('infa')]
     table_infa = ia.descriptive_table(
         df_map.loc[df_map['age'] < 1, infa_columns],
-        correct_names=dd[['field_name', 'field_label']],
-        categoricals=variable_dict['binary'],
-        numericals=['age'] + variable_dict['number'])
+        split_column='slider_sex')
     fig_table_infa = idw.fig_table(
         table_infa,
         graph_id='table_infa_' + suffix,
@@ -99,40 +89,6 @@ def create_visuals(df_map):
         graph_id='infa_comor_upset_' + suffix,
         graph_label='Infants: Intersections of comorbidities',
         graph_about='Frequency of combinations of the five most common comorbidities on presentation (infants only)')
-
-    # # Population pyramid
-    # color_map = {
-    #     'Discharge': '#00C26F',
-    #     'Censored': '#FFF500',
-    #     'Death': '#DF0069'}
-    # filter_columns = ['age_group', 'mapped_outcome', 'slider_sex']
-    # df_age_gender = df_map[filter_columns + ['usubjid']].groupby(
-    #     filter_columns, observed=True).count().reset_index()
-    # df_age_gender.rename(
-    #     columns={
-    #         'slider_sex': 'side',
-    #         'mapped_outcome': 'stack_group',
-    #         'usubjid': 'value',
-    #         'age_group': 'y_axis'},
-    #     inplace=True)
-    # pyramid_chart = idw.fig_dual_stack_pyramid(
-    #     df_age_gender, base_color_map=color_map,
-    #     graph_id='age_gender_pyramid_chart_' + suffix,
-    #     graph_label='Demographics: Population Pyramid',
-    #     graph_about='Dual-sided population pyramid, showing age, sex and outcome.')
-    #
-    # # Comorbidities descriptive table
-    # comor_columns = [col for col in df_map.columns if col.startswith('comor')]
-    # descriptive = ia.descriptive_table(
-    #     df_map[comor_columns],
-    #     correct_names=dd[['field_name', 'field_label']],
-    #     categoricals=variable_dict['binary'],
-    #     numericals=variable_dict['number'])
-    # fig_table_comor = idw.fig_table(
-    #     descriptive,
-    #     graph_id='comor_table_' + suffix,
-    #     graph_label='Comorbidities: Descriptive Table',
-    #     graph_about='Summary of comorbodities.')
 
     return fig_table_preg, fig_table_infa, freq_chart_infa_comor, upset_plot_infa_comor
 

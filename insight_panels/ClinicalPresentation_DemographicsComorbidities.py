@@ -30,7 +30,6 @@ sections = [
     'dates',  # Onset & presentation
     'demog',  # Demographics
     'comor',  # Co-morbidities and risk factors
-    'asses',  # Assessment
     'daily',  # Daily sections
     'outco',  # Outcome
 ]
@@ -66,27 +65,17 @@ def create_visuals(df_map):
         graph_label='Demographics: Population Pyramid',
         graph_about='Dual-sided population pyramid, showing age, sex and outcome.')
 
-    # Demographics descriptive table
-    demog_columns = [col for col in df_map.columns if col.startswith('demog')]
-    demog_columns += ['age']  # This doesn't get renamed by correct_names?
-
-    oneHot_variable=[]
-    for oneHE_var in df_map:
-         if '___' in oneHE_var:
-                oneHot_variable.append(oneHE_var)
-
-
-    descriptive_demog = ia.descriptive_table(
-        df_map[demog_columns],
-        correct_names=dd[['field_name', 'field_label']],
-        categoricals=variable_dict['binary']+oneHot_variable,
-        numericals=['age'] + variable_dict['number'])
-    #fig_table_symp = idw.fig_table(
-    #    descriptive,
-    #    graph_id='demog_table_' + suffix,
-    #    graph_label='Demographics: Descriptive Table',
-    #    graph_about='Summary of demographics.')
-
+    # Demographics and comorbidities descriptive table
+    inclu_columns = [col for col in df_map.columns if col.startswith('demog')]
+    inclu_columns += [col for col in df_map.columns if col.startswith('comor')]
+    inclu_columns += ['age', 'slider_sex']  # This doesn't get renamed by correct_names?
+    table = ia.descriptive_table(
+        df_map[inclu_columns], split_column='slider_sex')
+    fig_table = idw.fig_table(
+        table,
+        graph_id='demog_table_' + suffix,
+        graph_label='Descriptive Table',
+        graph_about='Summary of demographics and comorbidities.')
 
     # Comorbodities frequency and upset charts
     proportions_comor, set_data_comor = ia.get_proportions(
@@ -104,23 +93,7 @@ def create_visuals(df_map):
         graph_label='Comorbidities: Intersections',
         graph_about='Frequency of combinations of the five most common comorbidities on presentation')
 
-    # Comorbidities descriptive table
-    comor_columns = [col for col in df_map.columns if col.startswith('comor')]
-    descriptive = ia.descriptive_table(
-        df_map[comor_columns],
-        correct_names=dd[['field_name', 'field_label']],
-        categoricals=variable_dict['binary']+oneHot_variable,
-        numericals=variable_dict['number'])
-    
-    descriptive=pd.concat([descriptive,descriptive_demog])
-
-    fig_table_comor = idw.fig_table(
-        descriptive,
-        graph_id='comor_table_' + suffix,
-        graph_label='Descriptive Table',
-        graph_about='Summary of demographics and comorbodities.')
-
-    return fig_table_comor, pyramid_chart, freq_chart_comor, upset_plot_comor
+    return pyramid_chart, fig_table, freq_chart_comor, upset_plot_comor
 
 
 ############################################
