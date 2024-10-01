@@ -31,6 +31,7 @@ sections = [
     'demog',  # Demographics
     'comor',  # Co-morbidities and risk factors
     'daily',  # Daily sections
+    'asses',  # Assessment
     'outco',  # Outcome
 ]
 
@@ -42,7 +43,7 @@ def create_visuals(df_map):
     dd = getRC.getDataDictionary(redcap_url, redcap_api_key)
     # variable_dict is a dictionary of lists according to variable type, which
     # are: 'binary', 'date', 'number', 'freeText', 'units', 'categorical'
-    variable_dict = getRC.getVariableType(dd)
+    full_variable_dict = getRC.getVariableType(dd)
 
     # Population pyramid
     color_map = {
@@ -68,12 +69,23 @@ def create_visuals(df_map):
     # Demographics and comorbidities descriptive table
     inclu_columns = [col for col in df_map.columns if col.startswith('demog')]
     inclu_columns += [col for col in df_map.columns if col.startswith('comor')]
-    inclu_columns += ['age', 'slider_sex']  # This doesn't get renamed by correct_names?
+    # inclu_columns += ['age']  # This doesn't get renamed by correct_names?
+    # print(df_map[df_map.columns[df_map.columns.str.startswith('demog_sex')]])
+    df_table = ia.from_dummies(df_map[inclu_columns], column='demog_sex')
+    # print(df_table['demog_sex'].value_counts())
+    df_table = ia.merge_categories_except_list(
+        df_table, column='demog_sex',
+        required_values=['Male', 'Female'], merged_value='Unknown')
+    # print(df_table['demog_sex'].value_counts())
     table = ia.descriptive_table(
-        df_map[inclu_columns], split_column='slider_sex')
+        df_table,
+        column='demog_sex', full_variable_dict=full_variable_dict)
+    # table['Variable'] = (
+    #     table['Variable'] +
+    #     table['Reported'].replace({'n / N (%)': '*', 'Median (IQR), N': '**'}))
     fig_table = idw.fig_table(
-        table,
-        graph_id='demog_table_' + suffix,
+        table.drop(columns='Reported'),
+        graph_id='table_' + suffix,
         graph_label='Descriptive Table',
         graph_about='Summary of demographics and comorbidities.')
 

@@ -33,6 +33,7 @@ sections = [
     'infa',  # Infant
     'comor',  # Co-morbidities and risk factors
     'daily',  # Daily sections
+    'asses',  # Assessment
     'outco',  # Outcome
 ]
 
@@ -44,32 +45,36 @@ def create_visuals(df_map):
     dd = getRC.getDataDictionary(redcap_url, redcap_api_key)
     # variable_dict is a dictionary of lists according to variable type, which
     # are: 'binary', 'date', 'number', 'freeText', 'units', 'categorical'
-    variable_dict = getRC.getVariableType(dd)
+    full_variable_dict = getRC.getVariableType(dd)
 
     # Pregnancy descriptive table
-    preg_columns = ['age']  # This doesn't get renamed by correct_names?
-    preg_columns += [col for col in df_map.columns if col.startswith('demog')]
+    preg_columns = [col for col in df_map.columns if col.startswith('demog')]
     preg_columns += [col for col in df_map.columns if col.startswith('comor')]
     preg_columns += [col for col in df_map.columns if col.startswith('preg')]
-    preg_columns = [col for col in preg_columns if col.startswith('demog_sex') == 0]
+    preg_columns = [
+        col for col in preg_columns if (col.startswith('demog_sex') == 0)]
     table_preg = ia.descriptive_table(
         df_map.loc[df_map['slider_sex'] == 'Female', preg_columns],
-        split_column='preg_pregnant')
+        column='preg_pregnant', full_variable_dict=full_variable_dict)
     fig_table_preg = idw.fig_table(
-        table_preg,
+        table_preg.drop(columns='Reported'),
         graph_id='table_preg_' + suffix,
         graph_label='Pregnancy: Descriptive Table',
         graph_about='Summary of demographics for Women/Pregnant Women.')
 
     # Infants descriptive table
-    infa_columns = ['age', 'slider_sex']  # This doesn't get renamed by correct_names?
-    infa_columns += [col for col in df_map.columns if col.startswith('demog')]
+    infa_columns = [col for col in df_map.columns if col.startswith('demog')]
     infa_columns += [col for col in df_map.columns if col.startswith('infa')]
+    df_infa = ia.from_dummies(
+        df_map.loc[(df_map['age'] < 1), infa_columns], column='demog_sex')
+    df_infa = ia.merge_categories_except_list(
+        df_infa, column='demog_sex',
+        required_values=['Male', 'Female'], merged_value='Unknown')
     table_infa = ia.descriptive_table(
-        df_map.loc[df_map['age'] < 1, infa_columns],
-        split_column='slider_sex')
+        df_infa,
+        column='demog_sex', full_variable_dict=full_variable_dict)
     fig_table_infa = idw.fig_table(
-        table_infa,
+        table_infa.drop(columns='Reported'),
         graph_id='table_infa_' + suffix,
         graph_label='Infants: Descriptive Table',
         graph_about='Summary of demographics for Infants <12 months.')
