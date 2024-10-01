@@ -96,8 +96,8 @@ def mapOutcomes(df):
         # 'Palliative care': 'Censored',
         # 'Other': 'Censored'
     }
-    df['outco_outcome'] = df['outco_outcome'].map(mapping_dict)
     other_outcome = (df['outco_outcome'].isin(mapping_dict.keys()) == 0)
+    df['outco_outcome'] = df['outco_outcome'].map(mapping_dict)
     df.loc[other_outcome, 'outco_outcome'] = 'Censored'
     return df
 
@@ -180,39 +180,49 @@ def homogenize_variables(df):
     return df
 
 
-def get_variables_type(data):
-    final_binary_variables = []
-    final_numeric_variables = []
-    final_categorical_variables = []
-
-    for column in data:
-        column_data = data[column].dropna()
-
-        if column_data.empty:
-            continue
-
-        # Check if the column is numeric
-        if pd.api.types.is_numeric_dtype(column_data):
-            unique_values = column_data.unique()
-            if (len(unique_values) == 2) and (set(unique_values) == {0, 1}):
-                final_binary_variables.append(column)
-            else:
-                try:
-                    pd.to_numeric(column_data)
-                    final_numeric_variables.append(column)
-                except ValueError as e:
-                    print(f'An error occurred: {e}')
-                    for col_value_i in column_data:
-                        print(col_value_i)
-        else:
-            unique_values = column_data.unique()
-            # Consider column as categorical if it has a few unique values
-            if len(unique_values) <= 10:
-                final_categorical_variables.append(column)
-
-    return final_binary_variables, final_numeric_variables, final_categorical_variables
+def getVariableType_data(data, full_variable_dict):
+    # data_columns = [x.split('___')[0] for x in data.columns]
+    variable_dict = {}
+    for key in full_variable_dict.keys():
+        variable_dict[key] = [
+            x for x in data.columns
+            if x.split('___')[0] in full_variable_dict[key]]
+    return variable_dict
 
 
+# def get_variables_type(data):
+#     final_binary_variables = []
+#     final_numeric_variables = []
+#     final_categorical_variables = []
+#
+#     for column in data:
+#         column_data = data[column].dropna()
+#
+#         if column_data.empty:
+#             continue
+#
+#         # Check if the column is numeric
+#         if pd.api.types.is_numeric_dtype(column_data):
+#             unique_values = column_data.unique()
+#             if (len(unique_values) == 2) and (set(unique_values) == {0, 1}):
+#                 final_binary_variables.append(column)
+#             else:
+#                 try:
+#                     pd.to_numeric(column_data)
+#                     final_numeric_variables.append(column)
+#                 except ValueError as e:
+#                     print(f'An error occurred: {e}')
+#                     for col_value_i in column_data:
+#                         print(col_value_i)
+#         else:
+#             unique_values = column_data.unique()
+#             # Consider column as categorical if it has a few unique values
+#             if len(unique_values) <= 10:
+#                 final_categorical_variables.append(column)
+#
+#     return final_binary_variables, final_numeric_variables, final_categorical_variables
+#
+#
 # def categorical_feature(data, categoricals):
 #     categorical_results_t = []
 #     for variable in categoricals:
@@ -450,36 +460,48 @@ def n_percent_str(series, dp=1, mfw=4):
     return output_str
 
 
-def from_dummies(data, split_column, sep='___'):
+def from_dummies(data, column, sep='___', missing_val='No'):
     df_new = data.copy()
-    columns = df_new.columns[df_new.columns.str.startswith(split_column + sep)]
-    df_new[split_column + sep + 'No'] = (df_new[columns].any(axis=1) == 0)
-    df_new[split_column] = pd.from_dummies(
-        df_new[list(columns) + [split_column + sep + 'No']], sep=sep)
+    columns = df_new.columns[df_new.columns.str.startswith(column + sep)]
+    df_new[column + sep + missing_val] = (df_new[columns].any(axis=1) == 0)
+    df_new[column] = pd.from_dummies(
+        df_new[list(columns) + [column + sep + missing_val]], sep=sep)
     df_new = df_new.drop(columns=columns)
+    df_new = df_new.drop(columns=column + sep + missing_val)
     return df_new
 
 
-def descriptive_table(data, split_column):
-    binary_var, numeric_var, categorical_var = get_variables_type(data)
+def merge_categories_except_list(data, column, required_values=[], merged_value='Other'):
+    data.loc[(data[column].isin(required_values) == 0), column] = merged_value
+    return data
 
-    e = 'split_column must be a binary or categorical variable'
-    assert (split_column in categorical_var or split_column in binary_var), e
 
-    binary_var = [x for x in binary_var if x != split_column]
-    categorical_var = [x for x in categorical_var if x != split_column]
+def merge_categories_max_ncat(data, column, max_ncat=4, merged_value='Other'):
+    required_cat_list = data[column].value_counts().head(n=max_ncat)
+    required_cat_list = required_cat_list.index.tolist()
+    data = merge_categories_except_list(data, column, required_cat_list, merged_value)
+    return data
 
-    # data.dropna(axis=1, inplace=True)
 
-    data.fillna({split_column: 'Unknown'}, inplace=True)
-    cat_values = data[split_column].unique()
+def descriptive_table(data, column, full_variable_dict):
+    # data = data.dropna(axis=1, how='all')
+
+    data.fillna({column: 'Unknown'}, inplace=True)
+    cat_values = data[column].unique()
+    print(cat_values)
+
+    variable_dict = getVariableType_data(
+        data.drop(columns=column), full_variable_dict)
+    numeric_var = variable_dict['number']
+    binary_var = sum([
+        variable_dict[key] for key in ['binary', 'categorical', 'OneHot']], [])
 
     table = pd.DataFrame(
         columns=['Reported', 'All'] + list(cat_values),
-        index=data.drop(columns=split_column).columns)
+        index=data.drop(columns=column).columns)
 
     table.loc[numeric_var, 'Reported'] = 'Median (IQR), N'
-    table.loc[(binary_var + categorical_var), 'Reported'] = 'n / N (%)'
+    table.loc[binary_var, 'Reported'] = 'n / N (%)'
 
     mfw = int(np.log10(data.shape[0])) + 1
     table.loc[numeric_var, 'All'] = data[numeric_var].apply(
@@ -488,13 +510,13 @@ def descriptive_table(data, split_column):
         lambda x: n_percent_str(x, mfw=mfw) if x.sum() > 0 else 'N/A')
 
     for value in cat_values:
-        ind = (data[split_column] == value)
+        ind = (data[column] == value)
         mfw = int(np.log10(ind.sum())) + 1
         table.loc[numeric_var, value] = data.loc[ind, numeric_var].apply(
             lambda x: median_iqr_str(x, mfw=mfw) if x.notna().sum() > 3 else 'N/A')
         table.loc[binary_var, value] = data.loc[ind, binary_var].apply(
             lambda x: n_percent_str(x, mfw=mfw) if x.sum() > 0 else 'N/A')
-    table.reset_index(inplace=True)
+    table.reset_index(inplace=True, names='Variable')
     return table
 
 
