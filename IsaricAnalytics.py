@@ -86,6 +86,17 @@ def get_proportions(data, data_type):
     return proportions, set_data
 
 
+def mapSex(df):
+    mapping_dict = {
+        'Female': 'Female',
+        'Male': 'Male'
+    }
+    other_outcome = (df['demog_sex'].isin(mapping_dict.keys()) == 0)
+    df['demog_sex'] = df['demog_sex'].map(mapping_dict)
+    df.loc[other_outcome, 'demog_sex'] = 'Other / Unknown'
+    return df
+
+
 def mapOutcomes(df):
     mapping_dict = {
         'Discharged alive': 'Discharge',
@@ -436,7 +447,7 @@ def median_iqr_str(series, dp=1, mfw=4):
     mfw_f = int(np.log10(series.quantile(0.75))) + 2 + dp
     output_str = '%*.*f' % (mfw_f, dp, series.median()) + ' ('
     output_str += '%*.*f' % (mfw_f, dp, series.quantile(0.25)) + '-'
-    output_str += '%*.*f' % (mfw_f, dp, series.quantile(0.75)) + '), '
+    output_str += '%*.*f' % (mfw_f, dp, series.quantile(0.75)) + ') | '
     output_str += '%*g' % (mfw, int(series.notna().sum()))
     return output_str
 
@@ -444,19 +455,19 @@ def median_iqr_str(series, dp=1, mfw=4):
 def mean_std_str(series, dp=1, mfw=4):
     mfw_f = int(np.log10(series.mean())) + 2 + dp
     output_str = '%*.*f' % (mfw_f, dp, series.mean()) + ' ('
-    output_str += '%*.*f' % (mfw_f, dp, series.std()) + '), '
+    output_str += '%*.*f' % (mfw_f, dp, series.std()) + ') | '
     output_str += '%*g' % (mfw, int(series.notna().sum()))
     return output_str
 
 
 def n_percent_str(series, dp=1, mfw=4):
-    output_str = '%*g' % (mfw, int(series.sum())) + ' / '
-    output_str += '%*g' % (mfw, int(series.notna().sum())) + ' ('
+    output_str = '%*g' % (mfw, int(series.sum())) + ' ('
     percent = 100*series.mean()
     if percent == 100:
-        output_str += '100.)'
+        output_str += '100.) | '
     else:
-        output_str += '%4.*f' % (dp, percent) + ')'
+        output_str += '%4.*f' % (dp, percent) + ') | '
+    output_str += '%*g' % (mfw, int(series.notna().sum()))
     return output_str
 
 
@@ -471,7 +482,8 @@ def from_dummies(data, column, sep='___', missing_val='No'):
     return df_new
 
 
-def merge_categories_except_list(data, column, required_values=[], merged_value='Other'):
+def merge_categories_except_list(
+        data, column, required_values=[], merged_value='Other'):
     data.loc[(data[column].isin(required_values) == 0), column] = merged_value
     return data
 
@@ -479,16 +491,16 @@ def merge_categories_except_list(data, column, required_values=[], merged_value=
 def merge_categories_max_ncat(data, column, max_ncat=4, merged_value='Other'):
     required_cat_list = data[column].value_counts().head(n=max_ncat)
     required_cat_list = required_cat_list.index.tolist()
-    data = merge_categories_except_list(data, column, required_cat_list, merged_value)
+    data = merge_categories_except_list(
+        data, column, required_cat_list, merged_value)
     return data
 
 
 def descriptive_table(data, column, full_variable_dict):
-    # data = data.dropna(axis=1, how='all')
+    data = data.dropna(axis=1, how='all')
 
     data.fillna({column: 'Unknown'}, inplace=True)
     cat_values = data[column].unique()
-    print(cat_values)
 
     variable_dict = getVariableType_data(
         data.drop(columns=column), full_variable_dict)
@@ -500,8 +512,8 @@ def descriptive_table(data, column, full_variable_dict):
         columns=['Reported', 'All'] + list(cat_values),
         index=data.drop(columns=column).columns)
 
-    table.loc[numeric_var, 'Reported'] = 'Median (IQR), N'
-    table.loc[binary_var, 'Reported'] = 'n / N (%)'
+    table.loc[numeric_var, 'Reported'] = 'Median (IQR) | N'
+    table.loc[binary_var, 'Reported'] = 'Count (%) | N'
 
     mfw = int(np.log10(data.shape[0])) + 1
     table.loc[numeric_var, 'All'] = data[numeric_var].apply(
@@ -517,6 +529,13 @@ def descriptive_table(data, column, full_variable_dict):
         table.loc[binary_var, value] = data.loc[ind, binary_var].apply(
             lambda x: n_percent_str(x, mfw=mfw) if x.sum() > 0 else 'N/A')
     table.reset_index(inplace=True, names='Variable')
+
+    table['Variable'] = (
+        table['Variable'] +
+        table['Reported'].replace({
+            'Count (%) | N': '___(*)',
+            'Median (IQR) | N': '___(+)'
+        }))
     return table
 
 

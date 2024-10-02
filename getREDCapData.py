@@ -325,6 +325,7 @@ def get_REDCAP_Single_DB(
     # form2_day1 = form2.loc[(form2['relative_day'] == 1)]
 
     form1 = ia.harmonizeAge(form1)
+    form1 = ia.mapSex(form1)
 
     form3 = ia.mapOutcomes(form3)
 

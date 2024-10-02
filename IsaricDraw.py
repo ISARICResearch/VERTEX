@@ -7,6 +7,7 @@ from plotly.subplots import make_subplots
 from collections import OrderedDict
 from scipy.cluster.hierarchy import linkage
 import plotly.figure_factory as ff
+import numpy as np
 
 
 default_height = 430
@@ -22,9 +23,9 @@ def filters_controls(suffix, country_dropdown_options):
                     options=[
                         {'label': 'Male', 'value': 'Male'},
                         {'label': 'Female', 'value': 'Female'},
-                        {'label': 'Unknown', 'value': 'U'}
+                        {'label': 'Other / Unknown', 'value': 'Other / Unknown'}
                     ],
-                    value=['Male', 'Female', 'U']
+                    value=['Male', 'Female', 'Other / Unknown']
                 )
             ])
         ], width=2),
@@ -35,10 +36,10 @@ def filters_controls(suffix, country_dropdown_options):
                     dcc.RangeSlider(
                         id=f'age-slider_{suffix}',
                         min=0,
-                        max=90,
+                        max=100,
                         step=10,
-                        marks={i: str(i) for i in range(0, 91, 10)},
-                        value=[0, 90]
+                        marks={i: str(i) for i in range(0, 101, 10)},
+                        value=[0, 100]
                     )
                 ], style={'width': '100%'})  # Apply style to this div
             ])
@@ -347,6 +348,61 @@ def compute_intersections(df):
     return sorted_intersections
 
 
+def value_fun(x, missing_data_codes=None):
+    values = [int(y.split(',')[0]) for y in x]
+    if missing_data_codes is not None:
+        values = values + missing_data_codes.values()
+    return values
+
+
+def label_fun(x, missing_data_codes=None):
+    labels = [','.join(y.split(',')[1:]).strip() for y in x]
+    if missing_data_codes is not None:
+        labels = labels + missing_data_codes.keys()
+    return labels
+
+
+def get_label_value_dict(dictionary, missing_data_codes=None):
+    # Get categories from dictionary
+    cat_split = dictionary['select_choices_or_calculations'].copy()
+    # This may throw an error if there are variables of type: slider or calc
+    invalid_cat_ind = cat_split.fillna('').apply(
+        lambda x: (len(x) > 0) & (x.count('|') == 0) & (x.count(',') == 0))
+    cat_split.loc[invalid_cat_ind] = np.nan
+    cat_split = cat_split.str.rstrip('|,').str.split(r'\|').fillna('')
+    cat_split = cat_split.apply(lambda x: [y.strip() for y in x])
+    # This fixes the missing cat ind
+    cat_split = cat_split.apply(lambda x: [y for y in x if y != ''])
+    cat_dict = cat_split.apply(lambda x: dict(zip(label_fun(x), value_fun(x))))
+    return cat_dict
+
+
+# def rename_variables(df_variables, dictionary, missing_data_codes=None):
+#     cat_dict = get_label_value_dict(dictionary, missing_data_codes)
+#     variable_dict = dict(zip(
+#         dictionary['field_label'], dictionary['field_name']))
+#     df_variable_split = df_variables.apply(lambda x: x.split(' '))
+#     df_variable_names = df_variable_split.apply(lambda x: x[0].split('___')[0])
+#     df_variable_names = df_variable_names.replace(variable_dict)
+#     df_cat_names = df_variable_split.apply(
+#         lambda x: x[0].split('___')[1] if '___' in x[0] else '')
+#     df_cat_names = 1
+#     return
+
+
+def rename_variables(df_variables, dictionary, missing_data_codes=None):
+    variable_dict = dict(zip(
+        dictionary['field_name'], dictionary['field_label']))
+    df_variable_split = df_variables.apply(lambda x: x.split('___'))
+    df_variables = df_variable_split.apply(lambda x: x[0])
+    df_variables = df_variables.replace(variable_dict)
+    df_variables += df_variable_split.apply(
+        lambda x:
+            ', ' + ' '.join(x[1:]) if len(x) > 2
+            else (' ' + x[1] if len(x) > 1 else ''))
+    return df_variables
+
+
 ############################################
 ############################################
 # Figures
@@ -354,7 +410,8 @@ def compute_intersections(df):
 ############################################
 
 
-def fig_placeholder(df, graph_id='table', graph_label='', graph_about=''):
+def fig_placeholder(
+        df, dictionary=None, graph_id='table', graph_label='', graph_about=''):
     x = [1, 2, 3, 4, 5]
     y = [10, 14, 12, 15, 13]
     fig = go.Figure(data=go.Scatter(
@@ -370,9 +427,13 @@ def fig_placeholder(df, graph_id='table', graph_label='', graph_about=''):
 
 
 def fig_upset(
-        df,
+        df, dictionary=None,
         title='UpSet Plot',
         graph_id='upset-chart', graph_label='', graph_about=''):
+
+    df = df.rename(columns=dict(zip(
+        df.columns,
+        rename_variables(pd.Series(df.columns), dictionary).tolist())))
     categories = df.columns
     intersections = compute_intersections(df)
 
@@ -462,7 +523,7 @@ def fig_upset(
 
 
 def fig_cumulative_bar_chart(
-        df,
+        df, dictionary=None,
         title='Cumulative Bar by Timepoint', xlabel='x', ylabel='y',
         base_color_map=None,
         graph_id='cumulative-bar-chart', graph_label='', graph_about=''):
@@ -527,7 +588,7 @@ def fig_cumulative_bar_chart(
 
 
 def fig_dual_stack_pyramid(
-        df,
+        df, dictionary=None,
         title='Dual-Sided Stacked Pyramid Chart', base_color_map=None,
         graph_id='stacked-bar-chart', graph_label='', graph_about=''):
 
@@ -670,7 +731,7 @@ def fig_dual_stack_pyramid(
 
 
 def fig_sex_boxplot(
-        df,
+        df, dictionary=None,
         title='Hospital Stay Length by Sex', ylabel='y', base_color_map=None,
         graph_id='sex-boxplot', graph_label='', graph_about=''):
     # Default color map if none provided
@@ -704,7 +765,7 @@ def fig_sex_boxplot(
 
 
 def fig_age_group_boxplot(
-        df,
+        df, dictionary=None,
         title='Hospital Stay Length by Age Group', ylabel='y',
         base_color_map=None,
         graph_id='age-group-boxplot', graph_label='', graph_about=''):
@@ -748,11 +809,12 @@ def fig_age_group_boxplot(
 
 
 def fig_frequency_chart(
-        df,
+        df, dictionary=None,
         title='Frequency Chart', labels=['Condition', 'Proportion'],
         base_color_map=None,
         graph_id='freq-chart', graph_label='', graph_about=''):
 
+    df['Condition'] = rename_variables(df['Condition'], dictionary)
     df = df.sort_values(by=['Proportion'], ascending=False)
     if (len(df) > 15):
         df = df.head(10)
@@ -828,7 +890,7 @@ def fig_frequency_chart(
 
 
 def fig_forest_plot(
-        df,
+        df, dictionary=None,
         title='Forest Plot',
         labels=['Study', 'OddsRatio', 'LowerCI', 'UpperCI'],
         graph_id='forest-plot', graph_label='', graph_about=''):
@@ -885,7 +947,10 @@ def fig_forest_plot(
     return graph, graph_label, graph_about
 
 
-def fig_table(df, graph_id='table-graph', graph_label='', graph_about=''):
+def fig_table(
+        df, dictionary=None,
+        graph_id='table-graph', graph_label='', graph_about=''):
+    df['Variable'] = rename_variables(df['Variable'], dictionary)
     fig = go.Figure(data=[go.Table(
         header=dict(
             values=list(df.columns),
@@ -896,7 +961,13 @@ def fig_table(df, graph_id='table-graph', graph_label='', graph_about=''):
             fill_color='#e9e9e9',
             align='right'))
     ])
-    fig.update_layout(height=500)
+    fig.update_layout(
+        height=500,
+        title='(*) Count (%) | N<br>(+) Median (IQR) | N',
+        title_font=dict(size=10),
+        title_y=0.05,
+        title_x=0.95
+    )
     graph = dcc.Graph(
         id=graph_id,
         figure=fig
@@ -905,7 +976,8 @@ def fig_table(df, graph_id='table-graph', graph_label='', graph_about=''):
 
 
 def fig_heatmap(
-        df1, df2, title, graph_id='heatmap', graph_label='', graph_about=''):
+        df1, df2, dictionary=None, title='Heatmap',
+        graph_id='heatmap', graph_label='', graph_about=''):
     x_columns = df1.columns
     y_columns = df2.columns
 
