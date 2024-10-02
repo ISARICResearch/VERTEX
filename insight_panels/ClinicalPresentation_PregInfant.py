@@ -56,8 +56,10 @@ def create_visuals(df_map):
     table_preg = ia.descriptive_table(
         df_map.loc[df_map['slider_sex'] == 'Female', preg_columns],
         column='preg_pregnant', full_variable_dict=full_variable_dict)
+    # table_preg = table_preg[
+    #     ['Variable', 'All', '1', '0', 'Unknown']]
     fig_table_preg = idw.fig_table(
-        table_preg.drop(columns='Reported'),
+        table_preg, dictionary=dd,
         graph_id='table_preg_' + suffix,
         graph_label='Pregnancy: Descriptive Table',
         graph_about='Summary of demographics for Women/Pregnant Women.')
@@ -67,14 +69,16 @@ def create_visuals(df_map):
     infa_columns += [col for col in df_map.columns if col.startswith('infa')]
     df_infa = ia.from_dummies(
         df_map.loc[(df_map['age'] < 1), infa_columns], column='demog_sex')
-    df_infa = ia.merge_categories_except_list(
-        df_infa, column='demog_sex',
-        required_values=['Male', 'Female'], merged_value='Unknown')
+    # df_infa = ia.merge_categories_except_list(
+    #     df_infa, column='demog_sex',
+    #     required_values=['Male', 'Female'], merged_value='Unknown')
     table_infa = ia.descriptive_table(
         df_infa,
         column='demog_sex', full_variable_dict=full_variable_dict)
+    table_infa = table_infa[
+        ['Variable', 'All', 'Female', 'Male', 'Other / Unknown']]
     fig_table_infa = idw.fig_table(
-        table_infa.drop(columns='Reported'),
+        table_infa, dictionary=dd,
         graph_id='table_infa_' + suffix,
         graph_label='Infants: Descriptive Table',
         graph_about='Summary of demographics for Infants <12 months.')
@@ -83,13 +87,13 @@ def create_visuals(df_map):
     proportions_infa_comor, set_data_infa_comor = ia.get_proportions(
         df_map.loc[df_map['age'] < 1], 'comorbidities')
     freq_chart_infa_comor = idw.fig_frequency_chart(
-        proportions_infa_comor,
+        proportions_infa_comor, dictionary=dd,
         title='Frequency of comorbidities',
         graph_id='infa_comor_freq_' + suffix,
         graph_label='Infants: Frequency of comorbidities',
         graph_about='Frequency of the ten most common comorbodities on presentation (infants only)')
     upset_plot_infa_comor = idw.fig_upset(
-        set_data_infa_comor,
+        set_data_infa_comor, dictionary=dd,
         title='Frequency of combinations of the five most common comorbidities',
         graph_id='infa_comor_upset_' + suffix,
         graph_label='Infants: Intersections of comorbidities',
@@ -338,8 +342,8 @@ def register_callbacks(app, suffix):
     def update_figures(click, genders, age_range, outcomes, countries):
         filtered_df = df_map[(
             (df_map['slider_sex'].isin(genders)) &
-            (df_map['age'] >= age_range[0]) &
-            (df_map['age'] <= age_range[1]) &
+            ((df_map['age'] >= age_range[0]) | df_map['age'].isna()) &
+            ((df_map['age'] <= age_range[1]) | df_map['age'].isna()) &
             (df_map['outcome'].isin(outcomes)) &
             (df_map['country_iso'].isin(countries)))]
 

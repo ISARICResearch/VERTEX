@@ -61,30 +61,24 @@ def create_visuals(df_map):
             'age_group': 'y_axis'},
         inplace=True)
     pyramid_chart = idw.fig_dual_stack_pyramid(
-        df_age_gender, base_color_map=color_map,
-        graph_id='age_gender_pyramid_chart_' + suffix,
+        df_age_gender, dictionary=dd,
+        base_color_map=color_map, graph_id='age_gender_pyramid_chart_' + suffix,
         graph_label='Demographics: Population Pyramid',
         graph_about='Dual-sided population pyramid, showing age, sex and outcome.')
 
     # Demographics and comorbidities descriptive table
     inclu_columns = [col for col in df_map.columns if col.startswith('demog')]
     inclu_columns += [col for col in df_map.columns if col.startswith('comor')]
-    # inclu_columns += ['age']  # This doesn't get renamed by correct_names?
-    # print(df_map[df_map.columns[df_map.columns.str.startswith('demog_sex')]])
     df_table = ia.from_dummies(df_map[inclu_columns], column='demog_sex')
-    # print(df_table['demog_sex'].value_counts())
-    df_table = ia.merge_categories_except_list(
-        df_table, column='demog_sex',
-        required_values=['Male', 'Female'], merged_value='Unknown')
-    # print(df_table['demog_sex'].value_counts())
+    # df_table = ia.merge_categories_except_list(
+    #     df_table, column='demog_sex',
+    #     required_values=['Male', 'Female'], merged_value='Other / Unknown')
     table = ia.descriptive_table(
         df_table,
         column='demog_sex', full_variable_dict=full_variable_dict)
-    # table['Variable'] = (
-    #     table['Variable'] +
-    #     table['Reported'].replace({'n / N (%)': '*', 'Median (IQR), N': '**'}))
+    table = table[['Variable', 'All', 'Female', 'Male', 'Other / Unknown']]
     fig_table = idw.fig_table(
-        table.drop(columns='Reported'),
+        table, dictionary=dd,
         graph_id='table_' + suffix,
         graph_label='Descriptive Table',
         graph_about='Summary of demographics and comorbidities.')
@@ -93,13 +87,13 @@ def create_visuals(df_map):
     proportions_comor, set_data_comor = ia.get_proportions(
         df_map, 'comorbidities')
     freq_chart_comor = idw.fig_frequency_chart(
-        proportions_comor,
+        proportions_comor, dictionary=dd,
         title='Frequency of comorbidities',
         graph_id='comor_freq_' + suffix,
         graph_label='Comorbidities: Frequency',
         graph_about='Frequency of the ten most common comorbodities on presentation')
     upset_plot_comor = idw.fig_upset(
-        set_data_comor,
+        set_data_comor, dictionary=dd,
         title='Frequency of combinations of the five most common comorbidities',
         graph_id='comor_upset_' + suffix,
         graph_label='Comorbidities: Intersections',
@@ -348,8 +342,8 @@ def register_callbacks(app, suffix):
     def update_figures(click, genders, age_range, outcomes, countries):
         filtered_df = df_map[(
             (df_map['slider_sex'].isin(genders)) &
-            (df_map['age'] >= age_range[0]) &
-            (df_map['age'] <= age_range[1]) &
+            ((df_map['age'] >= age_range[0]) | df_map['age'].isna()) &
+            ((df_map['age'] <= age_range[1]) | df_map['age'].isna()) &
             (df_map['outcome'].isin(outcomes)) &
             (df_map['country_iso'].isin(countries)))]
 

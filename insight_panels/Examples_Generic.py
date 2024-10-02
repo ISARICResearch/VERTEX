@@ -65,16 +65,16 @@ def create_visuals(df_map):
     '''
     Create all visuals in the insight panel from the RAP dataframe
     '''
-    # dd = getRC.getDataDictionary(redcap_url, redcap_api_key)
+    dd = getRC.getDataDictionary(redcap_url, redcap_api_key)
     # # variable_dict is a dictionary of lists according to variable type, which
     # # are: 'binary', 'date', 'number', 'freeText', 'units', 'categorical'
     # variable_dict = getRC.getVariableType(dd)
 
     fig1 = idw.fig_placeholder(
-        df_map,
+        df_map, dictionary=dd,
         graph_id='fig1_id' + suffix, graph_label='Figure 1', graph_about='')
     fig2 = idw.fig_placeholder(
-        df_map,
+        df_map, dictionary=dd,
         graph_id='fig2_id' + suffix, graph_label='Figure 2', graph_about='')
     return fig1, fig2
 
@@ -316,8 +316,8 @@ def register_callbacks(app, suffix):
     def update_figures(click, genders, age_range, outcomes, countries):
         filtered_df = df_map[(
             (df_map['slider_sex'].isin(genders)) &
-            (df_map['age'] >= age_range[0]) &
-            (df_map['age'] <= age_range[1]) &
+            ((df_map['age'] >= age_range[0]) | df_map['age'].isna()) &
+            ((df_map['age'] <= age_range[1]) | df_map['age'].isna()) &
             (df_map['outcome'].isin(outcomes)) &
             (df_map['country_iso'].isin(countries)))]
 
