@@ -470,8 +470,8 @@ def resolve_checkbox_branching_logic(df, dictionary):
 
 def get_REDCAP_Single_DB(
         redcap_url, redcap_api_key, site_mapping, required_variables):
-    if 'lesion_mpox_sl' not in required_variables:
-        required_variables += ['lesion_mpox_sl']
+    if 'lesion_sl' not in required_variables:
+        required_variables += ['lesion_sl']
     contries_path = 'assets/countries.csv'
     countries = pd.read_csv(contries_path, encoding='latin-1')
     conex = {
@@ -732,9 +732,9 @@ def get_REDCAP_Single_DB(
         '>1000': 'Critical'}
     inclu_columns = [
         col for col in df_encoded.columns
-        if col.startswith('lesion_mpox_sl___')]
+        if col.startswith('lesion_sl___')]
     df_encoded['severity'] = ia.from_dummies(
-            df_encoded[inclu_columns], 'lesion_mpox_sl', missing_val='Unknown'
+            df_encoded[inclu_columns], 'lesion_sl', missing_val='Unknown'
         ).replace(severity_dict)
 
     return df_encoded
