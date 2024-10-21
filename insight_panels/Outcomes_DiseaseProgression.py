@@ -82,31 +82,31 @@ def create_visuals(df_map):
     df_map['age_group'] = pd.cut(
         df_map['age'], bins=bins, labels=age_groups, right=False)
 
-    inclu_columns = ['age_group', 'expo14_type', 'lesion_mpox_mucos']
-    inclu_columns += ['lesion_mpox_skinles', 'severity', 'outcome']
+    inclu_columns = ['age_group', 'expo14_type', 'lesion_mucos']
+    inclu_columns += ['lesion_skinles', 'severity', 'outcome']
     inclu_columns = [
         col for col in df_map.columns if col.split('___')[0] in inclu_columns]
-    expo14_type_ranking = ['Healthcare worker exposure']
-    # expo14_type_ranking = ['Sexual contact', 'Healthcare worker exposure']
+    # expo14_type_ranking = ['Healthcare worker exposure']
+    expo14_type_ranking = ['Sexual transmission', 'Healthcare worker exposure']
     expo14_type_ranking += ['Community contact', 'Vertical transmission']
     df_sankey = df_map[inclu_columns].copy()
     df_sankey['transmission'] = 'Unknown'
     for value in expo14_type_ranking[::-1]:
         df_sankey.loc[(
             df_sankey['expo14_type___' + value] == 1), 'transmission'] = value
-    lesion_columns = ['lesion_mpox_skinles___There are active skin lesions']
-    lesion_columns += ['lesion_mpox_mucos___There are mucosal lesions']
+    lesion_columns = ['lesion_skinles___There are active skin lesions']
+    lesion_columns += ['lesion_mucos___There are mucosal lesions']
     rename_dict = dict(zip(
         lesion_columns, [x.split('___')[0] for x in lesion_columns]))
     df_sankey.rename(columns=rename_dict, inplace=True)
     df_sankey['lesion_location'] = 'None'
     df_sankey.loc[(
-        df_sankey['lesion_mpox_skinles'] == 1), 'lesion_location'] = 'Skin'
+        df_sankey['lesion_skinles'] == 1), 'lesion_location'] = 'Skin'
     df_sankey.loc[(
-        df_sankey['lesion_mpox_mucos'] == 1), 'lesion_location'] = 'Mucosal'
+        df_sankey['lesion_mucos'] == 1), 'lesion_location'] = 'Mucosal'
     df_sankey.loc[(
-            (df_sankey['lesion_mpox_mucos'] == 1) &
-            (df_sankey['lesion_mpox_skinles'] == 1)),
+            (df_sankey['lesion_mucos'] == 1) &
+            (df_sankey['lesion_skinles'] == 1)),
         'lesion_location'] = 'Both'
     inclu_columns = ['age_group', 'transmission', 'lesion_location']
     inclu_columns += ['severity', 'outcome']
@@ -136,6 +136,60 @@ def create_visuals(df_map):
         df_sankey, sort_values_dict, cmap_dict,
         graph_id='sankey1',
         graph_label='Transmission: Sankey diagram', graph_about='')
+
+    # df_severity1 = df_severity[['record_id', 'D1', 'D3', 'D5', 'D7', 'outcome']]
+    #
+    # outcome_order = ['Death', 'Discharged', 'Censored']
+    # severity_order = ['Critical', 'Severe', 'Moderate', 'Mild', 'Unknown']
+    # sort_values_dict = {
+    #     'outcome': outcome_order}
+    # for col in [col for col in df_severity1.columns if col.startswith('D')]:
+    #     sort_values_dict[col] = outcome_order + severity_order
+    #
+    # colors_dict = {
+    #     'Critical': 'rgb(118, 42, 131)',
+    #     'Severe': 'rgb(219, 196, 224)',
+    #     'Moderate': 'rgb(200, 233, 194)',
+    #     'Mild': 'rgb(27, 120, 55)',
+    #     'Death': '#DF0069',
+    #     'Discharged': '#00C26F',
+    #     'Censored': '#FFF500'
+    # }
+    # cmap_dict = dict()
+    # for col in df_severity1.columns:
+    #     cmap_dict[col] = colors_dict
+    #
+    # another_sankey = fig_sankey(
+    #     df_severity1.drop(columns=['record_id']), sort_values_dict, cmap_dict,
+    #     graph_id='sankey2',
+    #     graph_label='Severity progression: Sankey diagram', graph_about='')
+    #
+    # df_severity2 = df_severity[['record_id', 'D1', 'D7', 'D14', 'D21', 'D28', 'D60', 'outcome']]
+    #
+    # outcome_order = ['Death', 'Discharged', 'Censored']
+    # severity_order = ['Critical', 'Severe', 'Moderate', 'Mild', 'Unknown']
+    # sort_values_dict = {
+    #     'outcome': outcome_order}
+    # for col in [col for col in df_severity2.columns if col.startswith('D')]:
+    #     sort_values_dict[col] = outcome_order + severity_order
+    #
+    # colors_dict = {
+    #     'Critical': 'rgb(118, 42, 131)',
+    #     'Severe': 'rgb(219, 196, 224)',
+    #     'Moderate': 'rgb(200, 233, 194)',
+    #     'Mild': 'rgb(27, 120, 55)',
+    #     'Death': '#DF0069',
+    #     'Discharged': '#00C26F',
+    #     'Censored': '#FFF500'
+    # }
+    # cmap_dict = dict()
+    # for col in df_severity2.columns:
+    #     cmap_dict[col] = colors_dict
+    #
+    # yet_another_sankey = fig_sankey(
+    #     df_severity2.drop(columns=['record_id']), sort_values_dict, cmap_dict,
+    #     graph_id='sankey3',
+    #     graph_label='Severity progression: Sankey diagram', graph_about='')
 
     return sankey,
 
