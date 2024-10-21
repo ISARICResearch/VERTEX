@@ -27,10 +27,13 @@ clinical_measure = 'Generic Panel'
 # Provide a list of all ARCH data sections needed in the RAP dataframe
 # Only variables from these sections will appear in the visuals
 sections = [
+    'dates',  # Onset & presentation (REQUIRED)
+    'demog',  # Demographics (REQUIRED)
+    'daily',  # Daily sections (REQUIRED)
+    'asses',  # Assessment (REQUIRED)
+    'outco',  # Outcome (REQUIRED)
     'inclu',  # Inclusion criteria
-    'dates',  # Onset & presentation
     'readm',  # Re-admission and previous pin
-    'demog',  # Demographics
     'travel',  # Travel history
     'expo14',  # Exposure history in previous 14 days
     'preg',  # Pregnancy
@@ -42,8 +45,6 @@ sections = [
     'vacci',  # Vaccination
     'advital',  # Vital signs & assessments on admission
     'adsym',  # Signs and symptoms on admission
-    'asses',  # Assessment
-    'daily',  # Daily sections
     'vital',  # Vital signs & assessments
     'sympt',  # Signs and symptoms
     'lesion',  # Skin & mucosa assessment
@@ -55,10 +56,16 @@ sections = [
     'diagn',  # Diagnosis
     'compl',  # Complications
     'inter',  # Interventions
-    'outco',  # Outcome
     'follow',  # Follow-up assessment
     'withd',  # Withdrawal
 ]
+
+
+# Leftmost edge of the bins
+age_groups = [
+    '0-5', '6-10', '11-15', '16-20', '21-25', '26-30', '31-35', '36-40',
+    '41-45', '46-50', '51-55', '56-60', '61-65', '66-70', '71-75', '76-80',
+    '81-85', '86-90', '91-95', '96-100']
 
 
 def create_visuals(df_map):
@@ -99,36 +106,20 @@ site_mapping = rc_config.site_mapping
 # Data reading and initial proccesing
 ############################################
 
+print(research_question + ': ' + clinical_measure)
 
-def create_df_map(redcap_url, redcap_api_key, site_mapping, sections):
-    vari_list = getRC.getVariableList(redcap_url, redcap_api_key, sections)
-    df_map = getRC.get_REDCAP_Single_DB(
-        redcap_url, redcap_api_key, site_mapping, vari_list)
+vari_list = getRC.getVariableList(redcap_url, redcap_api_key, sections)
+df_map = getRC.get_REDCAP_Single_DB(
+    redcap_url, redcap_api_key, site_mapping, vari_list)
 
-    bins = [
-        0, 6, 11, 16, 21, 26, 31, 36,
-        41, 46, 51, 56, 61, 66, 71, 76,
-        81, 86, 91, 96, 101]
-    labels = [
-        '0-5', '6-10', '11-15', '16-20', '21-25', '26-30', '31-35', '36-40',
-        '41-45', '46-50', '51-55', '56-60', '61-65', '66-70', '71-75', '76-80',
-        '81-85', '86-90', '91-95', '96-100']
-    df_map['age_group'] = pd.cut(
-        df_map['age'], bins=bins, labels=labels, right=False)
-    df_map['mapped_outcome'] = df_map['outcome']
-    return df_map
-
-
-df_map = create_df_map(redcap_url, redcap_api_key, site_mapping, sections)
+bins = [float(x.split('-')[0].strip()) for x in age_groups] + [np.inf]
+df_map['age_group'] = pd.cut(
+    df_map['age'], bins=bins, labels=age_groups, right=False)
 
 all_countries = pycountry.countries
 countries = [
     {'label': country.name, 'value': country.alpha_3}
     for country in all_countries]
-sections = getRC.getDataSections(redcap_url, redcap_api_key)
-vari_list = getRC.getVariableList(
-    redcap_url, redcap_api_key, sections)
-
 unique_countries = df_map[['slider_country', 'country_iso']].drop_duplicates(
     ).sort_values(by='slider_country')
 

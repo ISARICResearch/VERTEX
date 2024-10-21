@@ -27,13 +27,44 @@ clinical_measure = 'Demographics / Comorbidities'
 # Provide a list of all ARCH data sections needed in the RAP dataframe
 # Only variables from these sections will appear in the visuals
 sections = [
-    'dates',  # Onset & presentation
-    'demog',  # Demographics
+    'dates',  # Onset & presentation (REQUIRED)
+    'demog',  # Demographics (REQUIRED)
+    'daily',  # Daily sections (REQUIRED)
+    'asses',  # Assessment (REQUIRED)
+    'outco',  # Outcome (REQUIRED)
+    # 'inclu',  # Inclusion criteria
+    # 'readm',  # Re-admission and previous pin
+    # 'travel',  # Travel history
+    # 'expo14',  # Exposure history in previous 14 days
+    # 'preg',  # Pregnancy
+    # 'infa',  # Infant
     'comor',  # Co-morbidities and risk factors
-    'daily',  # Daily sections
-    'asses',  # Assessment
-    'outco',  # Outcome
+    # 'medic',  # Medical history
+    # 'drug7',  # Medication previous 7-days
+    # 'drug14',  # Medication previous 14-days
+    # 'vacci',  # Vaccination
+    # 'advital',  # Vital signs & assessments on admission
+    # 'adsym',  # Signs and symptoms on admission
+    # 'vital',  # Vital signs & assessments
+    # 'sympt',  # Signs and symptoms
+    # 'lesion',  # Skin & mucosa assessment
+    # 'treat',  # Treatments & interventions
+    # 'labs',  # Laboratory results
+    # 'imagi',  # Imaging
+    # 'medi',  # Medication
+    # 'test',  # Pathogen testing
+    # 'diagn',  # Diagnosis
+    # 'compl',  # Complications
+    # 'inter',  # Interventions
+    # 'follow',  # Follow-up assessment
+    # 'withd',  # Withdrawal
 ]
+
+# Leftmost edge of the bins
+age_groups = [
+    '0-5', '6-10', '11-15', '16-20', '21-25', '26-30', '31-35', '36-40',
+    '41-45', '46-50', '51-55', '56-60', '61-65', '66-70', '71-75', '76-80',
+    '81-85', '86-90', '91-95', '96-100']
 
 
 def create_visuals(df_map):
@@ -44,19 +75,21 @@ def create_visuals(df_map):
     # variable_dict is a dictionary of lists according to variable type, which
     # are: 'binary', 'date', 'number', 'freeText', 'units', 'categorical'
     full_variable_dict = getRC.getVariableType(dd)
+    binary_list = ['binary', 'categorical', 'OneHot']
+    binary_var = sum([full_variable_dict[key] for key in binary_list], [])
 
     # Population pyramid
     color_map = {
-        'Discharge': '#00C26F',
+        'Discharged': '#00C26F',
         'Censored': '#FFF500',
         'Death': '#DF0069'}
-    filter_columns = ['age_group', 'mapped_outcome', 'slider_sex']
+    filter_columns = ['age_group', 'outcome', 'slider_sex']
     df_age_gender = df_map[filter_columns + ['usubjid']].groupby(
         filter_columns, observed=True).count().reset_index()
     df_age_gender.rename(
         columns={
             'slider_sex': 'side',
-            'mapped_outcome': 'stack_group',
+            'outcome': 'stack_group',
             'usubjid': 'value',
             'age_group': 'y_axis'},
         inplace=True)
@@ -67,25 +100,32 @@ def create_visuals(df_map):
         graph_about='Dual-sided population pyramid, showing age, sex and outcome.')
 
     # Demographics and comorbidities descriptive table
-    inclu_columns = [col for col in df_map.columns if col.startswith('demog')]
-    inclu_columns += [col for col in df_map.columns if col.startswith('comor')]
+    inclu_columns = ia.get_variables_from_sections(
+        df_map.columns, ['demog', 'comor'])
     df_table = ia.from_dummies(df_map[inclu_columns], column='demog_sex')
-    # df_table = ia.merge_categories_except_list(
-    #     df_table, column='demog_sex',
-    #     required_values=['Male', 'Female'], merged_value='Other / Unknown')
     table = ia.descriptive_table(
-        df_table,
-        column='demog_sex', full_variable_dict=full_variable_dict)
-    table = table[['Variable', 'All', 'Female', 'Male', 'Other / Unknown']]
+        df_table, column='demog_sex', full_variable_dict=full_variable_dict)
+    table = ia.reorder_descriptive_table(
+        table, dictionary=dd,
+        section_reorder=['demog', 'comor'])
+    table, table_key = ia.reformat_descriptive_table(
+        table, dictionary=dd,
+        column_reorder=['Female', 'Male', 'Other / Unknown'])
+    table = ia.add_totals(table, df_table, column='demog_sex')
     fig_table = idw.fig_table(
         table, dictionary=dd,
+        table_key=table_key,
         graph_id='table_' + suffix,
         graph_label='Descriptive Table',
         graph_about='Summary of demographics and comorbidities.')
 
+    inclu_columns = [
+        col for col in df_map.columns if col.split('___')[0] in binary_var]
+    inclu_columns = [col for col in inclu_columns if 'addi' not in col]
+
     # Comorbodities frequency and upset charts
     proportions_comor, set_data_comor = ia.get_proportions(
-        df_map, 'comorbidities')
+        df_map[inclu_columns], 'comor')
     freq_chart_comor = idw.fig_frequency_chart(
         proportions_comor, dictionary=dd,
         title='Frequency of comorbidities',
@@ -122,38 +162,20 @@ site_mapping = rc_config.site_mapping
 # Data reading and initial proccesing
 ############################################
 
+print(research_question + ': ' + clinical_measure)
 
-def create_df_map(redcap_url, redcap_api_key, site_mapping, sections):
-    vari_list = getRC.getVariableList(redcap_url, redcap_api_key, sections)
-    df_map = getRC.get_REDCAP_Single_DB(
-        redcap_url, redcap_api_key, site_mapping, vari_list)
+vari_list = getRC.getVariableList(redcap_url, redcap_api_key, sections)
+df_map = getRC.get_REDCAP_Single_DB(
+    redcap_url, redcap_api_key, site_mapping, vari_list)
 
-    bins = [
-        0, 6, 11, 16, 21, 26, 31, 36,
-        41, 46, 51, 56, 61, 66, 71, 76,
-        81, 86, 91, 96, 101]
-    labels = [
-        '0-5', '6-10', '11-15', '16-20', '21-25', '26-30', '31-35', '36-40',
-        '41-45', '46-50', '51-55', '56-60', '61-65', '66-70', '71-75', '76-80',
-        '81-85', '86-90', '91-95', '96-100']
-    df_map['age_group'] = pd.cut(
-        df_map['age'], bins=bins, labels=labels, right=False)
-    df_map['mapped_outcome'] = df_map['outcome']
-    return df_map
-
-
-df_map = create_df_map(redcap_url, redcap_api_key, site_mapping, sections)
+bins = [float(x.split('-')[0].strip()) for x in age_groups] + [np.inf]
+df_map['age_group'] = pd.cut(
+    df_map['age'], bins=bins, labels=age_groups, right=False)
 
 all_countries = pycountry.countries
 countries = [
     {'label': country.name, 'value': country.alpha_3}
     for country in all_countries]
-sections = getRC.getDataSections(redcap_url, redcap_api_key)
-vari_list = getRC.getVariableList(
-    redcap_url, redcap_api_key,
-    ['dates', 'demog', 'comor', 'daily', 'outco', 'labs', 'vital',
-        'adsym', 'inter', 'treat'])
-
 unique_countries = df_map[['slider_country', 'country_iso']].drop_duplicates(
     ).sort_values(by='slider_country')
 

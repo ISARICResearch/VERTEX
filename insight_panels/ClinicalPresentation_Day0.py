@@ -17,12 +17,12 @@ import redcap_config as rc_config
 ############################################
 
 # The suffix must be unique to each insight panel, it is used by the dashboard
-suffix = 'PregInfant'
+suffix = 'Day0'
 # Multiple insight panels can share the same research question
 # Insight panels are grouped in the dashboard menu according to this
 research_question = 'Clinical Presentation'
 # The combination of research question and clinical measure must be unique
-clinical_measure = 'Pregnancy / Infants'
+clinical_measure = 'Day 0: Signs, Symptoms, Labs and Vitals'
 
 # Provide a list of all ARCH data sections needed in the RAP dataframe
 # Only variables from these sections will appear in the visuals
@@ -36,20 +36,20 @@ sections = [
     # 'readm',  # Re-admission and previous pin
     # 'travel',  # Travel history
     # 'expo14',  # Exposure history in previous 14 days
-    'preg',  # Pregnancy
-    'infa',  # Infant
-    'comor',  # Co-morbidities and risk factors
+    # 'preg',  # Pregnancy
+    # 'infa',  # Infant
+    # 'comor',  # Co-morbidities and risk factors
     # 'medic',  # Medical history
     # 'drug7',  # Medication previous 7-days
     # 'drug14',  # Medication previous 14-days
     # 'vacci',  # Vaccination
-    # 'advital',  # Vital signs & assessments on admission
-    # 'adsym',  # Signs and symptoms on admission
-    # 'vital',  # Vital signs & assessments
+    'advital',  # Vital signs & assessments on admission
+    'adsym',  # Signs and symptoms on admission
+    'vital',  # Vital signs & assessments
     # 'sympt',  # Signs and symptoms
-    # 'lesion',  # Skin & mucosa assessment
+    'lesion',  # Skin & mucosa assessment
     # 'treat',  # Treatments & interventions
-    # 'labs',  # Laboratory results
+    'labs',  # Laboratory results
     # 'imagi',  # Imaging
     # 'medi',  # Medication
     # 'test',  # Pathogen testing
@@ -69,71 +69,55 @@ def create_visuals(df_map):
     # variable_dict is a dictionary of lists according to variable type, which
     # are: 'binary', 'date', 'number', 'freeText', 'units', 'categorical'
     full_variable_dict = getRC.getVariableType(dd)
+    binary_list = ['binary', 'categorical', 'OneHot']
+    binary_var = sum([full_variable_dict[key] for key in binary_list], [])
 
-    # Pregnancy descriptive table
-    preg_columns = ia.get_variables_from_sections(
-        df_map.columns, ['demog', 'preg'])
-    preg_columns = [
-        col for col in preg_columns if (col.startswith('demog_sex') == 0)]
-    df_table = df_map.loc[(df_map['slider_sex'] == 'Female'), preg_columns]
-    df_table.rename(
-        columns={'preg_pregnant___Yes': 'preg_pregnant'}, inplace=True)
-    df_table['preg_pregnant'] = df_table['preg_pregnant'].map(
-        {1.0: 'Pregnant', 0.0: 'Not pregnant'}).fillna('Unknown')
-    table_preg = ia.descriptive_table(
-        df_table,
-        column='preg_pregnant', full_variable_dict=full_variable_dict)
-    table_preg = ia.reorder_descriptive_table(
-        table_preg, dictionary=dd, section_reorder=['preg', 'demog'])
-    table_preg, table_key = ia.reformat_descriptive_table(
-        table_preg, dictionary=dd,
-        column_reorder=['Pregnant', 'Not pregnant', 'Unknown'])
-    table_preg = ia.add_totals(table_preg, df_table, column='preg_pregnant')
-    table_preg.rename(columns={'All': 'Female'}, inplace=True)
-    fig_table_preg = idw.fig_table(
-        table_preg, dictionary=dd,
+    # Descriptive table
+    # column = 'outcome'
+    # column_reorder = ['Discharged', 'Death', 'Censored']
+    column = 'severity'
+    column_reorder = ['Mild', 'Moderate', 'Severe', 'Critical']
+    inclu_columns = ia.get_variables_from_sections(
+        df_map.columns, ['lesion', 'advital', 'adsym', 'labs', 'vital'])
+    inclu_columns += [column]
+    table = ia.descriptive_table(
+        df_map[inclu_columns],
+        column=column, full_variable_dict=full_variable_dict)
+    table = ia.reorder_descriptive_table(
+        table, dictionary=dd,
+        section_reorder=['lesion', 'advital', 'adsym', 'labs', 'vital'])
+    table, table_key = ia.reformat_descriptive_table(
+        table, dictionary=dd, column_reorder=column_reorder)
+    table = ia.add_totals(table, df_map[inclu_columns], column=column)
+    table_key += '<br>Mild: <25 skin lesions, Moderate: 25-99 skin lesions, '
+    table_key += 'Severe: 100-250 skin lesions, Critical: >250 skin lesions'
+    fig_table = idw.fig_table(
+        table, dictionary=dd,
         table_key=table_key,
-        graph_id='table_preg_' + suffix,
-        graph_label='Pregnancy: Descriptive Table',
-        graph_about='Summary of demographics for Women/Pregnant Women.')
+        graph_id='table_' + suffix,
+        graph_label='Descriptive Table',
+        graph_about='Summary of signs and symptoms at admission, and vitals and labs on day 0.')
 
-    # Infants descriptive table
-    infa_columns = ia.get_variables_from_sections(
-        df_map.columns, ['demog', 'infa'])
-    df_infa = ia.from_dummies(
-        df_map.loc[(df_map['age'] < 1), infa_columns], column='demog_sex')
-    table_infa = ia.descriptive_table(
-        df_infa,
-        column='demog_sex', full_variable_dict=full_variable_dict)
-    table_infa = ia.reorder_descriptive_table(
-        table_infa, dictionary=dd, section_reorder=None)
-    table_infa, table_key = ia.reformat_descriptive_table(
-        table_infa, dictionary=dd,
-        column_reorder=['Female', 'Male', 'Other / Unknown'])
-    fig_table_infa = idw.fig_table(
-        table_infa, dictionary=dd,
-        table_key=table_key,
-        graph_id='table_infa_' + suffix,
-        graph_label='Infants: Descriptive Table',
-        graph_about='Summary of demographics for Infants <12 months.')
+    inclu_columns = [
+        col for col in df_map.columns if col.split('___')[0] in binary_var]
+    inclu_columns = [col for col in inclu_columns if 'addi' not in col]
 
-    # Comorbodities frequency and upset charts
-    proportions_infa_comor, set_data_infa_comor = ia.get_proportions(
-        df_map.loc[(df_map['age'] < 1)], 'comor')
-    freq_chart_infa_comor = idw.fig_frequency_chart(
-        proportions_infa_comor, dictionary=dd,
-        title='Frequency of comorbidities',
-        graph_id='infa_comor_freq_' + suffix,
-        graph_label='Infants: Frequency of comorbidities',
-        graph_about='Frequency of the ten most common comorbodities on presentation (infants only)')
-    upset_plot_infa_comor = idw.fig_upset(
-        set_data_infa_comor, dictionary=dd,
-        title='Frequency of combinations of the five most common comorbidities',
-        graph_id='infa_comor_upset_' + suffix,
-        graph_label='Infants: Intersections of comorbidities',
-        graph_about='Frequency of combinations of the five most common comorbidities on presentation (infants only)')
+    # Signs and symptoms frequency and upset charts
+    proportions, set_data = ia.get_proportions(df_map[inclu_columns], 'adsym')
+    freq_chart = idw.fig_frequency_chart(
+        proportions, dictionary=dd,
+        title='Frequency of signs and symptoms',
+        graph_id='freq_' + suffix,
+        graph_label='Signs and symptoms: Frequency',
+        graph_about='Frequency of the ten most common signs and symptoms on presentation')
+    upset_plot = idw.fig_upset(
+        set_data, dictionary=dd,
+        title='Frequency of combinations of the five most common signs and symptoms',
+        graph_id='upset_' + suffix,
+        graph_label='Signs and symptoms: Intersections',
+        graph_about='Frequency of combinations of the five most common signs and symptoms on presentation')
 
-    return fig_table_preg, fig_table_infa, freq_chart_infa_comor, upset_plot_infa_comor
+    return fig_table, freq_chart, upset_plot
 
 
 ############################################
