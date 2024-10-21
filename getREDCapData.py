@@ -606,14 +606,14 @@ def get_REDCAP_Single_DB(
     form2 = pd.merge(form2, dates, on='subjid', how='left')
 
     # Ensure both columns are in datetime format
-    form2['daily_date'] = pd.to_datetime(form2['daily_date'], errors='coerce')
+    form2['asses_date'] = pd.to_datetime(form2['asses_date'], errors='coerce')
 
     form2['dates_admdate'] = pd.to_datetime(
         form2['dates_admdate'], errors='coerce')
 
     # Calculate the difference in days and create a new column
     form2['relative_day'] = (
-        form2['daily_date'] - form2['dates_admdate']).dt.days
+        form2['asses_date'] - form2['dates_admdate']).dt.days
 
     form3 = pd.merge(form3, dates, on='subjid', how='left')
     # Ensure both columns are in datetime format
@@ -724,7 +724,6 @@ def get_REDCAP_Single_DB(
         '1': 'Mild',
         '2-5': 'Mild',
         '6-9': 'Mild',
-        '<10': 'Mild',
         '10-24': 'Mild',
         '25-49': 'Moderate',
         '50-99': 'Moderate',
