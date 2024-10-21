@@ -6,6 +6,7 @@ import numpy as np
 import plotly.graph_objs as go
 import sys
 import IsaricDraw as idw
+import IsaricAnalytics as ia
 import redcap_config as rc_config
 import getREDCapData as getRC
 from insight_panels import *
@@ -65,10 +66,10 @@ for uniq_county in range(len(unique_countries)):
 max_value = df_map_count['usubjid'].max()
 # Define the color scale
 custom_scale = []
-cutoffs = np.percentile(df_map_count['usubjid'], [
-    10, 20, 30, 40, 50, 60, 70, 80, 90, 99, 100])  # TODO: remove 99?
+cutoffs = np.percentile(
+    df_map_count['usubjid'], [10, 20, 30, 40, 50, 60, 70, 80, 90, 99, 100])
 num_colors = len(cutoffs)
-colors = idw.interpolate_colors(
+colors = ia.interpolate_colors(
     ['0000FF', '00EA66', 'A7FA00', 'FFBE00', 'FF7400', 'FF3500'], num_colors)
 
 max_value = num_colors  # Assuming the maximum value is 10 for demonstration
@@ -176,7 +177,7 @@ def update_map(genders, age_range, outcomes, countries):
     cutoffs = np.percentile(
         df_map_count['usubjid'], [10, 20, 30, 40, 50, 60, 70, 80, 90, 99, 100])
     num_colors = len(cutoffs)
-    colors = idw.interpolate_colors(
+    colors = ia.interpolate_colors(
         ['FF3500', 'FF7400', 'FFBE00', 'A7FA00', '00EA66', '0000FF'],
         num_colors)
 

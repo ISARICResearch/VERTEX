@@ -1,5 +1,6 @@
 redcap_api_key = 'BCC83FD05676798456262ED4883FD85C'
 redcap_url = 'https://ncov.medsci.ox.ac.uk/api/'
+
 site_mapping = {
     '00000': 'COL',
     '00001': 'GBR',

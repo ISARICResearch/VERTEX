@@ -3,123 +3,93 @@ import pandas as pd
 # import re
 # import os
 import scipy.stats as stats
-import researchpy as rp
+# import researchpy as rp
 from sklearn.metrics import roc_auc_score, roc_curve, accuracy_score
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.linear_model import LogisticRegression
 from sklearn.impute import KNNImputer
 import xgboost as xgb
+import itertools
+from collections import OrderedDict
 
 
-def risk_preprocessing(data):
-    df_map = data
-    comor = []
-    for i in df_map:
-        if 'comor_' in i:
-            comor.append(i)
-    sympt = []
-    for i in df_map:
-        if 'adsym_' in i:
-            sympt.append(i)
-
-    sdata = df_map[sympt+comor+['age', 'slider_sex', 'outcome']].copy()
-
-    sdata = sdata.applymap(lambda x: x.lower() if isinstance(x, str) else x)
-    sdata[sympt+comor] = (sdata[sympt+comor] != 'no')
-    sdata = sdata.loc[(sdata['outcome'] != 'censored')]
-
-    outcome_binary_map = {'discharge': 0, 'death': 1}
-    sex_binary_map = {'female': 0, 'male': 1}
-    sdata['outcome'] = sdata['outcome'].map(outcome_binary_map)
-    sdata['slider_sex'] = sdata['slider_sex'].map(sex_binary_map)
-    return sdata
+############################################
+############################################
+# General preprocessing
+############################################
+############################################
 
 
-def obtain_variables(data, data_type):
-    prefix = ''
-    if data_type == 'symptoms':
-        prefix = 'adsym_'
-    elif data_type == 'comorbidities':
-        prefix = 'comor_'
-    variables = []
+def get_choices_value(x):
+    values = [int(y.split(',')[0]) for y in x]
+    return values
 
-    for i in data:
-        if prefix in i:
-            variables.append(i)
 
-    df = data[[
-        'usubjid', 'age', 'slider_sex', 'slider_country',
-        'outcome', 'country_iso'] + variables].copy()
-    if (data_type == 'symptoms') or (data_type == 'comorbidities'):
-        df = df.applymap(lambda x: x.lower() if isinstance(x, str) else x)
+def get_choices_label(x):
+    labels = [','.join(y.split(',')[1:]).strip() for y in x]
+    return labels
+
+
+def get_choices_label_value_dict(dictionary):
+    # Get categories from dictionary
+    choices_split = dictionary['select_choices_or_calculations'].copy()
+    # This may throw an error if there are variables of type: slider or calc
+    invalid_choices_ind = choices_split.fillna('').apply(
+        lambda x: (len(x) > 0) & (x.count('|') == 0) & (x.count(',') == 0))
+    choices_split.loc[invalid_choices_ind] = np.nan
+    choices_split = choices_split.str.rstrip('|,').str.split(r'\|').fillna('')
+    choices_split = choices_split.apply(lambda x: [y.strip() for y in x])
+    # This fixes the missing choices ind
+    choices_split = choices_split.apply(lambda x: [y for y in x if y != ''])
+    choices_dict = choices_split.apply(
+        lambda x: dict(zip(get_choices_label(x), get_choices_value(x))))
+    return choices_dict
+
+
+def rename_checkbox_variables(df, dictionary, missing_data_codes=None):
+    choices_dict = get_choices_label_value_dict(dictionary)
+    if missing_data_codes is None:
+        n_choices = choices_dict.apply(len)
+        values = sum([list(x.values()) for x in choices_dict], [])
+        labels = sum([list(x.keys()) for x in choices_dict], [])
+    else:
+        n_choices = choices_dict.apply(len) + len(missing_data_codes)
+        missing_values = list(missing_data_codes.values())
+        values = sum(
+            [list(x.values()) + missing_values for x in choices_dict], [])
+        missing_labels = list(missing_data_codes.keys())
+        labels = sum(
+            [list(x.keys()) + missing_labels for x in choices_dict], [])
+    names = list(np.repeat(dictionary['field_name'], n_choices))
+    name_values = [x + '___' + str(y).lower() for x, y in zip(names, values)]
+    name_labels = [x + '___' + y for x, y in zip(names, labels)]
+    df.rename(columns=dict(zip(name_values, name_labels)), inplace=True)
     return df
 
 
-def get_proportions(data, data_type):
-    prefix = ''
-    if data_type == 'symptoms':
-        prefix = 'adsym_'
-    elif data_type == 'comorbidities':
-        prefix = 'comor_'
-    elif data_type == 'treatments':
-        prefix = 'treat_'
+def get_variables_from_sections(
+        variable_list, section_list, required_variables=None):
+    '''
+    Get only the variables from sections, plus any required variables
+    '''
+    inclu_variables = []
+    for section in section_list:
+        inclu_variables += [
+            var for var in variable_list if var.startswith(section + '_')]
 
-    variables = []
-
-    for i in data:
-        if prefix in i:
-            variables.append(i)
-
-    df = data[[
-        'usubjid', 'age', 'slider_sex', 'slider_country', 'outcome',
-        'country_iso'] + variables].copy()
-    df = df.map(lambda x: x.lower() if isinstance(x, str) else x)
-
-    proportions = df[variables].apply(
-        lambda x: x.dropna().sum() / x.dropna().count()).reset_index()
-
-    proportions.columns = ['Condition', 'Proportion']
-    proportions = proportions.sort_values(by=['Proportion'], ascending=False)
-    Condition_top = proportions['Condition'].head(5)
-    set_data = df[Condition_top]
-    return proportions, set_data
+    if required_variables is not None:
+        required_variables = [
+            var for var in required_variables if var not in inclu_variables]
+        inclu_variables = required_variables + inclu_variables
+    return inclu_variables
 
 
-def mapSex(df):
-    mapping_dict = {
-        'Female': 'Female',
-        'Male': 'Male'
-    }
-    other_outcome = (df['demog_sex'].isin(mapping_dict.keys()) == 0)
-    df['demog_sex'] = df['demog_sex'].map(mapping_dict)
-    df.loc[other_outcome, 'demog_sex'] = 'Other / Unknown'
-    return df
-
-
-def mapOutcomes(df):
-    mapping_dict = {
-        'Discharged alive': 'Discharge',
-        'Discharged against medical advice': 'Discharge',
-        'Death': 'Death',
-        # 'Transfer to other facility': 'Censored',
-        # 'Still hospitalised': 'Censored',
-        # 'Palliative care': 'Censored',
-        # 'Other': 'Censored'
-    }
-    other_outcome = (df['outco_outcome'].isin(mapping_dict.keys()) == 0)
-    df['outco_outcome'] = df['outco_outcome'].map(mapping_dict)
-    df.loc[other_outcome, 'outco_outcome'] = 'Censored'
-    return df
-
-
-def remove_MissingDataCodes(df):  # TODO: read this from API
-    MissingDataCodes = [
-        'Unknown', 'No information', 'Not asked', 'Not applicable']
-    with pd.option_context('future.no_silent_downcasting', True):
-        df.replace('', np.nan, inplace=True)
-        df.replace(MissingDataCodes, np.nan, inplace=True)
-    return df
+def map_variable(variable, mapping_dict, other_value_str='Other / Unknown'):
+    other_ind = (variable.isin(mapping_dict.keys()) == 0)
+    variable = variable.map(mapping_dict)
+    variable.loc[other_ind] = other_value_str
+    return variable
 
 
 def harmonizeAge(df):
@@ -192,7 +162,6 @@ def homogenize_variables(df):
 
 
 def getVariableType_data(data, full_variable_dict):
-    # data_columns = [x.split('___')[0] for x in data.columns]
     variable_dict = {}
     for key in full_variable_dict.keys():
         variable_dict[key] = [
@@ -200,6 +169,629 @@ def getVariableType_data(data, full_variable_dict):
             if x.split('___')[0] in full_variable_dict[key]]
     return variable_dict
 
+
+def from_dummies(data, column, sep='___', missing_val='No'):
+    df_new = data.copy()
+    columns = df_new.columns[df_new.columns.str.startswith(column + sep)]
+    df_new[column + sep + missing_val] = (
+        (df_new[columns].any(axis=1) == 0) |
+        (df_new[columns].isna().any(axis=1)))
+    df_new[columns] = df_new[columns].fillna(0)
+    df_new[column] = pd.from_dummies(
+        df_new[list(columns) + [column + sep + missing_val]], sep=sep)
+    df_new = df_new.drop(columns=columns)
+    df_new = df_new.drop(columns=column + sep + missing_val)
+    return df_new
+
+
+def merge_categories_except_list(
+        data, column, required_values=[], merged_value='Other'):
+    data.loc[(data[column].isin(required_values) == 0), column] = merged_value
+    return data
+
+
+def merge_cat_max_ncat(data, column, max_ncat=4, merged_value='Other'):
+    required_choices_list = data[column].value_counts().head(n=max_ncat)
+    required_choices_list = required_choices_list.index.tolist()
+    data = merge_categories_except_list(
+        data, column, required_choices_list, merged_value)
+    return data
+
+
+############################################
+############################################
+# Descriptive table
+############################################
+############################################
+
+
+def median_iqr_str(series, dp=1, mfw=4, min_n=3):
+    if series.notna().sum() < min_n:
+        output_str = 'N/A'
+    else:
+        mfw_f = int(np.log10(series.quantile(0.75))) + 2 + dp
+        output_str = '%*.*f' % (mfw_f, dp, series.median()) + ' ('
+        output_str += '%*.*f' % (mfw_f, dp, series.quantile(0.25)) + '-'
+        output_str += '%*.*f' % (mfw_f, dp, series.quantile(0.75)) + ') | '
+        output_str += '%*g' % (mfw, int(series.notna().sum()))
+    return output_str
+
+
+def mean_std_str(series, dp=1, mfw=4, min_n=3):
+    if series.notna().sum() < min_n:
+        output_str = 'N/A'
+    else:
+        mfw_f = int(np.log10(series.mean())) + 2 + dp
+        output_str = '%*.*f' % (mfw_f, dp, series.mean()) + ' ('
+        output_str += '%*.*f' % (mfw_f, dp, series.std()) + ') | '
+        output_str += '%*g' % (mfw, int(series.notna().sum()))
+    return output_str
+
+
+def n_percent_str(series, dp=1, mfw=4, min_n=1):
+    if series.notna().sum() < min_n:
+        output_str = 'N/A'
+    else:
+        output_str = '%*g' % (mfw, int(series.sum())) + ' ('
+        percent = 100*series.mean()
+        if percent == 100:
+            output_str += '100.) | '
+        else:
+            output_str += '%4.*f' % (dp, percent) + ') | '
+        output_str += '%*g' % (mfw, int(series.notna().sum()))
+    return output_str
+
+
+def descriptive_table(data, column, full_variable_dict):
+    '''
+    Descriptive table for binary (including one-hot-encoded categorical) and
+    numerical variables in data. The descriptive table will have seperate
+    columns for each category that exists for the variable 'column', if this
+    is provided.
+    '''
+    data = data.dropna(axis=1, how='all')
+
+    data.fillna({column: 'Unknown'}, inplace=True)
+
+    variable_dict = getVariableType_data(
+        data.drop(columns=column), full_variable_dict)
+    numeric_var = variable_dict['number']
+    binary_var = sum([
+        variable_dict[key] for key in ['binary', 'categorical', 'OneHot']], [])
+
+    table = pd.DataFrame(
+        columns=['Reported', 'All'], index=data.drop(columns=column).columns)
+
+    table.loc[numeric_var, 'Reported'] = 'Median (IQR) | N'
+    table.loc[binary_var, 'Reported'] = 'Count (%) | N'
+
+    mfw = int(np.log10(data.shape[0])) + 1  # Min field width, for formatting
+    table.loc[numeric_var, 'All'] = data[numeric_var].apply(
+        lambda x: median_iqr_str(x, mfw=mfw))
+    table.loc[binary_var, 'All'] = data[binary_var].apply(
+        lambda x: n_percent_str(x, mfw=mfw))
+
+    if column is not None:
+        choices_values = data[column].unique()
+        table[list(choices_values)] = ''
+        for value in choices_values:
+            ind = (data[column] == value)
+            mfw = int(np.log10(ind.sum())) + 1  # Min field width, for format
+            table.loc[numeric_var, value] = data.loc[ind, numeric_var].apply(
+                lambda x: median_iqr_str(x, mfw=mfw))
+            table.loc[binary_var, value] = data.loc[ind, binary_var].apply(
+                lambda x: n_percent_str(x, mfw=mfw))
+
+    # Reorder rows by relevance
+    table['Importance'] = data.apply(
+        lambda x: x.sum() if x.name in binary_var else x.notna().sum())
+    table.reset_index(inplace=True, names='Variable')
+    return table
+
+
+############################################
+############################################
+# Descriptive table: Formatting
+############################################
+############################################
+
+
+def rename_variables(
+        variables, dictionary, missing_data_codes=None, max_len=None):
+    renamed_variables = variables.copy()
+    variable_dict = dict(zip(
+        dictionary['field_name'], dictionary['field_label']))
+    variable_split = renamed_variables.apply(lambda x: x.split('___'))
+    renamed_variables = variable_split.apply(lambda x: x[0])
+    renamed_variables = renamed_variables.replace(variable_dict)
+    if max_len is not None:
+        renamed_variables = renamed_variables.apply(
+            lambda x: x if len(x) < max_len else (
+                ' '.join(x[:max_len].split(' ')[:-1]) + ' ...'))
+    renamed_variables = renamed_variables.apply(lambda x: '<b>' + x + '</b>')
+    renamed_variables += variable_split.apply(
+        lambda x: ', ' + x[1] if len(x) > 1 else '')
+    return renamed_variables
+
+
+def reorder_descriptive_table_columns(
+        table, column_order, required_columns=['Variable', 'All']):
+    df = table.copy()
+    new_column_order = [
+        col for col in required_columns if col not in column_order]
+    new_column_order += [col for col in column_order if col in df.columns]
+    new_column_order += [
+        col for col in df.columns if col not in new_column_order]
+    df = df[new_column_order]
+    return df
+
+
+def add_descriptive_table_sections(table, dictionary):
+    df = table.copy()
+    new_section_bool = (
+        (df['Section'].duplicated() == 0) & (df['Section'] != ''))
+    new_section_index = new_section_bool[new_section_bool].index
+    new_section_name = df.loc[new_section_index, 'Section'].values
+    insert = pd.DataFrame(
+        '', columns=df.columns, index=new_section_index - 0.5)
+    insert['Variable'] = new_section_name
+    sections = dictionary['field_name'].apply(lambda x: x.split('_')[0])
+    new_section_ind = (
+        (dictionary['section_header'] != '') & (sections.duplicated() == 0))
+    codes = dictionary.loc[new_section_ind, 'field_name'].apply(
+        lambda x: x.split('_')[0])
+    names = dictionary.loc[new_section_ind, 'section_header'].apply(
+        lambda x: '<b><i>' + x.split(':')[0].strip().capitalize() + '</i></b>')
+    insert['Variable'] = insert['Variable'].replace(dict(zip(codes, names)))
+    df = pd.concat([df, insert]).sort_index().reset_index(drop=True)
+    return df
+
+
+def add_descriptive_table_repeat_variables(table):
+    df = table.copy()
+    new_variable_bool = (
+        (df['Name'].duplicated() == 0) &
+        (df['Name'].duplicated(keep='last')))
+    repeat_variable_bool = df['Name'].duplicated(keep=False)
+    new_variable_index = new_variable_bool[new_variable_bool].index
+    new_variable_name = df.loc[new_variable_index, 'Variable'].apply(
+        lambda x: x.split(',')[0]).values
+    df.loc[repeat_variable_bool, 'Variable'] = df.loc[
+        repeat_variable_bool, 'Variable'].apply(
+            lambda x: "    ↳ " + ', '.join(x.split(', ')[1:]))
+    insert = pd.DataFrame(
+        '', columns=df.columns, index=new_variable_index - 0.5)
+    insert['Variable'] = new_variable_name
+    insert['Name'] = df.loc[new_variable_index, 'Name'].values
+    insert['Reported'] = df.loc[new_variable_index, 'Reported'].values
+    insert['Section'] = df.loc[new_variable_index, 'Section'].values
+    if insert.shape[0] > 0:
+        df = pd.concat([df, insert]).sort_index().reset_index(drop=True)
+    return df
+
+
+def reorder_descriptive_table(table, dictionary, section_reorder=None):
+    df = table.copy()
+    # Reorder rows by relevance
+    df['Section'] = df['Variable'].apply(lambda x: x.split('_')[0])
+    df['Name'] = df['Variable'].apply(lambda x: x.split('___')[0])
+    df['Value'] = df['Variable'].apply(
+        lambda x: x.split('___')[1] if (len(x.split('___')) > 1) else 'N/A')
+    choices_dict = pd.concat(
+        [dictionary['field_name'], get_choices_label_value_dict(dictionary)],
+        axis=1).rename(columns={'field_name': 'Name'})
+    df = pd.merge(df, choices_dict, on='Name', how='left')
+    df = df.rename(columns={'select_choices_or_calculations': 'choices'})
+    df['raw_value'] = [
+        y.get(x) if x != 'N/A' else 0
+        for x, y in zip(df['Value'].values, df['choices'].values)]
+    grouped_df = df.groupby('Name').agg(
+        name_importance=pd.NamedAgg(column='Importance', aggfunc='max'))
+    df = pd.merge(df, grouped_df.reset_index(), on='Name', how='left')
+
+    if section_reorder is not None:
+        order = np.arange(len(section_reorder))
+        with pd.option_context('future.no_silent_downcasting', True):
+            df.replace(
+                {'Section': dict(zip(section_reorder, order))}, inplace=True)
+    df = df.sort_values(
+        by=['Section', 'name_importance', 'Name', 'raw_value'],
+        ascending=[True, False, False, True])
+    if section_reorder is not None:
+        with pd.option_context('future.no_silent_downcasting', True):
+            df.replace(
+                {'Section': dict(zip(order, section_reorder))}, inplace=True)
+    df = df.reset_index(drop=True)
+    remove_columns = ['name_importance', 'Importance', 'raw_value', 'choices']
+    df = df.drop(columns=remove_columns)
+    return df
+
+
+def reformat_descriptive_table(table, dictionary, column_reorder=None):
+    df = table.copy()
+    df['Variable'] = rename_variables(df['Variable'], dictionary)
+    if column_reorder is not None:
+        df = reorder_descriptive_table_columns(df, column_reorder)
+    df = add_descriptive_table_repeat_variables(df)
+    df.loc[(df['Name'].duplicated() == 0), 'Variable'] = (
+        df.loc[(df['Name'].duplicated() == 0), 'Variable'] +
+        df.loc[(df['Name'].duplicated() == 0), 'Reported'].replace({
+            'Count (%) | N': ' (*)',
+            'Median (IQR) | N': ' (+)'
+        }))
+    table_key = '(*) Count (%) | N<br>(+) Median (IQR) | N'
+    df = add_descriptive_table_sections(df, dictionary)
+    df.drop(columns=['Reported', 'Section', 'Name', 'Value'], inplace=True)
+    return df, table_key
+
+
+def add_totals(table, data, column):
+    add_row = pd.DataFrame(columns=table.columns, index=[-0.5])
+    add_row['Variable'] = '<b>Totals</b>'
+    add_row['All'] = data.shape[0]
+    for value in [x for x in table.columns if x not in ['Variable', 'All']]:
+        add_row[value] = (data[column] == value).sum()
+    table_new = pd.concat([table, add_row]).sort_index().reset_index(drop=True)
+    return table_new
+
+
+############################################
+############################################
+# Formatting: colours
+############################################
+############################################
+
+
+def hex_to_rgb(hex_color):
+    ''' Convert a hex color to an RGB tuple. '''
+    hex_color = hex_color.lstrip('#')
+    return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+
+
+def interpolate_colors(colors, n):
+    ''' Interpolate among multiple hex colors.'''
+    # Convert all hex colors to RGB
+    rgbs = [hex_to_rgb(color) for color in colors]
+
+    interpolated_colors = []
+    # Number of transitions is one less than the number of colors
+    transitions = len(colors) - 1
+
+    # Calculate the number of steps for each transition
+    steps_per_transition = n // transitions
+
+    # Interpolate between each pair of colors
+    for i in range(transitions):
+        for step in range(steps_per_transition):
+            interpolated_rgb = [
+                int(rgbs[i][j] + (
+                    float(step)/steps_per_transition)*(rgbs[i+1][j]-rgbs[i][j]))
+                for j in range(3)]
+            interpolated_colors.append(
+                f'rgb({interpolated_rgb[0]}, ' +
+                f'{interpolated_rgb[1]},' +
+                f'{interpolated_rgb[2]})')
+
+    # Append the last color
+    if len(interpolated_colors) < n:
+        interpolated_colors.append(
+            f'rgb({rgbs[-1][0]}, {rgbs[-1][1]}, {rgbs[-1][2]})')
+    return interpolated_colors
+
+
+def hex_to_rgba(hex_color, opacity):
+    hex_color = hex_color.lstrip('#')
+    hlen = len(hex_color)
+    rgba_color = 'rgba(' + ', '.join(
+        str(int(hex_color[i:i+hlen//3], 16))
+        for i in range(0, hlen, hlen//3))
+    rgba_color += f', {opacity})'
+    return rgba_color
+
+
+############################################
+############################################
+# Counts
+############################################
+############################################
+
+
+def get_proportions(data, data_type):
+    prefix = ''
+    if data_type == 'symptoms':
+        prefix = 'adsym_'
+    elif data_type == 'comorbidities':
+        prefix = 'comor_'
+    elif data_type == 'treatments':
+        prefix = 'treat_'
+    else:
+        prefix = data_type + '_'
+
+    variables = []
+
+    for i in data:
+        if prefix in i:
+            variables.append(i)
+
+    # df = data[[
+    #     'usubjid', 'age', 'slider_sex', 'slider_country', 'outcome',
+    #     'country_iso'] + variables].copy()
+    # df = df.map(lambda x: x.lower() if isinstance(x, str) else x)
+    df = data.copy()
+
+    proportions = df[variables].dropna(axis=1, how='all').apply(
+        lambda x: x.dropna().sum() / x.dropna().count()).reset_index()
+
+    proportions.columns = ['Condition', 'Proportion']
+    proportions = proportions.sort_values(by=['Proportion'], ascending=False)
+    Condition_top = proportions['Condition'].head(5)
+    set_data = df[Condition_top]
+    return proportions, set_data
+
+
+def compute_intersections(df):
+    # Find all combinations of categories and their intersection sizes
+    categories = df.columns
+    intersections = {}
+    for r in range(1, len(categories) + 1):
+        for combo in itertools.combinations(categories, r):
+            # Intersection is where all categories in the combo have a 1
+            mask = df[list(combo)].all(axis=1)
+            intersections[combo] = mask.sum()
+
+    intersections = {k: v for k, v in intersections.items() if v > 0}
+    # Sort intersections by size in descending order
+    sorted_intersections = OrderedDict(
+        sorted(intersections.items(), key=lambda x: x[1], reverse=True))
+    return sorted_intersections
+
+
+# def get_proportions(df, section_list):
+#     # prefix = ''
+#     # if section == 'symptoms':
+#     #     prefix = 'adsym_'
+#     # elif section == 'comorbidities':
+#     #     prefix = 'comor_'
+#     # elif section == 'treatments':
+#     #     prefix = 'treat_'
+#     # else:
+#     #     prefix = section + '_'
+#
+#     inclu_variables = get_variables_from_sections(df.columns, section_list)
+#
+#     proportions = df[inclu_variables].dropna(axis=1, how='all').apply(
+#         lambda x: x.sum() / x.count()).reset_index()
+#
+#     proportions.columns = ['condition', 'proportion']
+#     proportions = proportions.sort_values(by=['proportion'], ascending=False)
+#     return proportions
+
+
+# def get_intersections(df, ordered_variables, n_variables=5):
+#     inclu_variables = ordered_variables.head(n_variables)
+#     intersections = df[inclu_variables]
+#     return intersections
+
+
+############################################
+############################################
+# Modelling
+############################################
+############################################
+
+
+# def preprocessing_for_risk(data, sections=['comor', 'adsym']):
+#     df_map = data
+#     comor = []
+#     for i in df_map:
+#         if 'comor_' in i:
+#             comor.append(i)
+#     sympt = []
+#     for i in df_map:
+#         if 'adsym_' in i:
+#             sympt.append(i)
+#
+#     sdata = df_map[sympt+comor+['age', 'slider_sex', 'outcome']].copy()
+#
+#     sdata = sdata.applymap(lambda x: x.lower() if isinstance(x, str) else x)
+#     sdata[sympt+comor] = (sdata[sympt+comor] != 'no')
+#     sdata = sdata.loc[(sdata['outcome'] != 'censored')]
+#
+#     outcome_binary_map = {'discharge': 0, 'death': 1}
+#     sex_binary_map = {'female': 0, 'male': 1}
+#     sdata['outcome'] = sdata['outcome'].map(outcome_binary_map)
+#     sdata['slider_sex'] = sdata['slider_sex'].map(sex_binary_map)
+#     return sdata
+#
+#
+# def remove_columns(data, limit_var=60):
+#     nan_percentage = (data.isna().sum() / len(data))*100
+#     nan_percentage = nan_percentage.reset_index()
+#     variables_included = nan_percentage.loc[(
+#         nan_percentage[0] <= limit_var), 'index']
+#     return data[variables_included]
+#
+#
+# def num_imputation_nn(df, n_neighbor=5):
+#     # Separating numerical and encoded nominal variables
+#     numerical_data = df.select_dtypes(include=[np.number])
+#     # Initializing the KNN Imputer
+#     imputer = KNNImputer(n_neighbors=n_neighbor)
+#     # Imputing missing values
+#     imputed_data = imputer.fit_transform(numerical_data)
+#     # Converting imputed data back to a DataFrame
+#     return pd.DataFrame(imputed_data, columns=numerical_data.columns)
+#
+#
+# def binary_model(data, variables, outcome, num_estimators=10):
+#     data_path = data.dropna(subset=[outcome])
+#     combined_df = data_path.dropna(subset=[outcome])
+#
+#     # X_Transm = combined_df[variables]
+#     X = combined_df[variables]
+#
+#     y = combined_df[outcome]
+#     le = LabelEncoder()
+#     y = list(le.fit_transform(y))
+#
+#     # Initialize XGBoost model for classification
+#     xgb_model = xgb.XGBClassifier(
+#         objective='multi:softmax', num_class=len(set(y)),
+#         random_state=182, use_label_encoder=False, eval_metric='mlogloss',
+#         enable_categorical=True, max_depth=4, n_estimators=num_estimators)
+#     for X_x in X:
+#         X[X_x] = X[X_x].astype('category')
+#     # Train the model
+#     xgb_model.fit(X, y)
+#     # Make predictions
+#     predictions = xgb_model.predict(X)
+#     probabilities = xgb_model.predict_proba(X)
+#     combined_df['Predictions'] = predictions
+#     if (len(set(y)) == 2):
+#         probabilities = pd.DataFrame(data=probabilities)
+#         combined_df['probabilities'] = probabilities[1]
+#
+#     # Evaluate the model using a classification metric
+#     accuracy = accuracy_score(y, predictions)
+#     roc = roc_auc_score(y, combined_df['probabilities'])
+#     fpr, tpr, thresholds = roc_curve(y, combined_df['probabilities'])
+#
+#     # Calculate the Youden's index
+#     optimal_idx = np.argmax(tpr - fpr)
+#     optimal_threshold = thresholds[optimal_idx]
+#
+#     # Feature importances
+#     importances = xgb_model.feature_importances_
+#     feature_names = X.columns
+#     feature_importances = pd.DataFrame(
+#         {'Feature': feature_names, 'Importance': importances})
+#
+#     # Sort the features by importance
+#     feature_importances = feature_importances.sort_values(
+#         by='Importance', ascending=False)
+#     return feature_importances, accuracy, roc, optimal_threshold, combined_df
+#
+#
+# def lasso_rf(data, outcome_var='Outcome'):
+#     Y = data[outcome_var]
+#     X = data.drop(outcome_var, axis=1)
+#
+#     # Feature Scaling
+#     scaler = StandardScaler()
+#     X_scaled = scaler.fit_transform(X)
+#
+#     # Splitting the dataset into cross-validation set and hold-out set
+#     X_cv, X_holdout, Y_cv, Y_holdout, idx_cv, idx_holdout = train_test_split(
+#         X_scaled, Y, range(len(data)),
+#         test_size=0.2, random_state=666, stratify=Y)
+#
+#     # Logistic Regression with L1 regularization
+#     log_reg_l1 = LogisticRegression(penalty='l1', solver='liblinear')
+#
+#     # Hyperparameter tuning using GridSearchCV
+#     parameters = {'C': [0.0001, 0.001, 0.01]}
+#     log_reg_cv = GridSearchCV(log_reg_l1, parameters, cv=10, scoring='roc_auc')
+#     log_reg_cv.fit(X_cv, Y_cv)
+#
+#     # Best hyperparameter value
+#     best_C = log_reg_cv.best_params_['C']
+#
+#     # Evaluate using the best parameter on the hold-out set
+#     log_reg_best = LogisticRegression(
+#         penalty='l1', C=best_C, solver='liblinear')
+#     log_reg_best.fit(X_cv, Y_cv)
+#
+#     # Predicting probabilities
+#     Y_pred_proba = log_reg_best.predict_proba(X_holdout)[:, 1]
+#
+#     # Calculating ROC AUC
+#     roc_auc = roc_auc_score(Y_holdout, Y_pred_proba)
+#
+#     # Print coefficients
+#     feature_names = X.columns
+#     coefficients = log_reg_best.coef_[0]
+#     non_zero_indices = np.where(coefficients != 0)[0]
+#
+#     # Standard errors, CIs, and p-values
+#     # intercept = log_reg_best.intercept_
+#     log_reg_best.fit(X_cv[:, non_zero_indices], Y_cv)
+#     standard_errors = np.sqrt(np.diag(np.linalg.inv(np.dot(
+#         X_cv[:, non_zero_indices].T, X_cv[:, non_zero_indices]))))
+#     z_scores = coefficients[non_zero_indices] / standard_errors
+#     p_values = [stats.norm.sf(abs(x)) * 2 for x in z_scores]
+#
+#     # Calculate odds ratios and confidence intervals
+#     odds_ratios = np.exp(coefficients[non_zero_indices])
+#     conf_intervals = np.exp(
+#         coefficients[non_zero_indices][:, np.newaxis] +
+#         np.array([-1, 1]) * 1.96 * standard_errors[:, np.newaxis])
+#
+#     # Format the coefficients, OR, CI, and p-values
+#     formatted_coefficients = [
+#         f'{coef:.3f}' for coef in coefficients[non_zero_indices]]
+#     formatted_odds_ratios = [
+#         f'{or_val:.3f}' for or_val in odds_ratios]
+#     formatted_conf_intervals = [
+#         (f'{ci[0]:.3f}', f'{ci[1]:.3f}') for ci in conf_intervals]
+#     formatted_p_values = [
+#         '<0.005' if pv < 0.005 else f'{pv:.3f}' for pv in p_values]
+#
+#     coef_df = pd.DataFrame({
+#         'Feature': feature_names[non_zero_indices],
+#         'Coefficient': formatted_coefficients,
+#         'Odds Ratio': formatted_odds_ratios,
+#         'CI Lower 95%': [ci[0] for ci in formatted_conf_intervals],
+#         'CI Upper 95%': [ci[1] for ci in formatted_conf_intervals],
+#         'P-value': formatted_p_values
+#     })
+#
+#     return coef_df, roc_auc, best_C
+
+
+############################################
+############################################
+# Graveyard
+############################################
+############################################
+
+
+# def mapSex(df):
+#     mapping_dict = {
+#         'Female': 'Female',
+#         'Male': 'Male'
+#     }
+#     other_outcome = (df['demog_sex'].isin(mapping_dict.keys()) == 0)
+#     df['demog_sex'] = df['demog_sex'].map(mapping_dict)
+#     df.loc[other_outcome, 'demog_sex'] = 'Other / Unknown'
+#     return df
+#
+#
+# def mapOutcomes(df):
+#     mapping_dict = {
+#         'Discharged alive': 'Discharged',
+#         'Discharged against medical advice': 'Discharged',
+#         'Death': 'Death',
+#         # 'Transfer to other facility': 'Censored',
+#         # 'Still hospitalised': 'Censored',
+#         # 'Palliative care': 'Censored',
+#         # 'Other': 'Censored'
+#     }
+#     other_outcome = (df['outco_outcome'].isin(mapping_dict.keys()) == 0)
+#     df['outco_outcome'] = df['outco_outcome'].map(mapping_dict)
+#     df.loc[other_outcome, 'outco_outcome'] = 'Censored'
+#     return df
+
+# def rename_variables(df_variables, dictionary, missing_data_codes=None):
+#     choices_dict = get_label_value_dict(dictionary, missing_data_codes)
+#     variable_dict = dict(zip(
+#         dictionary['field_label'], dictionary['field_name']))
+#     df_variable_split = df_variables.apply(lambda x: x.split(' '))
+#     df_variable_names = df_variable_split.apply(lambda x: x[0].split('___')[0])
+#     df_variable_names = df_variable_names.replace(variable_dict)
+#     df_choices_names = df_variable_split.apply(
+#         lambda x: x[0].split('___')[1] if '___' in x[0] else '')
+#     df_choices_names = 1
+#     return
 
 # def get_variables_type(data):
 #     final_binary_variables = []
@@ -441,243 +1033,3 @@ def getVariableType_data(data, full_variable_dict):
 #     # table['Variable'] = table['Variable'].replace(correct_names)
 #     table = table.fillna('')
 #     return table
-
-
-def median_iqr_str(series, dp=1, mfw=4):
-    mfw_f = int(np.log10(series.quantile(0.75))) + 2 + dp
-    output_str = '%*.*f' % (mfw_f, dp, series.median()) + ' ('
-    output_str += '%*.*f' % (mfw_f, dp, series.quantile(0.25)) + '-'
-    output_str += '%*.*f' % (mfw_f, dp, series.quantile(0.75)) + ') | '
-    output_str += '%*g' % (mfw, int(series.notna().sum()))
-    return output_str
-
-
-def mean_std_str(series, dp=1, mfw=4):
-    mfw_f = int(np.log10(series.mean())) + 2 + dp
-    output_str = '%*.*f' % (mfw_f, dp, series.mean()) + ' ('
-    output_str += '%*.*f' % (mfw_f, dp, series.std()) + ') | '
-    output_str += '%*g' % (mfw, int(series.notna().sum()))
-    return output_str
-
-
-def n_percent_str(series, dp=1, mfw=4):
-    output_str = '%*g' % (mfw, int(series.sum())) + ' ('
-    percent = 100*series.mean()
-    if percent == 100:
-        output_str += '100.) | '
-    else:
-        output_str += '%4.*f' % (dp, percent) + ') | '
-    output_str += '%*g' % (mfw, int(series.notna().sum()))
-    return output_str
-
-
-def from_dummies(data, column, sep='___', missing_val='No'):
-    df_new = data.copy()
-    columns = df_new.columns[df_new.columns.str.startswith(column + sep)]
-    df_new[column + sep + missing_val] = (df_new[columns].any(axis=1) == 0)
-    df_new[column] = pd.from_dummies(
-        df_new[list(columns) + [column + sep + missing_val]], sep=sep)
-    df_new = df_new.drop(columns=columns)
-    df_new = df_new.drop(columns=column + sep + missing_val)
-    return df_new
-
-
-def merge_categories_except_list(
-        data, column, required_values=[], merged_value='Other'):
-    data.loc[(data[column].isin(required_values) == 0), column] = merged_value
-    return data
-
-
-def merge_categories_max_ncat(data, column, max_ncat=4, merged_value='Other'):
-    required_cat_list = data[column].value_counts().head(n=max_ncat)
-    required_cat_list = required_cat_list.index.tolist()
-    data = merge_categories_except_list(
-        data, column, required_cat_list, merged_value)
-    return data
-
-
-def descriptive_table(data, column, full_variable_dict):
-    data = data.dropna(axis=1, how='all')
-
-    data.fillna({column: 'Unknown'}, inplace=True)
-    cat_values = data[column].unique()
-
-    variable_dict = getVariableType_data(
-        data.drop(columns=column), full_variable_dict)
-    numeric_var = variable_dict['number']
-    binary_var = sum([
-        variable_dict[key] for key in ['binary', 'categorical', 'OneHot']], [])
-
-    table = pd.DataFrame(
-        columns=['Reported', 'All'] + list(cat_values),
-        index=data.drop(columns=column).columns)
-
-    table.loc[numeric_var, 'Reported'] = 'Median (IQR) | N'
-    table.loc[binary_var, 'Reported'] = 'Count (%) | N'
-
-    mfw = int(np.log10(data.shape[0])) + 1
-    table.loc[numeric_var, 'All'] = data[numeric_var].apply(
-        lambda x: median_iqr_str(x, mfw=mfw) if x.notna().sum() > 3 else 'N/A')
-    table.loc[binary_var, 'All'] = data[binary_var].apply(
-        lambda x: n_percent_str(x, mfw=mfw) if x.sum() > 0 else 'N/A')
-
-    for value in cat_values:
-        ind = (data[column] == value)
-        mfw = int(np.log10(ind.sum())) + 1
-        table.loc[numeric_var, value] = data.loc[ind, numeric_var].apply(
-            lambda x: median_iqr_str(x, mfw=mfw) if x.notna().sum() > 3 else 'N/A')
-        table.loc[binary_var, value] = data.loc[ind, binary_var].apply(
-            lambda x: n_percent_str(x, mfw=mfw) if x.sum() > 0 else 'N/A')
-    table.reset_index(inplace=True, names='Variable')
-
-    table['Variable'] = (
-        table['Variable'] +
-        table['Reported'].replace({
-            'Count (%) | N': '___(*)',
-            'Median (IQR) | N': '___(+)'
-        }))
-    return table
-
-
-def binary_model1(data, variables, outcome, num_estimators=10):
-    data_path = data.dropna(subset=[outcome])
-    combined_df = data_path.dropna(subset=[outcome])
-
-    # X_Transm = combined_df[variables]
-    X = combined_df[variables]
-
-    y = combined_df[outcome]
-    le = LabelEncoder()
-    y = list(le.fit_transform(y))
-
-    # Initialize XGBoost model for classification
-    xgb_model = xgb.XGBClassifier(
-        objective='multi:softmax', num_class=len(set(y)),
-        random_state=182, use_label_encoder=False, eval_metric='mlogloss',
-        enable_categorical=True, max_depth=4, n_estimators=num_estimators)
-    for X_x in X:
-        X[X_x] = X[X_x].astype('category')
-    # Train the model
-    xgb_model.fit(X, y)
-    # Make predictions
-    predictions = xgb_model.predict(X)
-    probabilities = xgb_model.predict_proba(X)
-    combined_df['Predictions'] = predictions
-    if (len(set(y)) == 2):
-        probabilities = pd.DataFrame(data=probabilities)
-        combined_df['probabilities'] = probabilities[1]
-
-    # Evaluate the model using a classification metric
-    accuracy = accuracy_score(y, predictions)
-    roc = roc_auc_score(y, combined_df['probabilities'])
-    fpr, tpr, thresholds = roc_curve(y, combined_df['probabilities'])
-
-    # Calculate the Youden's index
-    optimal_idx = np.argmax(tpr - fpr)
-    optimal_threshold = thresholds[optimal_idx]
-
-    # Feature importances
-    importances = xgb_model.feature_importances_
-    feature_names = X.columns
-    feature_importances = pd.DataFrame(
-        {'Feature': feature_names, 'Importance': importances})
-
-    # Sort the features by importance
-    feature_importances = feature_importances.sort_values(
-        by='Importance', ascending=False)
-    return feature_importances, accuracy, roc, optimal_threshold, combined_df
-
-
-def remove_columns(data, limit_var=60):
-    nan_percentage = (data.isna().sum() / len(data))*100
-    nan_percentage = nan_percentage.reset_index()
-    variables_included = nan_percentage.loc[(
-        nan_percentage[0] <= limit_var), 'index']
-    return data[variables_included]
-
-
-def num_imputation_nn(df, n_neighbor=5):
-    # Separating numerical and encoded nominal variables
-    numerical_data = df.select_dtypes(include=[np.number])
-    # Initializing the KNN Imputer
-    imputer = KNNImputer(n_neighbors=n_neighbor)
-    # Imputing missing values
-    imputed_data = imputer.fit_transform(numerical_data)
-    # Converting imputed data back to a DataFrame
-    return pd.DataFrame(imputed_data, columns=numerical_data.columns)
-
-
-def lasso_rf(data, outcome_var='Outcome'):
-    Y = data[outcome_var]
-    X = data.drop(outcome_var, axis=1)
-
-    # Feature Scaling
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
-
-    # Splitting the dataset into cross-validation set and hold-out set
-    X_cv, X_holdout, Y_cv, Y_holdout, idx_cv, idx_holdout = train_test_split(
-        X_scaled, Y, range(len(data)),
-        test_size=0.2, random_state=666, stratify=Y)
-
-    # Logistic Regression with L1 regularization
-    log_reg_l1 = LogisticRegression(penalty='l1', solver='liblinear')
-
-    # Hyperparameter tuning using GridSearchCV
-    parameters = {'C': [0.0001, 0.001, 0.01]}
-    log_reg_cv = GridSearchCV(log_reg_l1, parameters, cv=10, scoring='roc_auc')
-    log_reg_cv.fit(X_cv, Y_cv)
-
-    # Best hyperparameter value
-    best_C = log_reg_cv.best_params_['C']
-
-    # Evaluate using the best parameter on the hold-out set
-    log_reg_best = LogisticRegression(
-        penalty='l1', C=best_C, solver='liblinear')
-    log_reg_best.fit(X_cv, Y_cv)
-
-    # Predicting probabilities
-    Y_pred_proba = log_reg_best.predict_proba(X_holdout)[:, 1]
-
-    # Calculating ROC AUC
-    roc_auc = roc_auc_score(Y_holdout, Y_pred_proba)
-
-    # Print coefficients
-    feature_names = X.columns
-    coefficients = log_reg_best.coef_[0]
-    non_zero_indices = np.where(coefficients != 0)[0]
-
-    # Standard errors, CIs, and p-values
-    # intercept = log_reg_best.intercept_
-    log_reg_best.fit(X_cv[:, non_zero_indices], Y_cv)
-    standard_errors = np.sqrt(np.diag(np.linalg.inv(np.dot(
-        X_cv[:, non_zero_indices].T, X_cv[:, non_zero_indices]))))
-    z_scores = coefficients[non_zero_indices] / standard_errors
-    p_values = [stats.norm.sf(abs(x)) * 2 for x in z_scores]
-
-    # Calculate odds ratios and confidence intervals
-    odds_ratios = np.exp(coefficients[non_zero_indices])
-    conf_intervals = np.exp(
-        coefficients[non_zero_indices][:, np.newaxis] +
-        np.array([-1, 1]) * 1.96 * standard_errors[:, np.newaxis])
-
-    # Format the coefficients, OR, CI, and p-values
-    formatted_coefficients = [
-        f'{coef:.3f}' for coef in coefficients[non_zero_indices]]
-    formatted_odds_ratios = [
-        f'{or_val:.3f}' for or_val in odds_ratios]
-    formatted_conf_intervals = [
-        (f'{ci[0]:.3f}', f'{ci[1]:.3f}') for ci in conf_intervals]
-    formatted_p_values = [
-        '<0.005' if pv < 0.005 else f'{pv:.3f}' for pv in p_values]
-
-    coef_df = pd.DataFrame({
-        'Feature': feature_names[non_zero_indices],
-        'Coefficient': formatted_coefficients,
-        'Odds Ratio': formatted_odds_ratios,
-        'CI Lower 95%': [ci[0] for ci in formatted_conf_intervals],
-        'CI Upper 95%': [ci[1] for ci in formatted_conf_intervals],
-        'P-value': formatted_p_values
-    })
-
-    return coef_df, roc_auc, best_C
