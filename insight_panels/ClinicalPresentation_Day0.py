@@ -73,51 +73,49 @@ def create_visuals(df_map):
     binary_var = sum([full_variable_dict[key] for key in binary_list], [])
 
     # Descriptive table
-    # column = 'outcome'
-    # column_reorder = ['Discharged', 'Death', 'Censored']
-    column = 'severity'
-    column_reorder = ['Mild', 'Moderate', 'Severe', 'Critical']
+    column = 'outcome'
+    column_reorder = ['Discharged', 'Death', 'Censored']
+    # column = 'severity'
+    # column_reorder = ['Mild', 'Moderate', 'Severe', 'Critical']
     inclu_columns = ia.get_variables_from_sections(
         df_map.columns, ['lesion', 'advital', 'adsym', 'labs', 'vital'])
     inclu_columns += [column]
-    table = ia.descriptive_table(
-        df_map[inclu_columns],
-        column=column, full_variable_dict=full_variable_dict)
-    table = ia.reorder_descriptive_table(
-        table, dictionary=dd,
-        section_reorder=['lesion', 'advital', 'adsym', 'labs', 'vital'])
+    table, totals = ia.descriptive_table(
+        df_map[inclu_columns], column=column,
+        full_variable_dict=full_variable_dict, return_totals=True)
     table, table_key = ia.reformat_descriptive_table(
-        table, dictionary=dd, column_reorder=column_reorder)
-    table = ia.add_totals(table, df_map[inclu_columns], column=column)
-    table_key += '<br>Mild: <25 skin lesions, Moderate: 25-99 skin lesions, '
-    table_key += 'Severe: 100-250 skin lesions, Critical: >250 skin lesions'
+        table, dictionary=dd, totals=totals, column_reorder=column_reorder,
+        section_reorder=['lesion', 'advital', 'adsym', 'labs', 'vital'])
+    # table_key += '<br>Mild: <25 skin lesions, Moderate: 25-99 skin lesions, '
+    # table_key += 'Severe: 100-250 skin lesions, Critical: >250 skin lesions'
     fig_table = idw.fig_table(
         table, dictionary=dd,
         table_key=table_key,
         graph_id='table_' + suffix,
         graph_label='Descriptive Table',
-        graph_about='Summary of signs and symptoms at admission, and vitals and labs on day 0.')
+        graph_about='Summary of signs and symptoms at admission, and vitals and labs on day 0')
 
     inclu_columns = [
         col for col in df_map.columns if col.split('___')[0] in binary_var]
     inclu_columns = [col for col in inclu_columns if 'addi' not in col]
 
     # Signs and symptoms frequency and upset charts
-    proportions, set_data = ia.get_proportions(df_map[inclu_columns], 'adsym')
-    freq_chart = idw.fig_frequency_chart(
+    proportions = ia.get_proportions(df_map[inclu_columns], ['adsym'])
+    intersections = ia.get_intersections(df_map, proportions=proportions)
+    freq_adsym = idw.fig_frequency_chart(
         proportions, dictionary=dd,
         title='Frequency of signs and symptoms',
         graph_id='freq_' + suffix,
         graph_label='Signs and symptoms: Frequency',
         graph_about='Frequency of the ten most common signs and symptoms on presentation')
-    upset_plot = idw.fig_upset(
-        set_data, dictionary=dd,
-        title='Frequency of combinations of the five most common signs and symptoms',
+    upset_adsym = idw.fig_upset(
+        intersections, dictionary=dd,
+        title='Intersection sizes of the five most common signs and symptoms',
         graph_id='upset_' + suffix,
         graph_label='Signs and symptoms: Intersections',
-        graph_about='Frequency of combinations of the five most common signs and symptoms on presentation')
+        graph_about='Intersection sizes of the five most common signs and symptoms on presentation')
 
-    return fig_table, freq_chart, upset_plot
+    return fig_table, freq_adsym, upset_adsym
 
 
 ############################################
@@ -161,12 +159,20 @@ for uniq_county in range(len(unique_countries)):
         {'label': name_country, 'value': code_country})
 
 # This text appears after clicking the insight panel's Instructions button
+# instructions_str = '''
+# 1. Select/remove countries using the dropdown (type directly into the dropdowns to search faster).
+# 2. Change datasets using the dropdown (country selections are remembered).
+# 3. Hover mouse on chart for tooltip data.
+# 4. Zoom-in with lasso-select (left-click-drag on a section of the chart). To reset the chart, double-click on it.
+# 5. Toggle selected countries on/off by clicking on the legend (far right).
+# '''
 instructions_str = '''
-1. Select/remove countries using the dropdown (type directly into the dropdowns to search faster).
-2. Change datasets using the dropdown (country selections are remembered).
-3. Hover mouse on chart for tooltip data.
-4. Zoom-in with lasso-select (left-click-drag on a section of the chart). To reset the chart, double-click on it.
-5. Toggle selected countries on/off by clicking on the legend (far right).
+1. Select categories to filter by sex, age, country and outcome.
+2. Click on Insights and then on each tab to view tables and figures.
+3. Hover mouse on chart for tooltip data (only available for figures).
+4. Zoom-in on figures using the buttons that appears when you hover the mouse near the top right of the figure.
+5. To reset the chart, double-click on it.
+6. Download a .png of the figure using the camera button that appears when you hover the mouse near the top right of the figure.
 '''
 
 # This text appears after clicking the insight panel's About button

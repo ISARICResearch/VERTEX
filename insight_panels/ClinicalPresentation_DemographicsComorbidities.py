@@ -60,12 +60,6 @@ sections = [
     # 'withd',  # Withdrawal
 ]
 
-# Leftmost edge of the bins
-age_groups = [
-    '0-5', '6-10', '11-15', '16-20', '21-25', '26-30', '31-35', '36-40',
-    '41-45', '46-50', '51-55', '56-60', '61-65', '66-70', '71-75', '76-80',
-    '81-85', '86-90', '91-95', '96-100']
-
 
 def create_visuals(df_map):
     '''
@@ -77,6 +71,15 @@ def create_visuals(df_map):
     full_variable_dict = getRC.getVariableType(dd)
     binary_list = ['binary', 'categorical', 'OneHot']
     binary_var = sum([full_variable_dict[key] for key in binary_list], [])
+
+    # Leftmost edge of the bins
+    age_groups = [
+        '0-5', '6-10', '11-15', '16-20', '21-25', '26-30', '31-35', '36-40',
+        '41-45', '46-50', '51-55', '56-60', '61-65', '66-70', '71-75', '76-80',
+        '81-85', '86-90', '91-95', '96-100']
+    bins = [float(x.split('-')[0].strip()) for x in age_groups] + [np.inf]
+    df_map['age_group'] = pd.cut(
+        df_map['age'], bins=bins, labels=age_groups, right=False)
 
     # Population pyramid
     color_map = {
@@ -95,7 +98,8 @@ def create_visuals(df_map):
         inplace=True)
     pyramid_chart = idw.fig_dual_stack_pyramid(
         df_age_gender, dictionary=dd,
-        base_color_map=color_map, graph_id='age_gender_pyramid_chart_' + suffix,
+        base_color_map=color_map, yaxis_label='Age group',
+        graph_id='age_gender_pyramid_chart_' + suffix,
         graph_label='Demographics: Population Pyramid',
         graph_about='Dual-sided population pyramid, showing age, sex and outcome.')
 
@@ -103,15 +107,14 @@ def create_visuals(df_map):
     inclu_columns = ia.get_variables_from_sections(
         df_map.columns, ['demog', 'comor'])
     df_table = ia.from_dummies(df_map[inclu_columns], column='demog_sex')
-    table = ia.descriptive_table(
-        df_table, column='demog_sex', full_variable_dict=full_variable_dict)
-    table = ia.reorder_descriptive_table(
-        table, dictionary=dd,
-        section_reorder=['demog', 'comor'])
+    table, totals = ia.descriptive_table(
+        df_table, column='demog_sex',
+        full_variable_dict=full_variable_dict, return_totals=True)
     table, table_key = ia.reformat_descriptive_table(
-        table, dictionary=dd,
-        column_reorder=['Female', 'Male', 'Other / Unknown'])
-    table = ia.add_totals(table, df_table, column='demog_sex')
+        table, dictionary=dd, totals=totals,
+        column_reorder=['Female', 'Male', 'Other / Unknown'],
+        section_reorder=['demog', 'comor'])
+    # table = ia.add_totals(table, df_table, column='demog_sex')
     fig_table = idw.fig_table(
         table, dictionary=dd,
         table_key=table_key,
@@ -124,20 +127,20 @@ def create_visuals(df_map):
     inclu_columns = [col for col in inclu_columns if 'addi' not in col]
 
     # Comorbodities frequency and upset charts
-    proportions_comor, set_data_comor = ia.get_proportions(
-        df_map[inclu_columns], 'comor')
+    proportions = ia.get_proportions(df_map[inclu_columns], ['comor'])
+    intersections = ia.get_intersections(df_map, proportions=proportions)
     freq_chart_comor = idw.fig_frequency_chart(
-        proportions_comor, dictionary=dd,
+        proportions, dictionary=dd,
         title='Frequency of comorbidities',
         graph_id='comor_freq_' + suffix,
         graph_label='Comorbidities: Frequency',
         graph_about='Frequency of the ten most common comorbodities on presentation')
     upset_plot_comor = idw.fig_upset(
-        set_data_comor, dictionary=dd,
-        title='Frequency of combinations of the five most common comorbidities',
+        intersections, dictionary=dd,
+        title='Intersection sizes of the five most common comorbidities',
         graph_id='comor_upset_' + suffix,
         graph_label='Comorbidities: Intersections',
-        graph_about='Frequency of combinations of the five most common comorbidities on presentation')
+        graph_about='Intersection sizes of the five most common comorbidities on presentation')
 
     return pyramid_chart, fig_table, freq_chart_comor, upset_plot_comor
 
@@ -168,10 +171,6 @@ vari_list = getRC.getVariableList(redcap_url, redcap_api_key, sections)
 df_map = getRC.get_REDCAP_Single_DB(
     redcap_url, redcap_api_key, site_mapping, vari_list)
 
-bins = [float(x.split('-')[0].strip()) for x in age_groups] + [np.inf]
-df_map['age_group'] = pd.cut(
-    df_map['age'], bins=bins, labels=age_groups, right=False)
-
 all_countries = pycountry.countries
 countries = [
     {'label': country.name, 'value': country.alpha_3}
@@ -187,12 +186,20 @@ for uniq_county in range(len(unique_countries)):
         {'label': name_country, 'value': code_country})
 
 # This text appears after clicking the insight panel's Instructions button
+# instructions_str = '''
+# 1. Select/remove countries using the dropdown (type directly into the dropdowns to search faster).
+# 2. Change datasets using the dropdown (country selections are remembered).
+# 3. Hover mouse on chart for tooltip data.
+# 4. Zoom-in with lasso-select (left-click-drag on a section of the chart). To reset the chart, double-click on it.
+# 5. Toggle selected countries on/off by clicking on the legend (far right).
+# '''
 instructions_str = '''
-1. Select/remove countries using the dropdown (type directly into the dropdowns to search faster).
-2. Change datasets using the dropdown (country selections are remembered).
-3. Hover mouse on chart for tooltip data.
-4. Zoom-in with lasso-select (left-click-drag on a section of the chart). To reset the chart, double-click on it.
-5. Toggle selected countries on/off by clicking on the legend (far right).
+1. Select categories to filter by sex, age, country and outcome.
+2. Click on Insights and then on each tab to view tables and figures.
+3. Hover mouse on chart for tooltip data (only available for figures).
+4. Zoom-in on figures using the buttons that appears when you hover the mouse near the top right of the figure.
+5. To reset the chart, double-click on it.
+6. Download a .png of the figure using the camera button that appears when you hover the mouse near the top right of the figure.
 '''
 
 # This text appears after clicking the insight panel's About button

@@ -73,37 +73,35 @@ def create_visuals(df_map):
     binary_var = sum([full_variable_dict[key] for key in binary_list], [])
 
     # Descriptive table
-    # column = 'outcome'
-    # column_reorder = ['Discharged', 'Death', 'Censored']
-    column = 'severity'
-    column_reorder = ['Mild', 'Moderate', 'Severe', 'Critical']
+    column = 'outcome'
+    column_reorder = ['Discharged', 'Death', 'Censored']
+    # column = 'severity'
+    # column_reorder = ['Mild', 'Moderate', 'Severe', 'Critical']
     inclu_columns = ia.get_variables_from_sections(
         df_map.columns, ['inter', 'treat'])
     inclu_columns += [column]
-    table = ia.descriptive_table(
-        df_map[inclu_columns],
-        column=column, full_variable_dict=full_variable_dict)
-    table = ia.reorder_descriptive_table(
-        table, dictionary=dd,
-        section_reorder=['inter', 'treat'])
+    table, totals = ia.descriptive_table(
+        df_map[inclu_columns], column=column,
+        full_variable_dict=full_variable_dict, return_totals=True)
     table, table_key = ia.reformat_descriptive_table(
-        table, dictionary=dd, column_reorder=column_reorder)
-    table = ia.add_totals(table, df_map[inclu_columns], column=column)
-    table_key += '<br>Mild: <25 skin lesions, Moderate: 25-99 skin lesions, '
-    table_key += 'Severe: 100-250 skin lesions, Critical: >250 skin lesions'
+        table, dictionary=dd, totals=totals,
+        column_reorder=column_reorder, section_reorder=['inter', 'treat'])
+    # table_key += '<br>Mild: <25 skin lesions, Moderate: 25-99 skin lesions, '
+    # table_key += 'Severe: 100-250 skin lesions, Critical: >250 skin lesions'
     fig_table = idw.fig_table(
         table, dictionary=dd,
         table_key=table_key,
         graph_id='table_' + suffix,
         graph_label='Descriptive Table',
-        graph_about='Summary of complications and interventions.')
+        graph_about='Summary of complications and interventions')
 
     inclu_columns = [
         col for col in df_map.columns if col.split('___')[0] in binary_var]
     inclu_columns = [col for col in inclu_columns if 'addi' not in col]
 
     # Interventions frequency and upset charts
-    proportions, set_data = ia.get_proportions(df_map[inclu_columns], 'inter')
+    proportions = ia.get_proportions(df_map[inclu_columns], ['inter'])
+    intersections = ia.get_intersections(df_map, proportions)
     freq_chart_inter = idw.fig_frequency_chart(
         proportions, dictionary=dd,
         title='Frequency of interventions',
@@ -111,28 +109,29 @@ def create_visuals(df_map):
         graph_label='Interventions: Frequency',
         graph_about='Frequency of the ten most common interventions')
     upset_plot_inter = idw.fig_upset(
-        set_data, dictionary=dd,
-        title='Frequency of combinations of the five most common interventions',
+        intersections, dictionary=dd,
+        title='Intersection sizes of the five most common interventions',
         graph_id='upset_inter_' + suffix,
         graph_label='Interventions: Intersections',
-        graph_about='Frequency of combinations of the five most common interventions')
+        graph_about='Intersection sizes of the five most common interventions')
 
-    # Treatments frequency and upset charts
-    proportions, set_data = ia.get_proportions(df_map[inclu_columns], 'treat')
-    freq_chart_treat = idw.fig_frequency_chart(
-        proportions, dictionary=dd,
-        title='Frequency of treatments',
-        graph_id='freq_treat_' + suffix,
-        graph_label='Treatments: Frequency',
-        graph_about='Frequency of the ten most common treatments')
-    upset_plot_treat = idw.fig_upset(
-        set_data, dictionary=dd,
-        title='Frequency of combinations of the five most common treatments',
-        graph_id='upset_treat_' + suffix,
-        graph_label='Treatments: Intersections',
-        graph_about='Frequency of combinations of the five most common treatments')
+    # # Treatments frequency and upset charts
+    # proportions = ia.get_proportions(df_map[inclu_columns], ['treat'])
+    # intersections = ia.get_intersections(df_map, proportions=proportions)
+    # freq_chart_treat = idw.fig_frequency_chart(
+    #     proportions, dictionary=dd,
+    #     title='Frequency of treatments',
+    #     graph_id='freq_treat_' + suffix,
+    #     graph_label='Treatments: Frequency',
+    #     graph_about='Frequency of the ten most common treatments')
+    # upset_plot_treat = idw.fig_upset(
+    #     intersections, dictionary=dd,
+    #     title='Intersection sizes of the five most common treatments',
+    #     graph_id='upset_treat_' + suffix,
+    #     graph_label='Treatments: Intersections',
+    #     graph_about='Intersection sizes of the five most common treatments')
 
-    return fig_table, freq_chart_inter, upset_plot_inter, freq_chart_treat, upset_plot_treat
+    return fig_table, freq_chart_inter, upset_plot_inter
 
 
 ############################################
@@ -176,12 +175,20 @@ for uniq_county in range(len(unique_countries)):
         {'label': name_country, 'value': code_country})
 
 # This text appears after clicking the insight panel's Instructions button
+# instructions_str = '''
+# 1. Select/remove countries using the dropdown (type directly into the dropdowns to search faster).
+# 2. Change datasets using the dropdown (country selections are remembered).
+# 3. Hover mouse on chart for tooltip data.
+# 4. Zoom-in with lasso-select (left-click-drag on a section of the chart). To reset the chart, double-click on it.
+# 5. Toggle selected countries on/off by clicking on the legend (far right).
+# '''
 instructions_str = '''
-1. Select/remove countries using the dropdown (type directly into the dropdowns to search faster).
-2. Change datasets using the dropdown (country selections are remembered).
-3. Hover mouse on chart for tooltip data.
-4. Zoom-in with lasso-select (left-click-drag on a section of the chart). To reset the chart, double-click on it.
-5. Toggle selected countries on/off by clicking on the legend (far right).
+1. Select categories to filter by sex, age, country and outcome.
+2. Click on Insights and then on each tab to view tables and figures.
+3. Hover mouse on chart for tooltip data (only available for figures).
+4. Zoom-in on figures using the buttons that appears when you hover the mouse near the top right of the figure.
+5. To reset the chart, double-click on it.
+6. Download a .png of the figure using the camera button that appears when you hover the mouse near the top right of the figure.
 '''
 
 # This text appears after clicking the insight panel's About button

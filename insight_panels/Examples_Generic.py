@@ -79,10 +79,12 @@ def create_visuals(df_map):
 
     fig1 = idw.fig_placeholder(
         df_map, dictionary=dd,
-        graph_id='fig1_id' + suffix, graph_label='Figure 1', graph_about='')
+        graph_id='fig1_id' + suffix, graph_label='Figure 1',
+        graph_about='Placeholder figure 1')
     fig2 = idw.fig_placeholder(
         df_map, dictionary=dd,
-        graph_id='fig2_id' + suffix, graph_label='Figure 2', graph_about='')
+        graph_id='fig2_id' + suffix, graph_label='Figure 2',
+        graph_about='Placeholder figure 2')
     return fig1, fig2
 
 
@@ -131,12 +133,20 @@ for uniq_county in range(len(unique_countries)):
         {'label': name_country, 'value': code_country})
 
 # This text appears after clicking the insight panel's Instructions button
+# instructions_str = '''
+# 1. Select/remove countries using the dropdown (type directly into the dropdowns to search faster).
+# 2. Change datasets using the dropdown (country selections are remembered).
+# 3. Hover mouse on chart for tooltip data.
+# 4. Zoom-in with lasso-select (left-click-drag on a section of the chart). To reset the chart, double-click on it.
+# 5. Toggle selected countries on/off by clicking on the legend (far right).
+# '''
 instructions_str = '''
-1. Select/remove countries using the dropdown (type directly into the dropdowns to search faster).
-2. Change datasets using the dropdown (country selections are remembered).
-3. Hover mouse on chart for tooltip data.
-4. Zoom-in with lasso-select (left-click-drag on a section of the chart). To reset the chart, double-click on it.
-5. Toggle selected countries on/off by clicking on the legend (far right).
+1. Select categories to filter by sex, age, country and outcome.
+2. Click on Insights and then on each tab to view tables and figures.
+3. Hover mouse on chart for tooltip data (only available for figures).
+4. Zoom-in on figures using the buttons that appears when you hover the mouse near the top right of the figure.
+5. To reset the chart, double-click on it.
+6. Download a .png of the figure using the camera button that appears when you hover the mouse near the top right of the figure.
 '''
 
 # This text appears after clicking the insight panel's About button

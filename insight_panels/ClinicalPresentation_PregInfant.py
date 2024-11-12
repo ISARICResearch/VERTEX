@@ -80,60 +80,48 @@ def create_visuals(df_map):
         columns={'preg_pregnant___Yes': 'preg_pregnant'}, inplace=True)
     df_table['preg_pregnant'] = df_table['preg_pregnant'].map(
         {1.0: 'Pregnant', 0.0: 'Not pregnant'}).fillna('Unknown')
-    table_preg = ia.descriptive_table(
-        df_table,
-        column='preg_pregnant', full_variable_dict=full_variable_dict)
-    table_preg = ia.reorder_descriptive_table(
-        table_preg, dictionary=dd, section_reorder=['preg', 'demog'])
+    table_preg, totals_preg = ia.descriptive_table(
+        df_table, column='preg_pregnant',
+        full_variable_dict=full_variable_dict, return_totals=True)
     table_preg, table_key = ia.reformat_descriptive_table(
-        table_preg, dictionary=dd,
-        column_reorder=['Pregnant', 'Not pregnant', 'Unknown'])
-    table_preg = ia.add_totals(table_preg, df_table, column='preg_pregnant')
+        table_preg, dictionary=dd, totals=totals_preg,
+        column_reorder=['Pregnant', 'Not pregnant', 'Unknown'],
+        section_reorder=['preg', 'demog'])
     table_preg.rename(columns={'All': 'Female'}, inplace=True)
     fig_table_preg = idw.fig_table(
         table_preg, dictionary=dd,
         table_key=table_key,
         graph_id='table_preg_' + suffix,
         graph_label='Pregnancy: Descriptive Table',
-        graph_about='Summary of demographics for Women/Pregnant Women.')
+        graph_about='Summary of demographics for Women/Pregnant Women')
 
     # Infants descriptive table
     infa_columns = ia.get_variables_from_sections(
         df_map.columns, ['demog', 'infa'])
     df_infa = ia.from_dummies(
         df_map.loc[(df_map['age'] < 1), infa_columns], column='demog_sex')
-    table_infa = ia.descriptive_table(
-        df_infa,
-        column='demog_sex', full_variable_dict=full_variable_dict)
-    table_infa = ia.reorder_descriptive_table(
-        table_infa, dictionary=dd, section_reorder=None)
+    table_infa, totals_infa = ia.descriptive_table(
+        df_infa, column='demog_sex',
+        full_variable_dict=full_variable_dict, return_totals=True)
     table_infa, table_key = ia.reformat_descriptive_table(
-        table_infa, dictionary=dd,
-        column_reorder=['Female', 'Male', 'Other / Unknown'])
+        table_infa, dictionary=dd, totals=totals_infa,
+        column_reorder=['Female', 'Male', 'Other / Unknown'],
+        section_reorder=None)
     fig_table_infa = idw.fig_table(
         table_infa, dictionary=dd,
         table_key=table_key,
         graph_id='table_infa_' + suffix,
         graph_label='Infants: Descriptive Table',
-        graph_about='Summary of demographics for Infants <12 months.')
+        graph_about='Summary of demographics for Infants <12 months')
 
-    # Comorbodities frequency and upset charts
-    proportions_infa_comor, set_data_infa_comor = ia.get_proportions(
-        df_map.loc[(df_map['age'] < 1)], 'comor')
-    freq_chart_infa_comor = idw.fig_frequency_chart(
-        proportions_infa_comor, dictionary=dd,
-        title='Frequency of comorbidities',
-        graph_id='infa_comor_freq_' + suffix,
-        graph_label='Infants: Frequency of comorbidities',
-        graph_about='Frequency of the ten most common comorbodities on presentation (infants only)')
-    upset_plot_infa_comor = idw.fig_upset(
-        set_data_infa_comor, dictionary=dd,
-        title='Frequency of combinations of the five most common comorbidities',
-        graph_id='infa_comor_upset_' + suffix,
-        graph_label='Infants: Intersections of comorbidities',
-        graph_about='Frequency of combinations of the five most common comorbidities on presentation (infants only)')
+    binary_list = ['binary', 'categorical', 'OneHot']
+    binary_var = sum([full_variable_dict[key] for key in binary_list], [])
+    inclu_columns = [
+        col for col in df_map.columns if col.split('___')[0] in binary_var]
+    inclu_columns = [col for col in inclu_columns if 'addi' not in col]
 
-    return fig_table_preg, fig_table_infa, freq_chart_infa_comor, upset_plot_infa_comor
+    return fig_table_preg, fig_table_infa
+    # return fig_table_preg,
 
 
 ############################################
@@ -177,12 +165,20 @@ for uniq_county in range(len(unique_countries)):
         {'label': name_country, 'value': code_country})
 
 # This text appears after clicking the insight panel's Instructions button
+# instructions_str = '''
+# 1. Select/remove countries using the dropdown (type directly into the dropdowns to search faster).
+# 2. Change datasets using the dropdown (country selections are remembered).
+# 3. Hover mouse on chart for tooltip data.
+# 4. Zoom-in with lasso-select (left-click-drag on a section of the chart). To reset the chart, double-click on it.
+# 5. Toggle selected countries on/off by clicking on the legend (far right).
+# '''
 instructions_str = '''
-1. Select/remove countries using the dropdown (type directly into the dropdowns to search faster).
-2. Change datasets using the dropdown (country selections are remembered).
-3. Hover mouse on chart for tooltip data.
-4. Zoom-in with lasso-select (left-click-drag on a section of the chart). To reset the chart, double-click on it.
-5. Toggle selected countries on/off by clicking on the legend (far right).
+1. Select categories to filter by sex, age, country and outcome.
+2. Click on Insights and then on each tab to view tables and figures.
+3. Hover mouse on chart for tooltip data (only available for figures).
+4. Zoom-in on figures using the buttons that appears when you hover the mouse near the top right of the figure.
+5. To reset the chart, double-click on it.
+6. Download a .png of the figure using the camera button that appears when you hover the mouse near the top right of the figure.
 '''
 
 # This text appears after clicking the insight panel's About button
