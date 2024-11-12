@@ -94,7 +94,8 @@ def map_variable(variable, mapping_dict, other_value_str='Other / Unknown'):
 
 def harmonizeAge(df):
     # df['demog_age'] = df['demog_age'].astype(float)
-    df['demog_age'] = pd.to_numeric(df['demog_age'], errors='coerce')
+    df['demog_age'] = pd.to_numeric(
+        df['demog_age'], errors='coerce').astype(float)
     df.loc[(df['demog_age_units'] == 'Months'), 'demog_age'] *= 1/12
     df.loc[(df['demog_age_units'] == 'Days'), 'demog_age'] *= 1/365
     df['demog_age_units'] = 'Years'  # Standardize the units to 'Years'
@@ -209,7 +210,7 @@ def median_iqr_str(series, dp=1, mfw=4, min_n=3):
     if series.notna().sum() < min_n:
         output_str = 'N/A'
     else:
-        mfw_f = int(np.log10(series.quantile(0.75))) + 2 + dp
+        mfw_f = int(np.log10(max((series.quantile(0.75), 1)))) + 2 + dp
         output_str = '%*.*f' % (mfw_f, dp, series.median()) + ' ('
         output_str += '%*.*f' % (mfw_f, dp, series.quantile(0.25)) + '-'
         output_str += '%*.*f' % (mfw_f, dp, series.quantile(0.75)) + ') | '
@@ -221,7 +222,7 @@ def mean_std_str(series, dp=1, mfw=4, min_n=3):
     if series.notna().sum() < min_n:
         output_str = 'N/A'
     else:
-        mfw_f = int(np.log10(series.mean())) + 2 + dp
+        mfw_f = int(max((np.log10(series.mean(), 1)))) + 2 + dp
         output_str = '%*.*f' % (mfw_f, dp, series.mean()) + ' ('
         output_str += '%*.*f' % (mfw_f, dp, series.std()) + ') | '
         output_str += '%*g' % (mfw, int(series.notna().sum()))
@@ -242,51 +243,62 @@ def n_percent_str(series, dp=1, mfw=4, min_n=1):
     return output_str
 
 
-def descriptive_table(data, column, full_variable_dict):
+def descriptive_table(data, column, full_variable_dict, return_totals=True):
     '''
     Descriptive table for binary (including one-hot-encoded categorical) and
     numerical variables in data. The descriptive table will have seperate
     columns for each category that exists for the variable 'column', if this
     is provided.
     '''
-    data = data.dropna(axis=1, how='all')
+    df = data.copy()
+    df = df.dropna(axis=1, how='all')
 
-    data.fillna({column: 'Unknown'}, inplace=True)
+    df.fillna({column: 'Unknown'}, inplace=True)
 
     variable_dict = getVariableType_data(
-        data.drop(columns=column), full_variable_dict)
+        df.drop(columns=column), full_variable_dict)
     numeric_var = variable_dict['number']
     binary_var = sum([
         variable_dict[key] for key in ['binary', 'categorical', 'OneHot']], [])
 
     table = pd.DataFrame(
-        columns=['Reported', 'All'], index=data.drop(columns=column).columns)
+        columns=['Reported', 'All'], index=df.drop(columns=column).columns)
 
     table.loc[numeric_var, 'Reported'] = 'Median (IQR) | N'
     table.loc[binary_var, 'Reported'] = 'Count (%) | N'
 
-    mfw = int(np.log10(data.shape[0])) + 1  # Min field width, for formatting
-    table.loc[numeric_var, 'All'] = data[numeric_var].apply(
+    mfw = int(np.log10(df.shape[0])) + 1  # Min field width, for formatting
+    table.loc[numeric_var, 'All'] = df[numeric_var].apply(
         lambda x: median_iqr_str(x, mfw=mfw))
-    table.loc[binary_var, 'All'] = data[binary_var].apply(
+    table.loc[binary_var, 'All'] = df[binary_var].apply(
         lambda x: n_percent_str(x, mfw=mfw))
 
+    totals = pd.DataFrame(columns=['Variable', 'All'], index=[-0.5])
+    totals['Variable'] = 'totals'
+    totals['All'] = df.shape[0]
+
     if column is not None:
-        choices_values = data[column].unique()
+        choices_values = df[column].unique()
         table[list(choices_values)] = ''
         for value in choices_values:
-            ind = (data[column] == value)
+            ind = (df[column] == value)
             mfw = int(np.log10(ind.sum())) + 1  # Min field width, for format
-            table.loc[numeric_var, value] = data.loc[ind, numeric_var].apply(
+            table.loc[numeric_var, value] = df.loc[ind, numeric_var].apply(
                 lambda x: median_iqr_str(x, mfw=mfw))
-            table.loc[binary_var, value] = data.loc[ind, binary_var].apply(
+            table.loc[binary_var, value] = df.loc[ind, binary_var].apply(
                 lambda x: n_percent_str(x, mfw=mfw))
+            totals[value] = ind.sum()
 
     # Reorder rows by relevance
-    table['Importance'] = data.apply(
+    table['Importance'] = df.apply(
         lambda x: x.sum() if x.name in binary_var else x.notna().sum())
     table.reset_index(inplace=True, names='Variable')
-    return table
+
+    if return_totals:
+        output = table, totals
+    else:
+        output = table
+    return output
 
 
 ############################################
@@ -310,7 +322,7 @@ def rename_variables(
                 ' '.join(x[:max_len].split(' ')[:-1]) + ' ...'))
     renamed_variables = renamed_variables.apply(lambda x: '<b>' + x + '</b>')
     renamed_variables += variable_split.apply(
-        lambda x: ', ' + x[1] if len(x) > 1 else '')
+        lambda x: '' if ((len(x) == 1) or (x[1] == 'Yes')) else ', ' + x[1])
     return renamed_variables
 
 
@@ -407,8 +419,12 @@ def reorder_descriptive_table(table, dictionary, section_reorder=None):
     return df
 
 
-def reformat_descriptive_table(table, dictionary, column_reorder=None):
+def reformat_descriptive_table(
+        table, dictionary,
+        totals=None, column_reorder=None, section_reorder=None):
     df = table.copy()
+    df = reorder_descriptive_table(
+        df, dictionary=dictionary, section_reorder=None)
     df['Variable'] = rename_variables(df['Variable'], dictionary)
     if column_reorder is not None:
         df = reorder_descriptive_table_columns(df, column_reorder)
@@ -422,17 +438,10 @@ def reformat_descriptive_table(table, dictionary, column_reorder=None):
     table_key = '(*) Count (%) | N<br>(+) Median (IQR) | N'
     df = add_descriptive_table_sections(df, dictionary)
     df.drop(columns=['Reported', 'Section', 'Name', 'Value'], inplace=True)
+    if totals is not None:
+        totals['Variable'] = '<b>Totals</b>'
+        df = pd.concat([df, totals]).sort_index().reset_index(drop=True)
     return df, table_key
-
-
-def add_totals(table, data, column):
-    add_row = pd.DataFrame(columns=table.columns, index=[-0.5])
-    add_row['Variable'] = '<b>Totals</b>'
-    add_row['All'] = data.shape[0]
-    for value in [x for x in table.columns if x not in ['Variable', 'All']]:
-        add_row[value] = (data[column] == value).sum()
-    table_new = pd.concat([table, add_row]).sort_index().reset_index(drop=True)
-    return table_new
 
 
 ############################################
@@ -489,6 +498,27 @@ def hex_to_rgba(hex_color, opacity):
     return rgba_color
 
 
+def rgb_to_rgba(rgb_value, alpha):
+    """
+    Adds the alpha channel to an RGB Value and returns it as an RGBA Value
+    :param rgb_value: Input RGB Value
+    :param alpha: Alpha Value to add in range [0,1]
+    :return: RGBA Value
+    """
+    rgba_color = f"rgba{rgb_value[3:-1]}, {alpha})"
+    return rgba_color
+
+
+# def rgb_to_rgba(rgb_value, alpha):
+#     """
+#     Adds the alpha channel to an RGB Value and returns it as an RGBA Value
+#     :param rgb_value: Input RGB Value
+#     :param alpha: Alpha Value to add in range [0,1]
+#     :return: RGBA Value
+#     """
+#     return f"rgba{rgb_value[3:-1]}, {alpha})"
+
+
 ############################################
 ############################################
 # Counts
@@ -496,80 +526,119 @@ def hex_to_rgba(hex_color, opacity):
 ############################################
 
 
-def get_proportions(data, data_type):
-    prefix = ''
-    if data_type == 'symptoms':
-        prefix = 'adsym_'
-    elif data_type == 'comorbidities':
-        prefix = 'comor_'
-    elif data_type == 'treatments':
-        prefix = 'treat_'
+# def get_proportions(data, data_type):
+#     prefix = ''
+#     if data_type == 'symptoms':
+#         prefix = 'adsym_'
+#     elif data_type == 'comorbidities':
+#         prefix = 'comor_'
+#     elif data_type == 'treatments':
+#         prefix = 'treat_'
+#     else:
+#         prefix = data_type + '_'
+#
+#     variables = []
+#
+#     for i in data:
+#         if prefix in i:
+#             variables.append(i)
+#
+#     # df = data[[
+#     #     'usubjid', 'age', 'slider_sex', 'slider_country', 'outcome',
+#     #     'country_iso'] + variables].copy()
+#     # df = df.map(lambda x: x.lower() if isinstance(x, str) else x)
+#     df = data.copy()
+#
+#     proportions = df[variables].dropna(axis=1, how='all').apply(
+#         lambda x: x.dropna().sum() / x.dropna().count()).reset_index()
+#
+#     proportions.columns = ['Condition', 'Proportion']
+#     proportions = proportions.sort_values(by=['Proportion'], ascending=False)
+#     Condition_top = proportions['Condition'].head(5)
+#     set_data = df[Condition_top]
+#     return proportions, set_data
+
+
+def get_proportions(df, section_list, max_n_variables=10):
+    inclu_variables = get_variables_from_sections(df.columns, section_list)
+
+    if len(inclu_variables) == 0:
+        proportions = None
+
+    proportions = df[inclu_variables].dropna(axis=1, how='all')
+
+    proportions = proportions.apply(
+        lambda x: x.sum() / x.count()).reset_index()
+
+    proportions.columns = ['variable', 'proportion']
+    proportions = proportions.sort_values(
+        by=['proportion'], ascending=False).reset_index(drop=True)
+    if proportions.shape[0] > max_n_variables:
+        proportions = proportions.head(max_n_variables)
+    return proportions
+
+
+def get_intersections(df, proportions=None, variables=None, n_variables=5):
+    if proportions is not None:
+        variables = proportions.sort_values(
+            by='proportion', ascending=False)['variable'].head(n_variables)
+    if variables is None:
+        df = df.copy()
+        df = df[[var for var in df.columns if df[var].sum() > 0]].fillna(0)
     else:
-        prefix = data_type + '_'
+        variables = [var for var in variables if df[var].sum() > 0]
+        df = df[variables].fillna(0).copy()
 
-    variables = []
+    counts = df.sum().astype(int).reset_index().rename(columns={0: 'count'})
+    counts = counts.sort_values(
+        by='count', ascending=False).reset_index(drop=True)
+    if variables is None:
+        variable_order_dict = dict(zip(counts['index'], counts.index))
+        variables = counts['index'].tolist()
+    else:
+        variable_order_dict = dict(zip(variables, range(len(variables))))
+    if n_variables is not None:
+        variables = variables[:n_variables]
 
-    for i in data:
-        if prefix in i:
-            variables.append(i)
+    intersections = df.loc[df.any(axis=1)].value_counts().reset_index()
+    intersections['index'] = intersections.drop(columns='count').apply(
+        lambda x: tuple(col for col in x.index if x[col] == 1), axis=1)
 
-    # df = data[[
-    #     'usubjid', 'age', 'slider_sex', 'slider_country', 'outcome',
-    #     'country_iso'] + variables].copy()
-    # df = df.map(lambda x: x.lower() if isinstance(x, str) else x)
-    df = data.copy()
-
-    proportions = df[variables].dropna(axis=1, how='all').apply(
-        lambda x: x.dropna().sum() / x.dropna().count()).reset_index()
-
-    proportions.columns = ['Condition', 'Proportion']
-    proportions = proportions.sort_values(by=['Proportion'], ascending=False)
-    Condition_top = proportions['Condition'].head(5)
-    set_data = df[Condition_top]
-    return proportions, set_data
-
-
-def compute_intersections(df):
-    # Find all combinations of categories and their intersection sizes
-    categories = df.columns
-    intersections = {}
-    for r in range(1, len(categories) + 1):
-        for combo in itertools.combinations(categories, r):
-            # Intersection is where all categories in the combo have a 1
-            mask = df[list(combo)].all(axis=1)
-            intersections[combo] = mask.sum()
-
-    intersections = {k: v for k, v in intersections.items() if v > 0}
-    # Sort intersections by size in descending order
-    sorted_intersections = OrderedDict(
-        sorted(intersections.items(), key=lambda x: x[1], reverse=True))
-    return sorted_intersections
-
-
-# def get_proportions(df, section_list):
-#     # prefix = ''
-#     # if section == 'symptoms':
-#     #     prefix = 'adsym_'
-#     # elif section == 'comorbidities':
-#     #     prefix = 'comor_'
-#     # elif section == 'treatments':
-#     #     prefix = 'treat_'
-#     # else:
-#     #     prefix = section + '_'
-#
-#     inclu_variables = get_variables_from_sections(df.columns, section_list)
-#
-#     proportions = df[inclu_variables].dropna(axis=1, how='all').apply(
-#         lambda x: x.sum() / x.count()).reset_index()
-#
-#     proportions.columns = ['condition', 'proportion']
-#     proportions = proportions.sort_values(by=['proportion'], ascending=False)
-#     return proportions
+    # The rest is reordering to make it look prettier
+    intersections = intersections.loc[(intersections['count'] > 0)]
+    intersections['index_n'] = intersections['index'].apply(len)
+    intersections['index_first'] = (
+        intersections[variables].idxmax(axis=1).map(variable_order_dict))
+    intersections['index_last'] = (
+        intersections[variables].idxmin(axis=1).map(variable_order_dict))
+    intersections = intersections.sort_values(
+        by=['count', 'index_first', 'index_last', 'index_n'],
+        ascending=[False, True, False, False])
+    intersections = intersections[['index', 'count']].reset_index(drop=True)
+    return counts, intersections
 
 
 # def get_intersections(df, ordered_variables, n_variables=5):
 #     inclu_variables = ordered_variables.head(n_variables)
-#     intersections = df[inclu_variables]
+#     intersections = df
+#
+#     # categories_reduced = rename_variables(
+#     #     pd.Series(df.columns), dictionary, max_len=50).tolist()
+#     # df = df.rename(columns=dict(zip(
+#     #     df.columns,
+#     #     ia.rename_variables(pd.Series(df.columns), dictionary).tolist())))
+#     categories = inclu_variables
+#     # intersections = ia.compute_intersections(df)
+#
+#     df = df[inclu_variables].fillna(0)
+#     intersections = df.loc[df.sum(axis=1) > 0].value_counts().reset_index()
+#     for r in range(1, len(categories) + 1):
+#         for combo in itertools.combinations(categories, r):
+#             # Intersection is where all categories in the combo have a 1
+#             ind = intersections[list(combo)].all(axis=1)
+#             intersections.loc[ind, 'count_all'] = intersections.loc[ind, 'count'].sum()
+#
+#
 #     return intersections
 
 

@@ -92,6 +92,7 @@ fig = go.Figure(go.Choroplethmapbox(
     zmax=df_map_count['usubjid'].max(),
     marker_opacity=0.5,
     marker_line_width=0,
+    colorbar={'bgcolor': 'rgba(0,0,0,0)'},
 ))
 
 mapbox_style = ['open-street-map', 'carto-positron']
@@ -107,13 +108,53 @@ fig.update_layout(
 app.layout = html.Div([
     dcc.Graph(
         id='world-map', figure=fig,
-        style={'height': '100vh', 'margin': '0px'}),
+        style={'height': '92vh', 'margin': '0px'}),
     html.Div([
         html.H1('VERTEX - Visual Evidence & Research Tool for EXploration'),
         html.P('Visual Evidence, Vital Answers')
         ],
         style={'position': 'absolute', 'top': 0, 'left': 10, 'z-index': 1000}),
-    idw.define_menu(buttons, country_dropdown_options)
+    idw.define_menu(buttons, country_dropdown_options),
+    html.Div([
+        html.Img(
+            src='assets/logos/ISARIC_logo.png',
+            className='img-fluid',
+            style={'height': '7vh', 'margin': '2px 10px'}),
+        html.P('In partnership with: ', style={'display': 'inline'}),
+        html.Img(
+            src='assets/logos/FIOCRUZ_logo.png',
+            className='img-fluid',
+            style={'height': '5vh', 'margin': '2px 10px'}),
+        html.Img(
+            src='assets/logos/gh.png',
+            className='img-fluid',
+            style={'height': '5vh', 'margin': '2px 10px'}),
+        html.Img(
+            src='assets/logos/puc_rio.png',
+            className='img-fluid',
+            style={'height': '5vh', 'margin': '2px 10px'}),
+        html.P('    With funding from: ', style={'display': 'inline'}),
+        html.Img(
+            src='assets/logos/wellcome-logo.png',
+            className='img-fluid',
+            style={'height': '5vh', 'margin': '2px 10px'}),
+        html.Img(
+            src='assets/logos/billmelinda-logo.png',
+            className='img-fluid',
+            style={'height': '5vh', 'margin': '2px 10px'}),
+        html.Img(
+            src='assets/logos/uk-international-logo.png',
+            className='img-fluid',
+            style={'height': '5vh', 'margin': '2px 10px'}),
+        html.Img(
+            src='assets/logos/FundedbytheEU.png',
+            className='img-fluid',
+            style={'height': '5vh', 'margin': '2px 10px'}),
+        ],
+        style={
+            'position': 'absolute', 'bottom': 0, 'width': 'calc(100% - 300px)',
+            'margin-left': '300px', 'background-color': '#FFFFFF',
+            'z-index': 0,}),
 ])
 
 

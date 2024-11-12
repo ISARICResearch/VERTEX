@@ -4,12 +4,14 @@ import pandas as pd
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 import IsaricAnalytics as ia
+import plotly.express as px
+import numpy as np
 
 
 default_height = 430
 
 
-def filters_controls(suffix, country_dropdown_options):
+def filters_controls(suffix, country_dropdown_options, add_row=None):
     row = dbc.Row([
         dbc.Col([
             html.H6('Gender:', style={'margin-right': '10px'}),
@@ -85,19 +87,19 @@ def filters_controls(suffix, country_dropdown_options):
     ])
     row_button = dbc.Row([
         dbc.Col([
-            row,
-            dbc.Row([
-                dbc.Col([
-                    dbc.Button(
-                        'Submit',
-                        id=f'submit-button_{suffix}',
-                        color='primary', className='mr-2')],
-                    width={'size': 6, 'offset': 3},
-                    style={'text-align': 'center'})  # Center the button
-            ])
-        ])
+            dbc.Button(
+                'Submit',
+                id=f'submit-button_{suffix}',
+                color='primary', className='mr-2')
+            ],
+            width={'size': 6, 'offset': 3},
+            style={'text-align': 'center'})  # Center the button
     ])
-    return row_button
+    row_list = [row, row_button]
+    if add_row is not None:
+        row_list = [row, add_row, row_button]
+    filters = dbc.Row([dbc.Col(row_list)])
+    return filters
 
 
 def ModalFooter(suffix, instructions, about):
@@ -111,10 +113,10 @@ def ModalFooter(suffix, instructions, about):
                 'Instructions',
                 id=f'modal_instruction_popover_{suffix}',
                 size='sm', style={'margin-right': '5px'}),
-            dbc.Button(
-                'Download',
-                id=f'modal_download_popover_{suffix}',
-                size='sm', style={'margin-right': '5px'}),
+            # dbc.Button(
+            #     'Download',
+            #     id=f'modal_download_popover_{suffix}',
+            #     size='sm', style={'margin-right': '5px'}),
             # dbc.Button('Close', id='modal_patChar_close_popover',  size='sm')
         ], className='ml-auto'),
         dbc.Popover(
@@ -241,7 +243,7 @@ def filters_and_controls_base_AccordionItem(country_dropdown_options):
                     appear=False,
                 )
             ]),
-        ],
+        ], style={'overflowY': 'auto', 'maxHeight': '60vh'},
     )
     return filters
 
@@ -289,13 +291,15 @@ def define_menu(buttons, country_dropdown_options):
 
 
 def fig_placeholder(
-        df, dictionary=None, graph_id='table', graph_label='', graph_about=''):
+        df, dictionary=None,
+        title='Sample scatter plot',
+        graph_id='placeholder', graph_label='', graph_about=''):
     x = [1, 2, 3, 4, 5]
     y = [10, 14, 12, 15, 13]
     fig = go.Figure(data=go.Scatter(
         x=x, y=y, mode='markers', marker=dict(size=10, color='blue')))
     fig.update_layout(
-        title='Sample Scatter Plot',
+        title=title,
         xaxis_title='X Axis',
         yaxis_title='Y Axis')
     graph = dcc.Graph(
@@ -305,49 +309,84 @@ def fig_placeholder(
 
 
 def fig_upset(
-        df, dictionary=None,
-        title='UpSet Plot',
-        graph_id='upset-chart', graph_label='', graph_about=''):
+        data, dictionary=None,
+        title='Upset Plot', column_names=['index', 'count'],
+        height=480,
+        graph_id='upset-plot', graph_label='', graph_about=''):
 
-    categories_reduced = ia.rename_variables(
-        pd.Series(df.columns), dictionary, max_len=50).tolist()
-    df = df.rename(columns=dict(zip(
-        df.columns,
-        ia.rename_variables(pd.Series(df.columns), dictionary).tolist())))
-    categories = df.columns
-    intersections = ia.compute_intersections(df)
+    counts = data[0].copy()
+    intersections = data[1].copy()
+
+    categories = counts[column_names[0]].tolist()
+
+    column_widths = [intersections.shape[0], counts.shape[0]]
 
     # Initialize subplots
     fig = make_subplots(
-        rows=2, cols=1,
-        shared_xaxes=True,
+        rows=2, cols=2,
+        shared_xaxes=True, shared_yaxes=True,
+        column_widths=column_widths,
         vertical_spacing=0.02,  # Space between the plots
-        # subplot_titles=('Intersection Size', '')  # Titles for subplots
+        horizontal_spacing=0.01,
     )
 
     # Create bar chart traces for intersection sizes
     bar_traces = []
-    for intersection, size in intersections.items():
+    for ii in intersections.index:
+        intersection = intersections.loc[ii, column_names[0]]
+        labels = ia.rename_variables(pd.Series(intersection), dictionary)
+        color = ia.rgb_to_rgba(px.colors.sequential.Purples_r[ii % 5], 1)
+        n = intersections.loc[ii, column_names[1]]
+        customdata = '<br>'.join(labels) + f'<br><br>Count = {n}'
         bar_traces.append(go.Bar(
-            y=[size],
-            x=[' & '.join(intersection)],
+            y=[n],
+            x=[ii],
             orientation='v',
-            customdata=['<br>'.join(intersection)],
-            hovertemplate='%{customdata}<br><br>Intersection Size = %{y}',
             name='',
+            customdata=[customdata],
+            hovertemplate='%{customdata}',
+            width=0.9,
+            offset=-0.45,
+            marker=dict(color=color),
+            showlegend=False,
         ))
 
     # Add bar traces to the top subplot
     for trace in bar_traces:
         fig.add_trace(trace, row=1, col=1)
 
+    bar_traces = []
+    labels = ia.rename_variables(counts[column_names[0]], dictionary)
+    for ii in counts.index:
+        label = labels.loc[ii]
+        color = ia.rgb_to_rgba(px.colors.sequential.Oranges_r[ii % 5], 1)
+        n = counts.loc[ii, column_names[1]]
+        bar_traces.append(go.Bar(
+            y=[-1 - ii],
+            x=[n],
+            orientation='h',
+            name='',
+            customdata=[f'{label}<br><br>Count = {n}'],
+            hovertemplate='%{customdata}',
+            width=0.9,
+            offset=-0.45,
+            marker=dict(color=color),
+            showlegend=False,
+        ))
+
+    # Add bar traces to the top subplot
+    for trace in bar_traces:
+        fig.add_trace(trace, row=2, col=2)
+
     # Create matrix scatter plot and lines
-    for intersection, size in intersections.items():
-        x_name = ' & '.join(intersection)
+    for ii in intersections.index:
+        intersection = intersections.loc[ii, column_names[0]]
+        labels = ia.rename_variables(pd.Series(intersection), dictionary)
+        # x_name = ' & '.join(labels)
         y_coords = [
-            -1 - categories.get_loc(cat)
-            for cat in categories if cat in intersection]
-        x_coords = [x_name] * len(y_coords)
+            -1 - x
+            for x in range(len(categories)) if categories[x] in intersection]
+        x_coords = [ii]*len(y_coords)
 
         # Add a line connecting the points
         # Only add a line if there are at least two points
@@ -371,45 +410,53 @@ def fig_upset(
                 mode='markers',
                 marker=dict(size=10, color='black'),
                 showlegend=False,
-                customdata=['<br>'.join(intersection)]*len(y_coords),
+                customdata=['<br>'.join(labels)]*len(y_coords),
                 hovertemplate='%{customdata}',
                 name=''),
             row=2, col=1)
 
-    # for cat in categories:
-    #     fig.add_trace(go.Scatter(
-    #             x=[0, 1],
-    #             y=[-1 - categories.get_loc(cat)]*2,
-    #             hovertext=cat),
-    #         row=2, col=1)
-
     # Update y-axis for the bar chart subplot
     fig.update_yaxes(title_text='Intersection Size', row=1, col=1)
+
+    # Update x-axis for the bar chart subplot
+    fig.update_xaxes(title_text='Set Size', side='top', row=2, col=2)
+
+    labels_reduced = ia.rename_variables(
+        pd.Series(categories), dictionary, max_len=40)
+    labels = ia.rename_variables(pd.Series(categories), dictionary)
 
     # Update y-axis for the matrix subplot to show category names
     # instead of numeric
     fig.update_yaxes(
-        tickvals=[-1 - i for i in range(len(categories_reduced))],
-        ticktext=categories_reduced,
+        tickvals=[-1 - i for i in range(len(labels_reduced))],
+        ticktext=labels_reduced,
         showgrid=False,
         row=2, col=1,
-        labelalias=dict(zip(categories_reduced, categories))
+        labelalias=dict(zip(labels_reduced, categories))
     )
 
-    # Hide x-axis line for the bar chart subplot
-    fig.update_xaxes(showline=False, row=1, col=1)
+    # Hide x-axis line for the intersection size subplot
+    fig.update_xaxes(showline=False, tickformat=',d', row=1, col=1)
 
     # Hide x-axis ticks and labels for the matrix subplot
     fig.update_xaxes(
-        ticks='', showticklabels=False, showgrid=False, row=2, col=1)
+        ticks='', showticklabels=False, showgrid=False, zeroline=False,
+        row=2, col=1)
+
+    # Hide y-axis ticks and labels for the set size subplot
+    fig.update_yaxes(
+        ticks='', showticklabels=False, showgrid=False, zeroline=False,
+        row=2, col=2)
 
     # Set the overall layout properties
     fig.update_layout(
         # title=title,
         title={'text': title, 'x': 0.5, 'xanchor': 'center'},
-        showlegend=False,
-        height=480,  # You may need to adjust the height
-        # hovermode='y',
+        # showlegend=False,
+        legend={
+            'orientation': 'h',
+            'yanchor': 'bottom', 'y': 1.02, 'xanchor': 'right', 'x': 1},
+        height=height,  # You may need to adjust the height
     )
 
     # Return a Dash Graph component
@@ -421,28 +468,25 @@ def fig_upset(
 
 def fig_frequency_chart(
         df, dictionary=None,
-        title='Frequency Chart', labels=['Condition', 'Proportion'],
+        title='Frequency Chart', column_names=['variable', 'proportion'],
         base_color_map=None,
         graph_id='freq-chart', graph_label='', graph_about=''):
 
-    df['label'] = ia.rename_variables(
-        df['Condition'], dictionary, max_len=40).tolist()
-    df['Condition'] = ia.rename_variables(df['Condition'], dictionary)
-    df = df.sort_values(by=['Proportion'], ascending=False)
-    if (len(df) > 15):
-        df = df.head(10)
+    labels = ia.rename_variables(df[column_names[0]], dictionary, max_len=40)
+    df[column_names[0]] = ia.rename_variables(df[column_names[0]], dictionary)
 
     # Error Handling
-    if not all(label in df.columns for label in labels):
-        error_str = f'Dataframe must contain the following columns: {labels}'
+    if not all(col in df.columns for col in column_names):
+        error_str = 'Dataframe must contain the following columns: '
+        error_str += f'{column_names}'
         raise ValueError(error_str)
 
-    # Calculate the proportion of 'Yes' for each condition and sort
-    condition_proportions = df.groupby(
-        labels[0])[labels[1]].mean().sort_values(ascending=True)
-
-    sorted_conditions = condition_proportions.index.tolist()
-    sorted_labels = df.set_index('Condition').loc[sorted_conditions, 'label']
+    # # Calculate the proportion of 'Yes' for each condition and sort
+    # condition_proportions = df.groupby(
+    #     column_names[0])[column_names[1]].mean().sort_values(ascending=True)
+    #
+    # sorted_conditions = condition_proportions.index.tolist()
+    # sorted_labels = df.set_index(column_names[0]).loc[sorted_conditions, 'label']
 
     # Prepare Data Traces
     traces = []
@@ -454,47 +498,56 @@ def fig_frequency_chart(
         ia.hex_to_rgba(base_color_map.get('No', default_color), 0.5)
         if base_color_map else ia.hex_to_rgba(default_color, 0.5))
 
-    for condition in sorted_conditions:
-        yes_count = condition_proportions[condition]
+    for ii in reversed(range(df.shape[0])):
+        variable = df.loc[ii, column_names[0]]
+        yes_count = df.loc[ii, column_names[1]]
         no_count = 1 - yes_count
 
         # Add 'Yes' bar
         traces.append(
             go.Bar(
                 x=[yes_count],
-                y=[condition],
+                y=[variable],
                 name='Yes',
                 orientation='h',
+                width=0.9,
+                offset=-0.45,
                 marker=dict(color=yes_color),
-                customdata=[condition],
+                customdata=[variable],
                 hovertemplate='%{customdata}: %{x:.2f}',
                 # Show legend only for the first
-                showlegend=(condition == sorted_conditions[0]))
+                showlegend=(ii == 0))
         )
 
         # Add 'No' bar
         traces.append(
             go.Bar(
                 x=[no_count],
-                y=[condition],
+                y=[variable],
                 name='No',
                 orientation='h',
+                width=0.9,
+                offset=-0.45,
                 marker=dict(color=no_color),
-                customdata=[condition],
+                customdata=[variable],
                 hovertemplate='%{customdata}: %{x:.2f}',
                 # Show legend only for the first
-                showlegend=(condition == sorted_conditions[0]))
+                showlegend=(ii == 0))
         )
 
     layout = go.Layout(
         title={'text': title, 'x': 0.5, 'xanchor': 'center'},
         barmode='stack',
-        xaxis=dict(title=labels[1], range=[0, 1]),
+        xaxis=dict(title=column_names[1].capitalize(), range=[0, 1]),
         yaxis=dict(
-            title=labels[0], automargin=True, tickmode='array',
-            tickvals=sorted_conditions, ticktext=sorted_labels),
+            title=column_names[0].capitalize(), automargin=True,
+            tickmode='array', tickvals=df[column_names[0]],
+            ticktext=labels),
         bargap=0.1,  # Smaller gap between bars. Adjust this value as needed.
-        legend=dict(x=1.05, y=1),
+        # legend=dict(x=1.05, y=1),
+        legend={
+            'orientation': 'h',
+            'yanchor': 'bottom', 'y': 1.02, 'xanchor': 'right', 'x': 1},
         margin=dict(l=100, r=100, t=100, b=50),
         height=350
     )
@@ -540,9 +593,9 @@ def fig_table(
 
 
 def fig_dual_stack_pyramid(
-        df, dictionary=None,
+        df, dictionary=None, yaxis_label=None,
         title='Dual-Sided Stacked Pyramid Chart', base_color_map=None,
-        graph_id='stacked-bar-chart', graph_label='', graph_about=''):
+        graph_id='stacked-pyramid-chart', graph_label='', graph_about=''):
 
     df = df.loc[df['side'].isin(['Female', 'Male'])]
     # Error Handling
@@ -613,6 +666,9 @@ def fig_dual_stack_pyramid(
     max_value = max(
         df['value'].abs().max(),
         df.loc[(df['side'] != df['side'].unique()[0]), 'value'].abs().max())
+
+    if yaxis_label is None:
+        yaxis_label = 'Category'
     # Layout settings
     layout = go.Layout(
         title=title,
@@ -626,7 +682,7 @@ def fig_dual_stack_pyramid(
             ticktext=[max_value, max_value/2, 0, max_value/2, max_value]
         ),
         yaxis=dict(
-            title='Category',
+            title=yaxis_label,
             automargin=True,
             categoryorder='array',
             categoryarray=sorted_y_axis
