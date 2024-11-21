@@ -12,6 +12,12 @@ from sklearn.impute import KNNImputer
 import xgboost as xgb
 import itertools
 from collections import OrderedDict
+from typing import List, Union
+from bertopic import BERTopic
+from bertopic.representation import KeyBERTInspired, MaximalMarginalRelevance
+from bertopic._utils import select_topic_representation
+from umap import UMAP
+from sklearn.preprocessing import MinMaxScaler
 
 
 ############################################
@@ -641,6 +647,117 @@ def get_intersections(df, proportions=None, variables=None, n_variables=5):
 #
 #     return intersections
 
+
+############################################
+############################################
+# Clustering of free-text terms
+############################################
+############################################
+
+def get_clusters(terms: List[str]):
+    """Function to find common topics appearing in a list of free text terms. 
+    Uses the BERTopic topic modelling pipeline.
+    
+    Args:
+        terms (List[str]): list of free text terms, for example referring to an
+        'other combordities' field in a CRF
+    Returns:
+        clusters_df (pd.DataFrame): pandas dataframe summarizing the results of 
+                                    the clustering process. Contains the 
+                                    following columns:
+            Topic (int): topic id
+            Count (int): number of rows in terms assigned to that topic
+            Name (str): name of topic, default id + keywords
+            Representation (List[str]): list of keywords in topic
+            Representative_Docs (List[str]): list of entries in terms which 
+                                            represent the topic
+            x, y (floats): coordinates of topic in an embedding space"""
+    
+
+    # first define the constituent parts of the pipeline
+    # how we embed the strings - default is sentence-transformers
+    embedding_model = None
+
+    # how we represent the topics - keyword extraction based on TF-IDF
+    keybert_mmr = [KeyBERTInspired(), MaximalMarginalRelevance()]
+    
+    # we can have multiple representations if we like
+    representation_model = {
+        "Main": keybert_mmr,
+    }
+
+    # lots of ways to control the number of topics, including setting a fixed n
+    nr_topics = "auto"
+
+    # use bertopic topic modelling pipeline
+    topic_model = BERTopic(
+        embedding_model=embedding_model, # how we embed the strings, default to sentence transformers
+        representation_model=representation_model,
+        nr_topics=nr_topics,
+    )
+
+    # fit the model on the terms
+    topics, probs = topic_model.fit_transform(documents=terms)
+
+    # extract topic words, frequencies, and embedding coordinates
+    distance_df = extract_topic_embeddings(topic_model=topic_model)
+
+    # extract info about each topic aka cluster
+    cluster_df = topic_model.get_topic_info()
+
+    # return the combined df
+    return pd.merge(cluster_df, distance_df, on='Topic', how='left')
+
+
+def extract_topic_embeddings(topic_model: BERTopic,
+                             topics: List[int] = None,
+                             top_n_topics: int = None,
+                             use_ctfidf: bool = False,
+                             ):
+    """Helper function to extract df with topic embedding info, from 
+    bertopic.plotting._topics.visualize_topics"""
+
+    # Select topics based on top_n and topics args
+    freq_df = topic_model.get_topic_freq()
+    freq_df = freq_df.loc[freq_df.Topic != -1, :]
+    if topics is not None:
+        topics = list(topics)
+    elif top_n_topics is not None:
+        topics = sorted(freq_df.Topic.to_list()[:top_n_topics])
+    else:
+        topics = sorted(freq_df.Topic.to_list())
+
+    # Extract topic words and their frequencies
+    topic_list = sorted(topics)
+
+    # Embed c-TF-IDF into 2D
+    all_topics = sorted(list(topic_model.get_topics().keys()))
+    indices = np.array([all_topics.index(topic) for topic in topics])
+
+    embeddings, c_tfidf_used = select_topic_representation(
+        topic_model.c_tf_idf_,
+        topic_model.topic_embeddings_,
+        use_ctfidf=use_ctfidf,
+        output_ndarray=True,
+    )
+    embeddings = embeddings[indices]
+
+    if c_tfidf_used:
+        embeddings = MinMaxScaler().fit_transform(embeddings)
+        embeddings = UMAP(n_neighbors=2, n_components=2, metric="hellinger", random_state=42).fit_transform(embeddings)
+    else:
+        embeddings = UMAP(n_neighbors=2, n_components=2, metric="cosine", random_state=42).fit_transform(embeddings)
+
+    # assemble df
+    df = pd.DataFrame(
+        {
+            "x": embeddings[:, 0],
+            "y": embeddings[:, 1],
+            "Topic": topic_list,
+        }
+    )
+
+    return df
 
 ############################################
 ############################################
