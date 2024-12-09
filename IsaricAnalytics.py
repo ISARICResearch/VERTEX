@@ -669,13 +669,18 @@ def clean_string_list(string_list):
     return cleaned_list
 
 
-def get_clusters(terms: List[str]):
+def get_clusters(terms: List[str],
+                 nr_topics: Union[str, int]="auto",
+                 ):
     """Function to find common topics appearing in a list of free text terms. 
     Uses the BERTopic topic modelling pipeline.
     
     Args:
         terms (List[str]): list of free text terms, for example referring to an
         'other combordities' field in a CRF
+        nr_topics (Union[str, int]): number of topics to model, 'auto' or int
+            specifying desired number
+        
     Returns:
         clusters_df (pd.DataFrame): pandas dataframe summarizing the results of 
                                     the clustering process. Contains the 
@@ -702,9 +707,6 @@ def get_clusters(terms: List[str]):
     representation_model = {
         "Main": keybert_mmr,
     }
-
-    # lots of ways to control the number of topics, including setting a fixed n
-    nr_topics = "auto"
 
     # use bertopic topic modelling pipeline
     topic_model = BERTopic(
