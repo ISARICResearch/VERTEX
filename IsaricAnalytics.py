@@ -653,6 +653,21 @@ def get_intersections(df, proportions=None, variables=None, n_variables=5):
 # Clustering of free-text terms
 ############################################
 ############################################
+def clean_string_list(string_list):
+    """Helper function to remove nans and empty strs from a list of strings"""
+    
+    # Using filter() with a lambda function
+    cleaned_list = list(filter(
+        lambda s: (
+            s is not None 
+            and not (isinstance(s, float) and np.isnan(s))
+            and str(s).strip() != ''
+        ),
+        string_list
+    ))
+    
+    return cleaned_list
+
 
 def get_clusters(terms: List[str]):
     """Function to find common topics appearing in a list of free text terms. 
@@ -673,6 +688,8 @@ def get_clusters(terms: List[str]):
                                             represent the topic
             x, y (floats): coordinates of topic in an embedding space"""
     
+    # remove nans and empty strings
+    terms = clean_string_list(terms)
 
     # first define the constituent parts of the pipeline
     # how we embed the strings - default is sentence-transformers
