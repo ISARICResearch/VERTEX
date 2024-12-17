@@ -12,7 +12,8 @@ from sklearn.impute import KNNImputer
 import xgboost as xgb
 import itertools
 from collections import OrderedDict
-
+import statsmodels.formula.api as smf
+import statsmodels.api as sm
 
 ############################################
 ############################################
@@ -1102,3 +1103,87 @@ def get_intersections(df, proportions=None, variables=None, n_variables=5):
 #     # table['Variable'] = table['Variable'].replace(correct_names)
 #     table = table.fillna('')
 #     return table
+
+
+############################################
+############################################
+# Logistic Regression from Risk Factors
+############################################
+############################################
+
+def execute_logistic_regression(df, outcome, predictors, print_results = True, labels = False):
+    """
+    Performs a logistic regression and returns a table with the coefficients and effects of the predictor variables.
+
+    Parameters:
+    - df: Pandas DataFrame containing the data.
+    - outcome: String with the name of the outcome variable.
+    - predictors: List of strings with the names of the predictor variables.
+    - labels: (Optional) Dictionary mapping variable names to readable labels. Can accept an empty dictionary (boolean False).
+
+    Returns:
+    - summary_df: DataFrame with the results of the logistic regression.
+    """
+
+    # Prepare the formula for the model
+    formula = outcome + ' ~ ' + ' + '.join(predictors)
+
+    # Identify categorical variables that are also predictors
+    categorical_vars = df.select_dtypes(include=['object', 'category']).columns.intersection(predictors)
+
+    # Convert categorical variables to the 'category' data type
+    for var in categorical_vars:
+        df[var] = df[var].astype('category')
+
+    # Fit the logistic regression model
+    model = smf.glm(formula=formula, data=df, family=sm.families.Binomial())
+    result = model.fit()
+
+    # Extract the summary table from the regression results
+    summary_table = result.summary2().tables[1]
+
+    # Calculate Odds Ratios and confidence intervals
+    summary_table['Odds Ratio'] = np.exp(summary_table['Coef.'])
+    summary_table['IC Low'] = np.exp(summary_table['[0.025'])
+    summary_table['IC High'] = np.exp(summary_table['0.975]'])
+
+    # Select relevant columns and rename them as needed
+    summary_df = summary_table[['Odds Ratio', 'IC Low', 'IC High', 'P>|z|']]
+    summary_df = summary_df.rename(columns={'P>|z|': 'p-value'})
+    summary_df = summary_df.reset_index()
+    summary_df.rename(columns={'index': 'Study', 'Odds Ratio': 'OddsRatio', 'IC Low': 'LowerCI', 'IC High': 'UpperCI'}, inplace=True)
+
+    # Map variable names to readable labels
+    if labels:
+        def parse_variable_name(var_name):
+            if var_name == 'Intercept':
+                return labels.get('Intercept', 'Intercept')
+            elif '[' in var_name:
+                base_var = var_name.split('[')[0]
+                level = var_name.split('[')[1].split(']')[0]
+                base_var_name = base_var.replace('C(', '').replace(')', '').strip()
+                label = labels.get(base_var_name, base_var_name)
+                return f'{label} ({level})'
+            else:
+                var_name_clean = var_name.replace('C(', '').replace(')', '').strip()
+                return labels.get(var_name_clean, var_name_clean)
+        
+        summary_df['Study'] = summary_df['Study'].apply(parse_variable_name)
+
+    # Reorder the columns
+    summary_df = summary_df[['Study', 'OddsRatio', 'LowerCI', 'UpperCI', 'p-value']]
+
+    # Format numerical values
+    summary_df['OddsRatio'] = summary_df['OddsRatio'].round(2)
+    summary_df['LowerCI'] = summary_df['LowerCI'].round(2)
+    summary_df['UpperCI'] = summary_df['UpperCI'].round(2)
+    summary_df['p-value'] = summary_df['p-value'].apply(lambda x: f'{x:.4f}')
+
+    # Remove the letter 'T.' from categorical variables
+    summary_df['Study'] = summary_df['Study'].str.replace('T.', '')
+
+    # Print results if the flag is set
+    if print_results:
+        print(summary_df)
+
+    return summary_df

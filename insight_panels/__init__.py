@@ -3,7 +3,8 @@ __all__ = [
     'ClinicalPresentation_DemographicsComorbidities',
     'ClinicalPresentation_PregInfant',
     'ClinicalPresentation_Day0',
-    'ClinicalPresentation_Exposure',
+    #'ClinicalPresentation_Exposure',
     'Treatments_InterventionsTreatments',
-    'Outcomes_ComplicationsOutcomes'
+    'Outcomes_ComplicationsOutcomes',
+    'RiskFactors_InHospitalMortality'
 ]
