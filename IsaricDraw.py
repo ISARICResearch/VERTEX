@@ -744,7 +744,7 @@ def fig_forest_plot(
         graph_id='forest-plot', graph_label='', graph_about=''):
     
     # Ordering Values -> Descending Order
-    df = df.sort_values(by=labels[1], ascending=False)
+    df = df.sort_values(by=labels[1], ascending=True)
     
     # Error Handling
     if not set(labels).issubset(df.columns):

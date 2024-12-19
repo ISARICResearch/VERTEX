@@ -91,18 +91,56 @@ def create_visuals(df_map):
     predictors = ['age_group', 'demog_sex']
 
     df_lr_input['outcome'] = (df_lr_input['outcome'] == 'Death')
-    df_lr = ia.execute_logistic_regression(
+    # Logistic Regression with all predictors (Multi)
+    df_lr_multi = ia.execute_logistic_regression(
         df_lr_input, outcome, predictors, print_results=False)
+    
+    # Logistic Regression with each predictor (Uni)
+    linear_responses = []
+    for predictor in predictors:
+        linear_responses.append(ia.execute_logistic_regression(
+            reg_type ='uni',
+            df=df_lr_input,
+            outcome=outcome,
+            predictors=[predictor],
+            print_results=False
+        ))
+    final_linear_response = pd.concat(linear_responses)
+    
+    # Insures that 'final_linear_response' has the same order of 'Study' of df_lr_multi
+    final_linear_response['Study'] = pd.Categorical(
+        final_linear_response['Study'],
+        categories=df_lr_multi['Study'],
+        ordered=True
+    )
+    final_linear_response = final_linear_response.sort_values('Study').reset_index(drop=True)
+    
+    # Aligns the indexes before concatenation
+    df_lr_multi = df_lr_multi.reset_index(drop=True)
+    final_linear_response = final_linear_response.reset_index(drop=True)
+    
+    # Making copy from the Logistic Regression Multi Variable response, to avoid changing the original dataframe
+    logistic_response = df_lr_multi.copy()
+    logistic_response = logistic_response.drop('Study', axis=1)
+    
+    # Concatenating the Logistic Regression Multi Variable response with the Linear Regression responses
+    df_lr_final = pd.concat([final_linear_response, logistic_response], axis=1)
 
-    df_lr_table = df_lr.copy()
+    df_lr_table = df_lr_final.copy()
     table = idw.fig_table(
         df_lr_table, dictionary=None,
         graph_id='table_' + suffix,
         graph_label='Table',
         graph_about='...')
     
+    df_lr_multi.rename(columns={'OddsRatio (multi)': 'OddsRatio', 
+            'LowerCI (multi)': 'LowerCI', 
+            'UpperCI (multi)': 'UpperCI', 
+            'p-valor (multi)': 'p-valor'}, 
+                          inplace=True)
+    
     figure = idw.fig_forest_plot(
-        df_lr,
+        df_lr_multi,
         graph_id='forest_plot_' + suffix,
         graph_label='Forest Plot',
         graph_about='...'

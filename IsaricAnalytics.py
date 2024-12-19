@@ -1111,7 +1111,7 @@ def get_intersections(df, proportions=None, variables=None, n_variables=5):
 ############################################
 ############################################
 
-def execute_logistic_regression(df, outcome, predictors, print_results = True, labels = False):
+def execute_logistic_regression(df, outcome, predictors, print_results = True, labels = False, reg_type = "multi"):
     """
     Performs a logistic regression and returns a table with the coefficients and effects of the predictor variables.
 
@@ -1181,6 +1181,29 @@ def execute_logistic_regression(df, outcome, predictors, print_results = True, l
 
     # Remove the letter 'T.' from categorical variables
     summary_df['Study'] = summary_df['Study'].str.replace('T.', '')
+    
+    # Removing intercept
+    summary_df = summary_df[summary_df['Study'] != 'Intercept']
+    print(summary_df.columns)
+    
+    # Renaming columns
+    if(reg_type == 'uni'):
+        summary_df.rename(columns={
+            'OddsRatio': 'OddsRatio (uni)', 
+            'LowerCI': 'LowerCI (uni)', 
+            'UpperCI': 'UpperCI (uni)', 
+            'p-value': 'p-value (uni)'}, 
+                          inplace=True)
+
+    else:
+        summary_df.rename(columns={
+            'OddsRatio': 'OddsRatio (multi)', 
+            'LowerCI': 'LowerCI (multi)', 
+            'UpperCI': 'UpperCI (multi)', 
+            'p-value': 'p-value (multi)'}, 
+                          inplace=True)
+    print(summary_df.columns)
+    
 
     # Print results if the flag is set
     if print_results:
