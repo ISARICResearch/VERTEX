@@ -603,6 +603,10 @@ def get_REDCAP_Single_DB(
 
     form2 = pd.merge(form2, dates, on='subjid', how='left')
 
+    # Asses_date Fix
+    if 'daily_date' in form2.columns:
+        form2['asses_date']=form2['daily_date']
+                              
     # Ensure both columns are in datetime format
     form2['asses_date'] = pd.to_datetime(form2['asses_date'], errors='coerce')
 
