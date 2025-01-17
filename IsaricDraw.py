@@ -42,8 +42,8 @@ def fig_upset(
     counts = data[0].copy()
     intersections = data[1].copy()
 
-    hlabel='label'
-    slabel='short_label'
+    hlabel = 'label'
+    slabel = 'short_label'
 
     hoverlabels = counts[hlabel].tolist()
     labels = counts[slabel].tolist()
@@ -185,11 +185,11 @@ def fig_upset(
 
 def fig_frequency_chart(
         df,
-        title='Frequency Chart', 
+        title='Frequency Chart',
         base_color_map=None,
         graph_id='freq-chart', graph_label='', graph_about=''):
 
-    column_names=['short_label', 'proportion','label']
+    column_names = ['label', 'proportion', 'short_label']
 
     # Error Handling
     if not all(col in df.columns for col in column_names):
@@ -208,22 +208,22 @@ def fig_frequency_chart(
         if base_color_map else hex_to_rgba(default_color, 0.5))
 
     for ii in reversed(range(df.shape[0])):
-        variable = df.loc[ii, column_names[0]]
+        hoverlabel = df.loc[ii, column_names[0]]
         yes_count = df.loc[ii, column_names[1]]
-        hlabel=df.loc[ii,column_names[2]]
+        label = df.loc[ii, column_names[2]]
         no_count = 1 - yes_count
 
         # Add 'Yes' bar
         traces.append(
             go.Bar(
                 x=[yes_count],
-                y=[variable],
+                y=[label],
                 name='Yes',
                 orientation='h',
                 width=0.9,
                 offset=-0.45,
                 marker=dict(color=yes_color),
-                customdata=[hlabel],
+                customdata=[hoverlabel],
                 hovertemplate='%{customdata}: %{x:.2f}',
                 # Show legend only for the first
                 showlegend=(ii == 0))
@@ -233,13 +233,13 @@ def fig_frequency_chart(
         traces.append(
             go.Bar(
                 x=[no_count],
-                y=[variable],
+                y=[label],
                 name='No',
                 orientation='h',
                 width=0.9,
                 offset=-0.45,
                 marker=dict(color=no_color),
-                customdata=[hlabel],
+                customdata=[hoverlabel],
                 hovertemplate='%{customdata}: %{x:.2f}',
                 # Show legend only for the first
                 showlegend=(ii == 0))
@@ -250,9 +250,9 @@ def fig_frequency_chart(
         barmode='stack',
         xaxis=dict(title=column_names[1].capitalize(), range=[0, 1]),
         yaxis=dict(
-            title=column_names[0].capitalize(), automargin=True,
-            tickmode='array', tickvals=df[column_names[0]],
-            ticktext=df[column_names[0]]),
+            title='Variable', automargin=True,
+            tickmode='array', tickvals=df[column_names[2]],
+            ticktext=df[column_names[2]]),
         bargap=0.1,  # Smaller gap between bars. Adjust this value as needed.
         # legend=dict(x=1.05, y=1),
         legend={

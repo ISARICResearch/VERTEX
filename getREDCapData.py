@@ -629,9 +629,22 @@ def get_df_map(data, dictionary):
         'Discharged against medical advice': 'Discharged',
         'Death': 'Death',
     }
-    df_map['outco_outcome'] = map_variable(
-        df_map['outco_outcome'], mapping_dict, other_value_str='Censored')
-    return df_map
+    df_map['outco_binary_outcome'] = map_variable(
+        df_map['outco_outcome'],
+        mapping_dict, other_value_str='Censored')
+    outcome_dict = {}
+    outcomes = ['Death', 'Discharged', 'Censored']
+    outcome_dict['field_name'] = ['outco_binary_outcome']
+    outcome_dict['field_name'] += [
+        'outco_binary_outcome___' + x for x in outcomes]
+    outcome_dict['form_name'] = 'outcome'
+    outcome_dict['field_type'] = ['categorical'] + ['binary']*len(outcomes)
+    outcome_dict['field_label'] = ['Outcome (binary)'] + outcomes
+    outcome_dict['parent'] = ['outco'] + ['outco_binary_outcome']*len(outcomes)
+    dictionary = pd.concat([
+        dictionary, pd.DataFrame.from_dict(outcome_dict)], axis=0)
+    dictionary = dictionary.reset_index(drop=True)
+    return df_map, dictionary
 
 
 def get_df_forms(data, dictionary):
@@ -672,18 +685,14 @@ def get_redcap_data(redcap_url, redcap_api_key, country_mapping=None):
     data.loc[data['form_name'].isna(), 'form_name'] = (
         data.loc[data['form_name'].isna(), 'redcap_event_name'].map(form_dict))
     data = data.loc[data['form_name'].notna()].reset_index(drop=True)
-    data['site']=data['redcap_data_access_group']
-    df_map = get_df_map(data, new_dictionary)
+    df_map, new_dictionary = get_df_map(data, new_dictionary)
     df_forms_dict = get_df_forms(data, new_dictionary)
 
     if country_mapping is None:
         dag = data[['subjid', 'redcap_data_access_group']].drop_duplicates()
         dag = dag.rename(columns={'redcap_data_access_group': 'site'})
-        dag['country_iso'] = dag['site'].apply(
-            lambda x: x.split('-')[1])
+        dag['country_iso'] = dag['site'].apply(lambda x: x.split('-')[1])
         df_map = pd.merge(df_map, dag, on='subjid', how='left')
-        # df_map['country_iso'] = (
-        #     df_map['redcap_data_access_group'].str.split('-').str[1])
     else:
         # TODO: Need something better here?
         try:

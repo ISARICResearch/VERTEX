@@ -13,8 +13,8 @@ import getREDCapData as getRC
 from insight_panels import *
 from insight_panels.__init__ import __all__ as ip_list
 import os
-#import dash_auth
-#import flask_caching as fc
+# import dash_auth
+# import flask_caching as fc
 
 
 ############################################
@@ -918,7 +918,7 @@ def main():
         'demog_sex': 'filters_sex',
         'demog_age': 'filters_age',
         'country_iso': 'filters_country',
-        'outco_outcome': 'filters_outcome'
+        'outco_binary_outcome': 'filters_outcome'
     }
 
     fig = create_map(df_countries, map_layout_dict)

@@ -88,7 +88,7 @@ def create_visuals(df_map, df_forms_dict, dictionary, suffix):
     column_dict = {
         'side': 'demog_sex',
         'y_axis': 'demog_agegroup',
-        'stack_group': 'outco_outcome'}
+        'stack_group': 'outco_binary_outcome'}
     df_pyramid = ia.get_pyramid_data(
         df_map, column_dict, left_side='Female', right_side='Male')
     about = 'Dual-sided population pyramid, showing age, sex and outcome.'
@@ -102,7 +102,7 @@ def create_visuals(df_map, df_forms_dict, dictionary, suffix):
     # Demographics and comorbidities descriptive table
     df_table = ia.get_descriptive_data(
         df_map, dictionary, by_column='demog_sex',
-        include_sections=['demog', 'comor'],exclude_negatives=False)
+        include_sections=['demog', 'comor'], exclude_negatives=False)
     table, table_key = ia.descriptive_table(
         df_table, dictionary, by_column='demog_sex',
         column_reorder=['Female', 'Male', 'Other / Unknown'])
@@ -113,26 +113,28 @@ def create_visuals(df_map, df_forms_dict, dictionary, suffix):
         graph_about='Summary of demographics and comorbidities.')
 
     # Comorbodities frequency and upset charts
+    section = 'comor'
+    section_name = 'Comorbidities on presentation'
     df_upset = ia.get_descriptive_data(
         df_map, dictionary,
-        include_sections=['comor'], include_types=['binary', 'categorical'])
+        include_sections=[section], include_types=['binary', 'categorical'])
     proportions = ia.get_proportions(df_upset, dictionary)
     counts_intersections = ia.get_upset_counts_intersections(
         df_upset, dictionary, proportions=proportions)
-    about = 'Frequency of the ten most common comorbodities on presentation'
+    about = 'Frequency of the ten most common ' + section_name.lower()
     freq_chart_comor = idw.fig_frequency_chart(
         proportions,
-        title='Frequency of comorbidities',
-        graph_id='comor_freq_' + suffix,
-        graph_label='Comorbidities: Frequency',
+        title='Frequency of ' + section_name,
+        graph_id=section + '_freq_' + suffix,
+        graph_label=section_name + ': Frequency',
         graph_about=about)
-    about = 'Intersection sizes of the five most common comorbidities on'
-    about = about + ' presentation'
+    about = 'Intersection sizes of the five most common '
+    about += section_name.lower()
     upset_plot_comor = idw.fig_upset(
         counts_intersections,
-        title='Intersection sizes of the five most common comorbidities',
-        graph_id='comor_upset_' + suffix,
-        graph_label='Comorbidities: Intersections',
+        title='Intersection sizes of ' + section_name.lower(),
+        graph_id=section + '_upset_' + suffix,
+        graph_label=section_name + ': Intersections',
         graph_about=about)
 
     return (pyramid_chart, fig_table, freq_chart_comor, upset_plot_comor)
