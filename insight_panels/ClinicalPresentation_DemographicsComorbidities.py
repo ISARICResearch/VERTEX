@@ -102,7 +102,7 @@ def create_visuals(df_map, df_forms_dict, dictionary, suffix):
     # Demographics and comorbidities descriptive table
     df_table = ia.get_descriptive_data(
         df_map, dictionary, by_column='demog_sex',
-        include_sections=['demog', 'comor'])
+        include_sections=['demog', 'comor'],exclude_negatives=False)
     table, table_key = ia.descriptive_table(
         df_table, dictionary, by_column='demog_sex',
         column_reorder=['Female', 'Male', 'Other / Unknown'])

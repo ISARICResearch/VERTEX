@@ -189,7 +189,9 @@ def n_percent_str(series, dp=1, mfw=4, min_n=1):
 def get_descriptive_data(
         data, dictionary, by_column=None, include_sections=['demog'],
         include_types=['binary', 'categorical', 'numeric'],
-        exclude_suffix=['_units', 'addi', 'otherl2', 'item', '_oth']):
+        exclude_suffix=['_units', 'addi', 'otherl2', 'item', '_oth'],
+        include_id=False,
+        exclude_negatives=True):
     df = data.copy()
 
     include_columns = dictionary.loc[(
@@ -198,6 +200,10 @@ def get_descriptive_data(
     include_columns = get_variables_from_sections(
         include_columns,
         section_list=include_sections, exclude_suffix=exclude_suffix)
+    if (by_column!=None) & (by_column not in include_columns):
+        include_columns.append(by_column)
+    if include_id:
+        include_columns.append('subjid')
     df = df[include_columns].dropna(axis=1, how='all').copy()
 
     # Convert categorical variables to onehot-encoded binary columns
@@ -214,6 +220,13 @@ def get_descriptive_data(
     # Remove columns with only NaN values
     df = df.dropna(axis=1, how='all')
     df.fillna({by_column: 'Unknown'}, inplace=True)
+
+    negative_values = ('no', 'never smoked')
+    negative_columns = [
+        col for col in df.columns
+        if col.split('___')[-1].lower() in negative_values]
+    if exclude_negatives:
+        df.drop(columns=negative_columns, inplace=True)
     return df
 
 
@@ -334,18 +347,20 @@ def format_variables(dictionary, max_len=40):
 
 def get_proportions(df, dictionary, max_n_variables=10):
     proportions = df.apply(lambda x: x.sum() / x.count()).reset_index()
-
+ 
     proportions.columns = ['variable', 'proportion']
     proportions = proportions.sort_values(
         by=['proportion'], ascending=False).reset_index(drop=True)
     if proportions.shape[0] > max_n_variables:
         proportions = proportions.head(max_n_variables)
-
-    format_dict = dict(zip(
-        dictionary['field_name'], format_variables(dictionary)))
-    proportions['variable'] = proportions['variable'].map(format_dict)
+ 
+    short_format = format_variables(dictionary, max_len=40)
+    long_format = format_variables(dictionary, max_len=1000)
+    format_dict = dict(zip(dictionary['field_name'], long_format))
+    short_format_dict = dict(zip(dictionary['field_name'], short_format))
+    proportions['label'] = proportions['variable'].map(format_dict)
+    proportions['short_label'] = proportions['variable'].map(short_format_dict)
     return proportions
-
 
 def get_upset_counts_intersections(
         df, dictionary, proportions=None, variables=None, n_variables=5):
@@ -353,9 +368,10 @@ def get_upset_counts_intersections(
     long_format = format_variables(dictionary, max_len=1000)
     short_format = format_variables(dictionary, max_len=40)
     format_dict = dict(zip(dictionary['field_name'], long_format))
-    df = df.rename(columns=format_dict).copy()
-    if variables is not None:
-        variables = [format_dict[var] for var in variables]
+    short_format_dict = dict(zip(dictionary['field_name'], short_format))
+    #df = df.rename(columns=format_dict).copy()
+    #if variables is not None:
+    #    variables = [format_dict[var] for var in variables]
     if proportions is not None:
         variables = proportions.sort_values(
             by='proportion', ascending=False)['variable'].head(n_variables)
@@ -367,7 +383,10 @@ def get_upset_counts_intersections(
     counts = df.sum().astype(int).reset_index().rename(columns={0: 'count'})
     counts = counts.sort_values(
         by='count', ascending=False).reset_index(drop=True)
-    counts['label'] = counts['index'].map(dict(zip(long_format, short_format)))
+
+    counts['label'] = counts['index'].map(format_dict)
+    counts['short_label'] = counts['index'].map(short_format_dict)
+
     if variables is None:
         variable_order_dict = dict(zip(counts['index'], counts.index))
         variables = counts['index'].tolist()
@@ -376,10 +395,12 @@ def get_upset_counts_intersections(
     if n_variables is not None:
         variables = variables[:n_variables]
 
+
     intersections = df.loc[df.any(axis=1)].value_counts().reset_index()
     intersections['index'] = intersections.drop(columns='count').apply(
         lambda x: tuple(col for col in x.index if x[col] == 1), axis=1)
-
+    intersections['label'] = intersections['index'].apply(
+        lambda x: tuple(format_dict[y] for y in x))
     # The rest is reordering to make it look prettier
     intersections = intersections.loc[(intersections['count'] > 0)]
     intersections['index_n'] = intersections['index'].apply(len)
@@ -390,7 +411,8 @@ def get_upset_counts_intersections(
     intersections = intersections.sort_values(
         by=['count', 'index_first', 'index_last', 'index_n'],
         ascending=[False, True, False, False])
-    intersections = intersections[['index', 'count']].reset_index(drop=True)
+    intersections = intersections[['index', 'count','label']].reset_index(drop=True)
+
     return counts, intersections
 
 

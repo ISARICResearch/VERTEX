@@ -13,8 +13,8 @@ import getREDCapData as getRC
 from insight_panels import *
 from insight_panels.__init__ import __all__ as ip_list
 import os
-import dash_auth
-import flask_caching as fc
+#import dash_auth
+#import flask_caching as fc
 
 
 ############################################

@@ -42,8 +42,11 @@ def fig_upset(
     counts = data[0].copy()
     intersections = data[1].copy()
 
-    hoverlabels = counts['index'].tolist()
-    labels = counts['label'].tolist()
+    hlabel='label'
+    slabel='short_label'
+
+    hoverlabels = counts[hlabel].tolist()
+    labels = counts[slabel].tolist()
 
     column_widths = [intersections.shape[0], counts.shape[0]]
 
@@ -60,7 +63,7 @@ def fig_upset(
     bar_traces = []
     for ii in intersections.index:
         color = rgb_to_rgba(px.colors.sequential.Purples_r[ii % 5], 1)
-        hoverlabel = '<br>'.join(intersections.loc[ii, 'index'])
+        hoverlabel = '<br>'.join(intersections.loc[ii, hlabel])
         n = intersections.loc[ii, 'count']
         customdata = f'Intersection of<br>{hoverlabel}<br><br>Count = {n}'
         bar_traces.append(go.Bar(
@@ -82,7 +85,7 @@ def fig_upset(
 
     bar_traces = []
     for ii in counts.index:
-        hoverlabel = counts.loc[ii, 'index']
+        hoverlabel = counts.loc[ii, hlabel]
         color = rgb_to_rgba(px.colors.sequential.Oranges_r[ii % 5], 1)
         n = counts.loc[ii, 'count']
         bar_traces.append(go.Bar(
@@ -104,7 +107,7 @@ def fig_upset(
 
     # Create matrix scatter plot and lines
     for ii in intersections.index:
-        intersection = intersections.loc[ii, 'index']
+        intersection = intersections.loc[ii, hlabel]
         y_coords = [
             -1 - x
             for x in range(len(hoverlabels)) if hoverlabels[x] in intersection]
@@ -182,9 +185,11 @@ def fig_upset(
 
 def fig_frequency_chart(
         df,
-        title='Frequency Chart', column_names=['variable', 'proportion'],
+        title='Frequency Chart', 
         base_color_map=None,
         graph_id='freq-chart', graph_label='', graph_about=''):
+
+    column_names=['short_label', 'proportion','label']
 
     # Error Handling
     if not all(col in df.columns for col in column_names):
@@ -205,6 +210,7 @@ def fig_frequency_chart(
     for ii in reversed(range(df.shape[0])):
         variable = df.loc[ii, column_names[0]]
         yes_count = df.loc[ii, column_names[1]]
+        hlabel=df.loc[ii,column_names[2]]
         no_count = 1 - yes_count
 
         # Add 'Yes' bar
@@ -217,7 +223,7 @@ def fig_frequency_chart(
                 width=0.9,
                 offset=-0.45,
                 marker=dict(color=yes_color),
-                customdata=[variable],
+                customdata=[hlabel],
                 hovertemplate='%{customdata}: %{x:.2f}',
                 # Show legend only for the first
                 showlegend=(ii == 0))
@@ -233,7 +239,7 @@ def fig_frequency_chart(
                 width=0.9,
                 offset=-0.45,
                 marker=dict(color=no_color),
-                customdata=[variable],
+                customdata=[hlabel],
                 hovertemplate='%{customdata}: %{x:.2f}',
                 # Show legend only for the first
                 showlegend=(ii == 0))
