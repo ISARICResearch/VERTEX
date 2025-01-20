@@ -560,7 +560,7 @@ def define_footer_modal(instructions, about):
 
 def register_callbacks(
         app, insight_panels, df_map,
-        df_forms_dict, dictionary, filter_options):
+        df_forms_dict, dictionary,quality_report, filter_options):
     @app.callback(
         Output('world-map', 'figure'),
         [
@@ -697,7 +697,7 @@ def register_callbacks(
             button_id = ctx.triggered[0]['prop_id'].split('.')[0]
             suffix = json.loads(button_id)['index']
             visuals = insight_panels[suffix].create_visuals(
-                df_map, df_forms_dict, dictionary, suffix)
+                df_map, df_forms_dict, dictionary,quality_report, suffix)
             button = {
                 **insight_panels[suffix].define_button(), **{'suffix': suffix}}
             modal = create_modal(visuals, button, filter_options)
@@ -843,7 +843,7 @@ def register_callbacks(
             modal = ()
         else:
             visuals = insight_panels[suffix].create_visuals(
-                df_map_filtered, df_forms_filtered, dictionary, suffix)
+                df_map_filtered, df_forms_filtered, dictionary, quality_report,suffix)
             modal = create_modal(visuals, button, filter_options)
         output = modal, genders, age_range, outcomes, countries
         return output
@@ -907,7 +907,7 @@ def main():
     redcap_url = rc_config.redcap_url
     redcap_api_key = rc_config.redcap_api_key
 
-    df_map, df_forms_dict, dictionary = getRC.get_redcap_data(
+    df_map, df_forms_dict, dictionary, quality_report = getRC.get_redcap_data(
         redcap_url, redcap_api_key)
 
     df_map_with_countries = merge_data_with_countries(df_map)
@@ -963,7 +963,7 @@ def main():
 
     _ = register_callbacks(
         app, insight_panels, df_map,
-        df_forms_dict, dictionary, filter_options)
+        df_forms_dict, dictionary, quality_report, filter_options)
 
     app.run_server(debug=True)
     return

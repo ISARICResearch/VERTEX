@@ -16,7 +16,7 @@ def define_button():
     return output
 
 
-def create_visuals(df_map, df_forms_dict, dictionary, suffix):
+def create_visuals(df_map, df_forms_dict, dictionary,quality_report, suffix):
     '''
     Create all visuals in the insight panel from the RAP dataframe
     '''
@@ -79,13 +79,27 @@ def create_visuals(df_map, df_forms_dict, dictionary, suffix):
     #    df_map, dictionary=dd,
     #    graph_id='fig1_id' + suffix, graph_label='Figure 1', graph_about='')
     outcomes_tb=df_map[['outco_denguediag','outco_denguediag_class','subjid']]
+
+    outcomes_tb['outco_denguediag_class']=outcomes_tb['outco_denguediag_class'].fillna('---')
+    outcomes_tb['outco_denguediag']=outcomes_tb['outco_denguediag'].fillna('---')
     outcomes_tb=outcomes_tb.groupby(['outco_denguediag','outco_denguediag_class']).nunique().reset_index()
-    outcomes_tb.columns=['Denge Diagnosis','Severity','Number of patients']
-    new_row = {'Denge Diagnosis': 'No', 'outco_denguediag_class': '---', 'Number of patients':(df_map['outco_denguediag']==0).sum() }
+    outcomes_tb.columns=['Dengue Diagnosis','Severity','Number of patients']
+
+    outcomes_tb['Dengue Diagnosis'].loc[outcomes_tb['Dengue Diagnosis']==1]='Yes'
+    outcomes_tb['Dengue Diagnosis'].loc[outcomes_tb['Dengue Diagnosis']==0]='No'
+
+    outcomes_tb=outcomes_tb.sort_values(by=['Dengue Diagnosis','Severity'])
+
+
+    
+    for qc in quality_report:
+        qc_count=len(quality_report[qc])
+        new_row = {'Dengue Diagnosis': '', 'Severity': '<b>'+qc+'</b>', 'Number of patients':qc_count }
+        outcomes_tb = pd.concat([outcomes_tb, pd.DataFrame([new_row])], ignore_index=True)
+
+    new_row = {'Dengue Diagnosis': '', 'Severity': '<b>Total</b>', 'Number of patients':'<b>'+str(outcomes_tb['Number of patients'].sum())+'</b>' }
     outcomes_tb = pd.concat([outcomes_tb, pd.DataFrame([new_row])], ignore_index=True)
-    new_row = {'Denge Diagnosis': '---', 'outco_denguediag_class': '---', 'Number of patients':(df_map['outco_denguediag']!=1).sum()-(df_map['outco_denguediag']==0).sum() }
-    outcomes_tb = pd.concat([outcomes_tb, pd.DataFrame([new_row])], ignore_index=True)
-    outcomes_tb['Denge Diagnosis'].loc[outcomes_tb['Denge Diagnosis']==1]='Yes'
+
 
     #fig4=idw.simple_fig_table(outcomes_tb,None)
     #outcomes_tb['outco_denguediag_main'].value_counts()
@@ -94,8 +108,12 @@ def create_visuals(df_map, df_forms_dict, dictionary, suffix):
     #########################################
     #########################################
     
-    fig1 = idw.fig_placeholder(
-        df_map,
-        graph_id='fig1-' + suffix, graph_label='Figure 1',
-        graph_about='Placeholder figure 1')
-    return (fig1,)
+
+    fig_patients_bysite=idw.fig_sunburst(sb_df,path=['filters_country', 'site'],values='subjid',graph_label='Site Enrolment')
+    table_patients_bydiagnosis=idw.fig_table(outcomes_tb,graph_id='table_npatients',graph_label='Number of patients by diagnosis')
+    fig_cumulativeenrolment=idw.fig_cumulative_bar_chart(erolment_df,title='Cumulative Enrolment by date and country',graph_id='fig_cumulativeenrolment',
+                                               xlabel='Month',ylabel='Number of patients',graph_label='Cumulative patient enrolment by country')
+
+    fig_enrolmentbtmonth = idw.fig_stacked_bar_chart(erolment_df,xlabel='Month',ylabel='Number of patients',graph_label='Patient enrolment by country',graph_id='fig_enrolmentmonth')
+
+    return (table_patients_bydiagnosis,fig_cumulativeenrolment,fig_enrolmentbtmonth,fig_patients_bysite)

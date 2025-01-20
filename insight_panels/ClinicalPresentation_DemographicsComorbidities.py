@@ -16,7 +16,7 @@ def define_button():
     return output
 
 
-def create_visuals(df_map, df_forms_dict, dictionary, suffix):
+def create_visuals(df_map, df_forms_dict, dictionary,quality_report,suffix):
     '''
     Create all visuals in the insight panel from the RAP dataframe
     '''
@@ -100,12 +100,14 @@ def create_visuals(df_map, df_forms_dict, dictionary, suffix):
         graph_about=about)
 
     # Demographics and comorbidities descriptive table
+    split_column='outco_denguediag_class'
+    split_column_order=['Uncomplicated dengue','Dengue with warning signs', 'Severe dengue', 'Unknown']
     df_table = ia.get_descriptive_data(
-        df_map, dictionary, by_column='demog_sex',
+        df_map, dictionary, by_column=split_column,
         include_sections=['demog', 'comor'], exclude_negatives=False)
     table, table_key = ia.descriptive_table(
-        df_table, dictionary, by_column='demog_sex',
-        column_reorder=['Female', 'Male', 'Other / Unknown'])
+        df_table, dictionary, by_column=split_column,
+        column_reorder=split_column_order)
     fig_table = idw.fig_table(
         table, table_key=table_key,
         graph_id='table_' + suffix,

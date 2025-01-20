@@ -16,7 +16,7 @@ def define_button():
     return output
 
 
-def create_visuals(df_map, df_forms_dict, dictionary, suffix):
+def create_visuals(df_map, df_forms_dict, dictionary, quality_report,suffix):
     '''
     Create all visuals in the insight panel from the RAP dataframe
     '''
@@ -65,7 +65,7 @@ def create_visuals(df_map, df_forms_dict, dictionary, suffix):
     # Interventions descriptive table
     split_column='outco_denguediag_class'
     #split_column_order=['']
-    split_column_order=['Uncomplicated dengue','Dengue with warning signs', 'Severe dengue', 'Unkown']
+    split_column_order=['Uncomplicated dengue','Dengue with warning signs', 'Severe dengue', 'Unknown']
     df_table = ia.get_descriptive_data(
         df_map, dictionary, by_column=split_column,
         include_sections=['compl', 'outco'])
@@ -84,7 +84,7 @@ def create_visuals(df_map, df_forms_dict, dictionary, suffix):
 
     df_upset = ia.get_descriptive_data(
         df_map, dictionary,
-        include_sections=[section], include_types=['binary', 'categorical'],include_id=False)
+        include_sections=[section], include_types=['binary', 'categorical'],include_subjid=False)
    
     proportions = ia.get_proportions(df_upset, dictionary)
     counts_intersections = ia.get_upset_counts_intersections(

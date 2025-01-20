@@ -32,6 +32,136 @@ def fig_placeholder(
         yaxis_range=[10, 15])
     return fig, graph_id, graph_label, graph_about
 
+def fig_sunburst(
+        df, 
+        title='Sunburst Chart', path=['level0', 'level1'],values='value',
+        base_color_map=None,
+        graph_id='sun-chart', graph_label='', graph_about=''):
+    fig = px.sunburst(
+        df,path=path, values=values
+    )
+    return fig, graph_id, graph_label, graph_about  
+
+def fig_cumulative_bar_chart(
+        df, 
+        title='Cumulative Bar by Timepoint', xlabel='x', ylabel='y',
+        base_color_map=None,
+        graph_id='cumulative-bar-chart', graph_label='', graph_about=''):
+    
+    # Convert 'timepoint' to datetime format and sort
+    df['timepoint'] = pd.to_datetime(df['timepoint'], format='%m-%Y')
+    df = df.sort_values('timepoint')
+    
+    # Pivot the DataFrame to get cumulative sums for each stack_group
+    pivot_df = df.pivot_table(
+        index='timepoint', columns='stack_group',
+        values='value', aggfunc='sum').fillna(0)
+    
+    # Forward fill missing values and calculate cumulative sum
+    pivot_df = pivot_df.cumsum()
+    
+    # Generate dynamic colors if base_color_map is not provided
+    if base_color_map is None:
+        unique_groups = pivot_df.columns
+        color_palette = px.colors.qualitative.Plotly  # Use Plotly's qualitative color scale
+        base_color_map = {group: color_palette[i % len(color_palette)] for i, group in enumerate(unique_groups)}
+
+    # Create traces for each stack_group with colors from the base_color_map
+    traces = []
+    for stack_group in pivot_df.columns:
+        # Assign color from base_color_map
+        color = base_color_map.get(stack_group, '#000')
+        traces.append(
+            go.Bar(
+                x=pivot_df.index,
+                y=pivot_df[stack_group],
+                name=stack_group,
+                orientation='v',
+                marker=dict(color=color)
+            )
+        )
+    
+    # Layout settings with customized x-axis tick format
+    layout = go.Layout(
+        title=title,
+        barmode='stack',
+        bargap=0,
+        xaxis=dict(
+            title=xlabel,
+            tickformat='%m-%Y',  # Display x-axis in MM-YYYY format
+            tickvals=pivot_df.index,  # Optional: only show specific dates if needed
+        ),
+        yaxis=dict(title=ylabel),
+        legend=dict(x=1.05, y=1),
+        margin=dict(l=100, r=100, t=100, b=50),
+        paper_bgcolor='white',
+        plot_bgcolor='white',
+        height=340
+    )
+    
+    fig={'data':traces,'layout':layout}
+
+    
+    return fig, graph_id, graph_label, graph_about
+
+def fig_stacked_bar_chart(
+        df, 
+        title='Bar Chart by Timepoint', xlabel='x', ylabel='y',
+        base_color_map=None,
+        graph_id='bar-chart', graph_label='', graph_about=''):
+    
+    # Convert 'timepoint' to datetime format and sort
+    df['timepoint'] = pd.to_datetime(df['timepoint'], format='%m-%Y')
+    df = df.sort_values('timepoint')
+    
+    # Pivot the DataFrame to get sums for each stack_group at each timepoint
+    pivot_df = df.pivot_table(
+        index='timepoint', columns='stack_group',
+        values='value', aggfunc='sum').fillna(0)
+    
+    # Generate dynamic colors if base_color_map is not provided
+    if base_color_map is None:
+        unique_groups = pivot_df.columns
+        color_palette = px.colors.qualitative.Plotly  # Use Plotly's qualitative color scale
+        base_color_map = {group: color_palette[i % len(color_palette)] for i, group in enumerate(unique_groups)}
+
+    # Create traces for each stack_group with colors from the base_color_map
+    traces = []
+    for stack_group in pivot_df.columns:
+        # Assign color from base_color_map
+        color = base_color_map.get(stack_group, '#000')
+        traces.append(
+            go.Bar(
+                x=pivot_df.index,
+                y=pivot_df[stack_group],
+                name=stack_group,
+                orientation='v',
+                marker=dict(color=color)
+            )
+        )
+    
+    # Layout settings with customized x-axis tick format
+    layout = go.Layout(
+        title=title,
+        barmode='stack',
+        bargap=0,
+        xaxis=dict(
+            title=xlabel,
+            tickformat='%m-%Y',  # Display x-axis in MM-YYYY format
+            tickvals=pivot_df.index,  # Optional: only show specific dates if needed
+        ),
+        yaxis=dict(title=ylabel),
+        legend=dict(x=1.05, y=1),
+        margin=dict(l=100, r=100, t=100, b=50),
+        paper_bgcolor='white',
+        plot_bgcolor='white',
+        height=340
+    )
+    
+    fig={'data':traces,'layout':layout}
+
+    
+    return fig, graph_id, graph_label, graph_about
 
 def fig_upset(
         data,

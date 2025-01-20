@@ -16,7 +16,7 @@ def define_button():
     return output
 
 
-def create_visuals(df_map, df_forms_dict, dictionary, suffix):
+def create_visuals(df_map, df_forms_dict, dictionary, quality_report,suffix):
     '''
     Create all visuals in the insight panel from the RAP dataframe
     '''
@@ -86,7 +86,7 @@ def create_visuals(df_map, df_forms_dict, dictionary, suffix):
 
     df_upset = ia.get_descriptive_data(
         df_daily, dictionary,
-        include_sections=[section], include_types=['binary', 'categorical'],include_id=True)
+        include_sections=[section], include_types=['binary', 'categorical'],include_subjid=True)
     
     df_upset=df_upset.groupby('subjid').max()
 

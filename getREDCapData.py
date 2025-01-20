@@ -602,6 +602,16 @@ def get_df_map(data, dictionary):
     columns = [col for col in columns if col in df_map.columns]
     ind = data['form_name'].apply(
         lambda x: any(y in x.split(',') for y in ['presentation', 'outcome']))
+    
+    #################################################################################
+    #################################################################################
+    # QUALITY CHECK 1 Patients has either Presentation or Outcome forms 
+    missing_id_QC1 = [
+        id for id in data['subjid'].values if id not in df_map.loc[ind, 'subjid'].values]
+    
+    quality_report={'QUALITY CHECK 1 Patients does not have Presentation or Outcome forms':missing_id_QC1}
+    
+
     df_map = df_map.loc[ind, columns]
     # # ## TODO: Should this remove all columns with no data, or just those
     # # ## from repeating events?
@@ -630,7 +640,7 @@ def get_df_map(data, dictionary):
         'Death': 'Death',
     }
     df_map['outco_binary_outcome'] = map_variable(
-        df_map['outco_outcome'],
+        df_map['outco_outcome'].fillna('Censored'),
         mapping_dict, other_value_str='Censored')
     outcome_dict = {}
     outcomes = ['Death', 'Discharged', 'Censored']
@@ -644,7 +654,7 @@ def get_df_map(data, dictionary):
     dictionary = pd.concat([
         dictionary, pd.DataFrame.from_dict(outcome_dict)], axis=0)
     dictionary = dictionary.reset_index(drop=True)
-    return df_map, dictionary
+    return df_map, dictionary, quality_report
 
 
 def get_df_forms(data, dictionary):
@@ -685,7 +695,7 @@ def get_redcap_data(redcap_url, redcap_api_key, country_mapping=None):
     data.loc[data['form_name'].isna(), 'form_name'] = (
         data.loc[data['form_name'].isna(), 'redcap_event_name'].map(form_dict))
     data = data.loc[data['form_name'].notna()].reset_index(drop=True)
-    df_map, new_dictionary = get_df_map(data, new_dictionary)
+    df_map, new_dictionary, quality_report = get_df_map(data, new_dictionary)
     df_forms_dict = get_df_forms(data, new_dictionary)
 
     if country_mapping is None:
@@ -715,7 +725,9 @@ def get_redcap_data(redcap_url, redcap_api_key, country_mapping=None):
         new_dictionary, pd.DataFrame.from_dict(country_dict)], axis=0)
     new_dictionary = new_dictionary.reset_index(drop=True)
 
-    return df_map, df_forms_dict, new_dictionary
+    
+
+    return df_map, df_forms_dict, new_dictionary, quality_report
 
 
 # def convert_fixed_date_events_to_repeating_event(df, event_prefix='Day '):

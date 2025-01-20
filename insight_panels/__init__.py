@@ -1,7 +1,7 @@
 __all__ = [
     # 'Examples_Generic',
-    # 'Enrolment_EnrolmentDetail',
+    'Enrolment_EnrolmentDetail',
     'ClinicalPresentation_DemographicsComorbidities',
-    # 'Treatments_InterventionsTreatments',
-    # 'Outcomes_ComplicationsOutcomes'
+    'Treatments_InterventionsTreatments',
+    'Outcomes_ComplicationsOutcomes'
 ]
