@@ -216,13 +216,14 @@ def generate_html_text(text):
 def get_visuals(path, buttons):
     visuals = {}
     for file in os.listdir(path):
-        if file.endswith('.txt') & file.startswith('fig'):
+        if file.endswith('.txt') & (file.startswith('dashboard') is False):
             new_file = eval(open(os.path.join(path, file), 'r').read())
             fig_id = new_file['fig_id']
             data = tuple(
                 pd.read_csv(path + name) for name in new_file['fig_data'])
             data = data[0] if (len(data) == 1) else data
             fig_fun = eval('idw.' + new_file['fig_name'])
+            new_file['fig_arguments']['save_inputs'] = False
             visuals[fig_id] = fig_fun(data, **new_file['fig_arguments'])
 
     for ii in range(len(buttons)):
@@ -431,12 +432,12 @@ def main():
         margin={'r': 0, 't': 0, 'l': 0, 'b': 0},
     )
 
-    path = 'test/'
+    filepath = 'dengue_global/'
     metadata_file = 'dashboard_metadata.txt'
-    metadata = eval(open(os.path.join(path, metadata_file), 'r').read())
-    buttons = get_visuals(path, metadata)
+    metadata = eval(open(os.path.join(filepath, metadata_file), 'r').read())
+    buttons = get_visuals(filepath, metadata)
 
-    df_countries = pd.read_csv(path + 'dashboard_data.csv')
+    df_countries = pd.read_csv(filepath + 'dashboard_data.csv')
     fig = create_map(df_countries, map_layout_dict)
     # geojson = 'https://raw.githubusercontent.com/johan/world.geo.json/'
     # geojson = geojson + 'master/countries.geo.json'

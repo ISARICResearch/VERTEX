@@ -12,6 +12,8 @@ default_height = 430
 
 def get_graph_id(graph_id_prefix, suffix, frame=1):
     fig_name = sys._getframe(frame).f_code.co_name
+    if len(graph_id_prefix) != 0:
+        graph_id_prefix = graph_id_prefix + '_'
     graph_id = graph_id_prefix + '_' + fig_name + '_' + suffix
     return graph_id
 
@@ -22,12 +24,10 @@ def save_inputs_to_file(locals):
     # Convert to list (if not already)
     data = data if isinstance(data, tuple) else (data,)
     filepath = locals['filepath']
-    suffix = locals['suffix']
-    fig_data = [
-        fig_name + '_' + suffix + '_data___' + str(ii) + '.csv'
-        for ii in range(len(data))]
     graph_id = get_graph_id(locals['graph_id'], locals['suffix'], frame=2)
-    # locals['graph_id'] = locals['graph_id'].split('_' + suffix)[0]  # hack fix
+    fig_data = [
+        graph_id + '_data___' + str(ii) + '.csv'
+        for ii in range(len(data))]
     metadata = {
         'fig_id': graph_id,
         'fig_name': fig_name,
@@ -35,12 +35,11 @@ def save_inputs_to_file(locals):
         'fig_data': fig_data,
     }
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
-    filename_prefix = filepath + fig_name + '_' + suffix
-    with open(filename_prefix + '_metadata.txt', 'w') as text_file:
+    with open(filepath + graph_id + '_metadata.txt', 'w') as text_file:
         text_file.write(repr(metadata))
     for ii in range(len(data)):
         data[ii].to_csv(
-            filename_prefix + '_data___' + str(ii) + '.csv', index=False)
+            filepath + graph_id + '_data___' + str(ii) + '.csv', index=False)
     return data, metadata
 
 
@@ -212,6 +211,7 @@ def fig_stacked_bar_chart(
         height=340
     )
     fig = {'data': traces, 'layout': layout}
+    graph_id = get_graph_id(graph_id, suffix)
     return fig, graph_id, graph_label, graph_about
 
 
