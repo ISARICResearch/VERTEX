@@ -3,9 +3,45 @@ import pandas as pd
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 import plotly.express as px
+import os
+import sys
 
 
 default_height = 430
+
+
+def get_graph_id(graph_id_prefix, suffix, frame=1):
+    fig_name = sys._getframe(frame).f_code.co_name
+    graph_id = graph_id_prefix + '_' + fig_name + '_' + suffix
+    return graph_id
+
+
+def save_inputs_to_file(locals):
+    fig_name = sys._getframe(1).f_code.co_name
+    data = locals.pop('df')
+    # Convert to list (if not already)
+    data = data if isinstance(data, tuple) else (data,)
+    filepath = locals['filepath']
+    suffix = locals['suffix']
+    fig_data = [
+        fig_name + '_' + suffix + '_data___' + str(ii) + '.csv'
+        for ii in range(len(data))]
+    graph_id = get_graph_id(locals['graph_id'], locals['suffix'], frame=2)
+    # locals['graph_id'] = locals['graph_id'].split('_' + suffix)[0]  # hack fix
+    metadata = {
+        'fig_id': graph_id,
+        'fig_name': fig_name,
+        'fig_arguments': locals,
+        'fig_data': fig_data,
+    }
+    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+    filename_prefix = filepath + fig_name + '_' + suffix
+    with open(filename_prefix + '_metadata.txt', 'w') as text_file:
+        text_file.write(repr(metadata))
+    for ii in range(len(data)):
+        data[ii].to_csv(
+            filename_prefix + '_data___' + str(ii) + '.csv', index=False)
+    return data, metadata
 
 
 ############################################
@@ -18,8 +54,12 @@ default_height = 430
 def fig_placeholder(
         df,
         title='Sample scatter plot',
-        button_item='', button_label='',
-        graph_id='placeholder', graph_label='', graph_about=''):
+        suffix='', filepath='', save_inputs=False,
+        graph_id='', graph_label='', graph_about=''):
+
+    if save_inputs:
+        inputs = save_inputs_to_file(locals())
+
     x = [1, 2, 3, 4, 5]
     # y = [10, 14, 12, 15, 13]
     y = np.random.uniform(low=10, high=15, size=5)
@@ -30,41 +70,53 @@ def fig_placeholder(
         xaxis_title='X Axis',
         yaxis_title='Y Axis',
         yaxis_range=[10, 15])
+
+    graph_id = get_graph_id(graph_id, suffix)
     return fig, graph_id, graph_label, graph_about
+
 
 def fig_sunburst(
-        df, 
-        title='Sunburst Chart', path=['level0', 'level1'],values='value',
+        df,
+        title='Sunburst Chart', path=['level0', 'level1'], values='value',
         base_color_map=None,
-        graph_id='sun-chart', graph_label='', graph_about=''):
+        suffix='', filepath='', save_inputs=False,
+        graph_id='', graph_label='', graph_about=''):
+
+    if save_inputs:
+        inputs = save_inputs_to_file(locals())
+
     fig = px.sunburst(
-        df,path=path, values=values
+        df, path=path, values=values
     )
-    return fig, graph_id, graph_label, graph_about  
+    graph_id = get_graph_id(graph_id, suffix)
+    return fig, graph_id, graph_label, graph_about
+
 
 def fig_cumulative_bar_chart(
-        df, 
+        df,
         title='Cumulative Bar by Timepoint', xlabel='x', ylabel='y',
         base_color_map=None,
-        graph_id='cumulative-bar-chart', graph_label='', graph_about=''):
-    
-    # Convert 'timepoint' to datetime format and sort
-    df['timepoint'] = pd.to_datetime(df['timepoint'], format='%m-%Y')
-    df = df.sort_values('timepoint')
-    
+        suffix='', filepath='', save_inputs=False,
+        graph_id='', graph_label='', graph_about=''):
+
+    if save_inputs:
+        inputs = save_inputs_to_file(locals())
+
     # Pivot the DataFrame to get cumulative sums for each stack_group
     pivot_df = df.pivot_table(
-        index='timepoint', columns='stack_group',
+        index='index', columns='stack_group',
         values='value', aggfunc='sum').fillna(0)
-    
+
     # Forward fill missing values and calculate cumulative sum
     pivot_df = pivot_df.cumsum()
-    
+
     # Generate dynamic colors if base_color_map is not provided
     if base_color_map is None:
         unique_groups = pivot_df.columns
-        color_palette = px.colors.qualitative.Plotly  # Use Plotly's qualitative color scale
-        base_color_map = {group: color_palette[i % len(color_palette)] for i, group in enumerate(unique_groups)}
+        color_palette = px.colors.qualitative.Plotly
+        base_color_map = {
+            group: color_palette[i % len(color_palette)]
+            for i, group in enumerate(unique_groups)}
 
     # Create traces for each stack_group with colors from the base_color_map
     traces = []
@@ -80,7 +132,7 @@ def fig_cumulative_bar_chart(
                 marker=dict(color=color)
             )
         )
-    
+
     # Layout settings with customized x-axis tick format
     layout = go.Layout(
         title=title,
@@ -89,7 +141,7 @@ def fig_cumulative_bar_chart(
         xaxis=dict(
             title=xlabel,
             tickformat='%m-%Y',  # Display x-axis in MM-YYYY format
-            tickvals=pivot_df.index,  # Optional: only show specific dates if needed
+            tickvals=pivot_df.index,  # Optional: only specific dates if needed
         ),
         yaxis=dict(title=ylabel),
         legend=dict(x=1.05, y=1),
@@ -98,32 +150,34 @@ def fig_cumulative_bar_chart(
         plot_bgcolor='white',
         height=340
     )
-    
-    fig={'data':traces,'layout':layout}
 
-    
+    fig = {'data': traces, 'layout': layout}
+    graph_id = get_graph_id(graph_id, suffix)
     return fig, graph_id, graph_label, graph_about
+
 
 def fig_stacked_bar_chart(
-        df, 
+        df,
         title='Bar Chart by Timepoint', xlabel='x', ylabel='y',
         base_color_map=None,
-        graph_id='bar-chart', graph_label='', graph_about=''):
-    
-    # Convert 'timepoint' to datetime format and sort
-    df['timepoint'] = pd.to_datetime(df['timepoint'], format='%m-%Y')
-    df = df.sort_values('timepoint')
-    
+        suffix='', filepath='', save_inputs=False,
+        graph_id='', graph_label='', graph_about=''):
+
+    if save_inputs:
+        inputs = save_inputs_to_file(locals())
+
     # Pivot the DataFrame to get sums for each stack_group at each timepoint
     pivot_df = df.pivot_table(
-        index='timepoint', columns='stack_group',
+        index='index', columns='stack_group',
         values='value', aggfunc='sum').fillna(0)
-    
+
     # Generate dynamic colors if base_color_map is not provided
     if base_color_map is None:
         unique_groups = pivot_df.columns
-        color_palette = px.colors.qualitative.Plotly  # Use Plotly's qualitative color scale
-        base_color_map = {group: color_palette[i % len(color_palette)] for i, group in enumerate(unique_groups)}
+        color_palette = px.colors.qualitative.Plotly
+        base_color_map = {
+            group: color_palette[i % len(color_palette)]
+            for i, group in enumerate(unique_groups)}
 
     # Create traces for each stack_group with colors from the base_color_map
     traces = []
@@ -139,7 +193,7 @@ def fig_stacked_bar_chart(
                 marker=dict(color=color)
             )
         )
-    
+
     # Layout settings with customized x-axis tick format
     layout = go.Layout(
         title=title,
@@ -148,7 +202,7 @@ def fig_stacked_bar_chart(
         xaxis=dict(
             title=xlabel,
             tickformat='%m-%Y',  # Display x-axis in MM-YYYY format
-            tickvals=pivot_df.index,  # Optional: only show specific dates if needed
+            tickvals=pivot_df.index,  # Optional: only specific dates if needed
         ),
         yaxis=dict(title=ylabel),
         legend=dict(x=1.05, y=1),
@@ -157,20 +211,21 @@ def fig_stacked_bar_chart(
         plot_bgcolor='white',
         height=340
     )
-    
-    fig={'data':traces,'layout':layout}
-
-    
+    fig = {'data': traces, 'layout': layout}
     return fig, graph_id, graph_label, graph_about
 
-def fig_upset(
-        data,
-        title='Upset Plot',
-        height=480,
-        graph_id='upset-plot', graph_label='', graph_about=''):
 
-    counts = data[0].copy()
-    intersections = data[1].copy()
+def fig_upset(
+        df,
+        title='Upset Plot', height=480,
+        suffix='', filepath='', save_inputs=False,
+        graph_id='', graph_label='', graph_about=''):
+
+    if save_inputs:
+        inputs = save_inputs_to_file(locals())
+
+    counts = df[0].copy()
+    intersections = df[1].copy()
 
     hlabel = 'label'
     slabel = 'short_label'
@@ -310,14 +365,18 @@ def fig_upset(
         height=height,  # You may need to adjust the height
         minreducedwidth=500,
     )
+    graph_id = get_graph_id(graph_id, suffix)
     return fig, graph_id, graph_label, graph_about
 
 
 def fig_frequency_chart(
         df,
-        title='Frequency Chart',
-        base_color_map=None,
-        graph_id='freq-chart', graph_label='', graph_about=''):
+        title='Frequency Chart', base_color_map=None,
+        suffix='', filepath='', save_inputs=False,
+        graph_id='', graph_label='', graph_about=''):
+
+    if save_inputs:
+        inputs = save_inputs_to_file(locals())
 
     column_names = ['label', 'proportion', 'short_label']
 
@@ -394,14 +453,22 @@ def fig_frequency_chart(
     )
 
     fig = go.Figure(data=traces, layout=layout)
+    graph_id = get_graph_id(graph_id, suffix)
     return fig, graph_id, graph_label, graph_about
 
 
 def fig_table(
-        df, table_key='',
-        graph_id='table-graph', graph_label='', graph_about=''):
+        df,
+        table_key='',
+        suffix='', filepath='', save_inputs=False,
+        graph_id='', graph_label='', graph_about=''):
+
+    if save_inputs:
+        inputs = save_inputs_to_file(locals())
+
     bf_columns = ['<b>' + x + '</b>' for x in df.columns]
     df.rename(columns=dict(zip(df.columns, bf_columns)), inplace=True)
+    df = df.fillna('')
     n = df.shape[1]
     firstwidth = 0.3
     columnwidth = [firstwidth] + [(1 - firstwidth)/(n - 1)]*(n - 1)
@@ -424,18 +491,18 @@ def fig_table(
         title_x=0.95,
         # minreducedwidth=500,
     )
-    # metadata = {
-    #     'graph_id': graph_id,
-    #     'graph_label': graph_label,
-    #     'graph_about': graph_about,
-    #     'insight_panel': insight_panel_name}
+    graph_id = get_graph_id(graph_id, suffix)
     return fig, graph_id, graph_label, graph_about
 
 
 def fig_dual_stack_pyramid(
         df, yaxis_label=None,
         title='Dual-Sided Stacked Pyramid Chart', base_color_map=None,
-        graph_id='stacked-pyramid-chart', graph_label='', graph_about=''):
+        suffix='', filepath='', save_inputs=False,
+        graph_id='', graph_label='', graph_about=''):
+
+    if save_inputs:
+        inputs = save_inputs_to_file(locals())
 
     # df = df.loc[df['side'].isin(['Female', 'Male'])]
     # Error Handling
@@ -568,6 +635,7 @@ def fig_dual_stack_pyramid(
         height=default_height
     )
     fig = {'data': traces, 'layout': layout}
+    graph_id = get_graph_id(graph_id, suffix)
     return fig, graph_id, graph_label, graph_about
 
 

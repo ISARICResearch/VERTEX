@@ -16,7 +16,9 @@ def define_button():
     return output
 
 
-def create_visuals(df_map, df_forms_dict, dictionary,quality_report, suffix):
+def create_visuals(
+        df_map, df_forms_dict, dictionary, quality_report,
+        filepath, suffix, save_inputs):
     '''
     Create all visuals in the insight panel from the RAP dataframe
     '''
@@ -60,9 +62,10 @@ def create_visuals(df_map, df_forms_dict, dictionary,quality_report, suffix):
         col for col in ia.get_variable_list(dictionary, sections)
         if col in df_map.columns]
     df_map = df_map[variable_list].copy()
-    
+
     fig1 = idw.fig_placeholder(
         df_map,
-        graph_id='fig1-' + suffix, graph_label='Figure 1',
+        suffix=suffix, filepath=filepath, save_inputs=save_inputs,
+        graph_label='Figure 1',
         graph_about='Placeholder figure 1')
     return (fig1,)

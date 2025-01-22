@@ -12,6 +12,7 @@ import redcap_config as rc_config
 import getREDCapData as getRC
 from insight_panels import *
 from insight_panels.__init__ import __all__ as ip_list
+# from insight_panels.dengue.__init__ import __all__ as dengue_ip_list
 import os
 # import dash_auth
 # import flask_caching as fc
@@ -33,6 +34,7 @@ import os
 #     # End of cache function
 #     return
 
+# ip_list = ip_list + dengue_ip_list
 
 ############################################
 # MAP
@@ -320,6 +322,8 @@ def generate_html_text(text):
 
 
 def get_insight_panels():
+    # print([
+    #     name for name, module in sys.modules.items()])
     insight_panels = {
         name.split('.')[-1]: module
         for name, module in sys.modules.items()
@@ -330,6 +334,19 @@ def get_insight_panels():
         {**ip.define_button(), **{'suffix': suffix}}
         for suffix, ip in insight_panels.items()]
     return insight_panels, buttons
+
+
+def get_visuals(
+        buttons, insight_panels, df_map, df_forms_dict,
+        dictionary, quality_report, filepath):
+    for ii in range(len(buttons)):
+        suffix = buttons[ii]['suffix']
+        visuals = insight_panels[suffix].create_visuals(
+            df_map=df_map, df_forms_dict=df_forms_dict,
+            dictionary=dictionary, quality_report=quality_report,
+            suffix=suffix, filepath=filepath, save_inputs=True)
+        buttons[ii]['graph_ids'] = [id for _, id, _, _ in visuals]
+    return buttons
 
 
 ############################################
@@ -560,7 +577,8 @@ def define_footer_modal(instructions, about):
 
 def register_callbacks(
         app, insight_panels, df_map,
-        df_forms_dict, dictionary,quality_report, filter_options):
+        df_forms_dict, dictionary, quality_report, filter_options,
+        filepath, save_inputs):
     @app.callback(
         Output('world-map', 'figure'),
         [
@@ -697,7 +715,9 @@ def register_callbacks(
             button_id = ctx.triggered[0]['prop_id'].split('.')[0]
             suffix = json.loads(button_id)['index']
             visuals = insight_panels[suffix].create_visuals(
-                df_map, df_forms_dict, dictionary,quality_report, suffix)
+                df_map=df_map, df_forms_dict=df_forms_dict,
+                dictionary=dictionary, quality_report=quality_report,
+                suffix=suffix, filepath=filepath, save_inputs=False)
             button = {
                 **insight_panels[suffix].define_button(), **{'suffix': suffix}}
             modal = create_modal(visuals, button, filter_options)
@@ -843,7 +863,10 @@ def register_callbacks(
             modal = ()
         else:
             visuals = insight_panels[suffix].create_visuals(
-                df_map_filtered, df_forms_filtered, dictionary, quality_report,suffix)
+                df_map=df_map_filtered, df_forms_dict=df_forms_filtered,
+                dictionary=dictionary, quality_report=quality_report,
+                filepath=filepath, suffix=suffix,
+                save_inputs=save_inputs)
             modal = create_modal(visuals, button, filter_options)
         output = modal, genders, age_range, outcomes, countries
         return output
@@ -902,6 +925,9 @@ def main():
     # except Exception:
     #     print('Password not required')
 
+    filepath = 'test/'
+    allow_save_inputs_with_filters = False
+
     insight_panels, buttons = get_insight_panels()
 
     redcap_url = rc_config.redcap_url
@@ -912,6 +938,7 @@ def main():
 
     df_map_with_countries = merge_data_with_countries(df_map)
     df_countries = get_countries(df_map_with_countries)
+    print(df_countries)
 
     filter_columns_dict = {
         'subjid': 'subjid',
@@ -963,7 +990,19 @@ def main():
 
     _ = register_callbacks(
         app, insight_panels, df_map,
-        df_forms_dict, dictionary, quality_report, filter_options)
+        df_forms_dict, dictionary, quality_report, filter_options,
+        filepath, allow_save_inputs_with_filters)
+
+    buttons = get_visuals(
+        buttons, insight_panels,
+        df_map=df_map, df_forms_dict=df_forms_dict,
+        dictionary=dictionary, quality_report=quality_report,
+        filepath=filepath)
+
+    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+    with open(filepath + 'dashboard_metadata.txt', 'w') as text_file:
+        text_file.write(repr(buttons))
+    df_countries.to_csv(filepath + 'dashboard_data.csv', index=False)
 
     app.run_server(debug=True)
     return
