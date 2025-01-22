@@ -925,7 +925,7 @@ def main():
     # except Exception:
     #     print('Password not required')
 
-    filepath = 'test/'
+    filepath = rc_config.filepath+'PUBLIC/'
     allow_save_inputs_with_filters = False
 
     insight_panels, buttons = get_insight_panels()
