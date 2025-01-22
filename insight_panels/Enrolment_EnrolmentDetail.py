@@ -120,9 +120,10 @@ def create_visuals(
     sb_df['site'] = sb_df['site'].str.split('-', n=1).str[0]
 
     # Convert 'timepoint' to datetime format and sort
-    enrolment_df['timepoint'] = pd.to_datetime(
-        enrolment_df['timepoint']).apply(lambda x: x.strftime('%m-%Y'))
+    enrolment_df['timepoint'] = pd.to_datetime(enrolment_df['timepoint'])
     enrolment_df = enrolment_df.sort_values('timepoint')
+    enrolment_df['timepoint'] = enrolment_df['timepoint'].apply(
+        lambda x: x.strftime('%m-%Y'))
     enrolment_df.rename(columns={'timepoint': 'index'}, inplace=True)
 
     #########################################
