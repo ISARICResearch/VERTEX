@@ -189,7 +189,9 @@ def n_percent_str(series, dp=1, mfw=4, min_n=1):
 def get_descriptive_data(
         data, dictionary, by_column=None, include_sections=['demog'],
         include_types=['binary', 'categorical', 'numeric'],
-        exclude_suffix=['_units', 'addi', 'otherl2', 'item', '_oth'],
+        exclude_suffix=[
+            '_units', 'addi', 'otherl2', 'item', '_oth',
+            '_unlisted', 'otherl3'],
         include_subjid=False, exclude_negatives=True):
     df = data.copy()
 

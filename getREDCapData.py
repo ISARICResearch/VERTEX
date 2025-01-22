@@ -602,15 +602,16 @@ def get_df_map(data, dictionary):
     columns = [col for col in columns if col in df_map.columns]
     ind = data['form_name'].apply(
         lambda x: any(y in x.split(',') for y in ['presentation', 'outcome']))
-    
-    #################################################################################
-    #################################################################################
-    # QUALITY CHECK 1 Patients has either Presentation or Outcome forms 
+
+    ###########################################################################
+    ###########################################################################
+    # QUALITY CHECK 1 Patients has either Presentation or Outcome forms
     missing_id_QC1 = [
-        id for id in data['subjid'].values if id not in df_map.loc[ind, 'subjid'].values]
-    
-    quality_report={'QUALITY CHECK 1 Patients does not have Presentation or Outcome forms':missing_id_QC1}
-    
+        id for id in data['subjid'].values if
+        id not in df_map.loc[ind, 'subjid'].values]
+
+    qc = 'QUALITY CHECK 1: Patient does not have Presentation or Outcome forms'
+    quality_report = {qc: missing_id_QC1}
 
     df_map = df_map.loc[ind, columns]
     # # ## TODO: Should this remove all columns with no data, or just those
@@ -724,9 +725,6 @@ def get_redcap_data(redcap_url, redcap_api_key, country_mapping=None):
     new_dictionary = pd.concat([
         new_dictionary, pd.DataFrame.from_dict(country_dict)], axis=0)
     new_dictionary = new_dictionary.reset_index(drop=True)
-
-    
-
     return df_map, df_forms_dict, new_dictionary, quality_report
 
 
