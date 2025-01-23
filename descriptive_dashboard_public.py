@@ -10,6 +10,8 @@ import sys
 import IsaricDraw as idw
 import os
 
+filepath='C:/Users/egarcia/OneDrive - Nexus365/Projects/PublicVERTEX/Global_Dengue/PUBLIC/'
+
 
 ############################################
 # MAP
@@ -432,7 +434,7 @@ def main():
         margin={'r': 0, 't': 0, 'l': 0, 'b': 0},
     )
 
-    filepath = 'dengue_global/'
+    
     metadata_file = 'dashboard_metadata.txt'
     metadata = eval(open(os.path.join(filepath, metadata_file), 'r').read())
     buttons = get_visuals(filepath, metadata)

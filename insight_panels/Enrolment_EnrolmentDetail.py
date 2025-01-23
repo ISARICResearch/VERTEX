@@ -121,10 +121,22 @@ def create_visuals(
 
     # Convert 'timepoint' to datetime format and sort
     enrolment_df['timepoint'] = pd.to_datetime(enrolment_df['timepoint'])
-    enrolment_df = enrolment_df.sort_values('timepoint').reset_index(drop=True)
+    enrolment_df= enrolment_df.pivot_table(
+        index='timepoint', columns='stack_group',
+        values='value', aggfunc='sum').fillna(0)
+    
+    enrolment_df=enrolment_df.reset_index()
+    enrolment_df = enrolment_df.sort_values('timepoint')
     enrolment_df['timepoint'] = enrolment_df['timepoint'].apply(
         lambda x: x.strftime('%m-%Y'))
     enrolment_df.rename(columns={'timepoint': 'index'}, inplace=True)
+    ######################################
+    ######################################
+    #Cumulative chart 
+    ######################################
+    # Forward fill missing values and calculate cumulative sum
+    cumulative_enrolment=enrolment_df.copy()
+    cumulative_enrolment[list(set(cumulative_enrolment.columns)-set(['index']))]= cumulative_enrolment[list(set(cumulative_enrolment.columns)-set(['index']))].cumsum()
 
     #########################################
     #########################################
@@ -137,8 +149,8 @@ def create_visuals(
         outcomes_tb,
         suffix=suffix, filepath=filepath, save_inputs=save_inputs,
         graph_label='Number of patients by diagnosis', graph_about='...')
-    fig_cumulativeenrolment = idw.fig_cumulative_bar_chart(
-        enrolment_df, title='Cumulative Enrolment by date and country',
+    fig_cumulativeenrolment = idw.fig_stacked_bar_chart(
+        cumulative_enrolment, title='Cumulative Enrolment by date and country',
         xlabel='Month', ylabel='Number of patients',
         suffix=suffix, filepath=filepath, save_inputs=save_inputs,
         graph_label='Cumulative patient enrolment by country',

@@ -101,17 +101,9 @@ def fig_cumulative_bar_chart(
     if save_inputs:
         inputs = save_inputs_to_file(locals())
 
-    # Pivot the DataFrame to get cumulative sums for each stack_group
-    pivot_df = df.pivot_table(
-        index='index', columns='stack_group',
-        values='value', aggfunc='sum').fillna(0)
-
-    # Forward fill missing values and calculate cumulative sum
-    pivot_df = pivot_df.cumsum()
-
     # Generate dynamic colors if base_color_map is not provided
     if base_color_map is None:
-        unique_groups = pivot_df.columns
+        unique_groups = df.columns
         color_palette = px.colors.qualitative.Plotly
         base_color_map = {
             group: color_palette[i % len(color_palette)]
@@ -119,13 +111,13 @@ def fig_cumulative_bar_chart(
 
     # Create traces for each stack_group with colors from the base_color_map
     traces = []
-    for stack_group in pivot_df.columns:
+    for stack_group in df.columns:
         # Assign color from base_color_map
         color = base_color_map.get(stack_group, '#000')
         traces.append(
             go.Bar(
-                x=pivot_df.index,
-                y=pivot_df[stack_group],
+                x=df.index,
+                y=df[stack_group],
                 name=stack_group,
                 orientation='v',
                 marker=dict(color=color)
@@ -140,7 +132,7 @@ def fig_cumulative_bar_chart(
         xaxis=dict(
             title=xlabel,
             tickformat='%m-%Y',  # Display x-axis in MM-YYYY format
-            tickvals=pivot_df.index,  # Optional: only specific dates if needed
+            tickvals=df.index,  # Optional: only specific dates if needed
         ),
         yaxis=dict(title=ylabel),
         legend=dict(x=1.05, y=1),
@@ -165,14 +157,13 @@ def fig_stacked_bar_chart(
     if save_inputs:
         inputs = save_inputs_to_file(locals())
 
-    # Pivot the DataFrame to get sums for each stack_group at each timepoint
-    pivot_df = df.pivot_table(
-        index='index', columns='stack_group',
-        values='value', aggfunc='sum').fillna(0)
+    df.index=df['index'] 
+    df=df.drop(columns=['index'])
+    
 
     # Generate dynamic colors if base_color_map is not provided
     if base_color_map is None:
-        unique_groups = pivot_df.columns
+        unique_groups = df.columns
         color_palette = px.colors.qualitative.Plotly
         base_color_map = {
             group: color_palette[i % len(color_palette)]
@@ -180,13 +171,13 @@ def fig_stacked_bar_chart(
 
     # Create traces for each stack_group with colors from the base_color_map
     traces = []
-    for stack_group in pivot_df.columns:
+    for stack_group in df.columns:
         # Assign color from base_color_map
         color = base_color_map.get(stack_group, '#000')
         traces.append(
             go.Bar(
-                x=pivot_df.index,
-                y=pivot_df[stack_group],
+                x=df.index,
+                y=df[stack_group],
                 name=stack_group,
                 orientation='v',
                 marker=dict(color=color)
@@ -201,7 +192,7 @@ def fig_stacked_bar_chart(
         xaxis=dict(
             title=xlabel,
             tickformat='%m-%Y',  # Display x-axis in MM-YYYY format
-            tickvals=pivot_df.index,  # Optional: only specific dates if needed
+            tickvals=df.index,  # Optional: only specific dates if needed
         ),
         yaxis=dict(title=ylabel),
         legend=dict(x=1.05, y=1),
