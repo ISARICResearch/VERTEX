@@ -14,7 +14,7 @@ def get_graph_id(graph_id_prefix, suffix, frame=1):
     fig_name = sys._getframe(frame).f_code.co_name
     if len(graph_id_prefix) != 0:
         graph_id_prefix = graph_id_prefix + '_'
-    graph_id = graph_id_prefix + '_' + fig_name + '_' + suffix
+    graph_id = graph_id_prefix + fig_name + '_' + suffix
     return graph_id
 
 
@@ -35,11 +35,12 @@ def save_inputs_to_file(locals):
         'fig_data': fig_data,
     }
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
-    with open(filepath + graph_id + '_metadata.txt', 'w') as text_file:
-        text_file.write(repr(metadata))
+    with open(os.path.join(filepath, graph_id + '_metadata.txt'), 'w') as file:
+        file.write(repr(metadata))
     for ii in range(len(data)):
         data[ii].to_csv(
-            filepath + graph_id + '_data___' + str(ii) + '.csv', index=False)
+            os.path.join(filepath, graph_id + '_data___' + str(ii) + '.csv'),
+            index=False)
     return data, metadata
 
 
@@ -157,10 +158,7 @@ def fig_stacked_bar_chart(
     if save_inputs:
         inputs = save_inputs_to_file(locals())
 
-    df.index=df['index'] 
-    df=df.drop(columns=['index'])
-    
-
+    df = df.set_index('index')
     # Generate dynamic colors if base_color_map is not provided
     if base_color_map is None:
         unique_groups = df.columns

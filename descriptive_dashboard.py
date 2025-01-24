@@ -8,14 +8,84 @@ import pandas as pd
 import plotly.graph_objs as go
 import sys
 # import IsaricDraw as idw
-import redcap_config as rc_config
+# import redcap_config as rc_config
 import getREDCapData as getRC
-from insight_panels import *
-from insight_panels.__init__ import __all__ as ip_list
-# from insight_panels.dengue.__init__ import __all__ as dengue_ip_list
+# from insight_panels import *
+# from insight_panels.__init__ import __all__ as ip_list
 import os
+import subprocess
+import importlib.util
 # import dash_auth
 # import flask_caching as fc
+
+
+############################################
+# PROJECT FILEPATH (CHANGE THIS)
+############################################
+
+# filepath = 'projects/ARChetypeCRF_mpox_synthetic/'
+# filepath = 'projects/ARChetypeCRF_dengue_synthetic/'
+# filepath = 'projects/example/'
+filepath = '../VERTEX_projects/dengue_global/'
+
+############################################
+# IMPORT
+############################################
+
+
+def import_from_path(module_name, file_path):
+    spec = importlib.util.spec_from_file_location(module_name, file_path)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+############################################
+# CONFIG
+############################################
+
+
+def get_config(filepath, config_defaults):
+    try:
+        with open(os.path.join(filepath, 'config_file.json')) as json_data:
+            config_dict = json.load(json_data)
+        _ = config_dict['api_key']
+        _ = config_dict['api_url']
+    except Exception:
+        error_message = f'''config_file.json is required in "{filepath}".
+        This file must contain both "api_key" and "api_url".'''
+        print(error_message)
+        raise
+    # The default for the list of insight panels is all that exist in the
+    # relevant folder (which may or not be specified in config)
+    if 'insight_panel_filepath' not in config_dict.keys():
+        insight_panel_filepath = config_defaults['insight_panel_filepath']
+        config_dict['insight_panel_filepath'] = insight_panel_filepath
+    # Get a list of python files in the repository (excluding e.g. __init__.py)
+    full_insight_panel_filepath = os.path.join(
+        filepath, config_dict['insight_panel_filepath'])
+    for (_, _, filenames) in os.walk(full_insight_panel_filepath):
+        insight_panels = [
+            file.split('.py')[0] for file in filenames
+            if file.endswith('.py') and not file.startswith('_')]
+        break
+    config_defaults['insight_panels'] = insight_panels
+    # Add default items where the config file doesn't include these
+    config_defaults = {
+        k: v
+        for k, v in config_defaults.items() if k not in config_dict.keys()}
+    config_dict = {**config_dict, **config_defaults}
+    if any([x not in insight_panels for x in config_dict['insight_panels']]):
+        print('The following insight panels in config_file.json do not exist:')
+        missing_insight_panels = [
+            x for x in config_dict['insight_panels']
+            if x not in insight_panels]
+        print('\n'.join(missing_insight_panels))
+        print('These are ignored and will not appear in the dashboard.')
+        config_dict['insight_panels'] = [
+            x for x in config_dict['insight_panels'] if x in insight_panels]
+    return config_dict
 
 
 ############################################
@@ -321,15 +391,27 @@ def generate_html_text(text):
 ############################################
 
 
-def get_insight_panels():
-    # print([
-    #     name for name, module in sys.modules.items()])
+# def get_insight_panels():
+#     # print([
+#     #     name for name, module in sys.modules.items()])
+#     insight_panels = {
+#         name.split('.')[-1]: module
+#         for name, module in sys.modules.items()
+#         if (
+#             name.startswith('insight_panels.') &
+#             (name.split('.')[-1] in ip_list))}
+#     buttons = [
+#         {**ip.define_button(), **{'suffix': suffix}}
+#         for suffix, ip in insight_panels.items()]
+#     return insight_panels, buttons
+
+def get_insight_panels(config_dict):
+    # Import insight panels scripts
+    insight_panel_filepath = os.path.join(
+        filepath, config_dict['insight_panel_filepath'])
     insight_panels = {
-        name.split('.')[-1]: module
-        for name, module in sys.modules.items()
-        if (
-            name.startswith('insight_panels.') &
-            (name.split('.')[-1] in ip_list))}
+        x: import_from_path(x, os.path.join(insight_panel_filepath, x + '.py'))
+        for x in config_dict['insight_panels']}
     buttons = [
         {**ip.define_button(), **{'suffix': suffix}}
         for suffix, ip in insight_panels.items()]
@@ -900,14 +982,6 @@ def main():
         external_stylesheets=[dbc.themes.BOOTSTRAP],
         suppress_callback_exceptions=True)
 
-    mapbox_style = ['open-street-map', 'carto-positron']
-    map_layout_dict = dict(
-        mapbox_style=mapbox_style[1],
-        mapbox_zoom=1.7,
-        mapbox_center={'lat': 6, 'lon': -75},
-        margin={'r': 0, 't': 0, 'l': 0, 'b': 0},
-    )
-
     # cache = fc.Cache(
     #     app.server,
     #     config={
@@ -925,13 +999,30 @@ def main():
     # except Exception:
     #     print('Password not required')
 
-    filepath = rc_config.filepath+'PUBLIC/'
-    allow_save_inputs_with_filters = False
+    config_defaults = {
+        'map_layout_center_lat': 6,
+        'map_layout_center_lon': -75,
+        'map_layout_zoom': 1.7,
+        'save_public_outputs': True,
+        'public_outputs_filepath': 'PUBLIC/',
+        'save_filtered_public_outputs': False,
+        'insight_panel_filepath': 'insight_panels/',
+    }
 
-    insight_panels, buttons = get_insight_panels()
+    config_dict = get_config(filepath, config_defaults)
 
-    redcap_url = rc_config.redcap_url
-    redcap_api_key = rc_config.redcap_api_key
+    # insight_panel_filepath = os.path.join(
+    #     filepath, config_dict['insight_panel_filepath'])
+    # # Add an empty __init__ file if it doesn't exist
+    # init_file = os.path.join(insight_panel_filepath, '__init__.py')
+    # if os.path.isfile(init_file) is False:
+    #     print(f'Creating file "{init_file}"')
+    #     subprocess.run(['touch', init_file], check=True, text=True)
+
+    insight_panels, buttons = get_insight_panels(config_dict)
+
+    redcap_url = config_dict['api_url']
+    redcap_api_key = config_dict['api_key']
 
     df_map, df_forms_dict, dictionary, quality_report = getRC.get_redcap_data(
         redcap_url, redcap_api_key)
@@ -947,6 +1038,16 @@ def main():
         'country_iso': 'filters_country',
         'outco_binary_outcome': 'filters_outcome'
     }
+
+    mapbox_style = ['open-street-map', 'carto-positron']
+    map_layout_dict = dict(
+        mapbox_style=mapbox_style[1],
+        mapbox_zoom=config_dict['map_layout_zoom'],
+        mapbox_center={
+            'lat': config_dict['map_layout_center_lat'],
+            'lon': config_dict['map_layout_center_lon']},
+        margin={'r': 0, 't': 0, 'l': 0, 'b': 0},
+    )
 
     fig = create_map(df_countries, map_layout_dict)
 
@@ -988,21 +1089,40 @@ def main():
         form: pd.merge(df_form, df_filters, on='subjid', how='left')
         for form, df_form in df_forms_dict.items()}
 
-    _ = register_callbacks(
+    register_callbacks(
         app, insight_panels, df_map,
         df_forms_dict, dictionary, quality_report, filter_options,
-        filepath, allow_save_inputs_with_filters)
+        filepath, config_dict['save_filtered_public_outputs'])
 
-    buttons = get_visuals(
-        buttons, insight_panels,
-        df_map=df_map, df_forms_dict=df_forms_dict,
-        dictionary=dictionary, quality_report=quality_report,
-        filepath=filepath)
-
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)
-    with open(filepath + 'dashboard_metadata.txt', 'w') as text_file:
-        text_file.write(repr(buttons))
-    df_countries.to_csv(filepath + 'dashboard_data.csv', index=False)
+    if config_dict['save_public_outputs']:
+        public_filepath = os.path.join(
+            filepath, config_dict['public_outputs_filepath'])
+        print(f'Saving data to "{public_filepath}"')
+        buttons = get_visuals(
+            buttons, insight_panels,
+            df_map=df_map, df_forms_dict=df_forms_dict,
+            dictionary=dictionary, quality_report=quality_report,
+            filepath=public_filepath)
+        os.makedirs(os.path.dirname(public_filepath), exist_ok=True)
+        subprocess.run(
+            ['cp', 'descriptive_dashboard_public.py', public_filepath],
+            check=True, text=True)
+        subprocess.run(
+            ['cp', 'IsaricDraw.py', public_filepath], check=True, text=True)
+        subprocess.run(
+            ['cp', '-r', 'assets', public_filepath], check=True, text=True)
+        metadata_file = os.path.join(public_filepath, 'dashboard_metadata.txt')
+        with open(metadata_file, 'w') as metadata:
+            metadata.write(repr(buttons))
+        df_countries.to_csv(
+            os.path.join(public_filepath, 'dashboard_data.csv'), index=False)
+        config_json_file = os.path.join(public_filepath, 'config_file.json')
+        with open(config_json_file, 'w') as file:
+            save_config_keys = [
+                'map_layout_center_lat', 'map_layout_center_lon',
+                'map_layout_zoom']
+            save_config_dict = {k: config_dict[k] for k in save_config_keys}
+            json.dump(save_config_dict, file)
 
     app.run_server(debug=True)
     return

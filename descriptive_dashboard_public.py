@@ -10,7 +10,25 @@ import sys
 import IsaricDraw as idw
 import os
 
-filepath='C:/Users/egarcia/OneDrive - Nexus365/Projects/PublicVERTEX/Global_Dengue/PUBLIC/'
+############################################
+# ARGUMENTS
+############################################
+
+filepath = './'
+
+############################################
+# CONFIG
+############################################
+
+
+def get_config(filepath, config_defaults):
+    try:
+        with open(os.path.join(filepath, 'config_file.json')) as json_data:
+            config_dict = json.load(json_data)
+    except Exception:
+        print(f'config_file.json not in {filepath}, using defaults.')
+        config_dict = config_defaults.copy()
+    return config_dict
 
 
 ############################################
@@ -426,20 +444,28 @@ def main():
         external_stylesheets=[dbc.themes.BOOTSTRAP],
         suppress_callback_exceptions=True)
 
-    mapbox_style = ['open-street-map', 'carto-positron']
-    map_layout_dict = dict(
-        mapbox_style=mapbox_style[1],
-        mapbox_zoom=1.7,
-        mapbox_center={'lat': 6, 'lon': -75},
-        margin={'r': 0, 't': 0, 'l': 0, 'b': 0},
-    )
+    config_defaults = {
+        'map_layout_center_lat': 6,
+        'map_layout_center_lon': -75,
+        'map_layout_zoom': 1.7,
+    }
 
-    
+    config_dict = get_config(filepath, config_defaults)
+
     metadata_file = 'dashboard_metadata.txt'
     metadata = eval(open(os.path.join(filepath, metadata_file), 'r').read())
     buttons = get_visuals(filepath, metadata)
 
-    df_countries = pd.read_csv(filepath + 'dashboard_data.csv')
+    df_countries = pd.read_csv(os.path.join(filepath, 'dashboard_data.csv'))
+    mapbox_style = ['open-street-map', 'carto-positron']
+    map_layout_dict = dict(
+        mapbox_style=mapbox_style[1],
+        mapbox_zoom=config_dict['map_layout_zoom'],
+        mapbox_center={
+            'lat': config_dict['map_layout_center_lat'],
+            'lon': config_dict['map_layout_center_lon']},
+        margin={'r': 0, 't': 0, 'l': 0, 'b': 0},
+    )
     fig = create_map(df_countries, map_layout_dict)
     # geojson = 'https://raw.githubusercontent.com/johan/world.geo.json/'
     # geojson = geojson + 'master/countries.geo.json'
