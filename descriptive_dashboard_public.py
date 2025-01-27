@@ -14,7 +14,7 @@ import os
 # ARGUMENTS
 ############################################
 
-filepath = './'
+# filepath = './'
 
 ############################################
 # CONFIG
@@ -28,6 +28,10 @@ def get_config(filepath, config_defaults):
     except Exception:
         print(f'config_file.json not in {filepath}, using defaults.')
         config_dict = config_defaults.copy()
+    config_defaults = {
+        k: v
+        for k, v in config_defaults.items() if k not in config_dict.keys()}
+    config_dict = {**config_dict, **config_defaults}
     return config_dict
 
 
@@ -116,7 +120,7 @@ def create_map(df_countries, map_layout_dict=None):
 ############################################
 
 
-def define_menu(buttons):
+def define_menu(buttons, project_name=None):
     initial_modal = dbc.Modal(
         id='modal',
         children=[dbc.ModalBody('')],  # Placeholder content
@@ -141,9 +145,24 @@ def define_menu(buttons):
         menu_items.append(dbc.AccordionItem(
             title=item,
             children=item_children))
-    menu = dbc.Accordion(
-        menu_items,
-        start_collapsed=True,
+    # menu = dbc.Accordion(
+    #     menu_items,
+    #     start_collapsed=True,
+    #     style={
+    #         'width': '300px', 'position': 'fixed', 'bottom': 0, 'left': 0,
+    #         'z-index': 1000, 'background-color': 'rgba(255, 255, 255, 0.8)',
+    #         'padding': '10px'})
+    menu = [dbc.ModalBody([dbc.Accordion(menu_items, start_collapsed=True)])]
+    if project_name is not None:
+        menu_header = [dbc.ModalHeader(html.H1(
+            project_name,
+            style={
+                'fontSize': '2vmin', 'fontWeight': 'bold',
+                'text-align': 'center', 'padding': '5px', 'width': '300px'}
+        ), close_button=False)]
+        menu = menu_header + menu
+    menu = html.Div(
+        menu,
         style={
             'width': '300px', 'position': 'fixed', 'bottom': 0, 'left': 0,
             'z-index': 1000, 'background-color': 'rgba(255, 255, 255, 0.8)',
@@ -151,8 +170,7 @@ def define_menu(buttons):
     return menu
 
 
-# def define_app_layout(fig, buttons, filter_options, map_layout_dict):
-def define_app_layout(fig, buttons, map_layout_dict):
+def define_app_layout(fig, buttons, map_layout_dict, project_name=None):
     title = 'VERTEX - Visual Evidence & Research Tool for EXploration'
     subtitle = 'Visual Evidence, Vital Answers'
 
@@ -181,7 +199,7 @@ def define_app_layout(fig, buttons, map_layout_dict):
                 'top': 0, 'left': 10,
                 'z-index': 1000}),
         # define_menu(buttons, filter_options),
-        define_menu(buttons),
+        define_menu(buttons, project_name=project_name),
         html.Div(
             [
                 html.Img(
@@ -444,19 +462,25 @@ def main():
         external_stylesheets=[dbc.themes.BOOTSTRAP],
         suppress_callback_exceptions=True)
 
+    # p_info = os.environ['p_info']
+    # u_info = os.environ['u_info']
+    # VALID_USERNAME_PASSWORD_PAIRS = {u_info: p_info}
+    # auth = dash_auth.BasicAuth(app, VALID_USERNAME_PASSWORD_PAIRS)
+
     config_defaults = {
+        'project_name': None,
         'map_layout_center_lat': 6,
         'map_layout_center_lon': -75,
         'map_layout_zoom': 1.7,
     }
 
-    config_dict = get_config(filepath, config_defaults)
+    config_dict = get_config('./', config_defaults)
 
-    metadata_file = 'dashboard_metadata.txt'
-    metadata = eval(open(os.path.join(filepath, metadata_file), 'r').read())
-    buttons = get_visuals(filepath, metadata)
+    metadata_file = 'data/dashboard_metadata.txt'
+    metadata = eval(open(metadata_file, 'r').read())
+    buttons = get_visuals('data/', metadata)
 
-    df_countries = pd.read_csv(os.path.join(filepath, 'dashboard_data.csv'))
+    df_countries = pd.read_csv('data/dashboard_data.csv')
     mapbox_style = ['open-street-map', 'carto-positron']
     map_layout_dict = dict(
         mapbox_style=mapbox_style[1],
@@ -473,7 +497,8 @@ def main():
     #     go.Choroplethmapbox(geojson=geojson),
     #     layout=map_layout_dict)
 
-    app.layout = define_app_layout(fig, buttons, map_layout_dict)
+    app.layout = define_app_layout(
+        fig, buttons, map_layout_dict, config_dict['project_name'])
 
     _ = register_callbacks(app, buttons)
 

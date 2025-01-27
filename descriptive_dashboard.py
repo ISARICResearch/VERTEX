@@ -277,7 +277,7 @@ def define_filters_and_controls(
     return filters
 
 
-def define_menu(buttons, filter_options):
+def define_menu(buttons, filter_options, project_name=None):
     initial_modal = dbc.Modal(
         id='modal',
         children=[dbc.ModalBody('')],  # Placeholder content
@@ -301,9 +301,24 @@ def define_menu(buttons, filter_options):
         menu_items.append(dbc.AccordionItem(
             title=item,
             children=item_children))
-    menu = dbc.Accordion(
-        menu_items,
-        start_collapsed=True,
+    # menu = dbc.Accordion(
+    #     menu_items,
+    #     start_collapsed=True,
+    #     style={
+    #         'width': '300px', 'position': 'fixed', 'bottom': 0, 'left': 0,
+    #         'z-index': 1000, 'background-color': 'rgba(255, 255, 255, 0.8)',
+    #         'padding': '10px'})
+    menu = [dbc.ModalBody([dbc.Accordion(menu_items, start_collapsed=True)])]
+    if project_name is not None:
+        menu_header = [dbc.ModalHeader(html.H1(
+            project_name,
+            style={
+                'fontSize': '2vmin', 'fontWeight': 'bold',
+                'text-align': 'center', 'padding': '5px', 'width': '300px'}
+        ), close_button=False)]
+        menu = menu_header + menu
+    menu = html.Div(
+        menu,
         style={
             'width': '300px', 'position': 'fixed', 'bottom': 0, 'left': 0,
             'z-index': 1000, 'background-color': 'rgba(255, 255, 255, 0.8)',
@@ -311,7 +326,8 @@ def define_menu(buttons, filter_options):
     return menu
 
 
-def define_app_layout(fig, buttons, filter_options, map_layout_dict):
+def define_app_layout(
+        fig, buttons, filter_options, map_layout_dict, project_name=None):
     title = 'VERTEX - Visual Evidence & Research Tool for EXploration'
     subtitle = 'Visual Evidence, Vital Answers'
 
@@ -339,7 +355,7 @@ def define_app_layout(fig, buttons, filter_options, map_layout_dict):
                 'position': 'absolute',
                 'top': 0, 'left': 10,
                 'z-index': 1000}),
-        define_menu(buttons, filter_options),
+        define_menu(buttons, filter_options, project_name=project_name),
         html.Div(
             [
                 html.Img(
@@ -1000,6 +1016,7 @@ def main():
     #     print('Password not required')
 
     config_defaults = {
+        'project_name': None,
         'map_layout_center_lat': 6,
         'map_layout_center_lon': -75,
         'map_layout_zoom': 1.7,
@@ -1078,7 +1095,8 @@ def main():
         'country_options': country_options, 'outcome_options': outcome_options}
 
     app.layout = define_app_layout(
-        fig, buttons, filter_options, map_layout_dict)
+        fig, buttons, filter_options,
+        map_layout_dict, config_dict['project_name'])
 
     df_filters = df_map_with_countries[filter_columns_dict.keys()].rename(
         columns=filter_columns_dict)
@@ -1097,12 +1115,16 @@ def main():
     if config_dict['save_public_outputs']:
         public_filepath = os.path.join(
             filepath, config_dict['public_outputs_filepath'])
-        print(f'Saving data to "{public_filepath}"')
+        os.makedirs(os.path.dirname(public_filepath + '/'), exist_ok=True)
+        os.makedirs(
+            os.path.dirname(os.path.join(public_filepath, 'data/')),
+            exist_ok=True)
+        print(f'Saving files for public dashboard to "{public_filepath}"')
         buttons = get_visuals(
             buttons, insight_panels,
             df_map=df_map, df_forms_dict=df_forms_dict,
             dictionary=dictionary, quality_report=quality_report,
-            filepath=public_filepath)
+            filepath=os.path.join(public_filepath, 'data'))
         os.makedirs(os.path.dirname(public_filepath), exist_ok=True)
         subprocess.run(
             ['cp', 'descriptive_dashboard_public.py', public_filepath],
@@ -1111,16 +1133,19 @@ def main():
             ['cp', 'IsaricDraw.py', public_filepath], check=True, text=True)
         subprocess.run(
             ['cp', '-r', 'assets', public_filepath], check=True, text=True)
-        metadata_file = os.path.join(public_filepath, 'dashboard_metadata.txt')
+        subprocess.run(
+            ['cp', 'requirements.txt', public_filepath], check=True, text=True)
+        metadata_file = os.path.join(
+            public_filepath, 'data/dashboard_metadata.txt')
         with open(metadata_file, 'w') as metadata:
             metadata.write(repr(buttons))
-        df_countries.to_csv(
-            os.path.join(public_filepath, 'dashboard_data.csv'), index=False)
+        data_file = os.path.join(public_filepath, 'data/dashboard_data.csv')
+        df_countries.to_csv(data_file, index=False)
         config_json_file = os.path.join(public_filepath, 'config_file.json')
         with open(config_json_file, 'w') as file:
             save_config_keys = [
-                'map_layout_center_lat', 'map_layout_center_lon',
-                'map_layout_zoom']
+                'project_name', 'map_layout_center_lat',
+                'map_layout_center_lon', 'map_layout_zoom']
             save_config_dict = {k: config_dict[k] for k in save_config_keys}
             json.dump(save_config_dict, file)
 
