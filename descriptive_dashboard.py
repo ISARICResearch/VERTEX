@@ -13,7 +13,7 @@ import getREDCapData as getRC
 # from insight_panels import *
 # from insight_panels.__init__ import __all__ as ip_list
 import os
-import subprocess
+import shutil
 import importlib.util
 # import dash_auth
 # import flask_caching as fc
@@ -1126,22 +1126,29 @@ def main():
             dictionary=dictionary, quality_report=quality_report,
             filepath=os.path.join(public_filepath, 'data'))
         os.makedirs(os.path.dirname(public_filepath), exist_ok=True)
-        subprocess.run(
-            ['cp', 'descriptive_dashboard_public.py', public_filepath],
-            check=True, text=True)
-        subprocess.run(
-            ['cp', 'IsaricDraw.py', public_filepath], check=True, text=True)
-        subprocess.run(
-            ['cp', '-r', 'assets', public_filepath], check=True, text=True)
-        subprocess.run(
-            ['cp', 'requirements.txt', public_filepath], check=True, text=True)
+        shutil.copy('descriptive_dashboard_public.py', public_filepath)
+        shutil.copy('IsaricDraw.py', public_filepath)
+        shutil.copy('requirements.txt', public_filepath)
+        assets_filepath = os.path.join(public_filepath, 'assets/')
+        os.makedirs(os.path.dirname(assets_filepath), exist_ok=True)
+        shutil.copytree('assets', assets_filepath, dirs_exist_ok=True)
+        # subprocess.run(
+        #     ['cp', 'descriptive_dashboard_public.py', public_filepath],
+        #     check=True, text=True)
+        # subprocess.run(
+        #     ['cp', 'IsaricDraw.py', public_filepath], check=True, text=True)
+        # subprocess.run(
+        #     ['cp', '-r', 'assets', public_filepath], check=True, text=True)
+        # subprocess.run(
+        #     ['cp', 'requirements.txt', public_filepath], check=True, text=True)
         metadata_file = os.path.join(
             public_filepath, 'data/dashboard_metadata.txt')
         with open(metadata_file, 'w') as metadata:
             metadata.write(repr(buttons))
         data_file = os.path.join(public_filepath, 'data/dashboard_data.csv')
         df_countries.to_csv(data_file, index=False)
-        config_json_file = os.path.join(public_filepath, 'config_file.json')
+        config_json_file = os.path.join(
+            public_filepath, 'public_config_file.json')
         with open(config_json_file, 'w') as file:
             save_config_keys = [
                 'project_name', 'map_layout_center_lat',

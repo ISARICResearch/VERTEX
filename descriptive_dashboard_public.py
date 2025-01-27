@@ -23,7 +23,8 @@ import os
 
 def get_config(filepath, config_defaults):
     try:
-        with open(os.path.join(filepath, 'config_file.json')) as json_data:
+        with open(os.path.join(
+                filepath, 'public_config_file.json')) as json_data:
             config_dict = json.load(json_data)
     except Exception:
         print(f'config_file.json not in {filepath}, using defaults.')
