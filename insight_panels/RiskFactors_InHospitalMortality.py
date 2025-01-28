@@ -1,14 +1,14 @@
 import dash
-from dash import html
 import dash_bootstrap_components as dbc
-from dash.dependencies import Input, Output, State
+import getREDCapData as getRC
+import IsaricAnalytics as ia
+import IsaricDraw as idw
 import numpy as np
 import pandas as pd
 import pycountry
-import IsaricDraw as idw
-import IsaricAnalytics as ia
-import getREDCapData as getRC
 import redcap_config as rc_config
+from dash import html
+from dash.dependencies import Input, Output, State
 
 ############################################
 ############################################
@@ -60,93 +60,118 @@ sections = [
     # 'withd',  # Withdrawal
 ]
 
-
 # Leftmost edge of the bins
 age_groups = [
     '0-5', '6-10', '11-15', '16-20', '21-25', '26-30', '31-35', '36-40',
     '41-45', '46-50', '51-55', '56-60', '61-65', '66-70', '71-75', '76-80',
     '81-85', '86-90', '91-95', '96-100']
 
-
 def create_visuals(df_map):
-    '''
-    Create all visuals in the insight panel from the RAP dataframe
-    '''
-    dd = getRC.getDataDictionary(redcap_url, redcap_api_key)
-    # variable_dict is a dictionary of lists according to variable type, which
-    # are: 'binary', 'date', 'number', 'freeText', 'units', 'categorical'
-    full_variable_dict = getRC.getVariableType(dd)
-    # binary_list = ['binary', 'categorical', 'OneHot']
-    # binary_var = sum([full_variable_dict[key] for key in binary_list], [])
+    """
+    Function to create all visuals in the insight panel from the RAP dataframe.
 
-    outcome = 'outcome'
-    predictors = ['age_group']  # Test on different predictors
-    predictors += [col for col in df_map.columns if 'demog_sex' in col]
-    # Keep as one-hot-encoded
-    df_lr_input = df_map[[outcome] + predictors].copy()
-    # or
-    # Convert to categorical
-    df_lr_input = ia.from_dummies(
-        df_map[[outcome] + predictors], column='demog_sex')
-    predictors = ['age_group', 'demog_sex']
+    This function generates a table and a forest plot based on logistic regression 
+    performed on the input dataframe. It handles multivariate and univariate logistic 
+    regressions, aligns results, and formats them into visual outputs.
 
-    df_lr_input['outcome'] = (df_lr_input['outcome'] == 'Death')
-    # Logistic Regression with all predictors (Multi)
-    df_lr_multi = ia.execute_logistic_regression(
-        df_lr_input, outcome, predictors, print_results=False)
-    
-    # Logistic Regression with each predictor (Uni)
-    linear_responses = []
-    for predictor in predictors:
-        linear_responses.append(ia.execute_logistic_regression(
-            reg_type ='uni',
-            df=df_lr_input,
-            outcome=outcome,
-            predictors=[predictor],
-            print_results=False
-        ))
-    final_linear_response = pd.concat(linear_responses)
-    
-    # Insures that 'final_linear_response' has the same order of 'Study' of df_lr_multi
-    final_linear_response['Study'] = pd.Categorical(
-        final_linear_response['Study'],
-        categories=df_lr_multi['Study'],
+    Parameters:
+    - cv_rap_dataframe_df (pd.DataFrame): Input dataframe containing the necessary data 
+      for visual generation.
+
+    Returns:
+    - cv_table_figure_obj: A table figure with logistic regression results.
+    - cv_forest_plot_figure_obj: A forest plot figure visualizing the odds ratios.
+    """
+
+    # Define outcome and predictor variables
+    elr_outcome_str = 'outcome'
+    elr_predictors_list = ['age_group']  # Initialize with basic predictors
+    elr_predictors_list += [
+        col_str for col_str in df_map.columns if 'demog_sex' in col_str
+    ]
+
+    # Prepare the input dataframe with one-hot encoding
+    elr_input_dataframe_df = df_map[[elr_outcome_str] + elr_predictors_list].copy()
+
+    # Convert categorical variables if applicable
+    elr_input_dataframe_df = ia.from_dummies(
+        df_map[[elr_outcome_str] + elr_predictors_list], column='demog_sex'
+    )
+    elr_predictors_list = ['age_group', 'demog_sex']
+
+    # Convert the outcome column to binary (1 = Death, 0 = Other)
+    elr_input_dataframe_df['outcome'] = (
+        elr_input_dataframe_df['outcome'] == 'Death'
+    )
+
+    # Perform logistic regression with all predictors (multivariate)
+    elr_lr_multi_df = ia.execute_logistic_regression(
+        elr_input_dataframe_df, elr_outcome_str, elr_predictors_list, print_results=False
+    )
+
+    # Perform logistic regression for each predictor (univariate)
+    cv_univariate_results_list = []
+    for elr_predictor_str in elr_predictors_list:
+        cv_univariate_results_list.append(
+            ia.execute_logistic_regression(
+                reg_type='uni',
+                elr_dataframe_df=elr_input_dataframe_df,
+                elr_outcome_str=elr_outcome_str,
+                elr_predictors_list=[elr_predictor_str],
+                print_results=False
+            )
+        )
+    cv_univariate_results_df = pd.concat(cv_univariate_results_list)
+
+    # Align 'Study' order between univariate and multivariate results
+    cv_univariate_results_df['Study'] = pd.Categorical(
+        cv_univariate_results_df['Study'],
+        categories=elr_lr_multi_df['Study'],
         ordered=True
     )
-    final_linear_response = final_linear_response.sort_values('Study').reset_index(drop=True)
-    
-    # Aligns the indexes before concatenation
-    df_lr_multi = df_lr_multi.reset_index(drop=True)
-    final_linear_response = final_linear_response.reset_index(drop=True)
-    
-    # Making copy from the Logistic Regression Multi Variable response, to avoid changing the original dataframe
-    logistic_response = df_lr_multi.copy()
-    logistic_response = logistic_response.drop('Study', axis=1)
-    
-    # Concatenating the Logistic Regression Multi Variable response with the Linear Regression responses
-    df_lr_final = pd.concat([final_linear_response, logistic_response], axis=1)
+    cv_univariate_results_df = cv_univariate_results_df.sort_values('Study').reset_index(drop=True)
 
-    df_lr_table = df_lr_final.copy()
-    table = idw.fig_table(
-        df_lr_table, dictionary=None,
-        graph_id='table_' + suffix,
-        graph_label='Table',
-        graph_about='...')
-    
-    df_lr_multi.rename(columns={'OddsRatio (multi)': 'OddsRatio', 
-            'LowerCI (multi)': 'LowerCI', 
-            'UpperCI (multi)': 'UpperCI', 
-            'p-valor (multi)': 'p-valor'}, 
-                          inplace=True)
-    
-    figure = idw.fig_forest_plot(
-        df_lr_multi,
-        graph_id='forest_plot_' + suffix,
-        graph_label='Forest Plot',
-        graph_about='...'
+    # Reset index for consistency
+    elr_lr_multi_df = elr_lr_multi_df.reset_index(drop=True)
+    cv_univariate_results_df = cv_univariate_results_df.reset_index(drop=True)
+
+    # Create a copy of multivariate results to avoid altering the original dataframe
+    elr_logistic_response_df = elr_lr_multi_df.copy()
+    elr_logistic_response_df = elr_logistic_response_df.drop('Study', axis=1)
+
+    # Concatenate univariate and multivariate regression results
+    elr_lr_final_df = pd.concat([cv_univariate_results_df, elr_logistic_response_df], axis=1)
+
+    # Create the final table
+    elr_lr_table_df = elr_lr_final_df.copy()
+    cv_table_figure_obj = idw.fig_table(
+        elr_lr_table_df,
+        dictionary=None,
+        graph_id='table_visual_rap',
+        graph_label='Logistic Regression Results Table',
+        graph_about='This table contains the logistic regression results for multivariate and univariate analyses.'
     )
 
-    return table, figure,
+    # Rename columns in multivariate results for clarity
+    elr_lr_multi_df.rename(
+        columns={
+            'OddsRatio (multi)': 'OddsRatio',
+            'LowerCI (multi)': 'LowerCI',
+            'UpperCI (multi)': 'UpperCI',
+            'p-valor (multi)': 'p-value'
+        },
+        inplace=True
+    )
+
+    # Create the forest plot figure
+    cv_forest_plot_figure_obj = idw.fig_forest_plot(
+        elr_lr_multi_df,
+        graph_id='forest_plot_visual_rap',
+        graph_label='Forest Plot',
+        graph_about='This plot visualizes the odds ratios from multivariate logistic regression.'
+    )
+
+    return cv_table_figure_obj, cv_forest_plot_figure_obj
 
 
 ############################################
@@ -221,7 +246,6 @@ about_str = '\n'.join(
 # Modal creation
 ############################################
 
-
 def generate_html_text(text):
     text_list = text.strip('\n').split('\n')
     div_list = []
@@ -237,7 +261,6 @@ def generate_html_text(text):
         div_list.append(html.Br())
     div = html.Div(div_list[:-1])
     return div
-
 
 def create_modal():
     visuals = create_visuals(df_map)
