@@ -1,0 +1,30 @@
+index,label,count
+"('sympt_confusion',)","('<b>Altered consciousness / confusion</b>',)",57
+"('sympt_neurodist',)","('<b>Psychological disturbance</b>',)",45
+"('sympt_chestpain',)","('<b>Chest pain</b>',)",41
+"('sympt_feverplus',)","('<b>Fever / chills / rigors</b>',)",39
+"('sympt_feverplus', 'sympt_chestpain')","('<b>Fever / chills / rigors</b>', '<b>Chest pain</b>')",26
+"('sympt_feverplus', 'sympt_neurodist')","('<b>Fever / chills / rigors</b>', '<b>Psychological disturbance</b>')",23
+"('sympt_neurodist', 'sympt_confusion')","('<b>Psychological disturbance</b>', '<b>Altered consciousness / confusion</b>')",23
+"('sympt_feverplus', 'sympt_confusion')","('<b>Fever / chills / rigors</b>', '<b>Altered consciousness / confusion</b>')",22
+"('sympt_feverplus', 'sympt_chestpain', 'sympt_neurodist')","('<b>Fever / chills / rigors</b>', '<b>Chest pain</b>', '<b>Psychological disturbance</b>')",17
+"('sympt_chestpain', 'sympt_confusion')","('<b>Chest pain</b>', '<b>Altered consciousness / confusion</b>')",17
+"('sympt_chestpain', 'sympt_neurodist')","('<b>Chest pain</b>', '<b>Psychological disturbance</b>')",15
+"('sympt_feverplus', 'sympt_neurodist', 'sympt_confusion')","('<b>Fever / chills / rigors</b>', '<b>Psychological disturbance</b>', '<b>Altered consciousness / confusion</b>')",10
+"('sympt_chestpain', 'sympt_neurodist', 'sympt_confusion')","('<b>Chest pain</b>', '<b>Psychological disturbance</b>', '<b>Altered consciousness / confusion</b>')",10
+"('sympt_feverplus', 'sympt_chestpain', 'sympt_neurodist', 'sympt_confusion')","('<b>Fever / chills / rigors</b>', '<b>Chest pain</b>', '<b>Psychological disturbance</b>', '<b>Altered consciousness / confusion</b>')",9
+"('sympt_chestpain', 'sympt_neurodist', 'sympt_cough_prod')","('<b>Chest pain</b>', '<b>Psychological disturbance</b>', '<b>Productive</b>')",8
+"('sympt_cough_prod',)","('<b>Productive</b>',)",8
+"('sympt_feverplus', 'sympt_chestpain', 'sympt_confusion')","('<b>Fever / chills / rigors</b>', '<b>Chest pain</b>', '<b>Altered consciousness / confusion</b>')",7
+"('sympt_feverplus', 'sympt_confusion', 'sympt_cough_prod')","('<b>Fever / chills / rigors</b>', '<b>Altered consciousness / confusion</b>', '<b>Productive</b>')",6
+"('sympt_confusion', 'sympt_cough_prod')","('<b>Altered consciousness / confusion</b>', '<b>Productive</b>')",6
+"('sympt_neurodist', 'sympt_cough_prod')","('<b>Psychological disturbance</b>', '<b>Productive</b>')",5
+"('sympt_feverplus', 'sympt_chestpain', 'sympt_confusion', 'sympt_cough_prod')","('<b>Fever / chills / rigors</b>', '<b>Chest pain</b>', '<b>Altered consciousness / confusion</b>', '<b>Productive</b>')",3
+"('sympt_chestpain', 'sympt_confusion', 'sympt_cough_prod')","('<b>Chest pain</b>', '<b>Altered consciousness / confusion</b>', '<b>Productive</b>')",3
+"('sympt_feverplus', 'sympt_chestpain', 'sympt_neurodist', 'sympt_cough_prod')","('<b>Fever / chills / rigors</b>', '<b>Chest pain</b>', '<b>Psychological disturbance</b>', '<b>Productive</b>')",2
+"('sympt_feverplus', 'sympt_chestpain', 'sympt_cough_prod')","('<b>Fever / chills / rigors</b>', '<b>Chest pain</b>', '<b>Productive</b>')",2
+"('sympt_feverplus', 'sympt_neurodist', 'sympt_cough_prod')","('<b>Fever / chills / rigors</b>', '<b>Psychological disturbance</b>', '<b>Productive</b>')",2
+"('sympt_chestpain', 'sympt_cough_prod')","('<b>Chest pain</b>', '<b>Productive</b>')",2
+"('sympt_neurodist', 'sympt_confusion', 'sympt_cough_prod')","('<b>Psychological disturbance</b>', '<b>Altered consciousness / confusion</b>', '<b>Productive</b>')",2
+"('sympt_feverplus', 'sympt_cough_prod')","('<b>Fever / chills / rigors</b>', '<b>Productive</b>')",1
+"('sympt_feverplus', 'sympt_chestpain', 'sympt_neurodist', 'sympt_confusion', 'sympt_cough_prod')","('<b>Fever / chills / rigors</b>', '<b>Chest pain</b>', '<b>Psychological disturbance</b>', '<b>Altered consciousness / confusion</b>', '<b>Productive</b>')",1

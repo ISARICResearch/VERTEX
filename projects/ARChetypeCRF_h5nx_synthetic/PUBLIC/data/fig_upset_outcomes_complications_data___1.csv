@@ -1,0 +1,30 @@
+index,label,count
+"('compl_myocardial', 'compl_bacpneumo', 'compl_pericarditis', 'compl_rhabdomyol', 'compl_chf')","('<b>Myocardial infarction</b>', '<b>Bacterial pneumonia</b>', '<b>Pericarditis</b>', '<b>Rhabdomyolysis</b>', '<b>Congestive heart failure</b>')",301
+"('compl_myocardial', 'compl_bacpneumo', 'compl_pericarditis', 'compl_rhabdomyol')","('<b>Myocardial infarction</b>', '<b>Bacterial pneumonia</b>', '<b>Pericarditis</b>', '<b>Rhabdomyolysis</b>')",137
+"('compl_myocardial', 'compl_bacpneumo', 'compl_rhabdomyol', 'compl_chf')","('<b>Myocardial infarction</b>', '<b>Bacterial pneumonia</b>', '<b>Rhabdomyolysis</b>', '<b>Congestive heart failure</b>')",95
+"('compl_myocardial', 'compl_bacpneumo', 'compl_pericarditis', 'compl_chf')","('<b>Myocardial infarction</b>', '<b>Bacterial pneumonia</b>', '<b>Pericarditis</b>', '<b>Congestive heart failure</b>')",77
+"('compl_myocardial', 'compl_pericarditis', 'compl_rhabdomyol', 'compl_chf')","('<b>Myocardial infarction</b>', '<b>Pericarditis</b>', '<b>Rhabdomyolysis</b>', '<b>Congestive heart failure</b>')",65
+"('compl_bacpneumo', 'compl_pericarditis', 'compl_rhabdomyol', 'compl_chf')","('<b>Bacterial pneumonia</b>', '<b>Pericarditis</b>', '<b>Rhabdomyolysis</b>', '<b>Congestive heart failure</b>')",62
+"('compl_myocardial', 'compl_bacpneumo', 'compl_pericarditis')","('<b>Myocardial infarction</b>', '<b>Bacterial pneumonia</b>', '<b>Pericarditis</b>')",38
+"('compl_bacpneumo', 'compl_pericarditis', 'compl_rhabdomyol')","('<b>Bacterial pneumonia</b>', '<b>Pericarditis</b>', '<b>Rhabdomyolysis</b>')",33
+"('compl_myocardial', 'compl_bacpneumo', 'compl_rhabdomyol')","('<b>Myocardial infarction</b>', '<b>Bacterial pneumonia</b>', '<b>Rhabdomyolysis</b>')",28
+"('compl_myocardial', 'compl_pericarditis', 'compl_rhabdomyol')","('<b>Myocardial infarction</b>', '<b>Pericarditis</b>', '<b>Rhabdomyolysis</b>')",23
+"('compl_myocardial', 'compl_rhabdomyol', 'compl_chf')","('<b>Myocardial infarction</b>', '<b>Rhabdomyolysis</b>', '<b>Congestive heart failure</b>')",18
+"('compl_myocardial', 'compl_bacpneumo', 'compl_chf')","('<b>Myocardial infarction</b>', '<b>Bacterial pneumonia</b>', '<b>Congestive heart failure</b>')",16
+"('compl_bacpneumo', 'compl_rhabdomyol', 'compl_chf')","('<b>Bacterial pneumonia</b>', '<b>Rhabdomyolysis</b>', '<b>Congestive heart failure</b>')",15
+"('compl_bacpneumo', 'compl_rhabdomyol')","('<b>Bacterial pneumonia</b>', '<b>Rhabdomyolysis</b>')",13
+"('compl_bacpneumo', 'compl_pericarditis', 'compl_chf')","('<b>Bacterial pneumonia</b>', '<b>Pericarditis</b>', '<b>Congestive heart failure</b>')",12
+"('compl_pericarditis', 'compl_rhabdomyol', 'compl_chf')","('<b>Pericarditis</b>', '<b>Rhabdomyolysis</b>', '<b>Congestive heart failure</b>')",11
+"('compl_myocardial', 'compl_pericarditis', 'compl_chf')","('<b>Myocardial infarction</b>', '<b>Pericarditis</b>', '<b>Congestive heart failure</b>')",10
+"('compl_myocardial', 'compl_rhabdomyol')","('<b>Myocardial infarction</b>', '<b>Rhabdomyolysis</b>')",9
+"('compl_myocardial', 'compl_pericarditis')","('<b>Myocardial infarction</b>', '<b>Pericarditis</b>')",7
+"('compl_rhabdomyol', 'compl_chf')","('<b>Rhabdomyolysis</b>', '<b>Congestive heart failure</b>')",6
+"('compl_myocardial', 'compl_bacpneumo')","('<b>Myocardial infarction</b>', '<b>Bacterial pneumonia</b>')",5
+"('compl_myocardial', 'compl_chf')","('<b>Myocardial infarction</b>', '<b>Congestive heart failure</b>')",4
+"('compl_bacpneumo', 'compl_pericarditis')","('<b>Bacterial pneumonia</b>', '<b>Pericarditis</b>')",4
+"('compl_pericarditis', 'compl_rhabdomyol')","('<b>Pericarditis</b>', '<b>Rhabdomyolysis</b>')",4
+"('compl_rhabdomyol',)","('<b>Rhabdomyolysis</b>',)",3
+"('compl_myocardial',)","('<b>Myocardial infarction</b>',)",1
+"('compl_bacpneumo', 'compl_chf')","('<b>Bacterial pneumonia</b>', '<b>Congestive heart failure</b>')",1
+"('compl_bacpneumo',)","('<b>Bacterial pneumonia</b>',)",1
+"('compl_pericarditis',)","('<b>Pericarditis</b>',)",1

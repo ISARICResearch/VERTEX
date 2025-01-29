@@ -1,0 +1,6 @@
+index,count,short_label,label
+comor_smoking,348,<b>Ever smoked</b>,<b>Ever smoked</b>
+comor_tuberculos,330,<b>Tuberculosis</b>,<b>Tuberculosis</b>
+comor_diabetes_type1,110,<b>Type 1 diabetes mellitus</b>,<b>Type 1 diabetes mellitus</b>
+comor_aids_art,106,<b>On Anti-retroviral therapy (ART)</b>,<b>On Anti-retroviral therapy (ART)</b>
+comor_aids_vrl___Yes-detectable,95,"<b>Detectable viral load</b>, Yes-detectable","<b>Detectable viral load</b>, Yes-detectable"

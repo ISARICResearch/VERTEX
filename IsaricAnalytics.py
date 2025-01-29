@@ -316,7 +316,9 @@ def format_descriptive_table_variables(dictionary, max_len=100):
     name = dictionary['field_name'].apply(
         lambda x: '   ↳ ' if '___' in x else '<b>')
     name += dictionary['field_type'].map({'section': '<i>'}).fillna('')
-    name += dictionary['field_label'].apply(trim_field_label, max_len=max_len)
+    name += dictionary['field_label'].apply(
+        lambda x: x.split(':')[-1] if x.startswith('If') else x).apply(
+        trim_field_label, max_len=max_len)
     name += dictionary['field_type'].map({'section': '</i>'}).fillna('')
     name += dictionary['field_name'].apply(
         lambda x: '' if '___' in x else '</b>')
@@ -331,7 +333,9 @@ def format_variables(dictionary, max_len=40):
         lambda x: dictionary.loc[(
             dictionary['field_name'] == x).idxmax(), 'field_label'])
     parent_name = parent_label.apply(trim_field_label, max_len=max_len)
-    name = dictionary['field_label'].apply(trim_field_label, max_len=max_len)
+    name = dictionary['field_label'].apply(
+        lambda x: x.split(':')[-1] if x.startswith('If') else x).apply(
+        trim_field_label, max_len=max_len)
     answer_ind = dictionary['field_name'].str.contains('___')
     name = (
         ('<b>' + parent_name + '</b>, ' + name)*answer_ind +

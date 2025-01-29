@@ -1,0 +1,11 @@
+variable,proportion,label,short_label
+adsym_cough_hemop,0.553763440860215,<b>Hemoptysis</b>,<b>Hemoptysis</b>
+adsym_chestpain,0.5488958990536278,<b>Chest pain</b>,<b>Chest pain</b>
+adsym_cough_nonprod,0.5425531914893617,<b>Non-productive </b>,<b>Non-productive </b>
+adsym_seizconv,0.5330188679245284,<b>Seizures / convulsions</b>,<b>Seizures / convulsions</b>
+adsym_vomit2d,0.525,<b>Persistent vomiting? (>=2/day)</b>,<b>Persistent vomiting? (>=2/day)</b>
+adsym_vomit,0.5143769968051118,<b>Vomiting</b>,<b>Vomiting</b>
+adsym_nausea,0.5114754098360655,<b>Nausea</b>,<b>Nausea</b>
+adsym_abdpain,0.5106732348111659,<b>Abdominal pain</b>,<b>Abdominal pain</b>
+adsym_haemorrhag_sev,0.51,<b>Severe bleeding / haemorrhage (requires intervention)</b>,<b>Severe bleeding / haemorrhage (requires ...</b>
+adsym_arthralgia,0.5077639751552795,<b>Joint pain / arthralgia</b>,<b>Joint pain / arthralgia</b>

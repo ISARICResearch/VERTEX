@@ -1,0 +1,31 @@
+index,label,count
+"('compl_severebleed_yn',)","('<b>Severe bleeding (requiring intervention)</b>',)",102
+"('compl_cardiomyop',)","('<b>Cardiomyopathy</b>',)",98
+"('compl_ards',)","('<b>Acute Respiratory Distress Syndrome (ARDS)</b>',)",94
+"('compl_hypoglycem',)","('<b>Hypoglycaemia</b>',)",86
+"('compl_severebleed_yn', 'compl_ards')","('<b>Severe bleeding (requiring intervention)</b>', '<b>Acute Respiratory Distress Syndrome (ARDS)</b>')",46
+"('compl_hypoglycem', 'compl_ards')","('<b>Hypoglycaemia</b>', '<b>Acute Respiratory Distress Syndrome (ARDS)</b>')",45
+"('compl_hypoglycem', 'compl_cardiomyop')","('<b>Hypoglycaemia</b>', '<b>Cardiomyopathy</b>')",44
+"('compl_severebleed_yn', 'compl_hypoglycem')","('<b>Severe bleeding (requiring intervention)</b>', '<b>Hypoglycaemia</b>')",43
+"('compl_severebleed_yn', 'compl_cardiomyop')","('<b>Severe bleeding (requiring intervention)</b>', '<b>Cardiomyopathy</b>')",41
+"('compl_cardiomyop', 'compl_ards')","('<b>Cardiomyopathy</b>', '<b>Acute Respiratory Distress Syndrome (ARDS)</b>')",37
+"('compl_hypoglycem', 'compl_cardiomyop', 'compl_ards')","('<b>Hypoglycaemia</b>', '<b>Cardiomyopathy</b>', '<b>Acute Respiratory Distress Syndrome (ARDS)</b>')",24
+"('compl_severebleed_yn', 'compl_hypoglycem', 'compl_cardiomyop')","('<b>Severe bleeding (requiring intervention)</b>', '<b>Hypoglycaemia</b>', '<b>Cardiomyopathy</b>')",23
+"('compl_severebleed_yn', 'compl_cardiomyop', 'compl_ards')","('<b>Severe bleeding (requiring intervention)</b>', '<b>Cardiomyopathy</b>', '<b>Acute Respiratory Distress Syndrome (ARDS)</b>')",23
+"('compl_severebleed_yn', 'compl_hypoglycem', 'compl_ards')","('<b>Severe bleeding (requiring intervention)</b>', '<b>Hypoglycaemia</b>', '<b>Acute Respiratory Distress Syndrome (ARDS)</b>')",21
+"('compl_severebleed_yn', 'compl_hypoglycem', 'compl_cardiomyop', 'compl_ards')","('<b>Severe bleeding (requiring intervention)</b>', '<b>Hypoglycaemia</b>', '<b>Cardiomyopathy</b>', '<b>Acute Respiratory Distress Syndrome (ARDS)</b>')",16
+"('compl_jaundice',)","('<b>Jaundice</b>',)",16
+"('compl_hypoglycem', 'compl_jaundice')","('<b>Hypoglycaemia</b>', '<b>Jaundice</b>')",13
+"('compl_jaundice', 'compl_ards')","('<b>Jaundice</b>', '<b>Acute Respiratory Distress Syndrome (ARDS)</b>')",13
+"('compl_cardiomyop', 'compl_jaundice')","('<b>Cardiomyopathy</b>', '<b>Jaundice</b>')",12
+"('compl_severebleed_yn', 'compl_jaundice')","('<b>Severe bleeding (requiring intervention)</b>', '<b>Jaundice</b>')",10
+"('compl_severebleed_yn', 'compl_hypoglycem', 'compl_jaundice')","('<b>Severe bleeding (requiring intervention)</b>', '<b>Hypoglycaemia</b>', '<b>Jaundice</b>')",7
+"('compl_cardiomyop', 'compl_jaundice', 'compl_ards')","('<b>Cardiomyopathy</b>', '<b>Jaundice</b>', '<b>Acute Respiratory Distress Syndrome (ARDS)</b>')",7
+"('compl_severebleed_yn', 'compl_hypoglycem', 'compl_jaundice', 'compl_ards')","('<b>Severe bleeding (requiring intervention)</b>', '<b>Hypoglycaemia</b>', '<b>Jaundice</b>', '<b>Acute Respiratory Distress Syndrome (ARDS)</b>')",6
+"('compl_hypoglycem', 'compl_cardiomyop', 'compl_jaundice')","('<b>Hypoglycaemia</b>', '<b>Cardiomyopathy</b>', '<b>Jaundice</b>')",6
+"('compl_hypoglycem', 'compl_jaundice', 'compl_ards')","('<b>Hypoglycaemia</b>', '<b>Jaundice</b>', '<b>Acute Respiratory Distress Syndrome (ARDS)</b>')",5
+"('compl_severebleed_yn', 'compl_cardiomyop', 'compl_jaundice')","('<b>Severe bleeding (requiring intervention)</b>', '<b>Cardiomyopathy</b>', '<b>Jaundice</b>')",4
+"('compl_severebleed_yn', 'compl_jaundice', 'compl_ards')","('<b>Severe bleeding (requiring intervention)</b>', '<b>Jaundice</b>', '<b>Acute Respiratory Distress Syndrome (ARDS)</b>')",3
+"('compl_hypoglycem', 'compl_cardiomyop', 'compl_jaundice', 'compl_ards')","('<b>Hypoglycaemia</b>', '<b>Cardiomyopathy</b>', '<b>Jaundice</b>', '<b>Acute Respiratory Distress Syndrome (ARDS)</b>')",3
+"('compl_severebleed_yn', 'compl_hypoglycem', 'compl_cardiomyop', 'compl_jaundice')","('<b>Severe bleeding (requiring intervention)</b>', '<b>Hypoglycaemia</b>', '<b>Cardiomyopathy</b>', '<b>Jaundice</b>')",2
+"('compl_severebleed_yn', 'compl_hypoglycem', 'compl_cardiomyop', 'compl_jaundice', 'compl_ards')","('<b>Severe bleeding (requiring intervention)</b>', '<b>Hypoglycaemia</b>', '<b>Cardiomyopathy</b>', '<b>Jaundice</b>', '<b>Acute Respiratory Distress Syndrome (ARDS)</b>')",1

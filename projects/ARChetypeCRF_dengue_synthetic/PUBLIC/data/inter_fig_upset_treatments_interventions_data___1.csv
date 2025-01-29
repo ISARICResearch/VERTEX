@@ -1,0 +1,22 @@
+index,label,count
+"('inter_bpt_yn',)","('<b>Blood product transfusion</b>',)",165
+"('inter_nacetylcys',)","('<b>N-acetyl cysteine</b>',)",159
+"('inter_bpt_yn', 'inter_nacetylcys')","('<b>Blood product transfusion</b>', '<b>N-acetyl cysteine</b>')",69
+"('inter_fluiddrain_reas___Ascites',)","('<b>If yes: Reason for this drainage</b>, Ascites',)",67
+"('inter_fluiddrain_reas___Pleural effusion',)","('<b>If yes: Reason for this drainage</b>, Pleural effusion',)",60
+"('inter_nacetylcys', 'inter_fluiddrain_reas___Ascites')","('<b>N-acetyl cysteine</b>', '<b>If yes: Reason for this drainage</b>, Ascites')",36
+"('inter_bpt_yn', 'inter_fluiddrain_reas___Pleural effusion')","('<b>Blood product transfusion</b>', '<b>If yes: Reason for this drainage</b>, Pleural effusion')",33
+"('inter_nacetylcys', 'inter_fluiddrain_reas___Pleural effusion')","('<b>N-acetyl cysteine</b>', '<b>If yes: Reason for this drainage</b>, Pleural effusion')",32
+"('inter_bpt_yn', 'inter_fluiddrain_reas___Ascites')","('<b>Blood product transfusion</b>', '<b>If yes: Reason for this drainage</b>, Ascites')",24
+"('inter_ecmo___Veno-arterial (VA)',)","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)',)",18
+"('inter_bpt_yn', 'inter_nacetylcys', 'inter_fluiddrain_reas___Pleural effusion')","('<b>Blood product transfusion</b>', '<b>N-acetyl cysteine</b>', '<b>If yes: Reason for this drainage</b>, Pleural effusion')",13
+"('inter_bpt_yn', 'inter_nacetylcys', 'inter_fluiddrain_reas___Ascites')","('<b>Blood product transfusion</b>', '<b>N-acetyl cysteine</b>', '<b>If yes: Reason for this drainage</b>, Ascites')",9
+"('inter_ecmo___Veno-arterial (VA)', 'inter_bpt_yn')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Blood product transfusion</b>')",8
+"('inter_ecmo___Veno-arterial (VA)', 'inter_bpt_yn', 'inter_nacetylcys')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Blood product transfusion</b>', '<b>N-acetyl cysteine</b>')",5
+"('inter_ecmo___Veno-arterial (VA)', 'inter_fluiddrain_reas___Pleural effusion')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>If yes: Reason for this drainage</b>, Pleural effusion')",4
+"('inter_ecmo___Veno-arterial (VA)', 'inter_fluiddrain_reas___Ascites')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>If yes: Reason for this drainage</b>, Ascites')",3
+"('inter_ecmo___Veno-arterial (VA)', 'inter_nacetylcys')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>N-acetyl cysteine</b>')",3
+"('inter_ecmo___Veno-arterial (VA)', 'inter_bpt_yn', 'inter_fluiddrain_reas___Ascites')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Blood product transfusion</b>', '<b>If yes: Reason for this drainage</b>, Ascites')",2
+"('inter_ecmo___Veno-arterial (VA)', 'inter_bpt_yn', 'inter_fluiddrain_reas___Pleural effusion')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Blood product transfusion</b>', '<b>If yes: Reason for this drainage</b>, Pleural effusion')",2
+"('inter_ecmo___Veno-arterial (VA)', 'inter_bpt_yn', 'inter_nacetylcys', 'inter_fluiddrain_reas___Ascites')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Blood product transfusion</b>', '<b>N-acetyl cysteine</b>', '<b>If yes: Reason for this drainage</b>, Ascites')",1
+"('inter_ecmo___Veno-arterial (VA)', 'inter_nacetylcys', 'inter_fluiddrain_reas___Pleural effusion')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>N-acetyl cysteine</b>', '<b>If yes: Reason for this drainage</b>, Pleural effusion')",1

@@ -1,0 +1,32 @@
+index,label,count
+"('adsym_abdpain',)","('<b>Abdominal pain</b>',)",99
+"('adsym_anorexia',)","('<b>Anorexia</b>',)",97
+"('adsym_fatigue',)","('<b>Fatigue / malaise / lethargy</b>',)",80
+"('adsym_vomit',)","('<b>Vomiting</b>',)",72
+"('adsym_fatigue', 'adsym_vomit')","('<b>Fatigue / malaise / lethargy</b>', '<b>Vomiting</b>')",55
+"('adsym_abdpain', 'adsym_fatigue')","('<b>Abdominal pain</b>', '<b>Fatigue / malaise / lethargy</b>')",49
+"('adsym_abdpain', 'adsym_vomit')","('<b>Abdominal pain</b>', '<b>Vomiting</b>')",49
+"('adsym_abdpain', 'adsym_anorexia')","('<b>Abdominal pain</b>', '<b>Anorexia</b>')",39
+"('adsym_vomit', 'adsym_anorexia')","('<b>Vomiting</b>', '<b>Anorexia</b>')",39
+"('adsym_fatigue', 'adsym_anorexia')","('<b>Fatigue / malaise / lethargy</b>', '<b>Anorexia</b>')",38
+"('adsym_abdpain', 'adsym_fatigue', 'adsym_vomit')","('<b>Abdominal pain</b>', '<b>Fatigue / malaise / lethargy</b>', '<b>Vomiting</b>')",26
+"('adsym_abdpain', 'adsym_vomit', 'adsym_anorexia')","('<b>Abdominal pain</b>', '<b>Vomiting</b>', '<b>Anorexia</b>')",20
+"('adsym_fatigue', 'adsym_vomit', 'adsym_anorexia')","('<b>Fatigue / malaise / lethargy</b>', '<b>Vomiting</b>', '<b>Anorexia</b>')",20
+"('adsym_abdpain', 'adsym_fatigue', 'adsym_anorexia')","('<b>Abdominal pain</b>', '<b>Fatigue / malaise / lethargy</b>', '<b>Anorexia</b>')",18
+"('adsym_cough_nonprod',)","('<b>Non-productive </b>',)",17
+"('adsym_abdpain', 'adsym_fatigue', 'adsym_vomit', 'adsym_anorexia')","('<b>Abdominal pain</b>', '<b>Fatigue / malaise / lethargy</b>', '<b>Vomiting</b>', '<b>Anorexia</b>')",16
+"('adsym_fatigue', 'adsym_cough_nonprod')","('<b>Fatigue / malaise / lethargy</b>', '<b>Non-productive </b>')",15
+"('adsym_abdpain', 'adsym_cough_nonprod')","('<b>Abdominal pain</b>', '<b>Non-productive </b>')",10
+"('adsym_cough_nonprod', 'adsym_anorexia')","('<b>Non-productive </b>', '<b>Anorexia</b>')",10
+"('adsym_cough_nonprod', 'adsym_vomit')","('<b>Non-productive </b>', '<b>Vomiting</b>')",10
+"('adsym_abdpain', 'adsym_fatigue', 'adsym_cough_nonprod')","('<b>Abdominal pain</b>', '<b>Fatigue / malaise / lethargy</b>', '<b>Non-productive </b>')",9
+"('adsym_fatigue', 'adsym_cough_nonprod', 'adsym_vomit')","('<b>Fatigue / malaise / lethargy</b>', '<b>Non-productive </b>', '<b>Vomiting</b>')",6
+"('adsym_fatigue', 'adsym_cough_nonprod', 'adsym_anorexia')","('<b>Fatigue / malaise / lethargy</b>', '<b>Non-productive </b>', '<b>Anorexia</b>')",5
+"('adsym_abdpain', 'adsym_cough_nonprod', 'adsym_anorexia')","('<b>Abdominal pain</b>', '<b>Non-productive </b>', '<b>Anorexia</b>')",4
+"('adsym_fatigue', 'adsym_cough_nonprod', 'adsym_vomit', 'adsym_anorexia')","('<b>Fatigue / malaise / lethargy</b>', '<b>Non-productive </b>', '<b>Vomiting</b>', '<b>Anorexia</b>')",4
+"('adsym_abdpain', 'adsym_fatigue', 'adsym_cough_nonprod', 'adsym_vomit')","('<b>Abdominal pain</b>', '<b>Fatigue / malaise / lethargy</b>', '<b>Non-productive </b>', '<b>Vomiting</b>')",3
+"('adsym_abdpain', 'adsym_fatigue', 'adsym_cough_nonprod', 'adsym_anorexia')","('<b>Abdominal pain</b>', '<b>Fatigue / malaise / lethargy</b>', '<b>Non-productive </b>', '<b>Anorexia</b>')",3
+"('adsym_cough_nonprod', 'adsym_vomit', 'adsym_anorexia')","('<b>Non-productive </b>', '<b>Vomiting</b>', '<b>Anorexia</b>')",3
+"('adsym_abdpain', 'adsym_cough_nonprod', 'adsym_vomit', 'adsym_anorexia')","('<b>Abdominal pain</b>', '<b>Non-productive </b>', '<b>Vomiting</b>', '<b>Anorexia</b>')",2
+"('adsym_abdpain', 'adsym_cough_nonprod', 'adsym_vomit')","('<b>Abdominal pain</b>', '<b>Non-productive </b>', '<b>Vomiting</b>')",2
+"('adsym_abdpain', 'adsym_fatigue', 'adsym_cough_nonprod', 'adsym_vomit', 'adsym_anorexia')","('<b>Abdominal pain</b>', '<b>Fatigue / malaise / lethargy</b>', '<b>Non-productive </b>', '<b>Vomiting</b>', '<b>Anorexia</b>')",1

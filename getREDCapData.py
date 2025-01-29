@@ -116,13 +116,13 @@ def get_form_event(redcap_url, redcap_api_key):
 
 def get_missing_data_codes(redcap_url, redcap_api_key):
     '''Get missing data codes from REDCAP API, using the project metadata'''
-    data = {
+    conex = {
         'token': redcap_api_key,
         'content': 'project',
         'format': 'csv',
         'returnFormat': 'csv'
     }
-    r = requests.post(redcap_url, data=data).content
+    r = requests.post(redcap_url, data=conex).content
     df = pd.read_csv(io.StringIO(r.decode('utf-8')))
     if df['missing_data_codes'].isna().all():
         missing_data_codes = dict()
@@ -636,9 +636,10 @@ def get_df_map(data, dictionary):
     df_map.loc[other_value_ind, 'demog_sex'] = 'Other / Unknown'
 
     mapping_dict = {
-        'Discharged alive': 'Discharged',
-        'Discharged against medical advice': 'Discharged',
-        'Death': 'Death',
+        'Discharged alive': 'Discharged',  # :)
+        'Discharged against medical advice': 'Discharged',  # :)
+        'Death': 'Death',  # :(
+        'Palliative care': 'Death',  # :(
     }
     df_map['outco_binary_outcome'] = map_variable(
         df_map['outco_outcome'].fillna('Censored'),

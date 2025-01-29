@@ -1,0 +1,11 @@
+variable,proportion,label,short_label
+compl_severebleed_yn,0.5454545454545454,<b>Severe bleeding (requiring intervention)</b>,<b>Severe bleeding (requiring intervention)</b>
+compl_hypoglycem,0.5433070866141733,<b>Hypoglycaemia</b>,<b>Hypoglycaemia</b>
+compl_cardiomyop,0.5404120443740095,<b>Cardiomyopathy</b>,<b>Cardiomyopathy</b>
+compl_jaundice,0.5373134328358209,<b>Jaundice</b>,<b>Jaundice</b>
+compl_ards,0.5358255451713395,<b>Acute Respiratory Distress Syndrome (ARDS)</b>,<b>Acute Respiratory Distress Syndrome ...</b>
+compl_meningitis,0.5356550580431177,<b>Meningitis</b>,<b>Meningitis</b>
+compl_chf,0.5300632911392406,<b>Congestive heart failure</b>,<b>Congestive heart failure</b>
+compl_cellulitis_yn,0.5289256198347108,<b>Cellulitis</b>,<b>Cellulitis</b>
+compl_pericarditis,0.5288461538461539,<b>Pericarditis</b>,<b>Pericarditis</b>
+compl_severeliver,0.5287356321839081,<b>Severe liver disease (new onset)</b>,<b>Severe liver disease (new onset)</b>

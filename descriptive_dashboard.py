@@ -20,13 +20,28 @@ import importlib.util
 
 
 ############################################
-# PROJECT FILEPATH (CHANGE THIS)
+# PROJECT PATHS (CHANGE THIS)
 ############################################
 
-# filepath = 'projects/ARChetypeCRF_mpox_synthetic/'
-# filepath = 'projects/ARChetypeCRF_dengue_synthetic/'
-# filepath = 'projects/example/'
-filepath = '../VERTEX_projects/dengue_global/'
+# init_project_path = 'projects/ARChetypeCRF_mpox_synthetic/'
+# init_project_path = 'projects/ARChetypeCRF_dengue_synthetic/'
+# init_project_path = 'projects/example/'
+# init_project_path = '../VERTEX_projects/dengue_global/'
+init_project_path = 'projects/ARChetypeCRF_dengue_synthetic/'
+
+
+# def get_project_path():
+#     with open('vertex_projects_path.txt', 'r') as f:
+#         text = f.read()
+#         path_dict = {
+#             x.split('=')[0].strip(): eval(x.split('=')[1].strip())
+#             for x in text.split('\n') if len(x) > 0
+#         }
+#         projects_path = os.path.join(path_dict['vertex_projects_path'], '')
+#         init_project_path = os.path.join(
+#             projects_path, 'projects', path_dict['init_project_name'], '')
+#     return projects_path, init_project_path
+
 
 ############################################
 # IMPORT
@@ -46,26 +61,28 @@ def import_from_path(module_name, file_path):
 ############################################
 
 
-def get_config(filepath, config_defaults):
+def get_config(init_project_path, config_defaults):
+    config_file = os.path.join(init_project_path, 'config_file.json')
     try:
-        with open(os.path.join(filepath, 'config_file.json')) as json_data:
+        with open(config_file, 'r') as json_data:
             config_dict = json.load(json_data)
         _ = config_dict['api_key']
         _ = config_dict['api_url']
     except Exception:
-        error_message = f'''config_file.json is required in "{filepath}".
-        This file must contain both "api_key" and "api_url".'''
+        error_message = f'''config_file.json is required in \
+        {init_project_path}. This file must contain both "api_key" and \
+        "api_url".'''
         print(error_message)
-        raise
+        raise SystemExit
     # The default for the list of insight panels is all that exist in the
     # relevant folder (which may or not be specified in config)
-    if 'insight_panel_filepath' not in config_dict.keys():
-        insight_panel_filepath = config_defaults['insight_panel_filepath']
-        config_dict['insight_panel_filepath'] = insight_panel_filepath
+    if 'insight_panels_path' not in config_dict.keys():
+        rel_insight_panels_path = config_defaults['insight_panels_path']
+        config_dict['insight_panels_path'] = rel_insight_panels_path
     # Get a list of python files in the repository (excluding e.g. __init__.py)
-    full_insight_panel_filepath = os.path.join(
-        filepath, config_dict['insight_panel_filepath'])
-    for (_, _, filenames) in os.walk(full_insight_panel_filepath):
+    insight_panels_path = os.path.join(
+        init_project_path, config_dict['insight_panels_path'])
+    for (_, _, filenames) in os.walk(insight_panels_path):
         insight_panels = [
             file.split('.py')[0] for file in filenames
             if file.endswith('.py') and not file.startswith('_')]
@@ -406,27 +423,10 @@ def generate_html_text(text):
 # Get insight panels
 ############################################
 
-
-# def get_insight_panels():
-#     # print([
-#     #     name for name, module in sys.modules.items()])
-#     insight_panels = {
-#         name.split('.')[-1]: module
-#         for name, module in sys.modules.items()
-#         if (
-#             name.startswith('insight_panels.') &
-#             (name.split('.')[-1] in ip_list))}
-#     buttons = [
-#         {**ip.define_button(), **{'suffix': suffix}}
-#         for suffix, ip in insight_panels.items()]
-#     return insight_panels, buttons
-
-def get_insight_panels(config_dict):
+def get_insight_panels(config_dict, insight_panels_path):
     # Import insight panels scripts
-    insight_panel_filepath = os.path.join(
-        filepath, config_dict['insight_panel_filepath'])
     insight_panels = {
-        x: import_from_path(x, os.path.join(insight_panel_filepath, x + '.py'))
+        x: import_from_path(x, os.path.join(insight_panels_path, x + '.py'))
         for x in config_dict['insight_panels']}
     buttons = [
         {**ip.define_button(), **{'suffix': suffix}}
@@ -436,13 +436,13 @@ def get_insight_panels(config_dict):
 
 def get_visuals(
         buttons, insight_panels, df_map, df_forms_dict,
-        dictionary, quality_report, filepath):
+        dictionary, quality_report, file_path):
     for ii in range(len(buttons)):
         suffix = buttons[ii]['suffix']
         visuals = insight_panels[suffix].create_visuals(
             df_map=df_map, df_forms_dict=df_forms_dict,
             dictionary=dictionary, quality_report=quality_report,
-            suffix=suffix, filepath=filepath, save_inputs=True)
+            suffix=suffix, file_path=file_path, save_inputs=True)
         buttons[ii]['graph_ids'] = [id for _, id, _, _ in visuals]
     return buttons
 
@@ -676,7 +676,7 @@ def define_footer_modal(instructions, about):
 def register_callbacks(
         app, insight_panels, df_map,
         df_forms_dict, dictionary, quality_report, filter_options,
-        filepath, save_inputs):
+        file_path, save_inputs):
     @app.callback(
         Output('world-map', 'figure'),
         [
@@ -815,7 +815,7 @@ def register_callbacks(
             visuals = insight_panels[suffix].create_visuals(
                 df_map=df_map, df_forms_dict=df_forms_dict,
                 dictionary=dictionary, quality_report=quality_report,
-                suffix=suffix, filepath=filepath, save_inputs=False)
+                suffix=suffix, file_path=file_path, save_inputs=False)
             button = {
                 **insight_panels[suffix].define_button(), **{'suffix': suffix}}
             modal = create_modal(visuals, button, filter_options)
@@ -963,7 +963,7 @@ def register_callbacks(
             visuals = insight_panels[suffix].create_visuals(
                 df_map=df_map_filtered, df_forms_dict=df_forms_filtered,
                 dictionary=dictionary, quality_report=quality_report,
-                filepath=filepath, suffix=suffix,
+                file_path=file_path, suffix=suffix,
                 save_inputs=save_inputs)
             modal = create_modal(visuals, button, filter_options)
         output = modal, genders, age_range, outcomes, countries
@@ -993,6 +993,7 @@ def register_callbacks(
 
 def main():
     # app.run_server(debug=True, host='0.0.0.0', port='8080')
+    print('Starting VERTEX')
     app = dash.Dash(
         __name__,
         external_stylesheets=[dbc.themes.BOOTSTRAP],
@@ -1017,32 +1018,29 @@ def main():
 
     config_defaults = {
         'project_name': None,
-        'map_layout_center_lat': 6,
-        'map_layout_center_lon': -75,
+        'map_layout_center_latitude': 6,
+        'map_layout_center_longitude': -75,
         'map_layout_zoom': 1.7,
         'save_public_outputs': True,
-        'public_outputs_filepath': 'PUBLIC/',
+        'public_path': 'PUBLIC/',
         'save_filtered_public_outputs': False,
-        'insight_panel_filepath': 'insight_panels/',
+        'insight_panels_path': 'insight_panels/',
     }
 
-    config_dict = get_config(filepath, config_defaults)
+    # projects_path, init_project_path = get_project_path()
+    config_dict = get_config(init_project_path, config_defaults)
 
-    # insight_panel_filepath = os.path.join(
-    #     filepath, config_dict['insight_panel_filepath'])
-    # # Add an empty __init__ file if it doesn't exist
-    # init_file = os.path.join(insight_panel_filepath, '__init__.py')
-    # if os.path.isfile(init_file) is False:
-    #     print(f'Creating file "{init_file}"')
-    #     subprocess.run(['touch', init_file], check=True, text=True)
+    insight_panels_path = os.path.join(
+        init_project_path, config_dict['insight_panels_path'])
+    insight_panels, buttons = get_insight_panels(
+        config_dict, insight_panels_path)
 
-    insight_panels, buttons = get_insight_panels(config_dict)
+    api_url = config_dict['api_url']
+    api_key = config_dict['api_key']
 
-    redcap_url = config_dict['api_url']
-    redcap_api_key = config_dict['api_key']
-
+    print('Retrieving data from the API')
     df_map, df_forms_dict, dictionary, quality_report = getRC.get_redcap_data(
-        redcap_url, redcap_api_key)
+        api_url, api_key)
 
     df_map_with_countries = merge_data_with_countries(df_map)
     df_countries = get_countries(df_map_with_countries)
@@ -1061,8 +1059,8 @@ def main():
         mapbox_style=mapbox_style[1],
         mapbox_zoom=config_dict['map_layout_zoom'],
         mapbox_center={
-            'lat': config_dict['map_layout_center_lat'],
-            'lon': config_dict['map_layout_center_lon']},
+            'lat': config_dict['map_layout_center_latitude'],
+            'lon': config_dict['map_layout_center_longitude']},
         margin={'r': 0, 't': 0, 'l': 0, 'b': 0},
     )
 
@@ -1110,49 +1108,40 @@ def main():
     register_callbacks(
         app, insight_panels, df_map,
         df_forms_dict, dictionary, quality_report, filter_options,
-        filepath, config_dict['save_filtered_public_outputs'])
+        init_project_path, config_dict['save_filtered_public_outputs'])
 
     if config_dict['save_public_outputs']:
-        public_filepath = os.path.join(
-            filepath, config_dict['public_outputs_filepath'])
-        os.makedirs(os.path.dirname(public_filepath + '/'), exist_ok=True)
+        public_path = os.path.join(
+            init_project_path, config_dict['public_path'])
+        os.makedirs(os.path.dirname(public_path + '/'), exist_ok=True)
         os.makedirs(
-            os.path.dirname(os.path.join(public_filepath, 'data/')),
+            os.path.dirname(os.path.join(public_path, 'data/')),
             exist_ok=True)
-        print(f'Saving files for public dashboard to "{public_filepath}"')
+        print(f'Saving files for public dashboard to "{public_path}"')
         buttons = get_visuals(
             buttons, insight_panels,
             df_map=df_map, df_forms_dict=df_forms_dict,
             dictionary=dictionary, quality_report=quality_report,
-            filepath=os.path.join(public_filepath, 'data'))
-        os.makedirs(os.path.dirname(public_filepath), exist_ok=True)
-        shutil.copy('descriptive_dashboard_public.py', public_filepath)
-        shutil.copy('IsaricDraw.py', public_filepath)
-        shutil.copy('requirements.txt', public_filepath)
-        assets_filepath = os.path.join(public_filepath, 'assets/')
-        os.makedirs(os.path.dirname(assets_filepath), exist_ok=True)
-        shutil.copytree('assets', assets_filepath, dirs_exist_ok=True)
-        # subprocess.run(
-        #     ['cp', 'descriptive_dashboard_public.py', public_filepath],
-        #     check=True, text=True)
-        # subprocess.run(
-        #     ['cp', 'IsaricDraw.py', public_filepath], check=True, text=True)
-        # subprocess.run(
-        #     ['cp', '-r', 'assets', public_filepath], check=True, text=True)
-        # subprocess.run(
-        #     ['cp', 'requirements.txt', public_filepath], check=True, text=True)
+            file_path=os.path.join(public_path, 'data'))
+        os.makedirs(os.path.dirname(public_path), exist_ok=True)
+        shutil.copy('descriptive_dashboard_public.py', public_path)
+        shutil.copy('IsaricDraw.py', public_path)
+        shutil.copy('requirements.txt', public_path)
+        assets_path = os.path.join(public_path, 'assets/')
+        os.makedirs(os.path.dirname(assets_path), exist_ok=True)
+        shutil.copytree('assets', assets_path, dirs_exist_ok=True)
         metadata_file = os.path.join(
-            public_filepath, 'data/dashboard_metadata.txt')
+            public_path, 'data/dashboard_metadata.txt')
         with open(metadata_file, 'w') as metadata:
             metadata.write(repr(buttons))
-        data_file = os.path.join(public_filepath, 'data/dashboard_data.csv')
+        data_file = os.path.join(public_path, 'data/dashboard_data.csv')
         df_countries.to_csv(data_file, index=False)
         config_json_file = os.path.join(
-            public_filepath, 'public_config_file.json')
+            public_path, 'public_config_file.json')
         with open(config_json_file, 'w') as file:
             save_config_keys = [
-                'project_name', 'map_layout_center_lat',
-                'map_layout_center_lon', 'map_layout_zoom']
+                'project_name', 'map_layout_center_latitude',
+                'map_layout_center_longitude', 'map_layout_zoom']
             save_config_dict = {k: config_dict[k] for k in save_config_keys}
             json.dump(save_config_dict, file)
 

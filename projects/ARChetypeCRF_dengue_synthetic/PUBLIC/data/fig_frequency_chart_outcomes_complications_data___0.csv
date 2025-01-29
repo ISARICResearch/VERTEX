@@ -1,0 +1,11 @@
+variable,proportion,label,short_label
+compl_focalneuro,0.5389507154213037,<b>Focal neurological signs</b>,<b>Focal neurological signs</b>
+compl_myocarditis,0.5235008103727715,<b>Myocarditis</b>,<b>Myocarditis</b>
+compl_sepsis,0.5207986688851913,<b>Sepsis</b>,<b>Sepsis</b>
+compl_ards,0.5153061224489796,<b>Acute Respiratory Distress Syndrome (ARDS)</b>,<b>Acute Respiratory Distress Syndrome ...</b>
+compl_severebleed_yn,0.5070202808112324,<b>Severe bleeding (requiring intervention)</b>,<b>Severe bleeding (requiring intervention)</b>
+compl_severeliver,0.5038402457757296,<b>Severe liver disease (new onset)</b>,<b>Severe liver disease (new onset)</b>
+compl_meningitis,0.5023400936037441,<b>Meningitis</b>,<b>Meningitis</b>
+compl_cardiarrest,0.5015822784810127,<b>Cardiac arrest</b>,<b>Cardiac arrest</b>
+compl_pleuraleff,0.4960254372019078,<b>Pleural effusion</b>,<b>Pleural effusion</b>
+compl_ascite,0.4959871589085072,<b>Ascites</b>,<b>Ascites</b>

@@ -1,0 +1,30 @@
+index,label,count
+"('comor_smoking',)","('<b>Ever smoked</b>',)",179
+"('comor_tuberculos',)","('<b>Tuberculosis</b>',)",163
+"('comor_smoking', 'comor_tuberculos')","('<b>Ever smoked</b>', '<b>Tuberculosis</b>')",83
+"('comor_diabetes_type1',)","('<b>Type 1 diabetes mellitus</b>',)",38
+"('comor_aids_art',)","('<b>On Anti-retroviral therapy (ART)</b>',)",30
+"('comor_aids_vrl___Yes-detectable',)","('<b>Detectable viral load</b>, Yes-detectable',)",26
+"('comor_diabetes_type1', 'comor_tuberculos')","('<b>Type 1 diabetes mellitus</b>', '<b>Tuberculosis</b>')",22
+"('comor_smoking', 'comor_diabetes_type1')","('<b>Ever smoked</b>', '<b>Type 1 diabetes mellitus</b>')",21
+"('comor_aids_art', 'comor_smoking')","('<b>On Anti-retroviral therapy (ART)</b>', '<b>Ever smoked</b>')",16
+"('comor_aids_vrl___Yes-detectable', 'comor_tuberculos')","('<b>Detectable viral load</b>, Yes-detectable', '<b>Tuberculosis</b>')",14
+"('comor_aids_art', 'comor_tuberculos')","('<b>On Anti-retroviral therapy (ART)</b>', '<b>Tuberculosis</b>')",13
+"('comor_smoking', 'comor_diabetes_type1', 'comor_tuberculos')","('<b>Ever smoked</b>', '<b>Type 1 diabetes mellitus</b>', '<b>Tuberculosis</b>')",12
+"('comor_aids_art', 'comor_smoking', 'comor_aids_vrl___Yes-detectable')","('<b>On Anti-retroviral therapy (ART)</b>', '<b>Ever smoked</b>', '<b>Detectable viral load</b>, Yes-detectable')",11
+"('comor_aids_art', 'comor_aids_vrl___Yes-detectable')","('<b>On Anti-retroviral therapy (ART)</b>', '<b>Detectable viral load</b>, Yes-detectable')",11
+"('comor_smoking', 'comor_aids_vrl___Yes-detectable')","('<b>Ever smoked</b>', '<b>Detectable viral load</b>, Yes-detectable')",11
+"('comor_aids_art', 'comor_aids_vrl___Yes-detectable', 'comor_tuberculos')","('<b>On Anti-retroviral therapy (ART)</b>', '<b>Detectable viral load</b>, Yes-detectable', '<b>Tuberculosis</b>')",7
+"('comor_aids_art', 'comor_smoking', 'comor_tuberculos')","('<b>On Anti-retroviral therapy (ART)</b>', '<b>Ever smoked</b>', '<b>Tuberculosis</b>')",4
+"('comor_aids_art', 'comor_diabetes_type1')","('<b>On Anti-retroviral therapy (ART)</b>', '<b>Type 1 diabetes mellitus</b>')",4
+"('comor_aids_art', 'comor_smoking', 'comor_aids_vrl___Yes-detectable', 'comor_tuberculos')","('<b>On Anti-retroviral therapy (ART)</b>', '<b>Ever smoked</b>', '<b>Detectable viral load</b>, Yes-detectable', '<b>Tuberculosis</b>')",3
+"('comor_smoking', 'comor_aids_vrl___Yes-detectable', 'comor_tuberculos')","('<b>Ever smoked</b>', '<b>Detectable viral load</b>, Yes-detectable', '<b>Tuberculosis</b>')",3
+"('comor_diabetes_type1', 'comor_aids_vrl___Yes-detectable')","('<b>Type 1 diabetes mellitus</b>', '<b>Detectable viral load</b>, Yes-detectable')",3
+"('comor_aids_art', 'comor_smoking', 'comor_diabetes_type1', 'comor_tuberculos')","('<b>On Anti-retroviral therapy (ART)</b>', '<b>Ever smoked</b>', '<b>Type 1 diabetes mellitus</b>', '<b>Tuberculosis</b>')",2
+"('comor_aids_art', 'comor_diabetes_type1', 'comor_aids_vrl___Yes-detectable')","('<b>On Anti-retroviral therapy (ART)</b>', '<b>Type 1 diabetes mellitus</b>', '<b>Detectable viral load</b>, Yes-detectable')",2
+"('comor_aids_art', 'comor_smoking', 'comor_diabetes_type1')","('<b>On Anti-retroviral therapy (ART)</b>', '<b>Ever smoked</b>', '<b>Type 1 diabetes mellitus</b>')",1
+"('comor_aids_art', 'comor_diabetes_type1', 'comor_aids_vrl___Yes-detectable', 'comor_tuberculos')","('<b>On Anti-retroviral therapy (ART)</b>', '<b>Type 1 diabetes mellitus</b>', '<b>Detectable viral load</b>, Yes-detectable', '<b>Tuberculosis</b>')",1
+"('comor_aids_art', 'comor_diabetes_type1', 'comor_tuberculos')","('<b>On Anti-retroviral therapy (ART)</b>', '<b>Type 1 diabetes mellitus</b>', '<b>Tuberculosis</b>')",1
+"('comor_smoking', 'comor_diabetes_type1', 'comor_aids_vrl___Yes-detectable', 'comor_tuberculos')","('<b>Ever smoked</b>', '<b>Type 1 diabetes mellitus</b>', '<b>Detectable viral load</b>, Yes-detectable', '<b>Tuberculosis</b>')",1
+"('comor_smoking', 'comor_diabetes_type1', 'comor_aids_vrl___Yes-detectable')","('<b>Ever smoked</b>', '<b>Type 1 diabetes mellitus</b>', '<b>Detectable viral load</b>, Yes-detectable')",1
+"('comor_diabetes_type1', 'comor_aids_vrl___Yes-detectable', 'comor_tuberculos')","('<b>Type 1 diabetes mellitus</b>', '<b>Detectable viral load</b>, Yes-detectable', '<b>Tuberculosis</b>')",1
