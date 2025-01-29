@@ -18,7 +18,7 @@ def define_button():
 
 def create_visuals(
         df_map, df_forms_dict, dictionary, quality_report,
-        file_path, suffix, save_inputs):
+        filepath, suffix, save_inputs):
     '''
     Create all visuals in the insight panel from the RAP dataframe
     '''
@@ -35,7 +35,7 @@ def create_visuals(
         column_reorder=split_column_order)
     fig_table = idw.fig_table(
         table, table_key=table_key + '<br><b>(SYNTHETIC DATA)</b>',
-        suffix=suffix, file_path=file_path, save_inputs=save_inputs,
+        suffix=suffix, filepath=filepath, save_inputs=save_inputs,
         graph_label='Descriptive Table',
         graph_about='Summary of outcomes and complications.')
 
@@ -53,7 +53,7 @@ def create_visuals(
     freq_chart_compl = idw.fig_frequency_chart(
         proportions,
         title=f'Frequency of {section_name} (SYNTHETIC DATA)',
-        suffix=suffix, file_path=file_path, save_inputs=save_inputs,
+        suffix=suffix, filepath=filepath, save_inputs=save_inputs,
         graph_label=section_name + ': Frequency',
         graph_about=about)
 
@@ -62,7 +62,7 @@ def create_visuals(
     upset_plot_compl = idw.fig_upset(
         counts_intersections,
         title=f'Intersection sizes of {section_name.lower()} (SYNTHETIC DATA)',
-        suffix=suffix, file_path=file_path, save_inputs=save_inputs,
+        suffix=suffix, filepath=filepath, save_inputs=save_inputs,
         graph_label=section_name + ': Intersections',
         graph_about=about)
 

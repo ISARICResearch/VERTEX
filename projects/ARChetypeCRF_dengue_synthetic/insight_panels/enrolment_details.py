@@ -18,7 +18,7 @@ def define_button():
 
 def create_visuals(
         df_map, df_forms_dict, dictionary, quality_report,
-        file_path, suffix, save_inputs):
+        filepath, suffix, save_inputs):
     '''
     Create all visuals in the insight panel from the RAP dataframe
     '''
@@ -66,20 +66,20 @@ def create_visuals(
         df_sunburst,
         title='Enrolment by site (SYNTHETIC DATA)',
         path=['filters_country', 'site'], values='subjid',
-        suffix=suffix, file_path=file_path, save_inputs=save_inputs,
+        suffix=suffix, filepath=filepath, save_inputs=save_inputs,
         graph_label='Site Enrolment', graph_about='...')
     fig_cumulative = idw.fig_stacked_bar_chart(
         df_cumulative,
         title='Cumulative enrolment (SYNTHETIC DATA)',
         xlabel='Month', ylabel='Number of patients',
-        suffix=suffix, file_path=file_path, save_inputs=save_inputs,
+        suffix=suffix, filepath=filepath, save_inputs=save_inputs,
         graph_label='Cumulative patient enrolment by country',
         graph_about='...')
     fig_enrolment = idw.fig_stacked_bar_chart(
         df_enrolment,
         title='Enrolment by month (SYNTHETIC DATA)',
         xlabel='Month', ylabel='Number of patients',
-        suffix=suffix, file_path=file_path, save_inputs=save_inputs,
+        suffix=suffix, filepath=filepath, save_inputs=save_inputs,
         graph_label='Patient enrolment by country', graph_about='...')
 
     return (fig_enrolment, fig_cumulative, fig_patients_bysite)

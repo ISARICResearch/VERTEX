@@ -23,7 +23,7 @@ def save_inputs_to_file(locals):
     data = locals.pop('df')
     # Convert to list (if not already)
     data = data if isinstance(data, tuple) else (data,)
-    path = locals['file_path']
+    path = locals['filepath']
     graph_id = get_graph_id(locals['graph_id'], locals['suffix'], frame=2)
     fig_data = [
         graph_id + '_data___' + str(ii) + '.csv'
@@ -54,7 +54,7 @@ def save_inputs_to_file(locals):
 def fig_placeholder(
         df,
         title='Sample scatter plot',
-        suffix='', file_path='', save_inputs=False,
+        suffix='', filepath='', save_inputs=False,
         graph_id='', graph_label='', graph_about=''):
 
     if save_inputs:
@@ -80,7 +80,7 @@ def fig_sunburst(
         title='Sunburst Chart',
         path=['level0', 'level1'], values='value',
         base_color_map=None,
-        suffix='', file_path='', save_inputs=False,
+        suffix='', filepath='', save_inputs=False,
         graph_id='', graph_label='', graph_about=''):
 
     if save_inputs:
@@ -98,7 +98,7 @@ def fig_cumulative_bar_chart(
         df,
         title='Cumulative Bar by Timepoint', xlabel='x', ylabel='y',
         base_color_map=None,
-        suffix='', file_path='', save_inputs=False,
+        suffix='', filepath='', save_inputs=False,
         graph_id='', graph_label='', graph_about=''):
 
     if save_inputs:
@@ -154,7 +154,7 @@ def fig_stacked_bar_chart(
         df,
         title='Bar Chart by Timepoint', xlabel='x', ylabel='y',
         base_color_map=None,
-        suffix='', file_path='', save_inputs=False,
+        suffix='', filepath='', save_inputs=False,
         graph_id='', graph_label='', graph_about=''):
 
     if save_inputs:
@@ -209,7 +209,7 @@ def fig_stacked_bar_chart(
 def fig_upset(
         df,
         title='Upset Plot', height=480,
-        suffix='', file_path='', save_inputs=False,
+        suffix='', filepath='', save_inputs=False,
         graph_id='', graph_label='', graph_about=''):
 
     if save_inputs:
@@ -363,7 +363,7 @@ def fig_upset(
 def fig_frequency_chart(
         df,
         title='Frequency Chart', base_color_map=None,
-        suffix='', file_path='', save_inputs=False,
+        suffix='', filepath='', save_inputs=False,
         graph_id='', graph_label='', graph_about=''):
 
     if save_inputs:
@@ -451,7 +451,7 @@ def fig_frequency_chart(
 def fig_table(
         df,
         table_key='',
-        suffix='', file_path='', save_inputs=False,
+        suffix='', filepath='', save_inputs=False,
         graph_id='', graph_label='', graph_about=''):
 
     if save_inputs:
@@ -489,7 +489,7 @@ def fig_table(
 def fig_dual_stack_pyramid(
         df, yaxis_label=None,
         title='Dual-Sided Stacked Pyramid Chart', base_color_map=None,
-        suffix='', file_path='', save_inputs=False,
+        suffix='', filepath='', save_inputs=False,
         graph_id='', graph_label='', graph_about=''):
 
     if save_inputs:

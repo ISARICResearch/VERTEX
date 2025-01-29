@@ -48,8 +48,8 @@ init_project_path = 'projects/ARChetypeCRF_h5nx_synthetic/'
 ############################################
 
 
-def import_from_path(module_name, file_path):
-    spec = importlib.util.spec_from_file_location(module_name, file_path)
+def import_from_path(module_name, filepath):
+    spec = importlib.util.spec_from_file_location(module_name, filepath)
     module = importlib.util.module_from_spec(spec)
     sys.modules[module_name] = module
     spec.loader.exec_module(module)
@@ -436,13 +436,13 @@ def get_insight_panels(config_dict, insight_panels_path):
 
 def get_visuals(
         buttons, insight_panels, df_map, df_forms_dict,
-        dictionary, quality_report, file_path):
+        dictionary, quality_report, filepath):
     for ii in range(len(buttons)):
         suffix = buttons[ii]['suffix']
         visuals = insight_panels[suffix].create_visuals(
             df_map=df_map, df_forms_dict=df_forms_dict,
             dictionary=dictionary, quality_report=quality_report,
-            suffix=suffix, file_path=file_path, save_inputs=True)
+            suffix=suffix, filepath=filepath, save_inputs=True)
         buttons[ii]['graph_ids'] = [id for _, id, _, _ in visuals]
     return buttons
 
@@ -676,7 +676,7 @@ def define_footer_modal(instructions, about):
 def register_callbacks(
         app, insight_panels, df_map,
         df_forms_dict, dictionary, quality_report, filter_options,
-        file_path, save_inputs):
+        filepath, save_inputs):
     @app.callback(
         Output('world-map', 'figure'),
         [
@@ -815,7 +815,7 @@ def register_callbacks(
             visuals = insight_panels[suffix].create_visuals(
                 df_map=df_map, df_forms_dict=df_forms_dict,
                 dictionary=dictionary, quality_report=quality_report,
-                suffix=suffix, file_path=file_path, save_inputs=False)
+                suffix=suffix, filepath=filepath, save_inputs=False)
             button = {
                 **insight_panels[suffix].define_button(), **{'suffix': suffix}}
             modal = create_modal(visuals, button, filter_options)
@@ -963,7 +963,7 @@ def register_callbacks(
             visuals = insight_panels[suffix].create_visuals(
                 df_map=df_map_filtered, df_forms_dict=df_forms_filtered,
                 dictionary=dictionary, quality_report=quality_report,
-                file_path=file_path, suffix=suffix,
+                filepath=filepath, suffix=suffix,
                 save_inputs=save_inputs)
             modal = create_modal(visuals, button, filter_options)
         output = modal, genders, age_range, outcomes, countries
@@ -1122,7 +1122,7 @@ def main():
             buttons, insight_panels,
             df_map=df_map, df_forms_dict=df_forms_dict,
             dictionary=dictionary, quality_report=quality_report,
-            file_path=os.path.join(public_path, 'data'))
+            filepath=os.path.join(public_path, 'data'))
         os.makedirs(os.path.dirname(public_path), exist_ok=True)
         shutil.copy('descriptive_dashboard_public.py', public_path)
         shutil.copy('IsaricDraw.py', public_path)
