@@ -27,7 +27,7 @@ import importlib.util
 # init_project_path = 'projects/ARChetypeCRF_dengue_synthetic/'
 # init_project_path = 'projects/example/'
 # init_project_path = '../VERTEX_projects/dengue_global/'
-init_project_path = 'projects/ARChetypeCRF_dengue_synthetic/'
+init_project_path = 'projects/ARChetypeCRF_h5nx_synthetic/'
 
 
 # def get_project_path():
