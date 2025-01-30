@@ -21,36 +21,63 @@ import pandas as pd
 ############################################
 
 
-def get_variable_list(dictionary, sections):
-    '''Get all variables in the dictionary belonging to sections
-    (assumes ARC format)'''
-    section_ids = dictionary['field_name'].apply(lambda x: x.split('_')[0])
-    variable_list = dictionary['field_name'].loc[section_ids.isin(sections)]
-    variable_list = list(variable_list)
-    return variable_list
+# def get_variable_list(dictionary, sections):
+#     '''Get all variables in the dictionary belonging to sections
+#     (assumes ARC format)'''
+#     section_ids = dictionary['field_name'].apply(lambda x: x.split('_')[0])
+#     variable_list = dictionary['field_name'].loc[section_ids.isin(sections)]
+#     variable_list = list(variable_list)
+#     return variable_list
 
 
-def get_variables_from_sections(
-        variable_list, section_list,
-        required_variables=None, exclude_suffix=None):
+def get_variables_by_section_and_type(
+        df, dictionary,
+        required_variables=None,
+        include_sections=['demog'],
+        include_types=['binary', 'categorical', 'numeric'],
+        exclude_suffix=[
+            '_units', 'addi', 'otherl2', 'item', '_oth',
+            '_unlisted', 'otherl3'],
+        include_subjid=False):
     '''
-    Get only the variables from sections, plus any required variables
+    Get all variables in the dataframe from specified sections and types,
+    plus any required variables.
     '''
-    include_variables = []
-    for section in section_list:
-        include_variables += [
-            var for var in variable_list if var.startswith(section + '_')]
-
-    if required_variables is not None:
-        required_variables = [
-            var for var in required_variables if var not in include_variables]
-        include_variables = required_variables + include_variables
-
-    if exclude_suffix is not None:
-        include_variables = [
-            var for var in include_variables
-            if (var.endswith(tuple(exclude_suffix)) == 0)]
+    include_ind = dictionary['field_name'].apply(
+        lambda x: x.startswith(tuple(x + '_' for x in include_sections)))
+    include_ind &= dictionary['field_type'].isin(include_types)
+    include_ind &= (dictionary['field_name'].apply(
+        lambda x: x.endswith(tuple('___' + x for x in exclude_suffix))) == 0)
+    if isinstance(required_variables, list):
+        include_ind |= dictionary['field_name'].isin(required_variables)
+    if include_subjid:
+        include_ind |= (dictionary['field_name'] == 'subjid')
+    include_variables = dictionary.loc[include_ind, 'field_name'].tolist()
+    include_variables = [col for col in include_variables if col in df.columns]
     return include_variables
+
+
+# def get_variables_from_sections(
+#         variable_list, section_list,
+#         required_variables=None, exclude_suffix=None):
+#     '''
+#     Get only the variables from sections, plus any required variables
+#     '''
+#     include_variables = []
+#     for section in section_list:
+#         include_variables += [
+#             var for var in variable_list if var.startswith(section + '_')]
+#
+#     if required_variables is not None:
+#         required_variables = [
+#             var for var in required_variables if var not in include_variables]
+#         include_variables = required_variables + include_variables
+#
+#     if exclude_suffix is not None:
+#         include_variables = [
+#             var for var in include_variables
+#             if (var.endswith(tuple(exclude_suffix)) == 0)]
+#     return include_variables
 
 
 def convert_categorical_to_onehot(
@@ -195,16 +222,17 @@ def get_descriptive_data(
         include_subjid=False, exclude_negatives=True):
     df = data.copy()
 
-    include_columns = dictionary.loc[(
-        dictionary['field_type'].isin(include_types)), 'field_name'].tolist()
-    include_columns = [col for col in include_columns if col in df.columns]
-    include_columns = get_variables_from_sections(
-        include_columns,
-        section_list=include_sections, exclude_suffix=exclude_suffix)
+    # include_columns = dictionary.loc[(
+    #     dictionary['field_type'].isin(include_types)), 'field_name'].tolist()
+    # include_columns = [col for col in include_columns if col in df.columns]
+    include_columns = get_variables_by_section_and_type(
+        df, dictionary,
+        include_types=include_types, include_subjid=include_subjid,
+        include_sections=include_sections, exclude_suffix=exclude_suffix)
     if (by_column is not None) & (by_column not in include_columns):
         include_columns = [by_column] + include_columns
-    if include_subjid:
-        include_columns = ['subjid'] + include_columns
+    # if include_subjid:
+    #     include_columns = ['subjid'] + include_columns
     df = df[include_columns].dropna(axis=1, how='all').copy()
 
     # Convert categorical variables to onehot-encoded binary columns
