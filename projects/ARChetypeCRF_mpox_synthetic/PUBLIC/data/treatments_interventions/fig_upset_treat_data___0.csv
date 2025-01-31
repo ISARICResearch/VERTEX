@@ -1,0 +1,6 @@
+index,count,short_label,label
+treat_prone,283,<b>Prone positioning</b>,<b>Prone positioning</b>
+treat_o2supp_suppleo2,275,<b>Supplemental oxygen</b>,<b>Supplemental oxygen</b>
+treat_unlisted,264,<b>Other intervention(s) or procedure(s)</b>,<b>Other intervention(s) or procedure(s)</b>
+treat_prone_when___Whilst self-ventilating,103,"<b>When was the prone positioning?</b>, Whilst self-ventilating","<b>When was the prone positioning?</b>, Whilst self-ventilating"
+treat_o2supp_ecmotyp___Veno-venous (VV),49,"<b>Type of ECLS / ECMO</b>, Veno-venous (VV)","<b>Type of ECLS / ECMO</b>, Veno-venous (VV)"

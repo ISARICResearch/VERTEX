@@ -1,6 +1,0 @@
-index,count,short_label,label
-adsym_chestpain,348,<b>Chest pain</b>,<b>Chest pain</b>
-adsym_seizconv,339,<b>Seizures / convulsions</b>,<b>Seizures / convulsions</b>
-adsym_vomit2d,105,<b>Persistent vomiting? (>=2/day)</b>,<b>Persistent vomiting? (>=2/day)</b>
-adsym_cough_hemop,103,<b>Hemoptysis</b>,<b>Hemoptysis</b>
-adsym_cough_nonprod,102,<b>Non-productive </b>,<b>Non-productive </b>

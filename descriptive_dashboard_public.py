@@ -24,7 +24,7 @@ filepath = './'
 def get_config(path, config_defaults):
     try:
         with open(os.path.join(
-                path, 'public_config_file.json')) as json_data:
+                path, 'public_config_file.json'), 'r') as json_data:
             config_dict = json.load(json_data)
     except Exception:
         print(f'config_file.json not in {path}, using defaults.')
@@ -146,13 +146,6 @@ def define_menu(buttons, project_name=None):
         menu_items.append(dbc.AccordionItem(
             title=item,
             children=item_children))
-    # menu = dbc.Accordion(
-    #     menu_items,
-    #     start_collapsed=True,
-    #     style={
-    #         'width': '300px', 'position': 'fixed', 'bottom': 0, 'left': 0,
-    #         'z-index': 1000, 'background-color': 'rgba(255, 255, 255, 0.8)',
-    #         'padding': '10px'})
     menu = [dbc.ModalBody([dbc.Accordion(menu_items, start_collapsed=True)])]
     if project_name is not None:
         menu_header = [dbc.ModalHeader(html.H1(
@@ -253,13 +246,31 @@ def generate_html_text(text):
 
 
 def get_visuals(path, buttons):
+    # visuals = {}
+    # for file in os.listdir(path):
+    #     if file.endswith('.txt') & (file.startswith('dashboard') is False):
+    #         new_file = eval(open(os.path.join(path, file), 'r').read())
+    #         fig_id = new_file['fig_id']
+    #         data = tuple(
+    #             pd.read_csv(path + name) for name in new_file['fig_data'])
+    #         data = data[0] if (len(data) == 1) else data
+    #         fig_fun = eval('idw.' + new_file['fig_name'])
+    #         new_file['fig_arguments']['save_inputs'] = False
+    #         visuals[fig_id] = fig_fun(data, **new_file['fig_arguments'])
+
     visuals = {}
-    for file in os.listdir(path):
-        if file.endswith('.txt') & (file.startswith('dashboard') is False):
-            new_file = eval(open(os.path.join(path, file), 'r').read())
+    for ii in range(len(buttons)):
+        suffix = buttons[ii]['suffix']
+        metadata_files = os.listdir(os.path.join(path, suffix))
+        metadata_files = [
+            file for file in metadata_files if file.endswith('.txt')]
+        for file in metadata_files:
+            with open(os.path.join(path, suffix, file), 'r') as f:
+                new_file = eval(f.read())
             fig_id = new_file['fig_id']
             data = tuple(
-                pd.read_csv(path + name) for name in new_file['fig_data'])
+                pd.read_csv(os.path.join(path, name))
+                for name in new_file['fig_data'])
             data = data[0] if (len(data) == 1) else data
             fig_fun = eval('idw.' + new_file['fig_name'])
             new_file['fig_arguments']['save_inputs'] = False
@@ -477,11 +488,13 @@ def main():
 
     config_dict = get_config(filepath, config_defaults)
 
-    metadata_file = os.path.join(filepath, 'data/dashboard_metadata.txt')
-    metadata = eval(open(metadata_file, 'r').read())
+    metadata_file = os.path.join(filepath, 'data', 'dashboard_metadata.txt')
+    with open(metadata_file, 'r') as f:
+        metadata = eval(f.read())
     buttons = get_visuals(os.path.join(filepath, 'data/', ''), metadata)
 
-    df_countries = pd.read_csv('data/dashboard_data.csv')
+    data_file = os.path.join(filepath, 'data', 'dashboard_data.csv')
+    df_countries = pd.read_csv(data_file)
     mapbox_style = ['open-street-map', 'carto-positron']
     map_layout_dict = dict(
         mapbox_style=mapbox_style[1],

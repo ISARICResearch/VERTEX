@@ -10,11 +10,11 @@ import sys
 default_height = 430
 
 
-def get_graph_id(graph_id_prefix, suffix, frame=1):
+def get_graph_id(graph_id_suffix, suffix, frame=1):
     fig_name = sys._getframe(frame).f_code.co_name
-    if len(graph_id_prefix) != 0:
-        graph_id_prefix = graph_id_prefix + '_'
-    graph_id = graph_id_prefix + fig_name + '_' + suffix
+    if len(graph_id_suffix) != 0:
+        graph_id_suffix = '_' + graph_id_suffix
+    graph_id = suffix + '/' + fig_name + graph_id_suffix
     return graph_id
 
 
@@ -551,12 +551,12 @@ def fig_dual_stack_pyramid(
                 )
             )
 
-    # Sorting y-axis categories
-    split_ranges = [
-        (int(r.split('-')[0]), int(r.split('-')[1]))
-        for r in df['y_axis'].unique()]
-    sorted_ranges = sorted(split_ranges, key=lambda x: x[0])
-    sorted_y_axis = [f'{start}-{end}' for start, end in sorted_ranges]
+    # # Sorting y-axis categories
+    # split_ranges = [
+    #     (int(r.split('-')[0]), int(r.split('-')[1]))
+    #     for r in df['y_axis'].unique()]
+    # sorted_ranges = sorted(split_ranges, key=lambda x: x[0])
+    # sorted_y_axis = [f'{start}-{end}' for start, end in sorted_ranges]
 
     max_value = max(
         df['value'].abs().max(),
@@ -580,7 +580,7 @@ def fig_dual_stack_pyramid(
             title=yaxis_label,
             automargin=True,
             categoryorder='array',
-            categoryarray=sorted_y_axis
+            categoryarray=df['y_axis'],
         ),
         annotations=[
             dict(

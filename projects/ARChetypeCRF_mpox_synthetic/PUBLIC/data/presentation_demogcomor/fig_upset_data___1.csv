@@ -1,0 +1,17 @@
+index,label,count
+"('comor_smoking',)","('<b>Ever smoked</b>',)",252
+"('comor_diabetes_type1',)","('<b>Type 1 diabetes mellitus</b>',)",58
+"('comor_aids_art',)","('<b>On Anti-retroviral therapy (ART)</b>',)",52
+"('comor_unlisted_0addi',)","('<b>Any additional other relevant comorbidity(s) ?</b>',)",50
+"('comor_aids_art', 'comor_smoking')","('<b>On Anti-retroviral therapy (ART)</b>', '<b>Ever smoked</b>')",32
+"('comor_smoking', 'comor_diabetes_type1')","('<b>Ever smoked</b>', '<b>Type 1 diabetes mellitus</b>')",30
+"('comor_smoking', 'comor_unlisted_0addi')","('<b>Ever smoked</b>', '<b>Any additional other relevant comorbidity(s) ?</b>')",21
+"('comor_aids_art', 'comor_diabetes_type1')","('<b>On Anti-retroviral therapy (ART)</b>', '<b>Type 1 diabetes mellitus</b>')",8
+"('comor_aids_art', 'comor_unlisted_0addi')","('<b>On Anti-retroviral therapy (ART)</b>', '<b>Any additional other relevant comorbidity(s) ?</b>')",6
+"('comor_unlisted_0addi', 'comor_diabetes_type1')","('<b>Any additional other relevant comorbidity(s) ?</b>', '<b>Type 1 diabetes mellitus</b>')",6
+"('comor_smoking', 'comor_unlisted_0addi', 'comor_diabetes_type1')","('<b>Ever smoked</b>', '<b>Any additional other relevant comorbidity(s) ?</b>', '<b>Type 1 diabetes mellitus</b>')",5
+"('comor_unlisted_2addi', 'comor_unlisted_0addi')","('<b>->Any additional other relevant comorbidity(s) ?</b>', '<b>Any additional other relevant comorbidity(s) ?</b>')",4
+"('comor_unlisted_2addi', 'comor_aids_art', 'comor_unlisted_0addi')","('<b>->Any additional other relevant comorbidity(s) ?</b>', '<b>On Anti-retroviral therapy (ART)</b>', '<b>Any additional other relevant comorbidity(s) ?</b>')",3
+"('comor_unlisted_2addi', 'comor_smoking', 'comor_unlisted_0addi')","('<b>->Any additional other relevant comorbidity(s) ?</b>', '<b>Ever smoked</b>', '<b>Any additional other relevant comorbidity(s) ?</b>')",3
+"('comor_aids_art', 'comor_smoking', 'comor_diabetes_type1')","('<b>On Anti-retroviral therapy (ART)</b>', '<b>Ever smoked</b>', '<b>Type 1 diabetes mellitus</b>')",3
+"('comor_aids_art', 'comor_smoking', 'comor_unlisted_0addi')","('<b>On Anti-retroviral therapy (ART)</b>', '<b>Ever smoked</b>', '<b>Any additional other relevant comorbidity(s) ?</b>')",2

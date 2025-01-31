@@ -1,0 +1,19 @@
+index,label,count
+"('sympt_unlisted',)","('<b>Other sign(s) or symptom(s)</b>',)",49
+"('sympt_neurodist',)","('<b>Psychological disturbance</b>',)",49
+"('sympt_feverplus',)","('<b>Fever / chills / rigors</b>',)",48
+"('sympt_chestpain',)","('<b>Chest pain</b>',)",40
+"('sympt_feverplus', 'sympt_chestpain')","('<b>Fever / chills / rigors</b>', '<b>Chest pain</b>')",25
+"('sympt_unlisted', 'sympt_neurodist')","('<b>Other sign(s) or symptom(s)</b>', '<b>Psychological disturbance</b>')",25
+"('sympt_chestpain', 'sympt_neurodist')","('<b>Chest pain</b>', '<b>Psychological disturbance</b>')",24
+"('sympt_feverplus', 'sympt_neurodist')","('<b>Fever / chills / rigors</b>', '<b>Psychological disturbance</b>')",23
+"('sympt_chestpain', 'sympt_unlisted')","('<b>Chest pain</b>', '<b>Other sign(s) or symptom(s)</b>')",23
+"('sympt_feverplus', 'sympt_unlisted')","('<b>Fever / chills / rigors</b>', '<b>Other sign(s) or symptom(s)</b>')",20
+"('sympt_feverplus', 'sympt_chestpain', 'sympt_neurodist')","('<b>Fever / chills / rigors</b>', '<b>Chest pain</b>', '<b>Psychological disturbance</b>')",17
+"('sympt_feverplus', 'sympt_chestpain', 'sympt_unlisted')","('<b>Fever / chills / rigors</b>', '<b>Chest pain</b>', '<b>Other sign(s) or symptom(s)</b>')",13
+"('sympt_feverplus', 'sympt_unlisted', 'sympt_neurodist')","('<b>Fever / chills / rigors</b>', '<b>Other sign(s) or symptom(s)</b>', '<b>Psychological disturbance</b>')",12
+"('sympt_feverplus', 'sympt_chestpain', 'sympt_unlisted', 'sympt_neurodist')","('<b>Fever / chills / rigors</b>', '<b>Chest pain</b>', '<b>Other sign(s) or symptom(s)</b>', '<b>Psychological disturbance</b>')",11
+"('sympt_chestpain', 'sympt_unlisted', 'sympt_neurodist')","('<b>Chest pain</b>', '<b>Other sign(s) or symptom(s)</b>', '<b>Psychological disturbance</b>')",9
+"('sympt_unlisted_2addi', 'sympt_unlisted', 'sympt_neurodist')","('<b>->Any additional other sign(s) or symptom(s) ?</b>', '<b>Other sign(s) or symptom(s)</b>', '<b>Psychological disturbance</b>')",1
+"('sympt_unlisted_2addi', 'sympt_unlisted')","('<b>->Any additional other sign(s) or symptom(s) ?</b>', '<b>Other sign(s) or symptom(s)</b>')",1
+"('sympt_unlisted_2addi', 'sympt_feverplus', 'sympt_chestpain', 'sympt_unlisted', 'sympt_neurodist')","('<b>->Any additional other sign(s) or symptom(s) ?</b>', '<b>Fever / chills / rigors</b>', '<b>Chest pain</b>', '<b>Other sign(s) or symptom(s)</b>', '<b>Psychological disturbance</b>')",1

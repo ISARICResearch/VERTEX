@@ -1,0 +1,22 @@
+index,label,count
+"('compl_focalneuro',)","('<b>Focal neurological signs</b>',)",110
+"('compl_myocarditis',)","('<b>Myocarditis</b>',)",109
+"('compl_sepsis',)","('<b>Sepsis</b>',)",94
+"('compl_ards',)","('<b>Acute Respiratory Distress Syndrome (ARDS)</b>',)",84
+"('compl_focalneuro', 'compl_sepsis')","('<b>Focal neurological signs</b>', '<b>Sepsis</b>')",51
+"('compl_myocarditis', 'compl_ards')","('<b>Myocarditis</b>', '<b>Acute Respiratory Distress Syndrome (ARDS)</b>')",51
+"('compl_focalneuro', 'compl_ards')","('<b>Focal neurological signs</b>', '<b>Acute Respiratory Distress Syndrome (ARDS)</b>')",48
+"('compl_focalneuro', 'compl_myocarditis')","('<b>Focal neurological signs</b>', '<b>Myocarditis</b>')",43
+"('compl_myocarditis', 'compl_sepsis')","('<b>Myocarditis</b>', '<b>Sepsis</b>')",42
+"('compl_sepsis', 'compl_ards')","('<b>Sepsis</b>', '<b>Acute Respiratory Distress Syndrome (ARDS)</b>')",39
+"('compl_focalneuro', 'compl_sepsis', 'compl_ards')","('<b>Focal neurological signs</b>', '<b>Sepsis</b>', '<b>Acute Respiratory Distress Syndrome (ARDS)</b>')",31
+"('compl_focalneuro', 'compl_myocarditis', 'compl_sepsis')","('<b>Focal neurological signs</b>', '<b>Myocarditis</b>', '<b>Sepsis</b>')",27
+"('compl_focalneuro', 'compl_myocarditis', 'compl_ards')","('<b>Focal neurological signs</b>', '<b>Myocarditis</b>', '<b>Acute Respiratory Distress Syndrome (ARDS)</b>')",23
+"('compl_myocarditis', 'compl_sepsis', 'compl_ards')","('<b>Myocarditis</b>', '<b>Sepsis</b>', '<b>Acute Respiratory Distress Syndrome (ARDS)</b>')",22
+"('compl_focalneuro', 'compl_myocarditis', 'compl_sepsis', 'compl_ards')","('<b>Focal neurological signs</b>', '<b>Myocarditis</b>', '<b>Sepsis</b>', '<b>Acute Respiratory Distress Syndrome (ARDS)</b>')",4
+"('compl_unlisted_3addi', 'compl_focalneuro', 'compl_myocarditis', 'compl_sepsis')","('<b>>->Any additional other complication(s) ?</b>', '<b>Focal neurological signs</b>', '<b>Myocarditis</b>', '<b>Sepsis</b>')",1
+"('compl_unlisted_3addi', 'compl_focalneuro', 'compl_sepsis')","('<b>>->Any additional other complication(s) ?</b>', '<b>Focal neurological signs</b>', '<b>Sepsis</b>')",1
+"('compl_unlisted_3addi', 'compl_ards')","('<b>>->Any additional other complication(s) ?</b>', '<b>Acute Respiratory Distress Syndrome (ARDS)</b>')",1
+"('compl_unlisted_3addi', 'compl_sepsis')","('<b>>->Any additional other complication(s) ?</b>', '<b>Sepsis</b>')",1
+"('compl_unlisted_3addi', 'compl_myocarditis')","('<b>>->Any additional other complication(s) ?</b>', '<b>Myocarditis</b>')",1
+"('compl_unlisted_3addi',)","('<b>>->Any additional other complication(s) ?</b>',)",1

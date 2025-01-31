@@ -22,7 +22,7 @@ def create_visuals(
     '''
     Create all visuals in the insight panel from the RAP dataframe
     '''
-
+    
     df_sunburst = df_map[['subjid', 'site', 'filters_country']].groupby(
         ['site', 'filters_country']).nunique().reset_index()
     df_sunburst['site'] = df_sunburst['site'].str.split('-', n=1).str[0]

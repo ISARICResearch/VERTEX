@@ -1,0 +1,11 @@
+variable,proportion,label,short_label
+compl_unlisted_2addi,1.0,<b>->Any additional other complication(s) ?</b>,<b>->Any additional other complication(s) ?</b>
+compl_myocardial,0.9697674418604652,<b>Myocardial infarction</b>,<b>Myocardial infarction</b>
+compl_bacpneumo,0.9610091743119266,<b>Bacterial pneumonia</b>,<b>Bacterial pneumonia</b>
+compl_pericarditis,0.9608323133414932,<b>Pericarditis</b>,<b>Pericarditis</b>
+compl_rhabdomyol,0.9569767441860465,<b>Rhabdomyolysis</b>,<b>Rhabdomyolysis</b>
+compl_chf,0.9035202086049544,<b>Congestive heart failure</b>,<b>Congestive heart failure</b>
+compl_myositis,0.8875453446191052,<b>Myositis</b>,<b>Myositis</b>
+compl_acuterenal,0.8755980861244019,<b>Acute renal injury / acute renal failure</b>,<b>Acute renal injury / acute renal failure</b>
+compl_jaundice,0.8536585365853658,<b> Jaundice</b>,<b> Jaundice</b>
+compl_thrombemb_yn,0.841340782122905,<b>Thromboembolism</b>,<b>Thromboembolism</b>

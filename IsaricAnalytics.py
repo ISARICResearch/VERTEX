@@ -461,6 +461,7 @@ def get_pyramid_data(df, column_dict, left_side='Female', right_side='Male'):
     df_pyramid = df_pyramid.loc[
         df_pyramid['side'].isin([left_side, right_side])]
     df_pyramid.loc[:, 'left_side'] = (df_pyramid['side'] == left_side)
+    df_pyramid = df_pyramid.sort_values(by='y_axis').reset_index(drop=True)
     return df_pyramid
 
 

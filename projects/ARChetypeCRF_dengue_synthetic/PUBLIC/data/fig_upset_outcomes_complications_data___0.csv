@@ -1,6 +1,0 @@
-index,count,short_label,label
-compl_focalneuro,339,<b>Focal neurological signs</b>,<b>Focal neurological signs</b>
-compl_severebleed_yn,325,<b>Severe bleeding (requiring intervention)</b>,<b>Severe bleeding (requiring intervention)</b>
-compl_myocarditis,323,<b>Myocarditis</b>,<b>Myocarditis</b>
-compl_sepsis,313,<b>Sepsis</b>,<b>Sepsis</b>
-compl_ards,303,<b>Acute Respiratory Distress Syndrome ...</b>,<b>Acute Respiratory Distress Syndrome (ARDS)</b>

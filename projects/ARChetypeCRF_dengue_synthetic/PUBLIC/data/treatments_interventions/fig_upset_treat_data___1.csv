@@ -1,0 +1,31 @@
+index,label,count
+"('treat_unlisted',)","('<b>Other intervention(s) or procedure(s)</b>',)",56
+"('treat_steroids',)","('<b>Corticosteroids</b>',)",54
+"('treat_fluid_parent',)","('<b>Parenteral IV fluid?</b>',)",53
+"('treat_antibiotic',)","('<b>Antibiotics</b>',)",44
+"('treat_unlisted', 'treat_antibiotic')","('<b>Other intervention(s) or procedure(s)</b>', '<b>Antibiotics</b>')",40
+"('treat_unlisted', 'treat_fluid_parent', 'treat_steroids')","('<b>Other intervention(s) or procedure(s)</b>', '<b>Parenteral IV fluid?</b>', '<b>Corticosteroids</b>')",36
+"('treat_fluid_parent', 'treat_antibiotic')","('<b>Parenteral IV fluid?</b>', '<b>Antibiotics</b>')",33
+"('treat_unlisted', 'treat_antibiotic', 'treat_steroids')","('<b>Other intervention(s) or procedure(s)</b>', '<b>Antibiotics</b>', '<b>Corticosteroids</b>')",32
+"('treat_fluid_parent', 'treat_steroids')","('<b>Parenteral IV fluid?</b>', '<b>Corticosteroids</b>')",32
+"('treat_unlisted', 'treat_steroids')","('<b>Other intervention(s) or procedure(s)</b>', '<b>Corticosteroids</b>')",31
+"('treat_unlisted', 'treat_fluid_parent')","('<b>Other intervention(s) or procedure(s)</b>', '<b>Parenteral IV fluid?</b>')",25
+"('treat_unlisted', 'treat_fluid_parent', 'treat_antibiotic', 'treat_steroids')","('<b>Other intervention(s) or procedure(s)</b>', '<b>Parenteral IV fluid?</b>', '<b>Antibiotics</b>', '<b>Corticosteroids</b>')",24
+"('treat_antibiotic', 'treat_steroids')","('<b>Antibiotics</b>', '<b>Corticosteroids</b>')",22
+"('treat_unlisted', 'treat_fluid_parent', 'treat_antibiotic')","('<b>Other intervention(s) or procedure(s)</b>', '<b>Parenteral IV fluid?</b>', '<b>Antibiotics</b>')",21
+"('treat_fluid_parent', 'treat_antibiotic', 'treat_steroids')","('<b>Parenteral IV fluid?</b>', '<b>Antibiotics</b>', '<b>Corticosteroids</b>')",14
+"('treat_o2supp_ecmotyp___Veno-arterial (VA)', 'treat_antibiotic')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Antibiotics</b>')",8
+"('treat_o2supp_ecmotyp___Veno-arterial (VA)',)","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)',)",8
+"('treat_o2supp_ecmotyp___Veno-arterial (VA)', 'treat_antibiotic', 'treat_steroids')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Antibiotics</b>', '<b>Corticosteroids</b>')",7
+"('treat_o2supp_ecmotyp___Veno-arterial (VA)', 'treat_fluid_parent', 'treat_antibiotic')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Parenteral IV fluid?</b>', '<b>Antibiotics</b>')",7
+"('treat_o2supp_ecmotyp___Veno-arterial (VA)', 'treat_unlisted', 'treat_fluid_parent', 'treat_antibiotic')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Other intervention(s) or procedure(s)</b>', '<b>Parenteral IV fluid?</b>', '<b>Antibiotics</b>')",6
+"('treat_o2supp_ecmotyp___Veno-arterial (VA)', 'treat_unlisted', 'treat_fluid_parent', 'treat_antibiotic', 'treat_steroids')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Other intervention(s) or procedure(s)</b>', '<b>Parenteral IV fluid?</b>', '<b>Antibiotics</b>', '<b>Corticosteroids</b>')",6
+"('treat_o2supp_ecmotyp___Veno-arterial (VA)', 'treat_unlisted', 'treat_antibiotic')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Other intervention(s) or procedure(s)</b>', '<b>Antibiotics</b>')",4
+"('treat_o2supp_ecmotyp___Veno-arterial (VA)', 'treat_unlisted', 'treat_antibiotic', 'treat_steroids')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Other intervention(s) or procedure(s)</b>', '<b>Antibiotics</b>', '<b>Corticosteroids</b>')",3
+"('treat_o2supp_ecmotyp___Veno-arterial (VA)', 'treat_fluid_parent', 'treat_steroids')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Parenteral IV fluid?</b>', '<b>Corticosteroids</b>')",3
+"('treat_o2supp_ecmotyp___Veno-arterial (VA)', 'treat_unlisted', 'treat_fluid_parent', 'treat_steroids')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Other intervention(s) or procedure(s)</b>', '<b>Parenteral IV fluid?</b>', '<b>Corticosteroids</b>')",2
+"('treat_o2supp_ecmotyp___Veno-arterial (VA)', 'treat_unlisted', 'treat_steroids')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Other intervention(s) or procedure(s)</b>', '<b>Corticosteroids</b>')",2
+"('treat_o2supp_ecmotyp___Veno-arterial (VA)', 'treat_unlisted')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Other intervention(s) or procedure(s)</b>')",1
+"('treat_o2supp_ecmotyp___Veno-arterial (VA)', 'treat_fluid_parent', 'treat_antibiotic', 'treat_steroids')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Parenteral IV fluid?</b>', '<b>Antibiotics</b>', '<b>Corticosteroids</b>')",1
+"('treat_o2supp_ecmotyp___Veno-arterial (VA)', 'treat_steroids')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Corticosteroids</b>')",1
+"('treat_o2supp_ecmotyp___Veno-arterial (VA)', 'treat_fluid_parent')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Parenteral IV fluid?</b>')",1

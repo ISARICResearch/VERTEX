@@ -15,6 +15,7 @@ import getREDCapData as getRC
 import os
 import shutil
 import importlib.util
+import webbrowser
 # import dash_auth
 # import flask_caching as fc
 
@@ -25,9 +26,9 @@ import importlib.util
 
 # init_project_path = 'projects/ARChetypeCRF_mpox_synthetic/'
 # init_project_path = 'projects/ARChetypeCRF_dengue_synthetic/'
+init_project_path = 'projects/ARChetypeCRF_h5nx_synthetic/'
 # init_project_path = 'projects/example/'
 # init_project_path = '../VERTEX_projects/dengue_global/'
-init_project_path = 'projects/ARChetypeCRF_h5nx_synthetic/'
 
 
 # def get_project_path():
@@ -1113,16 +1114,21 @@ def main():
     if config_dict['save_public_outputs']:
         public_path = os.path.join(
             init_project_path, config_dict['public_path'])
-        os.makedirs(os.path.dirname(public_path + '/'), exist_ok=True)
-        os.makedirs(
-            os.path.dirname(os.path.join(public_path, 'data/')),
-            exist_ok=True)
         print(f'Saving files for public dashboard to "{public_path}"')
+        os.makedirs(
+            os.path.dirname(os.path.join(public_path, '')), exist_ok=True)
+        os.makedirs(
+            os.path.dirname(os.path.join(public_path, 'data', '')),
+            exist_ok=True)
+        for ip in config_dict['insight_panels']:
+            os.makedirs(
+                os.path.dirname(os.path.join(public_path, 'data', ip, '')),
+                exist_ok=True)
         buttons = get_visuals(
             buttons, insight_panels,
             df_map=df_map, df_forms_dict=df_forms_dict,
             dictionary=dictionary, quality_report=quality_report,
-            filepath=os.path.join(public_path, 'data'))
+            filepath=os.path.join(public_path, 'data', ''))
         os.makedirs(os.path.dirname(public_path), exist_ok=True)
         shutil.copy('descriptive_dashboard_public.py', public_path)
         shutil.copy('IsaricDraw.py', public_path)
@@ -1145,7 +1151,8 @@ def main():
             save_config_dict = {k: config_dict[k] for k in save_config_keys}
             json.dump(save_config_dict, file)
 
-    app.run_server(debug=True)
+    webbrowser.open('http://127.0.0.1:8050', new=2, autoraise=True)
+    app.run_server(debug=True, use_reloader=False)
     return
 
 
