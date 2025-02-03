@@ -103,6 +103,16 @@ def get_config(init_project_path, config_defaults):
         print('These are ignored and will not appear in the dashboard.')
         config_dict['insight_panels'] = [
             x for x in config_dict['insight_panels'] if x in insight_panels]
+    if any([x not in config_dict['insight_panels'] for x in insight_panels]):
+        print('The following insight panel files are not listed in \
+        config_file.json:')
+        missing_insight_panels = [
+            x for x in insight_panels
+            if x not in config_dict['insight_panels']]
+        print('\n'.join(missing_insight_panels))
+        print('These will not appear in the dashboard. Please add them \
+        to the list "insight_panels" in config_file.json to include them in \
+        the dashboard.')
     return config_dict
 
 

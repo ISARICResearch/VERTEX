@@ -1,6 +1,0 @@
-1. Select categories to filter by sex, age, country and outcome.
-2. Click on Insights and then on each tab to view tables and figures.
-3. Hover mouse on chart for tooltip data (only available for figures).
-4. Zoom-in on figures using the buttons that appears when you hover the mouse near the top right of the figure.
-5. To reset a figure, double-click on it.
-6. Download a .png of the figure using the camera button that appears when you hover the mouse near the top right of the figure.
