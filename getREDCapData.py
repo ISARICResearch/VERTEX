@@ -15,7 +15,8 @@ def get_records(redcap_url, redcap_api_key):
         'token': redcap_api_key,
         'content': 'record',
         'action': 'export',
-        'format': 'json',
+        # 'format': 'json',
+        'format': 'csv',
         'type': 'flat',
         'csvDelimiter': '',
         'rawOrLabel': 'label',
@@ -25,11 +26,12 @@ def get_records(redcap_url, redcap_api_key):
         'exportDataAccessGroups': 'true',
         'returnFormat': 'json'
     }
-    r = requests.post(redcap_url, data=conex)
-    print('HTTP Status: ' + str(r.status_code))
-    data = (r.json())
-    data = pd.DataFrame(data)
-    return data
+    response = requests.post(redcap_url, data=conex)
+    print('HTTP Status: ' + str(response.status_code))
+    df = pd.read_csv(io.StringIO(response.text), keep_default_na=False)
+    # df = (r.json())
+    # df = pd.DataFrame(df)
+    return df
 
 
 def get_data_dictionary(redcap_url, redcap_api_key):
@@ -37,17 +39,15 @@ def get_data_dictionary(redcap_url, redcap_api_key):
     conex = {
         'token': redcap_api_key,
         'content': 'metadata',
-        'format': 'json',
+        # 'format': 'json',
+        'format': 'csv',
         'returnFormat': 'json'
     }
     # Make the API request
     response = requests.post(redcap_url, data=conex)
-    if (response.status_code == 200):
-        # Convert response JSON to DataFrame
-        metadata = response.json()
-        df = pd.DataFrame(metadata)
-    else:
-        df = None
+    df = pd.read_csv(io.StringIO(response.text), keep_default_na=False)
+    # df = response.json()
+    # df = pd.DataFrame(df)
     return df
 
 
@@ -57,15 +57,16 @@ def get_form_event(redcap_url, redcap_api_key):
     conex = {
         'token': redcap_api_key,
         'content': 'event',
-        'format': 'json',
+        # 'format': 'json',
+        'format': 'csv',
         'returnFormat': 'json'
     }
     # Make the API request
     response = requests.post(redcap_url, data=conex)
     if (response.status_code == 200):
-        # Convert response JSON to DataFrame
-        event = response.json()
-        event = pd.DataFrame(event)
+        # event = response.json()
+        # event = pd.DataFrame(event)
+        event = pd.read_csv(io.StringIO(response.text), keep_default_na=False)
     else:
         event_columns = ['event_name', 'arm_num', 'unique_event_name']
         event_columns = event_columns + ['custom_event_label', 'event_id']
@@ -74,15 +75,17 @@ def get_form_event(redcap_url, redcap_api_key):
     conex = {
         'token': redcap_api_key,
         'content': 'instrument',
-        'format': 'json',
+        # 'format': 'json',
+        'format': 'csv',
         'returnFormat': 'json'
     }
     # Make the API request
     response = requests.post(redcap_url, data=conex)
     if (response.status_code == 200):
-        # Convert response JSON to DataFrame
-        form = response.json()
-        form = pd.DataFrame(form).rename(columns={
+        # form = response.json()
+        # form = pd.DataFrame(form)
+        form = pd.read_csv(io.StringIO(response.text), keep_default_na=False)
+        form = form.rename(columns={
             'instrument_name': 'form', 'instrument_label': 'form_label'})
     else:
         form_columns = ['form', 'form_label']
@@ -91,15 +94,17 @@ def get_form_event(redcap_url, redcap_api_key):
     conex = {
         'token': redcap_api_key,
         'content': 'formEventMapping',
-        'format': 'json',
+        # 'format': 'json',
+        'format': 'csv',
         'returnFormat': 'json'
     }
     # Make the API request
     response = requests.post(redcap_url, data=conex)
     if (response.status_code == 200):
-        # Convert response JSON to DataFrame
-        form_event = response.json()
-        form_event = pd.DataFrame(form_event)
+        # form_event = response.json()
+        # form_event = pd.DataFrame(form_event)
+        form_event = pd.read_csv(
+            io.StringIO(response.text), keep_default_na=False)
     else:
         form_event_columns = ['arm_num', 'unique_event_name', 'form']
         form_event = pd.DataFrame(columns=form_event_columns)
@@ -120,10 +125,10 @@ def get_missing_data_codes(redcap_url, redcap_api_key):
         'token': redcap_api_key,
         'content': 'project',
         'format': 'csv',
-        'returnFormat': 'csv'
+        'returnFormat': 'json'
     }
-    r = requests.post(redcap_url, data=conex).content
-    df = pd.read_csv(io.StringIO(r.decode('utf-8')))
+    response = requests.post(redcap_url, data=conex)
+    df = pd.read_csv(io.StringIO(response.text), keep_default_na=False)
     if df['missing_data_codes'].isna().all():
         missing_data_codes = dict()
     else:
