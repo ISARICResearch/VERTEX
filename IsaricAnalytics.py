@@ -1,9 +1,15 @@
 import numpy as np
 import pandas as pd
-# import re
-# import os
-# import scipy.stats as stats
-# import researchpy as rp
+from typing import List, Union
+from bertopic import BERTopic
+from bertopic.representation import KeyBERTInspired, MaximalMarginalRelevance
+from bertopic._utils import select_topic_representation
+from umap import UMAP
+from sklearn.preprocessing import MinMaxScaler
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+from sklearn.impute import KNNImputer
+from sklearn.linear_model import LogisticRegression
 # from sklearn.metrics import roc_auc_score, roc_curve, accuracy_score
 # from sklearn.preprocessing import LabelEncoder, StandardScaler
 # from sklearn.model_selection import train_test_split, GridSearchCV
@@ -464,6 +470,282 @@ def get_pyramid_data(df, column_dict, left_side='Female', right_side='Male'):
     df_pyramid = df_pyramid.sort_values(by='y_axis').reset_index(drop=True)
     return df_pyramid
 
+
+############################################
+############################################
+# Clustering of free-text terms
+############################################
+############################################
+
+
+def clean_string_list(string_list):
+    """Helper function to remove nans and empty strs from a list of strings"""
+
+    # Using filter() with a lambda function
+    cleaned_list = list(filter(
+        lambda s: (
+            s is not None
+            and not (isinstance(s, float) and np.isnan(s))
+            and str(s).strip() != ''
+        ),
+        string_list
+    ))
+    return cleaned_list
+
+
+def get_clusters(
+        terms: List[str],
+        nr_topics: Union[str, int] = 'auto'):
+    """Function to find common topics appearing in a list of free text terms.
+    Uses the BERTopic topic modelling pipeline.
+
+    Args:
+        terms (List[str]):
+            list of free text terms, for example referring to an
+            'other combordities' field in a CRF
+        nr_topics (Union[str, int]): number of topics to model, 'auto' or int
+            specifying desired number
+
+    Returns:
+        clusters_df (pd.DataFrame):
+            pandas dataframe summarizing the results of the clustering process.
+            Contains the following columns:
+        Topic (int): topic id
+        Count (int): number of rows in terms assigned to that topic
+        Name (str): name of topic, default id + keywords
+        Representation (List[str]): list of keywords in topic
+        Representative_Docs (List[str]):
+            list of entries in terms which represent the topic
+        x, y (floats): coordinates of topic in an embedding space"""
+
+    # remove nans and empty strings
+    terms = clean_string_list(terms)
+
+    # first define the constituent parts of the pipeline
+    # how we embed the strings - default is sentence-transformers
+    embedding_model = None
+
+    # how we represent the topics - keyword extraction based on TF-IDF
+    keybert_mmr = [KeyBERTInspired(), MaximalMarginalRelevance()]
+
+    # we can have multiple representations if we like
+    representation_model = {
+        "Main": keybert_mmr,
+    }
+
+    # use bertopic topic modelling pipeline
+    topic_model = BERTopic(
+        embedding_model=embedding_model,  # how we embed the strings, default to sentence transformers
+        representation_model=representation_model,
+        nr_topics=nr_topics,
+    )
+
+    # fit the model on the terms
+    topics, probs = topic_model.fit_transform(documents=terms)
+
+    # extract topic words, frequencies, and embedding coordinates
+    distance_df = extract_topic_embeddings(topic_model=topic_model)
+
+    # extract info about each topic aka cluster
+    cluster_df = topic_model.get_topic_info()
+
+    # return the combined df
+    return pd.merge(cluster_df, distance_df, on='Topic', how='left')
+
+
+def extract_topic_embeddings(
+        topic_model: BERTopic,
+        topics: List[int] = None,
+        top_n_topics: int = None,
+        use_ctfidf: bool = False):
+    """Helper function to extract df with topic embedding info, from
+    bertopic.plotting._topics.visualize_topics"""
+
+    # Select topics based on top_n and topics args
+    freq_df = topic_model.get_topic_freq()
+    freq_df = freq_df.loc[freq_df.Topic != -1, :]
+    if topics is not None:
+        topics = list(topics)
+    elif top_n_topics is not None:
+        topics = sorted(freq_df.Topic.to_list()[:top_n_topics])
+    else:
+        topics = sorted(freq_df.Topic.to_list())
+
+    # Extract topic words and their frequencies
+    topic_list = sorted(topics)
+
+    # Embed c-TF-IDF into 2D
+    all_topics = sorted(list(topic_model.get_topics().keys()))
+    indices = np.array([all_topics.index(topic) for topic in topics])
+
+    embeddings, c_tfidf_used = select_topic_representation(
+        topic_model.c_tf_idf_,
+        topic_model.topic_embeddings_,
+        use_ctfidf=use_ctfidf,
+        output_ndarray=True,
+    )
+    embeddings = embeddings[indices]
+
+    if c_tfidf_used:
+        embeddings = MinMaxScaler().fit_transform(embeddings)
+        embeddings = UMAP(
+            n_neighbors=2, n_components=2,
+            metric="hellinger", random_state=42).fit_transform(embeddings)
+    else:
+        embeddings = UMAP(
+            n_neighbors=2, n_components=2,
+            metric="cosine", random_state=42).fit_transform(embeddings)
+
+    # assemble df
+    df = pd.DataFrame(
+        {
+            "x": embeddings[:, 0],
+            "y": embeddings[:, 1],
+            "Topic": topic_list,
+        }
+    )
+    return df
+
+
+############################################
+############################################
+# Logistic Regression from Risk Factors
+############################################
+############################################
+
+
+def execute_logistic_regression(
+        elr_dataframe_df, elr_outcome_str, elr_predictors_list,
+        print_results=True, labels=False, reg_type="multi"):
+    """
+    Performs a logistic regression and returns a table with the coefficients
+    and effects of the predictor variables.
+
+    Parameters:
+    - elr_dataframe_df (pd.DataFrame): DataFrame containing the data.
+    - elr_outcome_str (str): Name of the outcome variable.
+    - elr_predictors_list (list):
+        List of strings with the names of the predictor variables.
+    - print_results (bool, optional):
+        Flag to print the regression results. Default is True.
+    - labels (dict, optional):
+        Dictionary mapping variable names to readable labels.
+        Can accept an empty dictionary.
+    - reg_type (str, optional):
+        Type of regression ('multi' for multivariate, 'uni' for univariate).
+        Default is "multi".
+    Returns:
+    - elr_summary_df (pd.DataFrame):
+        DataFrame with the results of the logistic regression.
+    """
+
+    # Prepare the formula for the model
+    elr_formula_str = elr_outcome_str + ' ~ ' + ' + '.join(elr_predictors_list)
+
+    # Identify categorical variables that are also predictors
+    elr_categorical_vars_list = elr_dataframe_df.select_dtypes(
+        include=['object', 'category'])
+    elr_categorical_vars_list = elr_categorical_vars_list.columns.intersection(
+        elr_predictors_list)
+
+    # Convert categorical variables to the 'category' data type
+    for elr_var_str in elr_categorical_vars_list:
+        elr_dataframe_df[elr_var_str] = (
+            elr_dataframe_df[elr_var_str].astype('category'))
+
+    # Fit the logistic regression model
+    elr_model_obj = smf.glm(
+        formula=elr_formula_str,
+        data=elr_dataframe_df, family=sm.families.Binomial())
+    elr_result_obj = elr_model_obj.fit()
+
+    # Extract the summary table from the regression results
+    elr_summary_table_df = elr_result_obj.summary2().tables[1]
+
+    # Calculate Odds Ratios and confidence intervals
+    elr_summary_table_df['Odds Ratio'] = np.exp(elr_summary_table_df['Coef.'])
+    elr_summary_table_df['IC Low'] = np.exp(elr_summary_table_df['[0.025'])
+    elr_summary_table_df['IC High'] = np.exp(elr_summary_table_df['0.975]'])
+
+    # Select relevant columns and rename them as needed
+    elr_summary_df = elr_summary_table_df[[
+        'Odds Ratio', 'IC Low', 'IC High', 'P>|z|']]
+    elr_summary_df = elr_summary_df.rename(columns={'P>|z|': 'p-value'})
+    elr_summary_df = elr_summary_df.reset_index()
+    elr_summary_df.rename(
+        columns={
+            'index': 'Study',
+            'Odds Ratio': 'OddsRatio',
+            'IC Low': 'LowerCI',
+            'IC High': 'UpperCI'
+        }, inplace=True
+    )
+
+    # Map variable names to readable labels
+    if labels:
+        def elr_parse_variable_name(var_name):
+            if var_name == 'Intercept':
+                return labels.get('Intercept', 'Intercept')
+            elif '[' in var_name:
+                base_var = var_name.split('[')[0]
+                level = var_name.split('[')[1].split(']')[0]
+                base_var_name = base_var.replace(
+                    'C(', '').replace(')', '').strip()
+                label = labels.get(base_var_name, base_var_name)
+                return f'{label} ({level})'
+            else:
+                var_name_clean = var_name.replace(
+                    'C(', '').replace(')', '').strip()
+                return labels.get(var_name_clean, var_name_clean)
+
+        elr_summary_df['Study'] = elr_summary_df['Study'].apply(
+            elr_parse_variable_name)
+
+    # Reorder the columns
+    elr_summary_df = elr_summary_df[[
+        'Study', 'OddsRatio', 'LowerCI', 'UpperCI', 'p-value']]
+
+    # Format numerical values
+    elr_summary_df['OddsRatio'] = elr_summary_df['OddsRatio'].round(2)
+    elr_summary_df['LowerCI'] = elr_summary_df['LowerCI'].round(2)
+    elr_summary_df['UpperCI'] = elr_summary_df['UpperCI'].round(2)
+    elr_summary_df['p-value'] = elr_summary_df['p-value'].apply(
+        lambda x: f'{x:.4f}')
+
+    # Remove the letter 'T.' from categorical variables
+    elr_summary_df['Study'] = elr_summary_df['Study'].str.replace('T.', '')
+
+    # Remove intercept from the results
+    elr_summary_df = elr_summary_df[elr_summary_df['Study'] != 'Intercept']
+
+    # Rename columns based on regression type
+    if reg_type == 'uni':
+        elr_summary_df.rename(columns={
+            'OddsRatio': 'OddsRatio (uni)',
+            'LowerCI': 'LowerCI (uni)',
+            'UpperCI': 'UpperCI (uni)',
+            'p-value': 'p-value (uni)'
+        }, inplace=True)
+    else:
+        elr_summary_df.rename(columns={
+            'OddsRatio': 'OddsRatio (multi)',
+            'LowerCI': 'LowerCI (multi)',
+            'UpperCI': 'UpperCI (multi)',
+            'p-value': 'p-value (multi)'
+        }, inplace=True)
+
+    # Print results if the flag is set
+    if print_results:
+        print(elr_summary_df)
+
+    return elr_summary_df
+
+
+############################################
+############################################
+# Modelling
+############################################
+############################################
 
 ############################################
 ############################################
