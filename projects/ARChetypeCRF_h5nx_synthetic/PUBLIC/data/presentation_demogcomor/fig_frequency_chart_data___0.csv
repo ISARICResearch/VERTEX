@@ -1,0 +1,11 @@
+variable,proportion,label,short_label
+comor_hypertensi,0.9949685534591195,<b>Hypertension (physician diagnosed)</b>,<b>Hypertension (physician diagnosed)</b>
+comor_tuberculos,0.9845132743362832,<b>Tuberculosis</b>,<b>Tuberculosis</b>
+comor_asthma,0.9488054607508533,<b>Asthma (physician diagnosed)</b>,<b>Asthma (physician diagnosed)</b>
+comor_chrkidney,0.9462025316455697,<b>Chronic kidney disease</b>,<b>Chronic kidney disease</b>
+comor_liverdisease,0.9456018518518519,<b>Liver disease</b>,<b>Liver disease</b>
+comor_unlisted_1addi,0.9448818897637795,<b>>Any additional other relevant comorbidity(s) ?</b>,<b>>Any additional other relevant ...</b>
+comor_diabetes_type1,0.9049295774647887,<b>Type 1 diabetes mellitus</b>,<b>Type 1 diabetes mellitus</b>
+comor_diabetes_gdm,0.7933579335793358,<b>Gestational diabetes mellitus</b>,<b>Gestational diabetes mellitus</b>
+comor_unlisted_2addi,0.7653061224489796,<b>->Any additional other relevant comorbidity(s) ?</b>,<b>->Any additional other relevant ...</b>
+comor_diabetes_type2,0.7284345047923323,<b>Type 2 diabetes mellitus</b>,<b>Type 2 diabetes mellitus</b>

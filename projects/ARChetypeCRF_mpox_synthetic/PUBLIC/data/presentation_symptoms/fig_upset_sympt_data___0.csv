@@ -1,0 +1,6 @@
+index,count,short_label,label
+sympt_neurodist,172,<b>Psychological disturbance</b>,<b>Psychological disturbance</b>
+sympt_feverplus,170,<b>Fever / chills / rigors</b>,<b>Fever / chills / rigors</b>
+sympt_unlisted,165,<b>Other sign(s) or symptom(s)</b>,<b>Other sign(s) or symptom(s)</b>
+sympt_chestpain,163,<b>Chest pain</b>,<b>Chest pain</b>
+sympt_unlisted_2addi,3,<b>->Any additional other sign(s) or ...</b>,<b>->Any additional other sign(s) or symptom(s) ?</b>

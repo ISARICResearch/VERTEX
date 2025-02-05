@@ -1,0 +1,21 @@
+index,label,count
+"('comor_tuberculos',)","('<b>Tuberculosis</b>',)",178
+"('comor_rheumatolo',)","('<b>Rheumatologic disorder</b>',)",175
+"('comor_rheumatolo', 'comor_tuberculos')","('<b>Rheumatologic disorder</b>', '<b>Tuberculosis</b>')",94
+"('comor_liverdisease_type___Mild',)","('<b>Type of liver disease</b>, Mild',)",49
+"('comor_diabetes_type2',)","('<b>Type 2 diabetes mellitus</b>',)",49
+"('comor_diabetes_type2', 'comor_rheumatolo')","('<b>Type 2 diabetes mellitus</b>', '<b>Rheumatologic disorder</b>')",28
+"('comor_diabetes_type2', 'comor_tuberculos')","('<b>Type 2 diabetes mellitus</b>', '<b>Tuberculosis</b>')",19
+"('comor_liverdisease_type___Mild', 'comor_tuberculos')","('<b>Type of liver disease</b>, Mild', '<b>Tuberculosis</b>')",18
+"('comor_liverdisease_type___Mild', 'comor_rheumatolo')","('<b>Type of liver disease</b>, Mild', '<b>Rheumatologic disorder</b>')",17
+"('comor_diabetes_type2', 'comor_rheumatolo', 'comor_tuberculos')","('<b>Type 2 diabetes mellitus</b>', '<b>Rheumatologic disorder</b>', '<b>Tuberculosis</b>')",12
+"('comor_liverdisease_type___Mild', 'comor_rheumatolo', 'comor_tuberculos')","('<b>Type of liver disease</b>, Mild', '<b>Rheumatologic disorder</b>', '<b>Tuberculosis</b>')",11
+"('comor_liverdisease_type___Mild', 'comor_diabetes_type2')","('<b>Type of liver disease</b>, Mild', '<b>Type 2 diabetes mellitus</b>')",5
+"('comor_unlisted_2addi', 'comor_rheumatolo', 'comor_tuberculos')","('<b>->Any additional other relevant comorbidity(s) ?</b>', '<b>Rheumatologic disorder</b>', '<b>Tuberculosis</b>')",3
+"('comor_unlisted_2addi', 'comor_tuberculos')","('<b>->Any additional other relevant comorbidity(s) ?</b>', '<b>Tuberculosis</b>')",3
+"('comor_unlisted_2addi',)","('<b>->Any additional other relevant comorbidity(s) ?</b>',)",3
+"('comor_unlisted_2addi', 'comor_rheumatolo')","('<b>->Any additional other relevant comorbidity(s) ?</b>', '<b>Rheumatologic disorder</b>')",2
+"('comor_liverdisease_type___Mild', 'comor_diabetes_type2', 'comor_rheumatolo')","('<b>Type of liver disease</b>, Mild', '<b>Type 2 diabetes mellitus</b>', '<b>Rheumatologic disorder</b>')",2
+"('comor_unlisted_2addi', 'comor_liverdisease_type___Mild')","('<b>->Any additional other relevant comorbidity(s) ?</b>', '<b>Type of liver disease</b>, Mild')",1
+"('comor_unlisted_2addi', 'comor_diabetes_type2')","('<b>->Any additional other relevant comorbidity(s) ?</b>', '<b>Type 2 diabetes mellitus</b>')",1
+"('comor_liverdisease_type___Mild', 'comor_diabetes_type2', 'comor_rheumatolo', 'comor_tuberculos')","('<b>Type of liver disease</b>, Mild', '<b>Type 2 diabetes mellitus</b>', '<b>Rheumatologic disorder</b>', '<b>Tuberculosis</b>')",1

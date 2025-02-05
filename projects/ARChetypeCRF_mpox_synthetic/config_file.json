@@ -1,0 +1,18 @@
+{
+	"project_name": "ARChetype CRF mpox (Synthetic)",
+	"api_url": "https://ncov.medsci.ox.ac.uk/api/",
+	"api_key": "27B9F4C93C8C2BCDB4EFCA9DA8717DC0",
+	"map_layout_center_latitude": 6,
+	"map_layout_center_longitude": -75,
+	"map_layout_zoom": 1.7,
+	"save_public_outputs": true,
+	"public_path": "PUBLIC/",
+	"insight_panels_path": "insight_panels/",
+	"insight_panels": [
+			"enrolment_details",
+			"presentation_demogcomor",
+			"presentation_symptoms",
+   	 		"treatments_interventions",
+    		"outcomes_complications"
+	]
+}

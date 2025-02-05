@@ -1,0 +1,6 @@
+index,count,short_label,label
+compl_severebleed_yn,348,<b>Severe bleeding (requiring intervention)</b>,<b>Severe bleeding (requiring intervention)</b>
+compl_hypoglycem,345,<b>Hypoglycaemia</b>,<b>Hypoglycaemia</b>
+compl_ards,344,<b>Acute Respiratory Distress Syndrome ...</b>,<b>Acute Respiratory Distress Syndrome (ARDS)</b>
+compl_cardiomyop,341,<b>Cardiomyopathy</b>,<b>Cardiomyopathy</b>
+compl_jaundice,108,<b>Jaundice</b>,<b>Jaundice</b>

@@ -1,0 +1,11 @@
+variable,proportion,label,short_label
+adsym_unlisted_2addi,1.0,<b>->Any additional other sign(s) or symptom(s) ?</b>,<b>->Any additional other sign(s) or ...</b>
+adsym_reduvisiacu,0.9866962305986696,<b>Newly reduced visual acuity</b>,<b>Newly reduced visual acuity</b>
+adsym_palpitations,0.9846335697399528,<b>Palpitations</b>,<b>Palpitations</b>
+adsym_sorethroat,0.9711229946524064,<b>Sore throat</b>,<b>Sore throat</b>
+adsym_pruritus,0.9623655913978495,<b>Itch / pruritus</b>,<b>Itch / pruritus</b>
+adsym_chestindrw,0.9294554455445545,<b>Lower chest wall indrawing</b>,<b>Lower chest wall indrawing</b>
+adsym_eyelidedema,0.9122807017543859,<b>Edema of eyelid</b>,<b>Edema of eyelid</b>
+adsym_headache,0.9031446540880503,<b>Headache</b>,<b>Headache</b>
+adsym_myalgia,0.8679245283018868,<b>Muscle aches / myalgia</b>,<b>Muscle aches / myalgia</b>
+adsym_jaund,0.8382022471910112,<b>Jaundice</b>,<b>Jaundice</b>

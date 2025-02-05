@@ -1,0 +1,17 @@
+index,label,count
+"('sympt_wheezing', 'sympt_dizzy', 'sympt_dailydata', 'sympt_anosmia')","('<b>Wheezing</b>', '<b>Feeling dizzy / faint</b>', '<b>Enter signs and symptoms data for this date?</b>', '<b>Loss of smell / anosmia</b>')",366
+"('sympt_wheezing', 'sympt_dailydata', 'sympt_anosmia')","('<b>Wheezing</b>', '<b>Enter signs and symptoms data for this date?</b>', '<b>Loss of smell / anosmia</b>')",133
+"('sympt_dizzy', 'sympt_dailydata', 'sympt_anosmia')","('<b>Feeling dizzy / faint</b>', '<b>Enter signs and symptoms data for this date?</b>', '<b>Loss of smell / anosmia</b>')",89
+"('sympt_wheezing', 'sympt_dizzy', 'sympt_dailydata')","('<b>Wheezing</b>', '<b>Feeling dizzy / faint</b>', '<b>Enter signs and symptoms data for this date?</b>')",79
+"('sympt_wheezing', 'sympt_dizzy', 'sympt_dailydata', 'sympt_cough_hemop', 'sympt_anosmia')","('<b>Wheezing</b>', '<b>Feeling dizzy / faint</b>', '<b>Enter signs and symptoms data for this date?</b>', '<b>Hemoptysis</b>', '<b>Loss of smell / anosmia</b>')",72
+"('sympt_dailydata', 'sympt_anosmia')","('<b>Enter signs and symptoms data for this date?</b>', '<b>Loss of smell / anosmia</b>')",34
+"('sympt_wheezing', 'sympt_dailydata')","('<b>Wheezing</b>', '<b>Enter signs and symptoms data for this date?</b>')",29
+"('sympt_dizzy', 'sympt_dailydata')","('<b>Feeling dizzy / faint</b>', '<b>Enter signs and symptoms data for this date?</b>')",15
+"('sympt_wheezing', 'sympt_dailydata', 'sympt_cough_hemop', 'sympt_anosmia')","('<b>Wheezing</b>', '<b>Enter signs and symptoms data for this date?</b>', '<b>Hemoptysis</b>', '<b>Loss of smell / anosmia</b>')",9
+"('sympt_dizzy', 'sympt_dailydata', 'sympt_cough_hemop', 'sympt_anosmia')","('<b>Feeling dizzy / faint</b>', '<b>Enter signs and symptoms data for this date?</b>', '<b>Hemoptysis</b>', '<b>Loss of smell / anosmia</b>')",9
+"('sympt_dailydata',)","('<b>Enter signs and symptoms data for this date?</b>',)",8
+"('sympt_wheezing', 'sympt_dizzy', 'sympt_dailydata', 'sympt_cough_hemop')","('<b>Wheezing</b>', '<b>Feeling dizzy / faint</b>', '<b>Enter signs and symptoms data for this date?</b>', '<b>Hemoptysis</b>')",6
+"('sympt_dailydata', 'sympt_cough_hemop')","('<b>Enter signs and symptoms data for this date?</b>', '<b>Hemoptysis</b>')",4
+"('sympt_dailydata', 'sympt_cough_hemop', 'sympt_anosmia')","('<b>Enter signs and symptoms data for this date?</b>', '<b>Hemoptysis</b>', '<b>Loss of smell / anosmia</b>')",3
+"('sympt_wheezing', 'sympt_dailydata', 'sympt_cough_hemop')","('<b>Wheezing</b>', '<b>Enter signs and symptoms data for this date?</b>', '<b>Hemoptysis</b>')",2
+"('sympt_dizzy', 'sympt_dailydata', 'sympt_cough_hemop')","('<b>Feeling dizzy / faint</b>', '<b>Enter signs and symptoms data for this date?</b>', '<b>Hemoptysis</b>')",1
