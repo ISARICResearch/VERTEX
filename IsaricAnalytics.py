@@ -10,6 +10,7 @@ import scipy.stats as stats
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
 import xgboost as xgb
+from lifelines import CoxPHFitter
 from sklearn.impute import KNNImputer
 from sklearn.linear_model import LogisticRegression
 
@@ -1220,3 +1221,170 @@ def execute_logistic_regression(elr_dataframe_df, elr_outcome_str, elr_predictor
         print(elr_summary_df)
 
     return elr_summary_df
+
+def execute_linear_regression(elr_dataframe_df, elr_outcome_str, elr_predictors_list, 
+                              print_results=True, labels=False, reg_type="multi"):
+    """
+    Performs a linear regression (OLS) and returns a table with the coefficients and confidence intervals 
+    of the predictor variables.
+
+    Parameters:
+    - elr_dataframe_df (pd.DataFrame): DataFrame containing the data.
+    - elr_outcome_str (str): Name of the dependent (outcome) variable.
+    - elr_predictors_list (list): List of strings with the names of the predictor variables.
+    - print_results (bool, optional): Flag to print the regression results. Default is True.
+    - labels (dict, optional): Dictionary mapping variable names to more readable labels. Can be empty if not needed.
+    - reg_type (str, optional): Type of regression ('multi' for multivariate, 'uni' for univariate). Default is "multi".
+
+    Returns:
+    - elr_summary_df (pd.DataFrame): DataFrame with the results of the linear regression.
+    """
+
+    # Build the formula for the model (e.g., 'y ~ x1 + x2 + x3')
+    elr_formula_str = elr_outcome_str + ' ~ ' + ' + '.join(elr_predictors_list)
+
+    # Identify categorical variables (if any) among predictors
+    elr_categorical_vars_list = elr_dataframe_df.select_dtypes(include=['object', 'category'])
+    elr_categorical_vars_list = elr_categorical_vars_list.columns.intersection(elr_predictors_list)
+
+    # Convert identified predictors to 'category' data type
+    for elr_var_str in elr_categorical_vars_list:
+        elr_dataframe_df[elr_var_str] = elr_dataframe_df[elr_var_str].astype('category')
+    
+    # Fit the linear regression model using Ordinary Least Squares (OLS)
+    elr_model_obj = smf.ols(formula=elr_formula_str, data=elr_dataframe_df)
+    elr_result_obj = elr_model_obj.fit()
+
+    # Extract summary tables
+    summary2_obj = elr_result_obj.summary2()
+    elr_summary_table_df = summary2_obj.tables[1]  # This table contains coefficients, p-values, etc.
+
+    # Rename or create columns for clarity
+    # statsmodels typically creates columns like ['Coef.', 'Std.Err.', 't', 'P>|t|', '[0.025', '0.975]']
+    elr_summary_table_df['Coef'] = elr_summary_table_df['Coef.']
+    elr_summary_table_df['IC Low'] = elr_summary_table_df['[0.025']
+    elr_summary_table_df['IC High'] = elr_summary_table_df['0.975]']
+    elr_summary_table_df['p-value'] = elr_summary_table_df['P>|t|']
+
+    # Create a new DataFrame with the main columns of interest
+    elr_summary_df = elr_summary_table_df[['Coef', 'IC Low', 'IC High', 'p-value']]
+    elr_summary_df = elr_summary_df.reset_index()
+    elr_summary_df.rename(
+        columns={
+            'index': 'Study',
+            'Coef': 'Coef',
+            'IC Low': 'LowerCI',
+            'IC High': 'UpperCI'
+        },
+        inplace=True
+    )
+
+    # If labels are provided, map variable names to more readable labels
+    if labels:
+        def elr_parse_variable_name(var_name):
+            # Intercept is usually listed under 'Intercept'
+            if var_name == 'Intercept':
+                return labels.get('Intercept', 'Intercept')
+            elif '[' in var_name:
+                # For categorical variables, statsmodels uses something like C(x)[T.level]
+                base_var = var_name.split('[')[0]
+                level = var_name.split('[')[1].split(']')[0]
+                base_var_name = base_var.replace('C(', '').replace(')', '').strip()
+                label = labels.get(base_var_name, base_var_name)
+                return f'{label} ({level})'
+            else:
+                var_name_clean = var_name.replace('C(', '').replace(')', '').strip()
+                return labels.get(var_name_clean, var_name_clean)
+        
+        elr_summary_df['Study'] = elr_summary_df['Study'].apply(elr_parse_variable_name)
+
+    # Reorder columns if needed
+    elr_summary_df = elr_summary_df[['Study', 'Coef', 'LowerCI', 'UpperCI', 'p-value']]
+
+    # Round or format the numeric values
+    elr_summary_df['Coef'] = elr_summary_df['Coef'].round(3)
+    elr_summary_df['LowerCI'] = elr_summary_df['LowerCI'].round(3)
+    elr_summary_df['UpperCI'] = elr_summary_df['UpperCI'].round(3)
+    elr_summary_df['p-value'] = elr_summary_df['p-value'].apply(lambda x: f'{x:.4f}')
+
+    # Optionally remove the intercept row if you don't want to display it
+    elr_summary_df = elr_summary_df[elr_summary_df['Study'] != 'Intercept']
+
+    # Rename columns based on regression type (for clarity in final output)
+    if reg_type == 'uni':
+        elr_summary_df.rename(columns={
+            'Coef': 'Coef (uni)', 
+            'LowerCI': 'LowerCI (uni)', 
+            'UpperCI': 'UpperCI (uni)', 
+            'p-value': 'p-value (uni)'
+        }, inplace=True)
+    else:
+        elr_summary_df.rename(columns={
+            'Coef': 'Coef (multi)', 
+            'LowerCI': 'LowerCI (multi)', 
+            'UpperCI': 'UpperCI (multi)', 
+            'p-value': 'p-value (multi)'
+        }, inplace=True)
+
+    # Print the results if requested
+    if print_results:
+        print(elr_summary_df)
+
+    return elr_summary_df
+
+def execute_cox_model(df, duration_col, event_col, predictors, labels=None):
+    """
+    Performs a Cox Proportional Hazards model without weights and returns a summary of the results.
+
+    Parameters:
+    - df: Pandas DataFrame containing the data.
+    - duration_col: String with the name of the time variable.
+    - event_col: String with the name of the outcome variable (binary event).
+    - predictors: List of strings with the names of predictor variables.
+    - labels: (Optional) Dictionary mapping variable names to readable labels. Default is None.
+
+    Returns:
+    - summary_df: DataFrame with the results of the Cox model.
+    """
+
+    # Ensure categorical variables are treated appropriately
+    categorical_vars = df.select_dtypes(include=['object', 'category']).columns.intersection(predictors)
+    for var in categorical_vars:
+        df[var] = df[var].astype('category')
+
+    # Convert categorical variables to dummies
+    df = pd.get_dummies(df, columns=categorical_vars, drop_first=True)
+
+    # Ensure numerical variables have the correct type
+    df[duration_col] = pd.to_numeric(df[duration_col], errors='coerce')
+    df[event_col] = pd.to_numeric(df[event_col], errors='coerce')
+
+    # Update predictors to include one-hot encoded columns
+    predictors = [c for c in df.columns if c in predictors or any(c.startswith(p + '_') for p in categorical_vars)]
+
+    # Remove rows with missing values in essential columns
+    df = df.dropna(subset=[duration_col, event_col] + predictors)
+
+    # Select relevant columns
+    df_cox = df[[duration_col, event_col] + predictors]
+
+    # Fit the Cox model
+    cph = CoxPHFitter()
+    cph.fit(df_cox, duration_col=duration_col, event_col=event_col)
+
+    # Model summary
+    summary = cph.summary
+    summary['HR'] = np.exp(summary['coef'])
+    summary['CI_lower'] = np.exp(summary['coef'] - 1.96 * summary['se(coef)'])
+    summary['CI_upper'] = np.exp(summary['coef'] + 1.96 * summary['se(coef)'])
+    summary['p_adj'] = summary['p'].apply(lambda p: "<0.001" if p < 0.001 else round(p, 3))
+
+    # Select relevant columns for the final summary
+    summary_df = summary[['HR', 'p_adj', 'CI_lower', 'CI_upper']].reset_index()
+    summary_df.rename(columns={'index': 'Variable', 'p_adj': 'p-value'}, inplace=True)
+
+    # Replace variable labels if provided
+    if labels:
+        summary_df['Variable'] = summary_df['Variable'].map(labels).fillna(summary_df['Variable'])
+
+    return summary_df
