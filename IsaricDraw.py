@@ -630,6 +630,66 @@ def fig_dual_stack_pyramid(
     return fig, graph_id, graph_label, graph_about
 
 
+def fig_forest_plot(
+        df,
+        title='Forest Plot',
+        labels=['Study', 'OddsRatio', 'LowerCI', 'UpperCI'],
+        suffix='', filepath='', save_inputs=False,
+        graph_id='forest-plot', graph_label='', graph_about=''):
+
+    # Ordering Values -> Descending Order
+    df = df.sort_values(by=labels[1], ascending=True)
+
+    # Error Handling
+    if not set(labels).issubset(df.columns):
+        print(df.columns)
+        error_str = f'Dataframe must contain the following columns: {labels}'
+        raise ValueError(error_str)
+
+    # Prepare Data Traces
+    traces = []
+
+    # Add the point estimates as scatter plot points
+    traces.append(
+        go.Scatter(
+            x=df[labels[1]],
+            y=df[labels[0]],
+            mode='markers',
+            name='Odds Ratio',
+            marker=dict(color='blue', size=10))
+    )
+
+    # Add the confidence intervals as lines
+    for index, row in df.iterrows():
+        traces.append(
+            go.Scatter(
+                x=[row[labels[2]], row[labels[3]]],
+                y=[row[labels[0]], row[labels[0]]],
+                mode='lines',
+                showlegend=False,
+                line=dict(color='blue', width=2))
+        )
+
+    # Define layout
+    layout = go.Layout(
+        title=title,
+        xaxis=dict(title='Odds Ratio'),
+        yaxis=dict(
+            title='', automargin=True, tickmode='array',
+            tickvals=df[labels[0]].tolist(), ticktext=df[labels[0]].tolist()),
+        shapes=[
+            dict(
+                type='line', x0=1, y0=-0.5, x1=1, y1=len(df[labels[0]])-0.5,
+                line=dict(color='red', width=2)
+            )],  # Line of no effect
+        margin=dict(l=100, r=100, t=100, b=50),
+        height=600
+    )
+    fig = {'data': traces, 'layout': layout}
+    graph_id = get_graph_id(graph_id, suffix)
+    return fig, graph_id, graph_label, graph_about
+
+
 ############################################
 ############################################
 # Formatting: colours
