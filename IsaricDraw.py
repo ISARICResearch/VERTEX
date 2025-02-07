@@ -630,62 +630,59 @@ def fig_dual_stack_pyramid(
     return fig, graph_id, graph_label, graph_about
 
 
-def fig_forest_plot(
+def fig_flowchart(
         df,
-        title='Forest Plot',
-        labels=['Study', 'OddsRatio', 'LowerCI', 'UpperCI'],
         suffix='', filepath='', save_inputs=False,
-        graph_id='forest-plot', graph_label='', graph_about=''):
+        graph_id='sankey', graph_label='', graph_about=''):
 
-    # Ordering Values -> Descending Order
-    df = df.sort_values(by=labels[1], ascending=True)
+    if save_inputs:
+        inputs = save_inputs_to_file(locals())
 
-    # Error Handling
-    if not set(labels).issubset(df.columns):
-        print(df.columns)
-        error_str = f'Dataframe must contain the following columns: {labels}'
-        raise ValueError(error_str)
+    arrows = []
+    arrow_to = df['arrow_to'].apply(lambda x: x.replace(' ', ''))
+    arrow_to = arrow_to.loc[arrow_to != '']
+    ind_start = arrow_to.index.repeat(
+        arrow_to.apply(lambda x: len(x.split(',')))).tolist()
+    ind_end = [int(x) for x in ','.join(arrow_to).split(',')]
+    for ii in range(len(ind_start)):
+        arrow_start_x = df.loc[ind_start[ii], 'x']
+        arrow_start_y = df.loc[ind_start[ii], 'y']
+        arrow_end_x = df.loc[ind_end[ii], 'x']
+        arrow_end_y = df.loc[ind_end[ii], 'y']
+        new_arrows = pd.DataFrame(columns=['x', 'y', 'ax', 'ay', 'arrowhead'])
+        new_arrows['ax'] = [arrow_start_x, (arrow_end_x + arrow_start_x) / 2]
+        new_arrows['ay'] = [arrow_start_y, (arrow_end_y + arrow_start_y) / 2]
+        new_arrows['x'] = [(arrow_end_x + arrow_start_x) / 2, arrow_end_x]
+        new_arrows['y'] = [(arrow_end_y + arrow_start_y) / 2, arrow_end_y]
+        new_arrows['arrowhead'] = [1, 0]
+        arrows = arrows + [new_arrows]
+    arrow_data = pd.concat(arrows, axis=0).reset_index(drop=True)
+    arrow_metadata = {
+        'showarrow': True, 'arrowwidth': 1.5,
+        'arrowcolor': 'rgba(100, 100, 100, 0.5)',
+        'axref': 'x', 'ayref': 'y', 'xref': 'x', 'yref': 'y', 'text': ''}
+    arrows = [
+        {**arrow, **arrow_metadata} for arrow in arrow_data.to_dict('records')]
 
-    # Prepare Data Traces
-    traces = []
+    df.drop(columns='arrow_to', inplace=True)
 
-    # Add the point estimates as scatter plot points
-    traces.append(
-        go.Scatter(
-            x=df[labels[1]],
-            y=df[labels[0]],
-            mode='markers',
-            name='Odds Ratio',
-            marker=dict(color='blue', size=10))
-    )
+    annotation_metadata = {
+        'showarrow': False,
+        'xanchor': 'center', 'yanchor': 'middle',
+        'bgcolor': 'rgba(150, 150, 150, 1)',
+        'bordercolor': 'rgba(100, 100, 100, 0.5)',
+        'borderwidth': 1, 'borderpad': 5}
+    annotations = [
+        {**annotation, **annotation_metadata}
+        for annotation in df.to_dict('records')]
 
-    # Add the confidence intervals as lines
-    for index, row in df.iterrows():
-        traces.append(
-            go.Scatter(
-                x=[row[labels[2]], row[labels[3]]],
-                y=[row[labels[0]], row[labels[0]]],
-                mode='lines',
-                showlegend=False,
-                line=dict(color='blue', width=2))
-        )
-
-    # Define layout
     layout = go.Layout(
-        title=title,
-        xaxis=dict(title='Odds Ratio'),
-        yaxis=dict(
-            title='', automargin=True, tickmode='array',
-            tickvals=df[labels[0]].tolist(), ticktext=df[labels[0]].tolist()),
-        shapes=[
-            dict(
-                type='line', x0=1, y0=-0.5, x1=1, y1=len(df[labels[0]])-0.5,
-                line=dict(color='red', width=2)
-            )],  # Line of no effect
-        margin=dict(l=100, r=100, t=100, b=50),
-        height=600
-    )
-    fig = {'data': traces, 'layout': layout}
+        annotations=arrows + annotations,
+        xaxis={'visible': False, 'showgrid': False, 'range': [0, 1]},
+        yaxis={'visible': False, 'showgrid': False, 'range': [0, 1]},
+        plot_bgcolor='rgba(0, 0, 0, 0)')
+    fig = go.Figure(layout=layout)
+
     graph_id = get_graph_id(graph_id, suffix)
     return fig, graph_id, graph_label, graph_about
 
