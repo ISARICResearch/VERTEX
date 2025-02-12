@@ -25,6 +25,86 @@ import statsmodels.formula.api as smf
 ############################################
 ############################################
 
+new_variable_dict = {
+    'field_name': 'demog_agegroup',
+    'form_name': 'presentation',
+    'field_type': 'categorical',
+    'field_label': 'Age group',
+    'parent': 'demog_age'}
+
+
+def extend_dictionary(dictionary, new_variable_dict, data, sep='___'):
+    '''Add new custom variables to the VERTEX dictionary.
+
+    Args:
+        dictionary (pd.DataFrame):
+            VERTEX dictionary containing columns 'field_name', 'form_name',
+            'field_type', 'field_label', 'parent'.
+        new_variable_dict (dict):
+            A dict with the same keys as the dictionary columns, the values for
+            each item can be a string or a list.
+        data (pd.DataFrame):
+            pandas dataframe containing the data for the project. The columns
+            of this dataframe must include the variables in
+            new_variable_dict['field_type'].
+        sep (str): separator for creating new one-hot-encoded variable names.
+
+    Returns:
+        dictionary (pd.DataFrame):
+            VERTEX dictionary containing the original variables, plus the new
+            variables and any one-hot-encoded variables derived from this.'''
+    # Convert dict values to list if all are strings (otherwise a pandas error)
+    if all(isinstance(v, str) for v in new_variable_dict.values()):
+        new_variable_dict = {k: [v] for k, v in new_variable_dict.items()}
+    new_dictionary = pd.DataFrame.from_dict(new_variable_dict)
+    new_dictionary['index'] = np.nan
+    dictionary = dictionary.reset_index(drop=False)
+    for ind in new_dictionary.index:
+        parent = new_dictionary.loc[ind, 'parent']
+        if (parent not in new_dictionary['field_name'].values):
+            if (parent not in dictionary['field_name'].values):
+                new_ind = dictionary['index'].max() + 0.1
+            else:
+                new_ind = dictionary.loc[(
+                    dictionary['field_name'] == parent), 'index'].max()
+                while (parent in dictionary['parent'].values):
+                    parent = dictionary.loc[new_ind, 'field_name']
+                    new_ind = dictionary.loc[(
+                        dictionary['parent'] == parent), 'index'].max()
+                new_ind = new_ind + 0.1
+        else:
+            new_ind = new_dictionary.loc[(
+                new_dictionary['field_name'] == parent), 'index'].max() + 0.1
+            # new_ind = new_ind + 0.1
+        new_dictionary.loc[ind, 'index'] = new_ind
+    categorical_ind = new_dictionary['field_type'].isin(['categorical'])
+    new_dictionary_list = [new_dictionary]
+    ind_list = [
+        ind for ind in categorical_ind.index
+        if new_dictionary.loc[ind, 'field_name'] in data.columns]
+    for ind in ind_list:
+        variable = new_dictionary.loc[ind, 'field_name']
+        options = data[variable].drop_duplicates().sort_values().dropna()
+        options = [
+            y for y in options
+            if (variable + sep + str(y))
+            not in new_dictionary['field_name'].values]
+        add_options = pd.DataFrame(
+            columns=dictionary.columns, index=range(len(options)))
+        add_options['field_name'] = [
+            variable + sep + str(y) for y in options]
+        add_options['form_name'] = new_dictionary.loc[ind, 'form_name']
+        add_options['field_type'] = 'binary'
+        add_options['field_label'] = options
+        add_options['parent'] = variable
+        add_options['index'] = np.linspace(
+            new_dictionary.loc[ind, 'index'] + 0.2,
+            np.ceil(new_dictionary.loc[ind, 'index']) - 0.1, len(options))
+        new_dictionary_list += [add_options]
+    dictionary = pd.concat([dictionary] + new_dictionary_list, axis=0)
+    dictionary = dictionary.sort_values(by='index').drop(columns='index')
+    dictionary = dictionary.reset_index(drop=True)
+    return dictionary
 
 # def get_variable_list(dictionary, sections):
 #     '''Get all variables in the dictionary belonging to sections
@@ -266,7 +346,8 @@ def get_descriptive_data(
 
 def descriptive_table(
         data, dictionary, by_column=None,
-        include_totals=True, column_reorder=None):
+        include_totals=True, column_reorder=None,
+        include_raw_variable_name=False):
     '''
     Descriptive table for binary (including onehot-encoded categorical) and
     numerical variables in data. The descriptive table will have seperate
@@ -299,8 +380,11 @@ def descriptive_table(
                 col for col in add_columns if col not in column_reorder]
         else:
             table_columns += add_columns
+    table_columns += ['Raw variable name']
     table = pd.DataFrame('', index=index, columns=table_columns)
 
+    table['Raw variable name'] = [
+        var if var in df.columns else '' for var in index]
     table['Variable'] = format_descriptive_table_variables(
         table_dictionary).tolist()
 
@@ -329,6 +413,8 @@ def descriptive_table(
     if include_totals:
         table = pd.concat([totals, table], axis=0).reset_index(drop=True)
     table_key = '<b>KEY</b><br>(*) Count (%) | N<br>(+) Median (IQR) | N'
+    if include_raw_variable_name is False:
+        table.drop(columns=['Raw variable name'], inplace=True)
     return table, table_key
 
 
@@ -402,7 +488,9 @@ def get_proportions(df, dictionary, max_n_variables=10):
 
 
 def get_upset_counts_intersections(
-        df, dictionary, proportions=None, variables=None, n_variables=5):
+        df, dictionary,
+        proportions=None,  # Deprecated
+        variables=None, n_variables=5):
     # Convert variables and column names into their formatted names
     long_format = format_variables(dictionary, max_len=1000)
     short_format = format_variables(dictionary, max_len=40)
@@ -411,11 +499,17 @@ def get_upset_counts_intersections(
     # df = df.rename(columns=format_dict).copy()
     # if variables is not None:
     #     variables = [format_dict[var] for var in variables]
-    if proportions is not None:
-        variables = proportions.sort_values(
-            by='proportion', ascending=False)['variable'].head(n_variables)
-        variables = variables.tolist()
+    # if proportions is not None:
+    #     variables = proportions.sort_values(
+    #         by='proportion', ascending=False)['variable'].head(n_variables)
+    #     variables = variables.tolist()
 
+    if variables is None:
+        variables = df.columns.tolist()
+
+    binary_columns = dictionary.loc[(
+        dictionary['field_type'] == 'binary'), 'field_name'].tolist()
+    variables = [col for col in variables if col in binary_columns]
     variables = [var for var in variables if df[var].sum() > 0]
     df = df[variables].astype(float).fillna(0)
 
@@ -424,13 +518,19 @@ def get_upset_counts_intersections(
         by='count', ascending=False).reset_index(drop=True)
     counts['short_label'] = counts['index'].map(short_format_dict)
     counts['label'] = counts['index'].map(format_dict)
-    if variables is None:
-        variable_order_dict = dict(zip(counts['index'], counts.index))
-        variables = counts['index'].tolist()
-    else:
-        variable_order_dict = dict(zip(variables, range(len(variables))))
+
+    variable_order_dict = dict(zip(counts['index'], counts.index))
+    variables = counts['index'].tolist()
+    # if variables is None:
+    #     variable_order_dict = dict(zip(counts['index'], counts.index))
+    #     variables = counts['index'].tolist()
+    # else:
+    #     variable_order_dict = dict(zip(variables, range(len(variables))))
     if n_variables is not None:
         variables = variables[:n_variables]
+
+    df = df[variables]
+    counts = counts.loc[counts['index'].isin(variables)]
 
     intersections = df.loc[df.any(axis=1)].value_counts().reset_index()
     intersections['index'] = intersections.drop(columns='count').apply(

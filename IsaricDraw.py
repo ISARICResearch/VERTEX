@@ -450,7 +450,7 @@ def fig_frequency_chart(
 
 def fig_table(
         df,
-        table_key='',
+        table_key='', table_format_dict=None,
         suffix='', filepath='', save_inputs=False,
         graph_id='', graph_label='', graph_about=''):
 
@@ -462,17 +462,37 @@ def fig_table(
     df = df.fillna('')
     n = df.shape[1]
     firstwidth = 0.3
-    columnwidth = [firstwidth] + [(1 - firstwidth)/(n - 1)]*(n - 1)
+
+    default_cells_format_dict = {'align': ['left'] + ['right']*(n - 1)}
+    default_header_format_dict = {'fill_color': '#bbbbbb', 'align': 'left'}
+
+    if isinstance(table_format_dict, dict) is False:
+        table_format_dict = {}
+
+    cells_format_dict = (
+        table_format_dict['cells'] if ('cells' in table_format_dict.keys())
+        else {})
+    if isinstance(cells_format_dict, dict) is False:
+        cells_format_dict = {}
+    cells_format_dict = {**default_cells_format_dict, **cells_format_dict}
+
+    header_format_dict = (
+        table_format_dict['header'] if ('header' in table_format_dict.keys())
+        else {})
+    if isinstance(header_format_dict, dict) is False:
+        header_format_dict = {}
+    header_format_dict = {**default_header_format_dict, **header_format_dict}
+
+    if 'columnwidth' in table_format_dict.keys():
+        columnwidth = table_format_dict['columnwidth']
+    else:
+        columnwidth = [firstwidth] + [(1 - firstwidth)/(n - 1)]*(n - 1)
+
     fig = go.Figure(data=[go.Table(
-        header=dict(
-            values=list(df.columns),
-            fill_color='#bbbbbb',
-            align='left'),
-        cells=dict(
-            values=[df[col] for col in df.columns],
-            fill_color='#e9e9e9',
-            align=['left'] + ['right']*(n - 1)),
-        columnwidth=columnwidth),
+        header={'values': list(df.columns), **header_format_dict},
+        cells={'values': [df[col] for col in df.columns], **cells_format_dict},
+        columnwidth=columnwidth,
+        ),
     ])
     fig.update_layout(
         height=500,
