@@ -834,7 +834,7 @@ def execute_logistic_regression(
     return elr_summary_df
 
 
- def execute_linear_regression(
+def execute_linear_regression(
         elr_dataframe_df, elr_outcome_str, elr_predictors_list,
         print_results=True, labels=False, reg_type="multi"):
     """
@@ -964,6 +964,7 @@ def execute_logistic_regression(
 
     return elr_summary_df
 
+
 def execute_cox_model(df, duration_col, event_col, predictors, labels=None):
     """
     Performs a Cox Proportional Hazards model without weights and
@@ -998,7 +999,8 @@ def execute_cox_model(df, duration_col, event_col, predictors, labels=None):
     # Update predictors to include one-hot encoded columns
     predictors = [
         c for c in df.columns
-        if c in predictors or any(c.startswith(p + '_') for p in categorical_vars)]
+        if c in predictors or any(
+            c.startswith(p + '_') for p in categorical_vars)]
 
     # Remove rows with missing values in essential columns
     df = df.dropna(subset=[duration_col, event_col] + predictors)
