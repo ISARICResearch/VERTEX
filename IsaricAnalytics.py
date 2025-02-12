@@ -25,13 +25,6 @@ from lifelines import CoxPHFitter
 ############################################
 ############################################
 
-new_variable_dict = {
-    'field_name': 'demog_agegroup',
-    'form_name': 'presentation',
-    'field_type': 'categorical',
-    'field_label': 'Age group',
-    'parent': 'demog_age'}
-
 
 def extend_dictionary(dictionary, new_variable_dict, data, sep='___'):
     '''Add new custom variables to the VERTEX dictionary.
@@ -839,13 +832,13 @@ def execute_logistic_regression(
         print(elr_summary_df)
 
     return elr_summary_df
-  
-  
+
+
  def execute_linear_regression(
-        elr_dataframe_df, elr_outcome_str, elr_predictors_list, 
+        elr_dataframe_df, elr_outcome_str, elr_predictors_list,
         print_results=True, labels=False, reg_type="multi"):
     """
-    Performs a linear regression (OLS) and returns a table with the 
+    Performs a linear regression (OLS) and returns a table with the
     coefficients and confidence intervals of the predictor variables.
 
     Parameters:
@@ -880,7 +873,7 @@ def execute_logistic_regression(
     for elr_var_str in elr_categorical_vars_list:
         elr_dataframe_df[elr_var_str] = (
             elr_dataframe_df[elr_var_str].astype('category'))
-    
+
     # Fit the linear regression model using Ordinary Least Squares (OLS)
     elr_model_obj = smf.ols(formula=elr_formula_str, data=elr_dataframe_df)
     elr_result_obj = elr_model_obj.fit()
@@ -891,7 +884,7 @@ def execute_logistic_regression(
     elr_summary_table_df = summary2_obj.tables[1]
 
     # Rename or create columns for clarity
-    # statsmodels typically creates columns like 
+    # statsmodels typically creates columns like
     # ['Coef.', 'Std.Err.', 't', 'P>|t|', '[0.025', '0.975]']
     elr_summary_table_df['Coef'] = elr_summary_table_df['Coef.']
     elr_summary_table_df['IC Low'] = elr_summary_table_df['[0.025']
@@ -919,7 +912,7 @@ def execute_logistic_regression(
             if var_name == 'Intercept':
                 return labels.get('Intercept', 'Intercept')
             elif '[' in var_name:
-                # For categorical variables, 
+                # For categorical variables,
                 # statsmodels uses something like C(x)[T.level]
                 base_var = var_name.split('[')[0]
                 level = var_name.split('[')[1].split(']')[0]
@@ -931,7 +924,7 @@ def execute_logistic_regression(
                 var_name_clean = var_name.replace(
                     'C(', '').replace(')', '').strip()
                 return labels.get(var_name_clean, var_name_clean)
-        
+
         elr_summary_df['Study'] = elr_summary_df['Study'].apply(
             elr_parse_variable_name)
 
@@ -952,16 +945,16 @@ def execute_logistic_regression(
     # Rename columns based on regression type (for clarity in final output)
     if reg_type == 'uni':
         elr_summary_df.rename(columns={
-            'Coef': 'Coef (uni)', 
-            'LowerCI': 'LowerCI (uni)', 
-            'UpperCI': 'UpperCI (uni)', 
+            'Coef': 'Coef (uni)',
+            'LowerCI': 'LowerCI (uni)',
+            'UpperCI': 'UpperCI (uni)',
             'p-value': 'p-value (uni)'
         }, inplace=True)
     else:
         elr_summary_df.rename(columns={
-            'Coef': 'Coef (multi)', 
-            'LowerCI': 'LowerCI (multi)', 
-            'UpperCI': 'UpperCI (multi)', 
+            'Coef': 'Coef (multi)',
+            'LowerCI': 'LowerCI (multi)',
+            'UpperCI': 'UpperCI (multi)',
             'p-value': 'p-value (multi)'
         }, inplace=True)
 
@@ -973,7 +966,7 @@ def execute_logistic_regression(
 
 def execute_cox_model(df, duration_col, event_col, predictors, labels=None):
     """
-    Performs a Cox Proportional Hazards model without weights and 
+    Performs a Cox Proportional Hazards model without weights and
     returns a summary of the results.
 
     Parameters:
@@ -981,8 +974,8 @@ def execute_cox_model(df, duration_col, event_col, predictors, labels=None):
     - duration_col: String with the name of the time variable.
     - event_col: String with the name of the outcome variable (binary event).
     - predictors: List of strings with the names of predictor variables.
-    - labels (Optional):  
-        Dictionary mapping variable names to readable labels. 
+    - labels (Optional):
+        Dictionary mapping variable names to readable labels.
         Default is None.
 
     Returns:
@@ -1004,7 +997,7 @@ def execute_cox_model(df, duration_col, event_col, predictors, labels=None):
 
     # Update predictors to include one-hot encoded columns
     predictors = [
-        c for c in df.columns 
+        c for c in df.columns
         if c in predictors or any(c.startswith(p + '_') for p in categorical_vars)]
 
     # Remove rows with missing values in essential columns
