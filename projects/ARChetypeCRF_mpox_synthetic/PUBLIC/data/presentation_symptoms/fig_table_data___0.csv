@@ -1,0 +1,625 @@
+Variable,All,Discharged,Death,Censored
+<b>Totals</b>,1000,264,272,464
+<b><i>EXPOSURE HISTORY IN PREVIOUS 14 DAYS</i></b>,,,,
+<b>History of contact with suspected or confirmed human case of same pathogen?</b> (*), 297 (47.7) |  622, 86 (50.3) | 171, 83 (47.7) | 174,128 (46.2) | 277
+<b>Type of human exposure</b>,,,,
+   ↳ Community contact, 133 (21.8) |  609, 43 (25.7) | 167, 35 (20.6) | 170, 55 (20.2) | 272
+   ↳ Vertical transmission, 129 (21.2) |  609, 41 (24.6) | 167, 33 (19.4) | 170, 55 (20.2) | 272
+   ↳ Healthcare worker exposure, 150 (24.6) |  609, 41 (24.6) | 167, 44 (25.9) | 170, 65 (23.9) | 272
+   ↳ Sexual transmission, 148 (24.3) |  609, 41 (24.6) | 167, 40 (23.5) | 170, 67 (24.6) | 272
+   ↳ Family / household contact, 140 (23.0) |  609, 41 (24.6) | 167, 34 (20.0) | 170, 65 (23.9) | 272
+   ↳ Other, 153 (25.1) |  609, 43 (25.7) | 167, 42 (24.7) | 170, 68 (25.0) | 272
+   ↳ Unknown, 149 (24.5) |  609, 40 (24.0) | 167, 47 (27.6) | 170, 62 (22.8) | 272
+<b><i>MEDICATION PREVIOUS 14-DAYS</i></b>,,,,
+<b>Antiviral</b> (*), 325 (51.0) |  637, 92 (52.9) | 174, 69 (44.2) | 156,164 (53.4) | 307
+<b>Antiviral</b> (*),,,,
+   ↳ Brincidofovir,  82 (26.8) |  306, 27 (30.3) |  89, 20 (31.2) |  64, 35 (22.9) | 153
+   ↳ Cidofovir (Vistide),  77 (25.2) |  306, 26 (29.2) |  89, 11 (17.2) |  64, 40 (26.1) | 153
+   ↳ Tecovirimat,  75 (24.5) |  306, 23 (25.8) |  89, 16 (25.0) |  64, 36 (23.5) | 153
+   ↳ Other,  72 (23.5) |  306, 13 (14.6) |  89, 17 (26.6) |  64, 42 (27.5) | 153
+<b>Antiviral administration route</b> (*),,,,
+   ↳ Oral,  65 (26.3) |  247, 15 (21.7) |  69, 19 (33.9) |  56, 31 (25.4) | 122
+   ↳ Inhaled,  65 (26.3) |  247, 18 (26.1) |  69, 10 (17.9) |  56, 37 (30.3) | 122
+   ↳ IV,  55 (22.3) |  247, 18 (26.1) |  69, 14 (25.0) |  56, 23 (18.9) | 122
+   ↳ Topical,  62 (25.1) |  247, 18 (26.1) |  69, 13 (23.2) |  56, 31 (25.4) | 122
+<b>Number of days antivirals taken</b> (+),46.4 (24.4-73.6) |  309,46.2 (22.4-70.0) |  87,41.6 (27.1-76.9) |  65,47.3 (24.9-72.4) | 157
+<b>Select Antiviral</b> (*),,,,
+"   ↳ Aciclovir (Acyclovir, Zovirax)",   3 ( 4.3) |   69,  1 ( 8.3) |  12,  2 (12.5) |  16,  0 ( 0.0) |  41
+   ↳ Atazanavir (Reyataz),   1 ( 1.4) |   69,  1 ( 8.3) |  12,  0 ( 0.0) |  16,  0 ( 0.0) |  41
+   ↳ Baloxavir marboxil,   4 ( 5.8) |   69,  1 ( 8.3) |  12,  0 ( 0.0) |  16,  3 ( 7.3) |  41
+   ↳ Bulevirtide (Hepcludex),   1 ( 1.4) |   69,  0 ( 0.0) |  12,  0 ( 0.0) |  16,  1 ( 2.4) |  41
+   ↳ Darunavir (Prezista),   2 ( 2.9) |   69,  1 ( 8.3) |  12,  0 ( 0.0) |  16,  1 ( 2.4) |  41
+   ↳ Dolutegravir (Tivicay),   1 ( 1.4) |   69,  0 ( 0.0) |  12,  0 ( 0.0) |  16,  1 ( 2.4) |  41
+   ↳ Efavirenz (Sustiva),   2 ( 2.9) |   69,  0 ( 0.0) |  12,  0 ( 0.0) |  16,  2 ( 4.9) |  41
+   ↳ Emtricitabine (Emtriva),   2 ( 2.9) |   69,  0 ( 0.0) |  12,  1 ( 6.2) |  16,  1 ( 2.4) |  41
+   ↳ Famciclovir (Famvir),   3 ( 4.3) |   69,  1 ( 8.3) |  12,  0 ( 0.0) |  16,  2 ( 4.9) |  41
+   ↳ Favipiravir (Avigan),   1 ( 1.4) |   69,  0 ( 0.0) |  12,  0 ( 0.0) |  16,  1 ( 2.4) |  41
+   ↳ Fluoxetine,   3 ( 4.3) |   69,  0 ( 0.0) |  12,  0 ( 0.0) |  16,  3 ( 7.3) |  41
+   ↳ Ganciclovir (Cytovene),   3 ( 4.3) |   69,  2 (16.7) |  12,  0 ( 0.0) |  16,  1 ( 2.4) |  41
+"   ↳ Lamivudine (Epivir, 3TC)",   2 ( 2.9) |   69,  1 ( 8.3) |  12,  0 ( 0.0) |  16,  1 ( 2.4) |  41
+   ↳ Laninamivir,   3 ( 4.3) |   69,  0 ( 0.0) |  12,  1 ( 6.2) |  16,  2 ( 4.9) |  41
+   ↳ Molnupiravir (Lagevrio),   6 ( 8.7) |   69,  0 ( 0.0) |  12,  3 (18.8) |  16,  3 ( 7.3) |  41
+   ↳ Nirmatrelvir/Retonavir (Paxlovid),   1 ( 1.4) |   69,  0 ( 0.0) |  12,  0 ( 0.0) |  16,  1 ( 2.4) |  41
+   ↳ Oseltamivir (Tamiflu),   2 ( 2.9) |   69,  0 ( 0.0) |  12,  1 ( 6.2) |  16,  1 ( 2.4) |  41
+   ↳ Penciclovir (Denavir),   3 ( 4.3) |   69,  0 ( 0.0) |  12,  2 (12.5) |  16,  1 ( 2.4) |  41
+   ↳ Pleconaril,   2 ( 2.9) |   69,  0 ( 0.0) |  12,  1 ( 6.2) |  16,  1 ( 2.4) |  41
+   ↳ Pocapavir,   4 ( 5.8) |   69,  0 ( 0.0) |  12,  3 (18.8) |  16,  1 ( 2.4) |  41
+   ↳ Raltegravir (Isentress),   1 ( 1.4) |   69,  0 ( 0.0) |  12,  0 ( 0.0) |  16,  1 ( 2.4) |  41
+   ↳ Remdesivir (Veklury),   2 ( 2.9) |   69,  0 ( 0.0) |  12,  1 ( 6.2) |  16,  1 ( 2.4) |  41
+"   ↳ Ribavirin (Rebetol, Copegus)",   1 ( 1.4) |   69,  0 ( 0.0) |  12,  0 ( 0.0) |  16,  1 ( 2.4) |  41
+   ↳ Rimantadine (Flumadine),   1 ( 1.4) |   69,  1 ( 8.3) |  12,  0 ( 0.0) |  16,  0 ( 0.0) |  41
+   ↳ Tenofovir alafenamide,   6 ( 8.7) |   69,  1 ( 8.3) |  12,  1 ( 6.2) |  16,  4 ( 9.8) |  41
+   ↳ Umifenovir (Arbidol),   1 ( 1.4) |   69,  0 ( 0.0) |  12,  0 ( 0.0) |  16,  1 ( 2.4) |  41
+   ↳ Valganciclovir (Valcyte),   4 ( 5.8) |   69,  1 ( 8.3) |  12,  0 ( 0.0) |  16,  3 ( 7.3) |  41
+   ↳ Zalcitabine,   2 ( 2.9) |   69,  1 ( 8.3) |  12,  0 ( 0.0) |  16,  1 ( 2.4) |  41
+   ↳ Other,   2 ( 2.9) |   69,  0 ( 0.0) |  12,  0 ( 0.0) |  16,  2 ( 4.9) |  41
+<b>Steroid</b> (*), 321 (50.9) |  631, 92 (52.6) | 175, 84 (50.0) | 168,145 (50.3) | 288
+<b>Steroid</b> (*),,,,
+"   ↳ Dexamethasone (Decadron, Dexasone, Diodex)",  60 (19.5) |  308, 16 (18.0) |  89, 18 (22.8) |  79, 26 (18.6) | 140
+"   ↳ Hydrocortisone (Cortef, Solu-Cortef)",  62 (20.1) |  308, 22 (24.7) |  89, 17 (21.5) |  79, 23 (16.4) | 140
+"   ↳ Methylprednisolone (Medrol, Solu-Medrol)",  66 (21.4) |  308, 18 (20.2) |  89, 17 (21.5) |  79, 31 (22.1) | 140
+   ↳ Prednisone (Deltasone),  52 (16.9) |  308, 12 (13.5) |  89, 11 (13.9) |  79, 29 (20.7) | 140
+   ↳ Other,  68 (22.1) |  308, 21 (23.6) |  89, 16 (20.3) |  79, 31 (22.1) | 140
+<b>Select Steroid</b> (*),,,,
+"   ↳ Beclomethasone (Beclometasone, Beconase)",   6 ( 9.2) |   65,  3 (15.8) |  19,  1 ( 6.2) |  16,  2 ( 6.7) |  30
+"   ↳ Betamethasone (Celestone, Betnelan)",   9 (13.8) |   65,  3 (15.8) |  19,  3 (18.8) |  16,  3 (10.0) |  30
+   ↳ Budesonide (Pulmicort),  11 (16.9) |   65,  3 (15.8) |  19,  2 (12.5) |  16,  6 (20.0) |  30
+   ↳ Cortisone (Cortone),   7 (10.8) |   65,  3 (15.8) |  19,  2 (12.5) |  16,  2 ( 6.7) |  30
+"   ↳ Fludrocortisone (Astonin, Florinef)",   7 (10.8) |   65,  0 ( 0.0) |  19,  1 ( 6.2) |  16,  6 (20.0) |  30
+"   ↳ Fluticasone (Flovent, Flonase)",   7 (10.8) |   65,  0 ( 0.0) |  19,  4 (25.0) |  16,  3 (10.0) |  30
+"   ↳ Mometasone (Asmanex, Elocon, Nasonex)",   9 (13.8) |   65,  4 (21.1) |  19,  1 ( 6.2) |  16,  4 (13.3) |  30
+"   ↳ Triamcinolone (Kenalog, Aristocort)",   6 ( 9.2) |   65,  1 ( 5.3) |  19,  1 ( 6.2) |  16,  4 (13.3) |  30
+   ↳ Other,   3 ( 4.6) |   65,  2 (10.5) |  19,  1 ( 6.2) |  16,  0 ( 0.0) |  30
+<b>Immunosuppressant agents (not steroids)</b> (*), 302 (49.7) |  608, 79 (48.8) | 162, 92 (52.6) | 175,131 (48.3) | 271
+<b>Immunosuppressant agents (not steroids)</b> (*),,,,
+   ↳ Other, 283 (100.) |  283, 73 (100.) |  73, 86 (100.) |  86,124 (100.) | 124
+<b>Select Immunosuppressant agents (not steroids)</b> (*),,,,
+   ↳ Abatacept (Orencia),  23 ( 8.6) |  269,  4 ( 5.6) |  71,  8 ( 9.6) |  83, 11 ( 9.6) | 115
+"   ↳ Alemtuzumab (Campath, Lemtrada)",  19 ( 7.1) |  269,  5 ( 7.0) |  71,  5 ( 6.0) |  83,  9 ( 7.8) | 115
+   ↳ Anakinra,  26 ( 9.7) |  269,  5 ( 7.0) |  71,  7 ( 8.4) |  83, 14 (12.2) | 115
+   ↳ Basiliximab (Simulect),  14 ( 5.2) |  269,  7 ( 9.9) |  71,  2 ( 2.4) |  83,  5 ( 4.3) | 115
+   ↳ Belatacept (Nulojix),  18 ( 6.7) |  269,  2 ( 2.8) |  71, 10 (12.0) |  83,  6 ( 5.2) | 115
+"   ↳ Everolimus (Afinitor, Zortress)",  13 ( 4.8) |  269,  4 ( 5.6) |  71,  4 ( 4.8) |  83,  5 ( 4.3) | 115
+   ↳ Leflunomide (Arava),  21 ( 7.8) |  269,  6 ( 8.5) |  71,  7 ( 8.4) |  83,  8 ( 7.0) | 115
+   ↳ Mercaptopurine (Purixan),  16 ( 5.9) |  269,  4 ( 5.6) |  71,  4 ( 4.8) |  83,  8 ( 7.0) | 115
+   ↳ Natalizumab (Tysabri),  18 ( 6.7) |  269,  7 ( 9.9) |  71,  2 ( 2.4) |  83,  9 ( 7.8) | 115
+   ↳ Nivolumab (Opdivo),  18 ( 6.7) |  269,  6 ( 8.5) |  71,  6 ( 7.2) |  83,  6 ( 5.2) | 115
+   ↳ Secukinumab (Cosentyx),  10 ( 3.7) |  269,  3 ( 4.2) |  71,  3 ( 3.6) |  83,  4 ( 3.5) | 115
+   ↳ Sirolimus (Rapamune),  20 ( 7.4) |  269,  3 ( 4.2) |  71,  6 ( 7.2) |  83, 11 ( 9.6) | 115
+   ↳ Thalidomide (Thalomid),   9 ( 3.3) |  269,  2 ( 2.8) |  71,  5 ( 6.0) |  83,  2 ( 1.7) | 115
+   ↳ Ustekinumab (Stelara),  15 ( 5.6) |  269,  5 ( 7.0) |  71,  4 ( 4.8) |  83,  6 ( 5.2) | 115
+   ↳ Vedolizumab (Entyvio),  11 ( 4.1) |  269,  4 ( 5.6) |  71,  5 ( 6.0) |  83,  2 ( 1.7) | 115
+   ↳ Other,  18 ( 6.7) |  269,  4 ( 5.6) |  71,  5 ( 6.0) |  83,  9 ( 7.8) | 115
+<b>Antibiotics</b> (*), 293 (49.7) |  590, 74 (50.7) | 146, 80 (48.8) | 164,139 (49.6) | 280
+<b>Antibiotics</b> (*),,,,
+"   ↳ Azithromycin (Sumamed, Zithromax, Zmax)",  98 (34.9) |  281, 26 (37.1) |  70, 28 (36.4) |  77, 44 (32.8) | 134
+"   ↳ Doxycycline (Vibramycin, Oracea, Monodox)",  86 (30.6) |  281, 20 (28.6) |  70, 23 (29.9) |  77, 43 (32.1) | 134
+   ↳ Other,  97 (34.5) |  281, 24 (34.3) |  70, 26 (33.8) |  77, 47 (35.1) | 134
+<b>Select Antibiotics</b> (*),,,,
+"   ↳ Amphotericin (Amphotericin B, Amphocin, Fungizone, Fungilin)",   1 ( 1.1) |   90,  0 ( 0.0) |  22,  0 ( 0.0) |  25,  1 ( 2.3) |  43
+"   ↳ Atovaquone (Mepron, Wellvone)",   1 ( 1.1) |   90,  0 ( 0.0) |  22,  1 ( 4.0) |  25,  0 ( 0.0) |  43
+"   ↳ Bacampicillin (Penglobe, Spectrobid)",   2 ( 2.2) |   90,  1 ( 4.5) |  22,  0 ( 0.0) |  25,  1 ( 2.3) |  43
+   ↳ Benzathine phenoxymethylpenicillin (Penicillin V),   3 ( 3.3) |   90,  1 ( 4.5) |  22,  0 ( 0.0) |  25,  2 ( 4.7) |  43
+"   ↳ Carbenicillin indanyl sodium (Anabactyl, Carbapen, Carindacillin, Pyopen)",   2 ( 2.2) |   90,  1 ( 4.5) |  22,  1 ( 4.0) |  25,  0 ( 0.0) |  43
+   ↳ Caspofungin (Cancidas),   2 ( 2.2) |   90,  0 ( 0.0) |  22,  1 ( 4.0) |  25,  1 ( 2.3) |  43
+"   ↳ Cefaclor (Biocef, Ceclor, Raniclor)",   1 ( 1.1) |   90,  0 ( 0.0) |  22,  0 ( 0.0) |  25,  1 ( 2.3) |  43
+   ↳ Cefadroxil (Duricef),   1 ( 1.1) |   90,  0 ( 0.0) |  22,  0 ( 0.0) |  25,  1 ( 2.3) |  43
+"   ↳ Cefdinir (Cefzon, Omnicef)",   1 ( 1.1) |   90,  0 ( 0.0) |  22,  0 ( 0.0) |  25,  1 ( 2.3) |  43
+   ↳ Cefixime (Suprax),   2 ( 2.2) |   90,  1 ( 4.5) |  22,  0 ( 0.0) |  25,  1 ( 2.3) |  43
+   ↳ Cefmetazole (Zefazone),   2 ( 2.2) |   90,  0 ( 0.0) |  22,  0 ( 0.0) |  25,  2 ( 4.7) |  43
+   ↳ Cefoperazone (Cefobid),   2 ( 2.2) |   90,  0 ( 0.0) |  22,  1 ( 4.0) |  25,  1 ( 2.3) |  43
+"   ↳ Cefoxitin (Mefoxin, Renoxitin)",   1 ( 1.1) |   90,  0 ( 0.0) |  22,  1 ( 4.0) |  25,  0 ( 0.0) |  43
+   ↳ Cefpodoxime Proxetil (Vantin),   1 ( 1.1) |   90,  0 ( 0.0) |  22,  1 ( 4.0) |  25,  0 ( 0.0) |  43
+"   ↳ Cefprozil (Cefproxil, Cefproz, Cefzil)",   1 ( 1.1) |   90,  1 ( 4.5) |  22,  0 ( 0.0) |  25,  0 ( 0.0) |  43
+"   ↳ Ceftazidime/beta-lactamase inhibitor (ceftazidime/avibactam, Avycaz, Zavicefta)",   2 ( 2.2) |   90,  0 ( 0.0) |  22,  0 ( 0.0) |  25,  2 ( 4.7) |  43
+   ↳ Ceftibuten (Cedax),   1 ( 1.1) |   90,  1 ( 4.5) |  22,  0 ( 0.0) |  25,  0 ( 0.0) |  43
+   ↳ Ceftizoxime (Cefizox),   5 ( 5.6) |   90,  3 (13.6) |  22,  2 ( 8.0) |  25,  0 ( 0.0) |  43
+"   ↳ Cephalothin (Cefalotin,",   1 ( 1.1) |   90,  0 ( 0.0) |  22,  0 ( 0.0) |  25,  1 ( 2.3) |  43
+"   ↳ Cephapirin (Cefapirin,",   1 ( 1.1) |   90,  0 ( 0.0) |  22,  1 ( 4.0) |  25,  0 ( 0.0) |  43
+"   ↳ Cephradine (Cefradine, Velosef)",   3 ( 3.3) |   90,  1 ( 4.5) |  22,  1 ( 4.0) |  25,  1 ( 2.3) |  43
+   ↳ Cinoxacin (Cinobac),   1 ( 1.1) |   90,  1 ( 4.5) |  22,  0 ( 0.0) |  25,  0 ( 0.0) |  43
+"   ↳ Colistin (Colistimethate, Coly Mycin M, Colobreathe, Xylistin)",   5 ( 5.6) |   90,  1 ( 4.5) |  22,  1 ( 4.0) |  25,  3 ( 7.0) |  43
+   ↳ Cycloserine (Seromycin),   2 ( 2.2) |   90,  0 ( 0.0) |  22,  0 ( 0.0) |  25,  2 ( 4.7) |  43
+"   ↳ Daptomycin (Dapzura, Cubicin)",   2 ( 2.2) |   90,  1 ( 4.5) |  22,  0 ( 0.0) |  25,  1 ( 2.3) |  43
+   ↳ Demeclocycline (Declomycin),   1 ( 1.1) |   90,  0 ( 0.0) |  22,  0 ( 0.0) |  25,  1 ( 2.3) |  43
+"   ↳ Dicloxacillin (Diclocil, Dycill, Dynapen)",   2 ( 2.2) |   90,  1 ( 4.5) |  22,  1 ( 4.0) |  25,  0 ( 0.0) |  43
+   ↳ Dirithromycin (Dynabac),   1 ( 1.1) |   90,  0 ( 0.0) |  22,  0 ( 0.0) |  25,  1 ( 2.3) |  43
+"   ↳ Doripenem (Doribax, Finibax)",   1 ( 1.1) |   90,  0 ( 0.0) |  22,  0 ( 0.0) |  25,  1 ( 2.3) |  43
+   ↳ Ethambutol,   1 ( 1.1) |   90,  1 ( 4.5) |  22,  0 ( 0.0) |  25,  0 ( 0.0) |  43
+   ↳ Gatifloxacin (Tequin),   3 ( 3.3) |   90,  0 ( 0.0) |  22,  1 ( 4.0) |  25,  2 ( 4.7) |  43
+   ↳ Grepafloxacin,   3 ( 3.3) |   90,  0 ( 0.0) |  22,  0 ( 0.0) |  25,  3 ( 7.0) |  43
+   ↳ Kanamycin (Kantrex),   2 ( 2.2) |   90,  0 ( 0.0) |  22,  2 ( 8.0) |  25,  0 ( 0.0) |  43
+"   ↳ Lincomycin (Linobac, Lincomed)",   1 ( 1.1) |   90,  0 ( 0.0) |  22,  0 ( 0.0) |  25,  1 ( 2.3) |  43
+   ↳ Lomefloxacin,   4 ( 4.4) |   90,  1 ( 4.5) |  22,  1 ( 4.0) |  25,  2 ( 4.7) |  43
+"   ↳ Methicillin (Meticillin, Staphcillin)",   1 ( 1.1) |   90,  0 ( 0.0) |  22,  0 ( 0.0) |  25,  1 ( 2.3) |  43
+"   ↳ Mezlocillin (Baypen, Melocin, Bezlin, Optocillin)",   1 ( 1.1) |   90,  0 ( 0.0) |  22,  1 ( 4.0) |  25,  0 ( 0.0) |  43
+   ↳ Neomycin (Neovet),   1 ( 1.1) |   90,  0 ( 0.0) |  22,  1 ( 4.0) |  25,  0 ( 0.0) |  43
+   ↳ Netilmicin (Netromycin),   2 ( 2.2) |   90,  1 ( 4.5) |  22,  1 ( 4.0) |  25,  0 ( 0.0) |  43
+"   ↳ Norfloxacin (Trizolin, Noroxin)",   1 ( 1.1) |   90,  0 ( 0.0) |  22,  0 ( 0.0) |  25,  1 ( 2.3) |  43
+   ↳ Novobiocin (Albadry),   1 ( 1.1) |   90,  1 ( 4.5) |  22,  0 ( 0.0) |  25,  0 ( 0.0) |  43
+   ↳ Oxacillin (Bactocill),   3 ( 3.3) |   90,  1 ( 4.5) |  22,  0 ( 0.0) |  25,  2 ( 4.7) |  43
+"   ↳ Oxytetracycline (Agrimycin, Noromycin)",   1 ( 1.1) |   90,  0 ( 0.0) |  22,  1 ( 4.0) |  25,  0 ( 0.0) |  43
+   ↳ Piperacillin,   1 ( 1.1) |   90,  0 ( 0.0) |  22,  1 ( 4.0) |  25,  0 ( 0.0) |  43
+"   ↳ Polymyxin B (Poly-Rx, Polysporin)",   1 ( 1.1) |   90,  0 ( 0.0) |  22,  0 ( 0.0) |  25,  1 ( 2.3) |  43
+"   ↳ Procaine benzylpenicillin (Penicillin G, Bactracillin G, Norocillin)",   1 ( 1.1) |   90,  0 ( 0.0) |  22,  0 ( 0.0) |  25,  1 ( 2.3) |  43
+   ↳ Quinupristin/Dalfopristin (Synercid),   2 ( 2.2) |   90,  1 ( 4.5) |  22,  0 ( 0.0) |  25,  1 ( 2.3) |  43
+   ↳ Rifapentine (Priftin),   1 ( 1.1) |   90,  0 ( 0.0) |  22,  1 ( 4.0) |  25,  0 ( 0.0) |  43
+   ↳ Sulfadiazine,   1 ( 1.1) |   90,  0 ( 0.0) |  22,  1 ( 4.0) |  25,  0 ( 0.0) |  43
+"   ↳ Sulfisoxazole (Sulfafurazole, Truxazole)",   1 ( 1.1) |   90,  0 ( 0.0) |  22,  0 ( 0.0) |  25,  1 ( 2.3) |  43
+   ↳ Teicoplanin (Targocid),   1 ( 1.1) |   90,  1 ( 4.5) |  22,  0 ( 0.0) |  25,  0 ( 0.0) |  43
+   ↳ Telithromycin (Levviax),   2 ( 2.2) |   90,  0 ( 0.0) |  22,  0 ( 0.0) |  25,  2 ( 4.7) |  43
+"   ↳ Tetracycline (Viabecline, Vitastem)",   1 ( 1.1) |   90,  0 ( 0.0) |  22,  1 ( 4.0) |  25,  0 ( 0.0) |  43
+   ↳ Ticarcillin,   1 ( 1.1) |   90,  0 ( 0.0) |  22,  1 ( 4.0) |  25,  0 ( 0.0) |  43
+   ↳ Ticarcillin/Beta-lactamase inhibitor (Ticacillin/Clavulanate),   1 ( 1.1) |   90,  1 ( 4.5) |  22,  0 ( 0.0) |  25,  0 ( 0.0) |  43
+<b>Herbal or traditional treatment</b> (*), 322 (50.8) |  634, 85 (52.1) | 163, 75 (48.4) | 155,162 (51.3) | 316
+<b>HIV PrEP / PEP</b> (*), 321 (50.1) |  641, 88 (53.3) | 165, 88 (48.9) | 180,145 (49.0) | 296
+<b>Other pathogen-targeted medications</b> (*), 316 (50.1) |  631, 84 (50.6) | 166, 87 (51.5) | 169,145 (49.0) | 296
+<b>Other pathogen-targeted medications</b> (*),,,,
+   ↳ Other, 296 (100.) |  296, 78 (100.) |  78, 80 (100.) |  80,138 (100.) | 138
+<b>Select Other pathogen-targeted medications</b> (*),,,,
+   ↳ Aminophylline (Truphylline),   9 ( 3.2) |  284,  5 ( 6.8) |  74,  0 ( 0.0) |  78,  4 ( 3.0) | 132
+"   ↳ Beclometasone (Qvar, Beconase AQ)",   7 ( 2.5) |  284,  1 ( 1.4) |  74,  3 ( 3.8) |  78,  3 ( 2.3) | 132
+   ↳ Caspofungin (Cancidas),  10 ( 3.5) |  284,  3 ( 4.1) |  74,  2 ( 2.6) |  78,  5 ( 3.8) | 132
+   ↳ Chloroquine (Aralen),   6 ( 2.1) |  284,  3 ( 4.1) |  74,  1 ( 1.3) |  78,  2 ( 1.5) | 132
+"   ↳ Clobetasol (Temovate, Olux, Impoyz)",   9 ( 3.2) |  284,  4 ( 5.4) |  74,  3 ( 3.8) |  78,  2 ( 1.5) | 132
+   ↳ Fluconazole (Diflucan),  10 ( 3.5) |  284,  2 ( 2.7) |  74,  3 ( 3.8) |  78,  5 ( 3.8) | 132
+"   ↳ Fluticasone (Flovent, Flonase)",   9 ( 3.2) |  284,  1 ( 1.4) |  74,  2 ( 2.6) |  78,  6 ( 4.5) | 132
+   ↳ Fluticasone furoate,  10 ( 3.5) |  284,  2 ( 2.7) |  74,  3 ( 3.8) |  78,  5 ( 3.8) | 132
+"   ↳ Formoterol (Foradil, Perforomist)",   6 ( 2.1) |  284,  1 ( 1.4) |  74,  3 ( 3.8) |  78,  2 ( 1.5) | 132
+   ↳ Formoterol and Beclometasone (Fostair),  10 ( 3.5) |  284,  1 ( 1.4) |  74,  2 ( 2.6) |  78,  7 ( 5.3) | 132
+   ↳ Formoterol and Budesonide (Symbicort),  12 ( 4.2) |  284,  3 ( 4.1) |  74,  4 ( 5.1) |  78,  5 ( 3.8) | 132
+   ↳ Glycopyrronium Bromide (Seebri),   9 ( 3.2) |  284,  2 ( 2.7) |  74,  1 ( 1.3) |  78,  6 ( 4.5) | 132
+   ↳ Hydroxychloroquine (Plaquenil),   5 ( 1.8) |  284,  1 ( 1.4) |  74,  0 ( 0.0) |  78,  4 ( 3.0) | 132
+"   ↳ Imiquimod (Aldara, Zyclara)",  11 ( 3.9) |  284,  4 ( 5.4) |  74,  2 ( 2.6) |  78,  5 ( 3.8) | 132
+   ↳ Indacaterol and Glycopyrronium Bromide (Ultibro Breezhaler),   5 ( 1.8) |  284,  1 ( 1.4) |  74,  0 ( 0.0) |  78,  4 ( 3.0) | 132
+   ↳ Interferon Alpha,   8 ( 2.8) |  284,  1 ( 1.4) |  74,  1 ( 1.3) |  78,  6 ( 4.5) | 132
+   ↳ Interferon Beta,  11 ( 3.9) |  284,  4 ( 5.4) |  74,  3 ( 3.8) |  78,  4 ( 3.0) | 132
+   ↳ Ipratropium Bromide (Atrovent),  14 ( 4.9) |  284,  7 ( 9.5) |  74,  2 ( 2.6) |  78,  5 ( 3.8) | 132
+   ↳ Ivermectin (Stromectol),  11 ( 3.9) |  284,  2 ( 2.7) |  74,  4 ( 5.1) |  78,  5 ( 3.8) | 132
+   ↳ Mafenide (Sulfamylon),  11 ( 3.9) |  284,  4 ( 5.4) |  74,  4 ( 5.1) |  78,  3 ( 2.3) | 132
+"   ↳ Mometasone (Asmanex, Nasonex)",   8 ( 2.8) |  284,  2 ( 2.7) |  74,  3 ( 3.8) |  78,  3 ( 2.3) | 132
+   ↳ Montelukast (Singulair),   8 ( 2.8) |  284,  3 ( 4.1) |  74,  2 ( 2.6) |  78,  3 ( 2.3) | 132
+   ↳ Mupirocin (Bactroban),   6 ( 2.1) |  284,  1 ( 1.4) |  74,  3 ( 3.8) |  78,  2 ( 1.5) | 132
+"   ↳ Nystatin (Bio-statin, Nyamyc)",   6 ( 2.1) |  284,  3 ( 4.1) |  74,  0 ( 0.0) |  78,  3 ( 2.3) | 132
+"   ↳ Podophyllotoxin (Podofilox, Condylox)",   8 ( 2.8) |  284,  1 ( 1.4) |  74,  2 ( 2.6) |  78,  5 ( 3.8) | 132
+   ↳ Primaquine,   8 ( 2.8) |  284,  1 ( 1.4) |  74,  4 ( 5.1) |  78,  3 ( 2.3) | 132
+"   ↳ Salbutamol (Ventolin, Proventil)",   9 ( 3.2) |  284,  2 ( 2.7) |  74,  4 ( 5.1) |  78,  3 ( 2.3) | 132
+"   ↳ Salmeterol and Fluticasone (Advair, Seretide)",   9 ( 3.2) |  284,  1 ( 1.4) |  74,  6 ( 7.7) |  78,  2 ( 1.5) | 132
+"   ↳ Sulphur, precipitated in petrolatum",   7 ( 2.5) |  284,  0 ( 0.0) |  74,  3 ( 3.8) |  78,  4 ( 3.0) | 132
+"   ↳ Theophylline (Theo-24, Elixophyllin)",  11 ( 3.9) |  284,  1 ( 1.4) |  74,  3 ( 3.8) |  78,  7 ( 5.3) | 132
+   ↳ Tiotropium Bromide (Spiriva),   5 ( 1.8) |  284,  1 ( 1.4) |  74,  2 ( 2.6) |  78,  2 ( 1.5) | 132
+   ↳ Trichloroacetic acid,   6 ( 2.1) |  284,  0 ( 0.0) |  74,  1 ( 1.3) |  78,  5 ( 3.8) | 132
+   ↳ Vilanterol and Fluticasone Furoate (Breo Ellipta),   3 ( 1.1) |  284,  2 ( 2.7) |  74,  1 ( 1.3) |  78,  0 ( 0.0) | 132
+   ↳ Other,   7 ( 2.5) |  284,  4 ( 5.4) |  74,  1 ( 1.3) |  78,  2 ( 1.5) | 132
+<b><i>SIGNS AND SYMPTOMS ON ADMISSION</i></b>,,,,
+<b>Fever / chills / rigors</b> (*), 316 (50.2) |  630, 83 (50.6) | 164, 85 (49.7) | 171,148 (50.2) | 295
+<b>Fatigue / malaise / lethargy</b> (*), 299 (49.6) |  603, 77 (47.5) | 162, 75 (45.7) | 164,147 (53.1) | 277
+<b>Weight loss</b> (*), 308 (47.5) |  648, 83 (49.4) | 168, 94 (51.9) | 181,131 (43.8) | 299
+<b>Muscle aches / myalgia</b> (*), 317 (50.2) |  631, 74 (44.8) | 165, 88 (52.1) | 169,155 (52.2) | 297
+<b>Joint pain / arthralgia</b> (*), 327 (50.8) |  644, 84 (49.4) | 170, 86 (51.2) | 168,157 (51.3) | 306
+<b>Itch / pruritus</b> (*), 306 (47.5) |  644, 84 (49.1) | 171, 79 (47.3) | 167,143 (46.7) | 306
+<b>Change in mobility from baseline</b> (*), 326 (49.0) |  665,101 (58.4) | 173, 84 (46.2) | 182,141 (45.5) | 310
+<b>Mobility status</b> (*),,,,
+   ↳ Fully ambulant, 114 (37.0) |  308, 35 (36.1) |  97, 29 (37.2) |  78, 50 (37.6) | 133
+"   ↳ Ambulant, but with some assistance",  90 (29.2) |  308, 28 (28.9) |  97, 21 (26.9) |  78, 41 (30.8) | 133
+   ↳ Bedridden, 104 (33.8) |  308, 34 (35.1) |  97, 28 (35.9) |  78, 42 (31.6) | 133
+<b>Cough</b> (*), 297 (47.7) |  622, 73 (45.9) | 159, 75 (46.0) | 163,149 (49.7) | 300
+<b>Non-productive </b> (*), 102 (54.3) |  188, 25 (54.3) |  46, 21 (52.5) |  40, 56 (54.9) | 102
+<b>Productive</b> (*),  85 (50.3) |  169, 25 (55.6) |  45, 20 (42.6) |  47, 40 (51.9) |  77
+<b>Hemoptysis</b> (*), 103 (55.4) |  186, 32 (62.7) |  51, 28 (58.3) |  48, 43 (49.4) |  87
+<b>Sore throat</b> (*), 311 (50.4) |  617, 89 (52.7) | 169, 88 (53.0) | 166,134 (47.5) | 282
+<b>Shortness of breath </b> (*), 303 (48.3) |  627, 81 (50.6) | 160, 90 (51.4) | 175,132 (45.2) | 292
+<b>Chest pain</b> (*), 348 (54.9) |  634, 82 (50.6) | 162, 91 (52.3) | 174,175 (58.7) | 298
+<b>Abdominal pain</b> (*), 311 (51.1) |  609, 85 (50.0) | 170, 77 (50.3) | 153,149 (52.1) | 286
+<b>Diarrhoea</b> (*), 318 (50.6) |  629, 84 (51.9) | 162, 86 (50.0) | 172,148 (50.2) | 295
+<b>Constipation</b> (*), 326 (50.7) |  643, 86 (52.1) | 165, 87 (48.6) | 179,153 (51.2) | 299
+<b>Vomiting</b> (*), 322 (51.4) |  626, 91 (54.2) | 168, 89 (53.6) | 166,142 (48.6) | 292
+<b>Persistent vomiting? (>=2/day)</b> (*), 105 (52.5) |  200, 25 (43.9) |  57, 32 (62.7) |  51, 48 (52.2) |  92
+<b>Nausea</b> (*), 312 (51.1) |  610, 87 (54.7) | 159, 69 (43.1) | 160,156 (53.6) | 291
+<b>Excessive salivation</b> (*), 308 (49.3) |  625, 76 (48.1) | 158, 91 (49.2) | 185,141 (50.0) | 282
+<b>Difficulty swallowing / dysphagia</b> (*), 311 (50.2) |  619, 83 (48.8) | 170, 82 (48.8) | 168,146 (52.0) | 281
+<b>Urinary retention</b> (*), 327 (49.8) |  657, 93 (50.5) | 184, 85 (50.0) | 170,149 (49.2) | 303
+<b>Dyspareunia</b> (*), 299 (48.0) |  623, 84 (49.1) | 171, 82 (48.2) | 170,133 (47.2) | 282
+<b>Bleeding / haemorrhage</b> (*), 300 (48.1) |  624, 80 (49.4) | 162, 78 (45.1) | 173,142 (49.1) | 289
+<b>Severe bleeding / haemorrhage (requires intervention)</b> (*), 102 (51.0) |  200, 29 (51.8) |  56, 33 (55.0) |  60, 40 (47.6) |  84
+<b>Specify bleeding / haemorrhage site(s)</b>,,,,
+   ↳ Skin, 139 (23.1) |  603, 43 (26.9) | 160, 37 (21.8) | 170, 59 (21.6) | 273
+   ↳ Petechiae, 136 (22.6) |  603, 38 (23.8) | 160, 38 (22.4) | 170, 60 (22.0) | 273
+   ↳ Nose, 148 (24.5) |  603, 42 (26.2) | 160, 37 (21.8) | 170, 69 (25.3) | 273
+   ↳ Gums, 148 (24.5) |  603, 43 (26.9) | 160, 32 (18.8) | 170, 73 (26.7) | 273
+   ↳ GI tract, 133 (22.1) |  603, 39 (24.4) | 160, 39 (22.9) | 170, 55 (20.1) | 273
+   ↳ Urinary tract, 140 (23.2) |  603, 37 (23.1) | 160, 37 (21.8) | 170, 66 (24.2) | 273
+   ↳ Vagina, 125 (20.7) |  603, 31 (19.4) | 160, 42 (24.7) | 170, 52 (19.0) | 273
+   ↳ Other(s), 150 (24.9) |  603, 54 (33.8) | 160, 37 (21.8) | 170, 59 (21.6) | 273
+   ↳ Unknown, 141 (23.4) |  603, 41 (25.6) | 160, 41 (24.1) | 170, 59 (21.6) | 273
+<b>Jaundice</b> (*), 320 (50.2) |  637, 83 (49.1) | 169, 81 (49.1) | 165,156 (51.5) | 303
+<b>Headache</b> (*), 305 (48.5) |  629, 90 (52.3) | 172, 85 (51.8) | 164,130 (44.4) | 293
+<b>Seizures / convulsions</b> (*), 339 (53.3) |  636, 86 (51.2) | 168, 86 (51.5) | 167,167 (55.5) | 301
+<b>Altered consciousness / confusion</b> (*), 316 (49.1) |  643, 77 (48.1) | 160, 92 (51.4) | 179,147 (48.4) | 304
+<b>Psychological disturbance</b> (*), 307 (49.6) |  619, 96 (56.5) | 170, 82 (48.5) | 169,129 (46.1) | 280
+<b>Ocular complaints</b> (*), 300 (48.9) |  614, 82 (51.2) | 160, 79 (47.6) | 166,139 (48.3) | 288
+<b>Specify ocular complaints</b>,,,,
+   ↳ Red eye(s), 147 (24.5) |  600, 36 (23.2) | 155, 43 (26.7) | 161, 68 (23.9) | 284
+   ↳ Itchy eye(s), 142 (23.7) |  600, 41 (26.5) | 155, 37 (23.0) | 161, 64 (22.5) | 284
+   ↳ Eye pain, 134 (22.3) |  600, 32 (20.6) | 155, 35 (21.7) | 161, 67 (23.6) | 284
+   ↳ Visual disturbance, 139 (23.2) |  600, 31 (20.0) | 155, 35 (21.7) | 161, 73 (25.7) | 284
+   ↳ Other, 142 (23.7) |  600, 41 (26.5) | 155, 37 (23.0) | 161, 64 (22.5) | 284
+<b>Other sign(s) or symptom(s)</b> (*), 331 (51.7) |  640, 68 (42.8) | 159,101 (52.6) | 192,162 (56.1) | 289
+<b>Select other sign(s) or symptom(s)</b> (*),,,,
+   ↳ Abdominal pain,   2 ( 0.6) |  308,  1 ( 1.7) |  59,  1 ( 1.1) |  95,  0 ( 0.0) | 154
+   ↳ Abnormal weight loss,   2 ( 0.6) |  308,  0 ( 0.0) |  59,  1 ( 1.1) |  95,  1 ( 0.6) | 154
+   ↳ Alopecia (Nonscarring hair loss),   2 ( 0.6) |  308,  0 ( 0.0) |  59,  0 ( 0.0) |  95,  2 ( 1.3) | 154
+   ↳ Altered consciousness / Confusion (Disorientation),   3 ( 1.0) |  308,  0 ( 0.0) |  59,  1 ( 1.1) |  95,  2 ( 1.3) | 154
+   ↳ Anorexia,   1 ( 0.3) |  308,  0 ( 0.0) |  59,  1 ( 1.1) |  95,  0 ( 0.0) | 154
+   ↳ Apnoea,   6 ( 1.9) |  308,  3 ( 5.1) |  59,  2 ( 2.1) |  95,  1 ( 0.6) | 154
+   ↳ Ascites,   2 ( 0.6) |  308,  2 ( 3.4) |  59,  0 ( 0.0) |  95,  0 ( 0.0) | 154
+   ↳ Bleeding (Haemorrhage),   8 ( 2.6) |  308,  1 ( 1.7) |  59,  3 ( 3.2) |  95,  4 ( 2.6) | 154
+   ↳ Bruising (Spontaneous ecchymoses),   5 ( 1.6) |  308,  0 ( 0.0) |  59,  0 ( 0.0) |  95,  5 ( 3.2) | 154
+   ↳ Can't feel one side of the body or face (Hemiplegia),   4 ( 1.3) |  308,  0 ( 0.0) |  59,  4 ( 4.2) |  95,  0 ( 0.0) | 154
+   ↳ Can't fully move or control movement (Paralytic syndrome),   2 ( 0.6) |  308,  0 ( 0.0) |  59,  0 ( 0.0) |  95,  2 ( 1.3) | 154
+   ↳ Cardiac arrhythmia,   5 ( 1.6) |  308,  0 ( 0.0) |  59,  2 ( 2.1) |  95,  3 ( 1.9) | 154
+   ↳ Changes in menstruation (Irregular menstruation),   6 ( 1.9) |  308,  2 ( 3.4) |  59,  1 ( 1.1) |  95,  3 ( 1.9) | 154
+   ↳ Changes in skin texture,   4 ( 1.3) |  308,  1 ( 1.7) |  59,  1 ( 1.1) |  95,  2 ( 1.3) | 154
+   ↳ Chest pain,   3 ( 1.0) |  308,  0 ( 0.0) |  59,  1 ( 1.1) |  95,  2 ( 1.3) | 154
+   ↳ Chest pain on breathing,   2 ( 0.6) |  308,  1 ( 1.7) |  59,  0 ( 0.0) |  95,  1 ( 0.6) | 154
+   ↳ Chills (without fever),   6 ( 1.9) |  308,  3 ( 5.1) |  59,  2 ( 2.1) |  95,  1 ( 0.6) | 154
+   ↳ Cognitive impairment (Unspecified intellectual disabilities),   7 ( 2.3) |  308,  0 ( 0.0) |  59,  3 ( 3.2) |  95,  4 ( 2.6) | 154
+   ↳ Conjunctivitis,   3 ( 1.0) |  308,  0 ( 0.0) |  59,  2 ( 2.1) |  95,  1 ( 0.6) | 154
+   ↳ Constipation,   8 ( 2.6) |  308,  1 ( 1.7) |  59,  3 ( 3.2) |  95,  4 ( 2.6) | 154
+   ↳ Convulsions,   1 ( 0.3) |  308,  0 ( 0.0) |  59,  0 ( 0.0) |  95,  1 ( 0.6) | 154
+   ↳ Cough,   3 ( 1.0) |  308,  2 ( 3.4) |  59,  1 ( 1.1) |  95,  0 ( 0.0) | 154
+   ↳ Diarrhea,   3 ( 1.0) |  308,  1 ( 1.7) |  59,  0 ( 0.0) |  95,  2 ( 1.3) | 154
+   ↳ Difficulty eating or drinking (Dysphagia),   4 ( 1.3) |  308,  0 ( 0.0) |  59,  0 ( 0.0) |  95,  4 ( 2.6) | 154
+   ↳ Difficulty in walking,   2 ( 0.6) |  308,  0 ( 0.0) |  59,  1 ( 1.1) |  95,  1 ( 0.6) | 154
+   ↳ Disorders of nose and nasal sinuses,   1 ( 0.3) |  308,  0 ( 0.0) |  59,  0 ( 0.0) |  95,  1 ( 0.6) | 154
+   ↳ Disturbance in attention (Altered mental status),   4 ( 1.3) |  308,  2 ( 3.4) |  59,  0 ( 0.0) |  95,  2 ( 1.3) | 154
+   ↳ Dizziness/light headedness (Dizziness and giddiness),   1 ( 0.3) |  308,  0 ( 0.0) |  59,  0 ( 0.0) |  95,  1 ( 0.6) | 154
+   ↳ Dry skin (Xerosis cutis),   4 ( 1.3) |  308,  0 ( 0.0) |  59,  1 ( 1.1) |  95,  3 ( 1.9) | 154
+   ↳ Ear pain (Otalgia),   2 ( 0.6) |  308,  1 ( 1.7) |  59,  0 ( 0.0) |  95,  1 ( 0.6) | 154
+   ↳ Erectile dysfunction,   7 ( 2.3) |  308,  1 ( 1.7) |  59,  4 ( 4.2) |  95,  2 ( 1.3) | 154
+   ↳ Fainting / blackouts (Syncope and collapse),   3 ( 1.0) |  308,  1 ( 1.7) |  59,  0 ( 0.0) |  95,  2 ( 1.3) | 154
+   ↳ Fecal incontinence,   7 ( 2.3) |  308,  0 ( 0.0) |  59,  2 ( 2.1) |  95,  5 ( 3.2) | 154
+   ↳ Feeding difficulty,   2 ( 0.6) |  308,  0 ( 0.0) |  59,  0 ( 0.0) |  95,  2 ( 1.3) | 154
+   ↳ Fever,   4 ( 1.3) |  308,  1 ( 1.7) |  59,  2 ( 2.1) |  95,  1 ( 0.6) | 154
+   ↳ Gastrointestinal bleeding (Gastrointestinal hemorrhage),   3 ( 1.0) |  308,  0 ( 0.0) |  59,  0 ( 0.0) |  95,  3 ( 1.9) | 154
+   ↳ Headache,   7 ( 2.3) |  308,  1 ( 1.7) |  59,  1 ( 1.1) |  95,  5 ( 3.2) | 154
+   ↳ Hepatomegaly,   5 ( 1.6) |  308,  2 ( 3.4) |  59,  2 ( 2.1) |  95,  1 ( 0.6) | 154
+   ↳ Increased thirst (Polydipsia),   3 ( 1.0) |  308,  1 ( 1.7) |  59,  2 ( 2.1) |  95,  0 ( 0.0) | 154
+   ↳ Increased urination (polyuria),   3 ( 1.0) |  308,  2 ( 3.4) |  59,  0 ( 0.0) |  95,  1 ( 0.6) | 154
+   ↳ Irritability,   3 ( 1.0) |  308,  1 ( 1.7) |  59,  0 ( 0.0) |  95,  2 ( 1.3) | 154
+   ↳ Itchy eye,   1 ( 0.3) |  308,  0 ( 0.0) |  59,  0 ( 0.0) |  95,  1 ( 0.6) | 154
+   ↳ Jaundice,   4 ( 1.3) |  308,  0 ( 0.0) |  59,  1 ( 1.1) |  95,  3 ( 1.9) | 154
+   ↳ Joint pain (Arthralgia),   1 ( 0.3) |  308,  0 ( 0.0) |  59,  0 ( 0.0) |  95,  1 ( 0.6) | 154
+   ↳ Keratitis,   3 ( 1.0) |  308,  2 ( 3.4) |  59,  0 ( 0.0) |  95,  1 ( 0.6) | 154
+   ↳ Limb weakness / paralysis (Monoplegia),   4 ( 1.3) |  308,  2 ( 3.4) |  59,  1 ( 1.1) |  95,  1 ( 0.6) | 154
+   ↳ Localized edema,   1 ( 0.3) |  308,  0 ( 0.0) |  59,  1 ( 1.1) |  95,  0 ( 0.0) | 154
+   ↳ Loss of appetite (Anorexia),   4 ( 1.3) |  308,  1 ( 1.7) |  59,  1 ( 1.1) |  95,  2 ( 1.3) | 154
+   ↳ Loss of smell (Anosmia),   5 ( 1.6) |  308,  1 ( 1.7) |  59,  1 ( 1.1) |  95,  3 ( 1.9) | 154
+   ↳ Loss of taste (Parageusia),   2 ( 0.6) |  308,  0 ( 0.0) |  59,  1 ( 1.1) |  95,  1 ( 0.6) | 154
+   ↳ Lymphadenitis,   4 ( 1.3) |  308,  0 ( 0.0) |  59,  2 ( 2.1) |  95,  2 ( 1.3) | 154
+   ↳ Malaise and fatigue,   5 ( 1.6) |  308,  2 ( 3.4) |  59,  1 ( 1.1) |  95,  2 ( 1.3) | 154
+   ↳ Mouth ulcers (Recurrent oral aphthae),   3 ( 1.0) |  308,  0 ( 0.0) |  59,  0 ( 0.0) |  95,  3 ( 1.9) | 154
+   ↳ Mucosal lesion,   1 ( 0.3) |  308,  0 ( 0.0) |  59,  0 ( 0.0) |  95,  1 ( 0.6) | 154
+   ↳ Muscle aches (Myalgia),   2 ( 0.6) |  308,  1 ( 1.7) |  59,  0 ( 0.0) |  95,  1 ( 0.6) | 154
+   ↳ Muscle weakness,   2 ( 0.6) |  308,  0 ( 0.0) |  59,  0 ( 0.0) |  95,  2 ( 1.3) | 154
+   ↳ Nasal congestion,   6 ( 1.9) |  308,  0 ( 0.0) |  59,  1 ( 1.1) |  95,  5 ( 3.2) | 154
+   ↳ Nausea or vomiting,   3 ( 1.0) |  308,  1 ( 1.7) |  59,  1 ( 1.1) |  95,  1 ( 0.6) | 154
+   ↳ Pain during urination (Dysuria),   4 ( 1.3) |  308,  1 ( 1.7) |  59,  2 ( 2.1) |  95,  1 ( 0.6) | 154
+   ↳ Pallor,   4 ( 1.3) |  308,  1 ( 1.7) |  59,  2 ( 2.1) |  95,  1 ( 0.6) | 154
+   ↳ Palpitations,   6 ( 1.9) |  308,  2 ( 3.4) |  59,  1 ( 1.1) |  95,  3 ( 1.9) | 154
+   ↳ Paresthesia of skin,   6 ( 1.9) |  308,  0 ( 0.0) |  59,  4 ( 4.2) |  95,  2 ( 1.3) | 154
+   ↳ Problems swallowing or chewing (Dysphagia),   6 ( 1.9) |  308,  0 ( 0.0) |  59,  4 ( 4.2) |  95,  2 ( 1.3) | 154
+   ↳ Pruritus,   6 ( 1.9) |  308,  1 ( 1.7) |  59,  1 ( 1.1) |  95,  4 ( 2.6) | 154
+   ↳ Rapid heart beat/Pulse (Tachycardia),   5 ( 1.6) |  308,  0 ( 0.0) |  59,  4 ( 4.2) |  95,  1 ( 0.6) | 154
+   ↳ Rashes or skin lesions,   2 ( 0.6) |  308,  2 ( 3.4) |  59,  0 ( 0.0) |  95,  0 ( 0.0) | 154
+   ↳ Retention of urine,   3 ( 1.0) |  308,  0 ( 0.0) |  59,  2 ( 2.1) |  95,  1 ( 0.6) | 154
+   ↳ Shortness of breath (Dyspnea),   4 ( 1.3) |  308,  0 ( 0.0) |  59,  3 ( 3.2) |  95,  1 ( 0.6) | 154
+   ↳ Skin lesion,   1 ( 0.3) |  308,  0 ( 0.0) |  59,  1 ( 1.1) |  95,  0 ( 0.0) | 154
+   ↳ Skin rash,   1 ( 0.3) |  308,  0 ( 0.0) |  59,  0 ( 0.0) |  95,  1 ( 0.6) | 154
+   ↳ Sleep disorder,   9 ( 2.9) |  308,  2 ( 3.4) |  59,  1 ( 1.1) |  95,  6 ( 3.9) | 154
+   ↳ Sneezing,   5 ( 1.6) |  308,  3 ( 5.1) |  59,  1 ( 1.1) |  95,  1 ( 0.6) | 154
+   ↳ Sore throat (Pain in throat),   4 ( 1.3) |  308,  0 ( 0.0) |  59,  1 ( 1.1) |  95,  3 ( 1.9) | 154
+   ↳ Speech disturbances,   5 ( 1.6) |  308,  1 ( 1.7) |  59,  0 ( 0.0) |  95,  4 ( 2.6) | 154
+   ↳ Spontaneous bruising (Spontaneous ecchymoses),   5 ( 1.6) |  308,  2 ( 3.4) |  59,  2 ( 2.1) |  95,  1 ( 0.6) | 154
+   ↳ Sweating (hyperhidrosis),   6 ( 1.9) |  308,  0 ( 0.0) |  59,  2 ( 2.1) |  95,  4 ( 2.6) | 154
+   ↳ Swollen lymph nodes (Enlarged lymph nodes),   4 ( 1.3) |  308,  0 ( 0.0) |  59,  3 ( 3.2) |  95,  1 ( 0.6) | 154
+   ↳ Tinnitus,   4 ( 1.3) |  308,  0 ( 0.0) |  59,  1 ( 1.1) |  95,  3 ( 1.9) | 154
+   ↳ Tremor,   2 ( 0.6) |  308,  0 ( 0.0) |  59,  0 ( 0.0) |  95,  2 ( 1.3) | 154
+   ↳ Urinary incontinence,   5 ( 1.6) |  308,  3 ( 5.1) |  59,  1 ( 1.1) |  95,  1 ( 0.6) | 154
+   ↳ Visual disturbances,   1 ( 0.3) |  308,  0 ( 0.0) |  59,  0 ( 0.0) |  95,  1 ( 0.6) | 154
+   ↳ Wheezing,   3 ( 1.0) |  308,  0 ( 0.0) |  59,  2 ( 2.1) |  95,  1 ( 0.6) | 154
+   ↳ Other,   3 ( 1.0) |  308,  0 ( 0.0) |  59,  2 ( 2.1) |  95,  1 ( 0.6) | 154
+<b>Any additional other sign(s) or symptom(s) ?</b> (*), 111 (51.4) |  216, 27 (64.3) |  42, 38 (55.1) |  69, 46 (43.8) | 105
+<b>>Select additional other sign(s) or symptom(s) 2</b> (*),,,,
+   ↳ Abdominal pain,   1 ( 1.0) |  105,  0 ( 0.0) |  24,  0 ( 0.0) |  37,  1 ( 2.3) |  44
+   ↳ Abnormal weight loss,   2 ( 1.9) |  105,  0 ( 0.0) |  24,  1 ( 2.7) |  37,  1 ( 2.3) |  44
+   ↳ Alopecia (Nonscarring hair loss),   2 ( 1.9) |  105,  1 ( 4.2) |  24,  1 ( 2.7) |  37,  0 ( 0.0) |  44
+   ↳ Altered consciousness / Confusion (Disorientation),   4 ( 3.8) |  105,  0 ( 0.0) |  24,  2 ( 5.4) |  37,  2 ( 4.5) |  44
+   ↳ Anorexia,   1 ( 1.0) |  105,  0 ( 0.0) |  24,  0 ( 0.0) |  37,  1 ( 2.3) |  44
+   ↳ Apnoea,   1 ( 1.0) |  105,  0 ( 0.0) |  24,  0 ( 0.0) |  37,  1 ( 2.3) |  44
+   ↳ Ascites,   1 ( 1.0) |  105,  1 ( 4.2) |  24,  0 ( 0.0) |  37,  0 ( 0.0) |  44
+   ↳ Bruising (Spontaneous ecchymoses),   2 ( 1.9) |  105,  2 ( 8.3) |  24,  0 ( 0.0) |  37,  0 ( 0.0) |  44
+   ↳ Can't feel one side of the body or face (Hemiplegia),   1 ( 1.0) |  105,  0 ( 0.0) |  24,  1 ( 2.7) |  37,  0 ( 0.0) |  44
+   ↳ Cardiac arrhythmia,   2 ( 1.9) |  105,  0 ( 0.0) |  24,  0 ( 0.0) |  37,  2 ( 4.5) |  44
+   ↳ Changes in menstruation (Irregular menstruation),   1 ( 1.0) |  105,  0 ( 0.0) |  24,  1 ( 2.7) |  37,  0 ( 0.0) |  44
+   ↳ Changes in skin texture,   2 ( 1.9) |  105,  1 ( 4.2) |  24,  0 ( 0.0) |  37,  1 ( 2.3) |  44
+   ↳ Cognitive impairment (Unspecified intellectual disabilities),   2 ( 1.9) |  105,  0 ( 0.0) |  24,  0 ( 0.0) |  37,  2 ( 4.5) |  44
+   ↳ Conjunctivitis,   1 ( 1.0) |  105,  0 ( 0.0) |  24,  0 ( 0.0) |  37,  1 ( 2.3) |  44
+   ↳ Constipation,   1 ( 1.0) |  105,  0 ( 0.0) |  24,  1 ( 2.7) |  37,  0 ( 0.0) |  44
+   ↳ Convulsions,   4 ( 3.8) |  105,  0 ( 0.0) |  24,  2 ( 5.4) |  37,  2 ( 4.5) |  44
+   ↳ Cough,   2 ( 1.9) |  105,  0 ( 0.0) |  24,  0 ( 0.0) |  37,  2 ( 4.5) |  44
+   ↳ Diarrhea,   2 ( 1.9) |  105,  0 ( 0.0) |  24,  2 ( 5.4) |  37,  0 ( 0.0) |  44
+   ↳ Difficulty eating or drinking (Dysphagia),   1 ( 1.0) |  105,  0 ( 0.0) |  24,  1 ( 2.7) |  37,  0 ( 0.0) |  44
+   ↳ Difficulty in walking,   2 ( 1.9) |  105,  0 ( 0.0) |  24,  1 ( 2.7) |  37,  1 ( 2.3) |  44
+   ↳ Disorders of nose and nasal sinuses,   1 ( 1.0) |  105,  0 ( 0.0) |  24,  0 ( 0.0) |  37,  1 ( 2.3) |  44
+   ↳ Dry skin (Xerosis cutis),   3 ( 2.9) |  105,  0 ( 0.0) |  24,  1 ( 2.7) |  37,  2 ( 4.5) |  44
+   ↳ Ear pain (Otalgia),   2 ( 1.9) |  105,  0 ( 0.0) |  24,  1 ( 2.7) |  37,  1 ( 2.3) |  44
+   ↳ Erectile dysfunction,   1 ( 1.0) |  105,  1 ( 4.2) |  24,  0 ( 0.0) |  37,  0 ( 0.0) |  44
+   ↳ Fainting / blackouts (Syncope and collapse),   1 ( 1.0) |  105,  0 ( 0.0) |  24,  0 ( 0.0) |  37,  1 ( 2.3) |  44
+   ↳ Fecal incontinence,   1 ( 1.0) |  105,  0 ( 0.0) |  24,  0 ( 0.0) |  37,  1 ( 2.3) |  44
+   ↳ Feeding difficulty,   1 ( 1.0) |  105,  0 ( 0.0) |  24,  1 ( 2.7) |  37,  0 ( 0.0) |  44
+   ↳ Gastrointestinal bleeding (Gastrointestinal hemorrhage),   1 ( 1.0) |  105,  1 ( 4.2) |  24,  0 ( 0.0) |  37,  0 ( 0.0) |  44
+   ↳ Headache,   6 ( 5.7) |  105,  2 ( 8.3) |  24,  4 (10.8) |  37,  0 ( 0.0) |  44
+   ↳ Increased thirst (Polydipsia),   1 ( 1.0) |  105,  0 ( 0.0) |  24,  0 ( 0.0) |  37,  1 ( 2.3) |  44
+   ↳ Irritability,   2 ( 1.9) |  105,  0 ( 0.0) |  24,  1 ( 2.7) |  37,  1 ( 2.3) |  44
+   ↳ Joint pain (Arthralgia),   1 ( 1.0) |  105,  0 ( 0.0) |  24,  1 ( 2.7) |  37,  0 ( 0.0) |  44
+   ↳ Keratitis,   2 ( 1.9) |  105,  0 ( 0.0) |  24,  1 ( 2.7) |  37,  1 ( 2.3) |  44
+   ↳ Limb weakness / paralysis (Monoplegia),   3 ( 2.9) |  105,  2 ( 8.3) |  24,  1 ( 2.7) |  37,  0 ( 0.0) |  44
+   ↳ Localized edema,   1 ( 1.0) |  105,  1 ( 4.2) |  24,  0 ( 0.0) |  37,  0 ( 0.0) |  44
+   ↳ Loss of appetite (Anorexia),   2 ( 1.9) |  105,  1 ( 4.2) |  24,  0 ( 0.0) |  37,  1 ( 2.3) |  44
+   ↳ Lymphadenitis,   2 ( 1.9) |  105,  0 ( 0.0) |  24,  2 ( 5.4) |  37,  0 ( 0.0) |  44
+   ↳ Malaise and fatigue,   1 ( 1.0) |  105,  1 ( 4.2) |  24,  0 ( 0.0) |  37,  0 ( 0.0) |  44
+   ↳ Mucosal lesion,   2 ( 1.9) |  105,  0 ( 0.0) |  24,  2 ( 5.4) |  37,  0 ( 0.0) |  44
+   ↳ Muscle weakness,   2 ( 1.9) |  105,  1 ( 4.2) |  24,  0 ( 0.0) |  37,  1 ( 2.3) |  44
+   ↳ Nasal congestion,   1 ( 1.0) |  105,  0 ( 0.0) |  24,  1 ( 2.7) |  37,  0 ( 0.0) |  44
+   ↳ Nausea or vomiting,   1 ( 1.0) |  105,  0 ( 0.0) |  24,  1 ( 2.7) |  37,  0 ( 0.0) |  44
+   ↳ Pain during urination (Dysuria),   3 ( 2.9) |  105,  0 ( 0.0) |  24,  3 ( 8.1) |  37,  0 ( 0.0) |  44
+   ↳ Pallor,   1 ( 1.0) |  105,  0 ( 0.0) |  24,  0 ( 0.0) |  37,  1 ( 2.3) |  44
+   ↳ Palpitations,   1 ( 1.0) |  105,  0 ( 0.0) |  24,  0 ( 0.0) |  37,  1 ( 2.3) |  44
+   ↳ Problems swallowing or chewing (Dysphagia),   1 ( 1.0) |  105,  0 ( 0.0) |  24,  0 ( 0.0) |  37,  1 ( 2.3) |  44
+   ↳ Rapid heart beat/Pulse (Tachycardia),   2 ( 1.9) |  105,  1 ( 4.2) |  24,  0 ( 0.0) |  37,  1 ( 2.3) |  44
+   ↳ Rashes or skin lesions,   3 ( 2.9) |  105,  2 ( 8.3) |  24,  0 ( 0.0) |  37,  1 ( 2.3) |  44
+   ↳ Sleep disorder,   3 ( 2.9) |  105,  2 ( 8.3) |  24,  1 ( 2.7) |  37,  0 ( 0.0) |  44
+   ↳ Sneezing,   2 ( 1.9) |  105,  1 ( 4.2) |  24,  0 ( 0.0) |  37,  1 ( 2.3) |  44
+   ↳ Sore throat (Pain in throat),   2 ( 1.9) |  105,  0 ( 0.0) |  24,  0 ( 0.0) |  37,  2 ( 4.5) |  44
+   ↳ Spontaneous bruising (Spontaneous ecchymoses),   2 ( 1.9) |  105,  0 ( 0.0) |  24,  0 ( 0.0) |  37,  2 ( 4.5) |  44
+   ↳ Sweating (hyperhidrosis),   1 ( 1.0) |  105,  0 ( 0.0) |  24,  1 ( 2.7) |  37,  0 ( 0.0) |  44
+   ↳ Swollen lymph nodes (Enlarged lymph nodes),   2 ( 1.9) |  105,  1 ( 4.2) |  24,  1 ( 2.7) |  37,  0 ( 0.0) |  44
+   ↳ Tinnitus,   2 ( 1.9) |  105,  1 ( 4.2) |  24,  1 ( 2.7) |  37,  0 ( 0.0) |  44
+   ↳ Tremor,   1 ( 1.0) |  105,  0 ( 0.0) |  24,  0 ( 0.0) |  37,  1 ( 2.3) |  44
+   ↳ Urinary incontinence,   1 ( 1.0) |  105,  0 ( 0.0) |  24,  0 ( 0.0) |  37,  1 ( 2.3) |  44
+   ↳ Visual disturbances,   3 ( 2.9) |  105,  1 ( 4.2) |  24,  0 ( 0.0) |  37,  2 ( 4.5) |  44
+   ↳ Other,   2 ( 1.9) |  105,  0 ( 0.0) |  24,  0 ( 0.0) |  37,  2 ( 4.5) |  44
+<b>>Any additional other sign(s) or symptom(s) ?</b> (*),  35 (47.9) |   73,  5 (29.4) |  17, 14 (51.9) |  27, 16 (55.2) |  29
+<b>->Select additional other sign(s) or symptom(s) 3</b> (*),,,,
+   ↳ Alopecia (Nonscarring hair loss),   1 ( 2.9) |   34,  0 ( 0.0) |   5,  0 ( 0.0) |  13,  1 ( 6.2) |  16
+   ↳ Apnoea,   1 ( 2.9) |   34,  0 ( 0.0) |   5,  0 ( 0.0) |  13,  1 ( 6.2) |  16
+   ↳ Bruising (Spontaneous ecchymoses),   1 ( 2.9) |   34,  1 (20.0) |   5,  0 ( 0.0) |  13,  0 ( 0.0) |  16
+   ↳ Can't fully move or control movement (Paralytic syndrome),   1 ( 2.9) |   34,  0 ( 0.0) |   5,  1 ( 7.7) |  13,  0 ( 0.0) |  16
+   ↳ Cardiac arrhythmia,   1 ( 2.9) |   34,  0 ( 0.0) |   5,  0 ( 0.0) |  13,  1 ( 6.2) |  16
+   ↳ Chest pain on breathing,   1 ( 2.9) |   34,  0 ( 0.0) |   5,  0 ( 0.0) |  13,  1 ( 6.2) |  16
+   ↳ Constipation,   1 ( 2.9) |   34,  0 ( 0.0) |   5,  0 ( 0.0) |  13,  1 ( 6.2) |  16
+   ↳ Convulsions,   2 ( 5.9) |   34,  0 ( 0.0) |   5,  1 ( 7.7) |  13,  1 ( 6.2) |  16
+   ↳ Difficulty eating or drinking (Dysphagia),   1 ( 2.9) |   34,  0 ( 0.0) |   5,  1 ( 7.7) |  13,  0 ( 0.0) |  16
+   ↳ Disorders of nose and nasal sinuses,   1 ( 2.9) |   34,  0 ( 0.0) |   5,  1 ( 7.7) |  13,  0 ( 0.0) |  16
+   ↳ Disturbance in attention (Altered mental status),   1 ( 2.9) |   34,  0 ( 0.0) |   5,  0 ( 0.0) |  13,  1 ( 6.2) |  16
+   ↳ Fainting / blackouts (Syncope and collapse),   1 ( 2.9) |   34,  0 ( 0.0) |   5,  0 ( 0.0) |  13,  1 ( 6.2) |  16
+   ↳ Increased urination (polyuria),   1 ( 2.9) |   34,  0 ( 0.0) |   5,  0 ( 0.0) |  13,  1 ( 6.2) |  16
+   ↳ Irritability,   1 ( 2.9) |   34,  0 ( 0.0) |   5,  0 ( 0.0) |  13,  1 ( 6.2) |  16
+   ↳ Joint pain (Arthralgia),   1 ( 2.9) |   34,  0 ( 0.0) |   5,  0 ( 0.0) |  13,  1 ( 6.2) |  16
+   ↳ Keratitis,   1 ( 2.9) |   34,  0 ( 0.0) |   5,  1 ( 7.7) |  13,  0 ( 0.0) |  16
+   ↳ Localized edema,   1 ( 2.9) |   34,  0 ( 0.0) |   5,  1 ( 7.7) |  13,  0 ( 0.0) |  16
+   ↳ Loss of smell (Anosmia),   1 ( 2.9) |   34,  0 ( 0.0) |   5,  0 ( 0.0) |  13,  1 ( 6.2) |  16
+   ↳ Muscle aches (Myalgia),   1 ( 2.9) |   34,  1 (20.0) |   5,  0 ( 0.0) |  13,  0 ( 0.0) |  16
+   ↳ Muscle weakness,   2 ( 5.9) |   34,  0 ( 0.0) |   5,  1 ( 7.7) |  13,  1 ( 6.2) |  16
+   ↳ Palpitations,   1 ( 2.9) |   34,  0 ( 0.0) |   5,  0 ( 0.0) |  13,  1 ( 6.2) |  16
+   ↳ Retention of urine,   1 ( 2.9) |   34,  0 ( 0.0) |   5,  1 ( 7.7) |  13,  0 ( 0.0) |  16
+   ↳ Shortness of breath (Dyspnea),   1 ( 2.9) |   34,  0 ( 0.0) |   5,  0 ( 0.0) |  13,  1 ( 6.2) |  16
+   ↳ Sleep disorder,   1 ( 2.9) |   34,  0 ( 0.0) |   5,  1 ( 7.7) |  13,  0 ( 0.0) |  16
+   ↳ Sneezing,   1 ( 2.9) |   34,  0 ( 0.0) |   5,  0 ( 0.0) |  13,  1 ( 6.2) |  16
+   ↳ Speech disturbances,   2 ( 5.9) |   34,  1 (20.0) |   5,  1 ( 7.7) |  13,  0 ( 0.0) |  16
+   ↳ Spontaneous bruising (Spontaneous ecchymoses),   1 ( 2.9) |   34,  0 ( 0.0) |   5,  1 ( 7.7) |  13,  0 ( 0.0) |  16
+   ↳ Tinnitus,   1 ( 2.9) |   34,  0 ( 0.0) |   5,  1 ( 7.7) |  13,  0 ( 0.0) |  16
+   ↳ Tremor,   1 ( 2.9) |   34,  1 (20.0) |   5,  0 ( 0.0) |  13,  0 ( 0.0) |  16
+   ↳ Other,   2 ( 5.9) |   34,  1 (20.0) |   5,  1 ( 7.7) |  13,  0 ( 0.0) |  16
+<b>->Any additional other sign(s) or symptom(s) ?</b> (*),  15 (57.7) |   26,  3 (60.0) |   5,  5 (55.6) |   9,  7 (58.3) |  12
+<b>>->Select additional other sign(s) or symptom(s) 4</b> (*),,,,
+   ↳ Alopecia (Nonscarring hair loss),   1 ( 7.1) |   14,  1 (33.3) |   3,  0 ( 0.0) |   4,  0 ( 0.0) |   7
+   ↳ Altered consciousness / Confusion (Disorientation),   1 ( 7.1) |   14,  0 ( 0.0) |   3,  0 ( 0.0) |   4,  1 (14.3) |   7
+   ↳ Ascites,   1 ( 7.1) |   14,  1 (33.3) |   3,  0 ( 0.0) |   4,  0 ( 0.0) |   7
+   ↳ Changes in skin texture,   1 ( 7.1) |   14,  0 ( 0.0) |   3,  1 (25.0) |   4,  0 ( 0.0) |   7
+   ↳ Chest pain on breathing,   2 (14.3) |   14,  0 ( 0.0) |   3,  1 (25.0) |   4,  1 (14.3) |   7
+   ↳ Constipation,   1 ( 7.1) |   14,  1 (33.3) |   3,  0 ( 0.0) |   4,  0 ( 0.0) |   7
+   ↳ Gastrointestinal bleeding (Gastrointestinal hemorrhage),   1 ( 7.1) |   14,  0 ( 0.0) |   3,  0 ( 0.0) |   4,  1 (14.3) |   7
+   ↳ Localized edema,   1 ( 7.1) |   14,  0 ( 0.0) |   3,  1 (25.0) |   4,  0 ( 0.0) |   7
+   ↳ Loss of appetite (Anorexia),   1 ( 7.1) |   14,  0 ( 0.0) |   3,  0 ( 0.0) |   4,  1 (14.3) |   7
+   ↳ Lymphadenitis,   1 ( 7.1) |   14,  0 ( 0.0) |   3,  0 ( 0.0) |   4,  1 (14.3) |   7
+   ↳ Mucosal lesion,   1 ( 7.1) |   14,  0 ( 0.0) |   3,  1 (25.0) |   4,  0 ( 0.0) |   7
+   ↳ Muscle weakness,   1 ( 7.1) |   14,  0 ( 0.0) |   3,  0 ( 0.0) |   4,  1 (14.3) |   7
+   ↳ Sleep disorder,   1 ( 7.1) |   14,  0 ( 0.0) |   3,  0 ( 0.0) |   4,  1 (14.3) |   7
+<b>>->Any additional other sign(s) or symptom(s) ?</b> (*),   3 (50.0) |    6,  1 (50.0) |   2,  0 ( 0.0) |   1,  2 (66.7) |   3
+<b>->->Select additional other sign(s) or symptom(s) 5</b> (*),,,,
+   ↳ Irritability,   1 (33.3) |    3,  0 ( 0.0) |   1,N/A,  1 (50.0) |   2
+   ↳ Mouth ulcers (Recurrent oral aphthae),   1 (33.3) |    3,  1 (100.) |   1,N/A,  0 ( 0.0) |   2
+   ↳ Tremor,   1 (33.3) |    3,  0 ( 0.0) |   1,N/A,  1 (50.0) |   2
+<b><i>SIGNS AND SYMPTOMS</i></b>,,,,
+<b>Fever / chills / rigors</b> (*), 170 (56.5) |  301, 43 (51.2) |  84, 45 (59.2) |  76, 82 (58.2) | 141
+<b>Fatigue / malaise / lethargy</b> (*), 160 (53.0) |  302, 50 (58.1) |  86, 42 (53.8) |  78, 68 (49.3) | 138
+<b>Weight loss</b> (*), 145 (48.7) |  298, 40 (50.0) |  80, 36 (49.3) |  73, 69 (47.6) | 145
+<b>Muscle aches / myalgia</b> (*), 145 (49.7) |  292, 38 (45.2) |  84, 37 (53.6) |  69, 70 (50.4) | 139
+<b>Joint pain / arthralgia</b> (*), 147 (50.5) |  291, 34 (44.7) |  76, 38 (55.1) |  69, 75 (51.4) | 146
+<b>Itch / pruritus</b> (*), 166 (51.2) |  324, 48 (55.2) |  87, 36 (48.0) |  75, 82 (50.6) | 162
+<b>Change in mobility from baseline</b> (*), 156 (52.2) |  299, 41 (50.6) |  81, 35 (46.7) |  75, 80 (55.9) | 143
+<b>Mobility status</b> (*),,,,
+   ↳ Fully ambulant,  58 (40.3) |  144, 12 (33.3) |  36, 14 (42.4) |  33, 32 (42.7) |  75
+"   ↳ Ambulant, but with some assistance",  39 (27.1) |  144,  9 (25.0) |  36, 10 (30.3) |  33, 20 (26.7) |  75
+   ↳ Bedridden,  47 (32.6) |  144, 15 (41.7) |  36,  9 (27.3) |  33, 23 (30.7) |  75
+<b>Cough</b> (*), 150 (51.7) |  290, 44 (51.8) |  85, 37 (50.7) |  73, 69 (52.3) | 132
+<b>Non-productive </b> (*),  50 (50.5) |   99, 12 (41.4) |  29, 16 (66.7) |  24, 22 (47.8) |  46
+<b>Productive</b> (*),  51 (53.7) |   95, 19 (70.4) |  27, 10 (41.7) |  24, 22 (50.0) |  44
+<b>Hemoptysis</b> (*),  47 (48.5) |   97, 20 (69.0) |  29,  9 (34.6) |  26, 18 (42.9) |  42
+<b>Sore throat</b> (*), 157 (52.0) |  302, 43 (47.3) |  91, 33 (50.0) |  66, 81 (55.9) | 145
+<b>Shortness of breath </b> (*), 148 (47.9) |  309, 47 (52.8) |  89, 33 (40.2) |  82, 68 (49.3) | 138
+<b>Chest pain</b> (*), 163 (55.3) |  295, 45 (57.0) |  79, 38 (53.5) |  71, 80 (55.2) | 145
+<b>Abdominal pain</b> (*), 145 (46.8) |  310, 38 (46.3) |  82, 37 (50.0) |  74, 70 (45.5) | 154
+<b>Diarrhoea</b> (*), 152 (52.1) |  292, 47 (52.8) |  89, 34 (50.7) |  67, 71 (52.2) | 136
+<b>Constipation</b> (*), 153 (49.8) |  307, 43 (55.1) |  78, 47 (59.5) |  79, 63 (42.0) | 150
+<b>Vomiting</b> (*), 143 (48.1) |  297, 37 (49.3) |  75, 43 (53.8) |  80, 63 (44.4) | 142
+<b>Persistent vomiting? (>=2/day)</b> (*),  47 (52.8) |   89, 10 (52.6) |  19, 14 (48.3) |  29, 23 (56.1) |  41
+<b>Nausea</b> (*), 143 (47.8) |  299, 35 (43.8) |  80, 40 (50.6) |  79, 68 (48.6) | 140
+<b>Excessive salivation</b> (*), 138 (47.1) |  293, 45 (55.6) |  81, 32 (46.4) |  69, 61 (42.7) | 143
+<b>Difficulty swallowing / dysphagia</b> (*), 153 (49.8) |  307, 47 (55.3) |  85, 38 (48.7) |  78, 68 (47.2) | 144
+<b>Urinary retention</b> (*), 153 (53.1) |  288, 45 (54.2) |  83, 31 (44.3) |  70, 77 (57.0) | 135
+<b>Dyspareunia</b> (*), 147 (47.9) |  307, 43 (47.8) |  90, 36 (53.7) |  67, 68 (45.3) | 150
+<b>Bleeding / haemorrhage</b> (*), 147 (47.4) |  310, 39 (44.8) |  87, 34 (46.6) |  73, 74 (49.3) | 150
+<b>Severe bleeding / haemorrhage (requires intervention)</b> (*),  47 (49.0) |   96,  9 (39.1) |  23, 16 (61.5) |  26, 22 (46.8) |  47
+<b>Specify bleeding / haemorrhage site(s)</b>,,,,
+   ↳ Skin,  75 (24.5) |  306, 20 (23.0) |  87, 20 (27.4) |  73, 35 (24.0) | 146
+   ↳ Petechiae,  60 (19.6) |  306, 18 (20.7) |  87, 13 (17.8) |  73, 29 (19.9) | 146
+   ↳ Nose,  76 (24.8) |  306, 21 (24.1) |  87, 20 (27.4) |  73, 35 (24.0) | 146
+   ↳ Gums,  61 (19.9) |  306, 19 (21.8) |  87, 13 (17.8) |  73, 29 (19.9) | 146
+   ↳ GI tract,  71 (23.2) |  306, 19 (21.8) |  87, 19 (26.0) |  73, 33 (22.6) | 146
+   ↳ Urinary tract,  70 (22.9) |  306, 20 (23.0) |  87, 13 (17.8) |  73, 37 (25.3) | 146
+   ↳ Vagina,  72 (23.5) |  306, 23 (26.4) |  87, 13 (17.8) |  73, 36 (24.7) | 146
+   ↳ Other(s),  77 (25.2) |  306, 21 (24.1) |  87, 19 (26.0) |  73, 37 (25.3) | 146
+   ↳ Unknown,  71 (23.2) |  306, 18 (20.7) |  87, 16 (21.9) |  73, 37 (25.3) | 146
+<b>Jaundice</b> (*), 140 (48.3) |  290, 45 (50.0) |  90, 30 (46.9) |  64, 65 (47.8) | 136
+<b>Headache</b> (*), 148 (49.3) |  300, 43 (52.4) |  82, 39 (53.4) |  73, 66 (45.5) | 145
+<b>Seizures / convulsions</b> (*), 162 (50.3) |  322, 42 (47.7) |  88, 39 (52.0) |  75, 81 (50.9) | 159
+<b>Altered consciousness / confusion</b> (*), 176 (54.3) |  324, 44 (48.4) |  91, 38 (50.7) |  75, 94 (59.5) | 158
+<b>Psychological disturbance</b> (*), 172 (54.4) |  316, 42 (53.2) |  79, 40 (48.8) |  82, 90 (58.1) | 155
+<b>Ocular complaints</b> (*), 149 (49.3) |  302, 39 (50.0) |  78, 34 (43.6) |  78, 76 (52.1) | 146
+<b>Specify ocular complaints</b>,,,,
+   ↳ Red eye(s),  65 (22.2) |  293, 15 (20.0) |  75, 12 (15.6) |  77, 38 (27.0) | 141
+   ↳ Itchy eye(s),  70 (23.9) |  293, 19 (25.3) |  75, 16 (20.8) |  77, 35 (24.8) | 141
+   ↳ Eye pain,  74 (25.3) |  293, 22 (29.3) |  75, 19 (24.7) |  77, 33 (23.4) | 141
+   ↳ Visual disturbance,  71 (24.2) |  293, 19 (25.3) |  75, 17 (22.1) |  77, 35 (24.8) | 141
+   ↳ Other,  82 (28.0) |  293, 17 (22.7) |  75, 20 (26.0) |  77, 45 (31.9) | 141
+<b>Other sign(s) or symptom(s)</b> (*), 165 (55.0) |  300, 45 (50.0) |  90, 33 (51.6) |  64, 87 (59.6) | 146
+<b>Select other sign(s) or symptom(s)</b> (*),,,,
+   ↳ Abnormal weight loss,   5 ( 3.1) |  159,  1 ( 2.3) |  43,  2 ( 6.5) |  31,  2 ( 2.4) |  85
+   ↳ Alopecia (Nonscarring hair loss),   1 ( 0.6) |  159,  1 ( 2.3) |  43,  0 ( 0.0) |  31,  0 ( 0.0) |  85
+   ↳ Altered consciousness / Confusion (Disorientation),   1 ( 0.6) |  159,  0 ( 0.0) |  43,  1 ( 3.2) |  31,  0 ( 0.0) |  85
+   ↳ Anorexia,   2 ( 1.3) |  159,  0 ( 0.0) |  43,  1 ( 3.2) |  31,  1 ( 1.2) |  85
+   ↳ Apnoea,   2 ( 1.3) |  159,  1 ( 2.3) |  43,  0 ( 0.0) |  31,  1 ( 1.2) |  85
+   ↳ Ascites,   2 ( 1.3) |  159,  0 ( 0.0) |  43,  1 ( 3.2) |  31,  1 ( 1.2) |  85
+   ↳ Bleeding (Haemorrhage),   2 ( 1.3) |  159,  1 ( 2.3) |  43,  0 ( 0.0) |  31,  1 ( 1.2) |  85
+   ↳ Bruising (Spontaneous ecchymoses),   2 ( 1.3) |  159,  0 ( 0.0) |  43,  1 ( 3.2) |  31,  1 ( 1.2) |  85
+   ↳ Can't feel one side of the body or face (Hemiplegia),   2 ( 1.3) |  159,  0 ( 0.0) |  43,  0 ( 0.0) |  31,  2 ( 2.4) |  85
+   ↳ Can't fully move or control movement (Paralytic syndrome),   6 ( 3.8) |  159,  1 ( 2.3) |  43,  3 ( 9.7) |  31,  2 ( 2.4) |  85
+   ↳ Cardiac arrhythmia,   1 ( 0.6) |  159,  0 ( 0.0) |  43,  0 ( 0.0) |  31,  1 ( 1.2) |  85
+   ↳ Changes in menstruation (Irregular menstruation),   2 ( 1.3) |  159,  0 ( 0.0) |  43,  1 ( 3.2) |  31,  1 ( 1.2) |  85
+   ↳ Changes in skin texture,   2 ( 1.3) |  159,  0 ( 0.0) |  43,  0 ( 0.0) |  31,  2 ( 2.4) |  85
+   ↳ Chest pain,   3 ( 1.9) |  159,  0 ( 0.0) |  43,  1 ( 3.2) |  31,  2 ( 2.4) |  85
+   ↳ Chills (without fever),   1 ( 0.6) |  159,  0 ( 0.0) |  43,  1 ( 3.2) |  31,  0 ( 0.0) |  85
+   ↳ Cognitive impairment (Unspecified intellectual disabilities),   2 ( 1.3) |  159,  0 ( 0.0) |  43,  1 ( 3.2) |  31,  1 ( 1.2) |  85
+   ↳ Conjunctivitis,   2 ( 1.3) |  159,  2 ( 4.7) |  43,  0 ( 0.0) |  31,  0 ( 0.0) |  85
+   ↳ Constipation,   3 ( 1.9) |  159,  1 ( 2.3) |  43,  0 ( 0.0) |  31,  2 ( 2.4) |  85
+   ↳ Cough,   4 ( 2.5) |  159,  1 ( 2.3) |  43,  1 ( 3.2) |  31,  2 ( 2.4) |  85
+   ↳ Diarrhea,   1 ( 0.6) |  159,  1 ( 2.3) |  43,  0 ( 0.0) |  31,  0 ( 0.0) |  85
+   ↳ Difficulty eating or drinking (Dysphagia),   2 ( 1.3) |  159,  0 ( 0.0) |  43,  0 ( 0.0) |  31,  2 ( 2.4) |  85
+   ↳ Difficulty in walking,   2 ( 1.3) |  159,  1 ( 2.3) |  43,  0 ( 0.0) |  31,  1 ( 1.2) |  85
+   ↳ Disturbance in attention (Altered mental status),   1 ( 0.6) |  159,  0 ( 0.0) |  43,  0 ( 0.0) |  31,  1 ( 1.2) |  85
+   ↳ Ear pain (Otalgia),   1 ( 0.6) |  159,  1 ( 2.3) |  43,  0 ( 0.0) |  31,  0 ( 0.0) |  85
+   ↳ Erectile dysfunction,   1 ( 0.6) |  159,  1 ( 2.3) |  43,  0 ( 0.0) |  31,  0 ( 0.0) |  85
+   ↳ Fainting / blackouts (Syncope and collapse),   1 ( 0.6) |  159,  0 ( 0.0) |  43,  0 ( 0.0) |  31,  1 ( 1.2) |  85
+   ↳ Fecal incontinence,   2 ( 1.3) |  159,  0 ( 0.0) |  43,  0 ( 0.0) |  31,  2 ( 2.4) |  85
+   ↳ Feeding difficulty,   2 ( 1.3) |  159,  0 ( 0.0) |  43,  0 ( 0.0) |  31,  2 ( 2.4) |  85
+   ↳ Fever,   3 ( 1.9) |  159,  1 ( 2.3) |  43,  1 ( 3.2) |  31,  1 ( 1.2) |  85
+   ↳ Gastrointestinal bleeding (Gastrointestinal hemorrhage),   2 ( 1.3) |  159,  2 ( 4.7) |  43,  0 ( 0.0) |  31,  0 ( 0.0) |  85
+   ↳ Headache,   5 ( 3.1) |  159,  2 ( 4.7) |  43,  1 ( 3.2) |  31,  2 ( 2.4) |  85
+   ↳ Hepatomegaly,   4 ( 2.5) |  159,  2 ( 4.7) |  43,  1 ( 3.2) |  31,  1 ( 1.2) |  85
+   ↳ Increased thirst (Polydipsia),   6 ( 3.8) |  159,  2 ( 4.7) |  43,  1 ( 3.2) |  31,  3 ( 3.5) |  85
+   ↳ Increased urination (polyuria),   5 ( 3.1) |  159,  2 ( 4.7) |  43,  0 ( 0.0) |  31,  3 ( 3.5) |  85
+   ↳ Itchy eye,   1 ( 0.6) |  159,  0 ( 0.0) |  43,  0 ( 0.0) |  31,  1 ( 1.2) |  85
+   ↳ Jaundice,   3 ( 1.9) |  159,  1 ( 2.3) |  43,  0 ( 0.0) |  31,  2 ( 2.4) |  85
+   ↳ Joint pain (Arthralgia),   2 ( 1.3) |  159,  0 ( 0.0) |  43,  0 ( 0.0) |  31,  2 ( 2.4) |  85
+   ↳ Keratitis,   2 ( 1.3) |  159,  1 ( 2.3) |  43,  0 ( 0.0) |  31,  1 ( 1.2) |  85
+   ↳ Limb weakness / paralysis (Monoplegia),   2 ( 1.3) |  159,  0 ( 0.0) |  43,  1 ( 3.2) |  31,  1 ( 1.2) |  85
+   ↳ Localized edema,   2 ( 1.3) |  159,  0 ( 0.0) |  43,  0 ( 0.0) |  31,  2 ( 2.4) |  85
+   ↳ Loss of appetite (Anorexia),   1 ( 0.6) |  159,  0 ( 0.0) |  43,  1 ( 3.2) |  31,  0 ( 0.0) |  85
+   ↳ Loss of taste (Parageusia),   2 ( 1.3) |  159,  0 ( 0.0) |  43,  0 ( 0.0) |  31,  2 ( 2.4) |  85
+   ↳ Lymphadenitis,   3 ( 1.9) |  159,  0 ( 0.0) |  43,  1 ( 3.2) |  31,  2 ( 2.4) |  85
+   ↳ Malaise and fatigue,   2 ( 1.3) |  159,  1 ( 2.3) |  43,  0 ( 0.0) |  31,  1 ( 1.2) |  85
+   ↳ Mouth ulcers (Recurrent oral aphthae),   1 ( 0.6) |  159,  0 ( 0.0) |  43,  0 ( 0.0) |  31,  1 ( 1.2) |  85
+   ↳ Mucosal lesion,   2 ( 1.3) |  159,  0 ( 0.0) |  43,  1 ( 3.2) |  31,  1 ( 1.2) |  85
+   ↳ Muscle aches (Myalgia),   1 ( 0.6) |  159,  1 ( 2.3) |  43,  0 ( 0.0) |  31,  0 ( 0.0) |  85
+   ↳ Muscle weakness,   1 ( 0.6) |  159,  1 ( 2.3) |  43,  0 ( 0.0) |  31,  0 ( 0.0) |  85
+   ↳ Nasal congestion,   5 ( 3.1) |  159,  3 ( 7.0) |  43,  0 ( 0.0) |  31,  2 ( 2.4) |  85
+   ↳ Nausea or vomiting,   3 ( 1.9) |  159,  0 ( 0.0) |  43,  0 ( 0.0) |  31,  3 ( 3.5) |  85
+   ↳ Pain during urination (Dysuria),   3 ( 1.9) |  159,  0 ( 0.0) |  43,  1 ( 3.2) |  31,  2 ( 2.4) |  85
+   ↳ Pallor,   1 ( 0.6) |  159,  1 ( 2.3) |  43,  0 ( 0.0) |  31,  0 ( 0.0) |  85
+   ↳ Palpitations,   2 ( 1.3) |  159,  0 ( 0.0) |  43,  1 ( 3.2) |  31,  1 ( 1.2) |  85
+   ↳ Paresthesia of skin,   1 ( 0.6) |  159,  0 ( 0.0) |  43,  0 ( 0.0) |  31,  1 ( 1.2) |  85
+   ↳ Pruritus,   1 ( 0.6) |  159,  0 ( 0.0) |  43,  0 ( 0.0) |  31,  1 ( 1.2) |  85
+   ↳ Rapid heart beat/Pulse (Tachycardia),   3 ( 1.9) |  159,  1 ( 2.3) |  43,  0 ( 0.0) |  31,  2 ( 2.4) |  85
+   ↳ Rashes or skin lesions,   1 ( 0.6) |  159,  1 ( 2.3) |  43,  0 ( 0.0) |  31,  0 ( 0.0) |  85
+   ↳ Retention of urine,   2 ( 1.3) |  159,  1 ( 2.3) |  43,  0 ( 0.0) |  31,  1 ( 1.2) |  85
+   ↳ Shortness of breath (Dyspnea),   2 ( 1.3) |  159,  0 ( 0.0) |  43,  1 ( 3.2) |  31,  1 ( 1.2) |  85
+   ↳ Skin lesion,   2 ( 1.3) |  159,  1 ( 2.3) |  43,  0 ( 0.0) |  31,  1 ( 1.2) |  85
+   ↳ Skin rash,   2 ( 1.3) |  159,  1 ( 2.3) |  43,  0 ( 0.0) |  31,  1 ( 1.2) |  85
+   ↳ Sleep disorder,   5 ( 3.1) |  159,  0 ( 0.0) |  43,  2 ( 6.5) |  31,  3 ( 3.5) |  85
+   ↳ Sneezing,   2 ( 1.3) |  159,  1 ( 2.3) |  43,  1 ( 3.2) |  31,  0 ( 0.0) |  85
+   ↳ Sore throat (Pain in throat),   1 ( 0.6) |  159,  0 ( 0.0) |  43,  1 ( 3.2) |  31,  0 ( 0.0) |  85
+   ↳ Speech disturbances,   1 ( 0.6) |  159,  0 ( 0.0) |  43,  0 ( 0.0) |  31,  1 ( 1.2) |  85
+   ↳ Spontaneous bruising (Spontaneous ecchymoses),   3 ( 1.9) |  159,  2 ( 4.7) |  43,  0 ( 0.0) |  31,  1 ( 1.2) |  85
+   ↳ Sweating (hyperhidrosis),   4 ( 2.5) |  159,  0 ( 0.0) |  43,  2 ( 6.5) |  31,  2 ( 2.4) |  85
+   ↳ Swollen lymph nodes (Enlarged lymph nodes),   2 ( 1.3) |  159,  2 ( 4.7) |  43,  0 ( 0.0) |  31,  0 ( 0.0) |  85
+   ↳ Tinnitus,   2 ( 1.3) |  159,  0 ( 0.0) |  43,  0 ( 0.0) |  31,  2 ( 2.4) |  85
+   ↳ Tremor,   1 ( 0.6) |  159,  0 ( 0.0) |  43,  0 ( 0.0) |  31,  1 ( 1.2) |  85
+   ↳ Urinary incontinence,   1 ( 0.6) |  159,  0 ( 0.0) |  43,  0 ( 0.0) |  31,  1 ( 1.2) |  85
+   ↳ Wheezing,   1 ( 0.6) |  159,  0 ( 0.0) |  43,  0 ( 0.0) |  31,  1 ( 1.2) |  85
+<b>Any additional other sign(s) or symptom(s) ?</b> (*),  52 (48.6) |  107, 13 (43.3) |  30, 13 (52.0) |  25, 26 (50.0) |  52
+<b>>Select additional other sign(s) or symptom(s) 2</b> (*),,,,
+   ↳ Can't feel one side of the body or face (Hemiplegia),   2 ( 4.4) |   45,  0 ( 0.0) |  10,  2 (15.4) |  13,  0 ( 0.0) |  22
+   ↳ Changes in menstruation (Irregular menstruation),   1 ( 2.2) |   45,  0 ( 0.0) |  10,  1 ( 7.7) |  13,  0 ( 0.0) |  22
+   ↳ Changes in skin texture,   1 ( 2.2) |   45,  0 ( 0.0) |  10,  0 ( 0.0) |  13,  1 ( 4.5) |  22
+   ↳ Chest pain,   1 ( 2.2) |   45,  0 ( 0.0) |  10,  0 ( 0.0) |  13,  1 ( 4.5) |  22
+   ↳ Chest pain on breathing,   2 ( 4.4) |   45,  1 (10.0) |  10,  0 ( 0.0) |  13,  1 ( 4.5) |  22
+   ↳ Cognitive impairment (Unspecified intellectual disabilities),   1 ( 2.2) |   45,  0 ( 0.0) |  10,  0 ( 0.0) |  13,  1 ( 4.5) |  22
+   ↳ Conjunctivitis,   1 ( 2.2) |   45,  1 (10.0) |  10,  0 ( 0.0) |  13,  0 ( 0.0) |  22
+   ↳ Constipation,   1 ( 2.2) |   45,  0 ( 0.0) |  10,  0 ( 0.0) |  13,  1 ( 4.5) |  22
+   ↳ Difficulty in walking,   1 ( 2.2) |   45,  0 ( 0.0) |  10,  0 ( 0.0) |  13,  1 ( 4.5) |  22
+   ↳ Disorders of nose and nasal sinuses,   2 ( 4.4) |   45,  0 ( 0.0) |  10,  0 ( 0.0) |  13,  2 ( 9.1) |  22
+   ↳ Dizziness/light headedness (Dizziness and giddiness),   1 ( 2.2) |   45,  0 ( 0.0) |  10,  1 ( 7.7) |  13,  0 ( 0.0) |  22
+   ↳ Dry skin (Xerosis cutis),   1 ( 2.2) |   45,  1 (10.0) |  10,  0 ( 0.0) |  13,  0 ( 0.0) |  22
+   ↳ Ear pain (Otalgia),   1 ( 2.2) |   45,  0 ( 0.0) |  10,  0 ( 0.0) |  13,  1 ( 4.5) |  22
+   ↳ Erectile dysfunction,   1 ( 2.2) |   45,  1 (10.0) |  10,  0 ( 0.0) |  13,  0 ( 0.0) |  22
+   ↳ Fainting / blackouts (Syncope and collapse),   2 ( 4.4) |   45,  0 ( 0.0) |  10,  2 (15.4) |  13,  0 ( 0.0) |  22
+   ↳ Fecal incontinence,   1 ( 2.2) |   45,  0 ( 0.0) |  10,  0 ( 0.0) |  13,  1 ( 4.5) |  22
+   ↳ Feeding difficulty,   1 ( 2.2) |   45,  0 ( 0.0) |  10,  0 ( 0.0) |  13,  1 ( 4.5) |  22
+   ↳ Headache,   2 ( 4.4) |   45,  1 (10.0) |  10,  0 ( 0.0) |  13,  1 ( 4.5) |  22
+   ↳ Hepatomegaly,   1 ( 2.2) |   45,  0 ( 0.0) |  10,  0 ( 0.0) |  13,  1 ( 4.5) |  22
+   ↳ Increased thirst (Polydipsia),   1 ( 2.2) |   45,  0 ( 0.0) |  10,  0 ( 0.0) |  13,  1 ( 4.5) |  22
+   ↳ Itchy eye,   1 ( 2.2) |   45,  1 (10.0) |  10,  0 ( 0.0) |  13,  0 ( 0.0) |  22
+   ↳ Jaundice,   2 ( 4.4) |   45,  0 ( 0.0) |  10,  0 ( 0.0) |  13,  2 ( 9.1) |  22
+   ↳ Joint pain (Arthralgia),   2 ( 4.4) |   45,  0 ( 0.0) |  10,  2 (15.4) |  13,  0 ( 0.0) |  22
+   ↳ Localized edema,   1 ( 2.2) |   45,  1 (10.0) |  10,  0 ( 0.0) |  13,  0 ( 0.0) |  22
+   ↳ Loss of appetite (Anorexia),   2 ( 4.4) |   45,  1 (10.0) |  10,  0 ( 0.0) |  13,  1 ( 4.5) |  22
+   ↳ Mouth ulcers (Recurrent oral aphthae),   1 ( 2.2) |   45,  0 ( 0.0) |  10,  1 ( 7.7) |  13,  0 ( 0.0) |  22
+   ↳ Mucosal lesion,   2 ( 4.4) |   45,  0 ( 0.0) |  10,  1 ( 7.7) |  13,  1 ( 4.5) |  22
+   ↳ Muscle aches (Myalgia),   1 ( 2.2) |   45,  0 ( 0.0) |  10,  0 ( 0.0) |  13,  1 ( 4.5) |  22
+   ↳ Muscle weakness,   1 ( 2.2) |   45,  0 ( 0.0) |  10,  1 ( 7.7) |  13,  0 ( 0.0) |  22
+   ↳ Paresthesia of skin,   1 ( 2.2) |   45,  0 ( 0.0) |  10,  0 ( 0.0) |  13,  1 ( 4.5) |  22
+   ↳ Rapid heart beat/Pulse (Tachycardia),   1 ( 2.2) |   45,  0 ( 0.0) |  10,  1 ( 7.7) |  13,  0 ( 0.0) |  22
+   ↳ Retention of urine,   1 ( 2.2) |   45,  1 (10.0) |  10,  0 ( 0.0) |  13,  0 ( 0.0) |  22
+   ↳ Skin lesion,   1 ( 2.2) |   45,  1 (10.0) |  10,  0 ( 0.0) |  13,  0 ( 0.0) |  22
+   ↳ Sore throat (Pain in throat),   1 ( 2.2) |   45,  0 ( 0.0) |  10,  1 ( 7.7) |  13,  0 ( 0.0) |  22
+   ↳ Tinnitus,   1 ( 2.2) |   45,  0 ( 0.0) |  10,  0 ( 0.0) |  13,  1 ( 4.5) |  22
+   ↳ Urinary incontinence,   1 ( 2.2) |   45,  0 ( 0.0) |  10,  0 ( 0.0) |  13,  1 ( 4.5) |  22
+<b>>Any additional other sign(s) or symptom(s) ?</b> (*),  12 (42.9) |   28,  3 (75.0) |   4,  3 (33.3) |   9,  6 (40.0) |  15
+<b>->Select additional other sign(s) or symptom(s) 3</b> (*),,,,
+   ↳ Bruising (Spontaneous ecchymoses),   1 (11.1) |    9,  0 ( 0.0) |   2,  1 (33.3) |   3,  0 ( 0.0) |   4
+   ↳ Cognitive impairment (Unspecified intellectual disabilities),   1 (11.1) |    9,  0 ( 0.0) |   2,  0 ( 0.0) |   3,  1 (25.0) |   4
+   ↳ Gastrointestinal bleeding (Gastrointestinal hemorrhage),   1 (11.1) |    9,  0 ( 0.0) |   2,  0 ( 0.0) |   3,  1 (25.0) |   4
+   ↳ Keratitis,   1 (11.1) |    9,  0 ( 0.0) |   2,  0 ( 0.0) |   3,  1 (25.0) |   4
+   ↳ Localized edema,   1 (11.1) |    9,  0 ( 0.0) |   2,  1 (33.3) |   3,  0 ( 0.0) |   4
+   ↳ Speech disturbances,   1 (11.1) |    9,  1 (50.0) |   2,  0 ( 0.0) |   3,  0 ( 0.0) |   4
+   ↳ Swollen lymph nodes (Enlarged lymph nodes),   1 (11.1) |    9,  1 (50.0) |   2,  0 ( 0.0) |   3,  0 ( 0.0) |   4
+   ↳ Tinnitus,   1 (11.1) |    9,  0 ( 0.0) |   2,  0 ( 0.0) |   3,  1 (25.0) |   4
+   ↳ Tremor,   1 (11.1) |    9,  0 ( 0.0) |   2,  1 (33.3) |   3,  0 ( 0.0) |   4
+<b>->Any additional other sign(s) or symptom(s) ?</b> (*),   3 (60.0) |    5,  1 (50.0) |   2,  1 (100.) |   1,  1 (50.0) |   2
+<b>>->Select additional other sign(s) or symptom(s) 4</b> (*),,,,
+   ↳ Abdominal pain,   1 (33.3) |    3,  0 ( 0.0) |   1,  0 ( 0.0) |   1,  1 (100.) |   1
+   ↳ Difficulty eating or drinking (Dysphagia),   1 (33.3) |    3,  1 (100.) |   1,  0 ( 0.0) |   1,  0 ( 0.0) |   1
+   ↳ Pruritus,   1 (33.3) |    3,  0 ( 0.0) |   1,  1 (100.) |   1,  0 ( 0.0) |   1

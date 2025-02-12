@@ -1,0 +1,6 @@
+index,count,short_label,label
+treat_dailydata,847,<b>Enter Treatments & Interventions data ...</b>,<b>Enter Treatments & Interventions data for this date?</b>
+treat_o2supp_suppleo2,703,<b>Supplemental oxygen</b>,<b>Supplemental oxygen</b>
+treat_o2supp_ecmotyp___Veno-venous (VV),165,"<b>Type of ECLS / ECMO</b>, Veno-venous (VV)","<b>Type of ECLS / ECMO</b>, Veno-venous (VV)"
+treat_o2supp_nivtyp___BIPAP,127,"<b>Type of non-invasive respiratory support</b>, BIPAP","<b>Type of non-invasive respiratory support</b>, BIPAP"
+treat_prone_when___Whilst self-ventilating,42,"<b>If yes: When was the prone positioning?</b>, Whilst self-ventilating","<b>If yes: When was the prone positioning?</b>, Whilst self-ventilating"

@@ -1,0 +1,212 @@
+Variable,All,Female,Male,Other / Unknown
+<b>Totals</b>,1000,243,255,502
+<b><i>DEMOGRAPHICS</i></b>,,,,
+<b>Age</b> (+), 4.5 ( 0.2-32.8) |  947, 4.6 ( 0.2-39.6) | 233, 3.8 ( 0.2-24.7) | 243, 4.6 ( 0.2-30.9) | 471
+<b>Height </b> (+),127.2 ( 70.1-188.0) |  957,110.0 ( 63.8-178.8) | 230,129.8 ( 75.3-190.1) | 249,130.3 ( 69.6-191.4) | 478
+<b>Weight </b> (+), 861.6 ( 435.9-1323.0) |  957, 818.5 ( 415.3-1305.0) | 230, 952.4 ( 449.1-1376.3) | 237, 858.0 ( 430.1-1303.5) | 490
+<b>Race (select all that apply)</b>,,,,
+   ↳ Arab, 459 (48.3) |  951,117 (49.8) | 235,113 (47.1) | 240,229 (48.1) | 476
+   ↳ Black, 479 (50.4) |  951,114 (48.5) | 235,123 (51.2) | 240,242 (50.8) | 476
+   ↳ East Asian, 485 (51.0) |  951,120 (51.1) | 235,118 (49.2) | 240,247 (51.9) | 476
+   ↳ South Asian, 469 (49.3) |  951,115 (48.9) | 235,126 (52.5) | 240,228 (47.9) | 476
+   ↳ South-East Asian, 484 (50.9) |  951,116 (49.4) | 235,125 (52.1) | 240,243 (51.1) | 476
+   ↳ West Asian, 501 (52.7) |  951,118 (50.2) | 235,123 (51.2) | 240,260 (54.6) | 476
+   ↳ Latin American, 482 (50.7) |  951,116 (49.4) | 235,130 (54.2) | 240,236 (49.6) | 476
+   ↳ White, 485 (51.0) |  951,129 (54.9) | 235,119 (49.6) | 240,237 (49.8) | 476
+   ↳ Aboriginal/First Nations/Indigenous, 503 (52.9) |  951,127 (54.0) | 235,136 (56.7) | 240,240 (50.4) | 476
+   ↳ Other, 452 (47.5) |  951,120 (51.1) | 235,110 (45.8) | 240,222 (46.6) | 476
+   ↳ Unknown, 472 (49.6) |  951,125 (53.2) | 235,114 (47.5) | 240,233 (48.9) | 476
+<b>Primary location of occupation</b> (*),,,,
+   ↳ Home-working or unemployed,  96 (11.0) |  876, 20 ( 9.3) | 216, 31 (13.7) | 226, 45 (10.4) | 434
+   ↳ Indoors-office/health/education/hospitality/business/homes, 107 (12.2) |  876, 30 (13.9) | 216, 21 ( 9.3) | 226, 56 (12.9) | 434
+   ↳ Indoors-factory,  91 (10.4) |  876, 24 (11.1) | 216, 23 (10.2) | 226, 44 (10.1) | 434
+"   ↳ Outdoors-animal contact (vet, animal farmer, abattoir worker)",  96 (11.0) |  876, 28 (13.0) | 216, 21 ( 9.3) | 226, 47 (10.8) | 434
+   ↳ Outdoors-agriculture/forestry/fisheries,  98 (11.2) |  876, 20 ( 9.3) | 216, 24 (10.6) | 226, 54 (12.4) | 434
+   ↳ Outdoors-construction/industrial/mining,  96 (11.0) |  876, 21 ( 9.7) | 216, 25 (11.1) | 226, 50 (11.5) | 434
+   ↳ Armed Forces,  83 ( 9.5) |  876, 19 ( 8.8) | 216, 21 ( 9.3) | 226, 43 ( 9.9) | 434
+   ↳ Student,  98 (11.2) |  876, 27 (12.5) | 216, 31 (13.7) | 226, 40 ( 9.2) | 434
+   ↳ Other, 111 (12.7) |  876, 27 (12.5) | 216, 29 (12.8) | 226, 55 (12.7) | 434
+<b>Patient's city of residence</b> (*),,,,
+   ↳ Same as health care facility, 332 (51.9) |  640, 78 (53.1) | 147, 84 (51.2) | 164,170 (51.7) | 329
+   ↳ Different from health care facility, 308 (48.1) |  640, 69 (46.9) | 147, 80 (48.8) | 164,159 (48.3) | 329
+<b><i>CO-MORBIDITIES AND RISK FACTORS</i></b>,,,,
+<b>Chronic neurological disorder</b> (*), 329 (51.5) |  639, 65 (47.1) | 138, 95 (55.9) | 170,169 (51.1) | 331
+<b>Dementia</b> (*), 289 (46.7) |  619, 76 (52.4) | 145, 78 (47.0) | 166,135 (43.8) | 308
+<b>Chronic cardiac disease (not hypertension)</b> (*), 312 (49.0) |  637, 84 (54.9) | 153, 87 (55.8) | 156,141 (43.0) | 328
+<b>Hypertension (physician diagnosed)</b> (*), 315 (48.8) |  646, 74 (45.1) | 164, 82 (49.1) | 167,159 (50.5) | 315
+<b>Chronic pulmonary disease (not asthma)</b> (*), 326 (51.2) |  637, 85 (52.8) | 161, 69 (44.8) | 154,172 (53.4) | 322
+<b>Asthma (physician diagnosed)</b> (*), 307 (50.6) |  607, 79 (51.0) | 155, 77 (49.4) | 156,151 (51.0) | 296
+<b>Chronic kidney disease</b> (*), 308 (49.7) |  620, 68 (44.2) | 154, 72 (49.3) | 146,168 (52.5) | 320
+<b>Liver disease</b> (*), 316 (51.0) |  620, 73 (51.4) | 142, 68 (44.7) | 152,175 (53.7) | 326
+<b>Type of liver disease</b> (*),,,,
+   ↳ Mild, 104 (53.9) |  193, 21 (53.8) |  39, 24 (53.3) |  45, 59 (54.1) | 109
+   ↳ Moderate or severe,  89 (46.1) |  193, 18 (46.2) |  39, 21 (46.7) |  45, 50 (45.9) | 109
+<b>Chronic hepatitis B/C infection</b> (*), 337 (51.5) |  655, 76 (46.6) | 163,107 (63.7) | 168,154 (47.5) | 324
+<b>HIV</b> (*), 296 (47.7) |  620, 62 (41.6) | 149, 80 (47.3) | 169,154 (51.0) | 302
+<b> Is the patient on anti-retroviral therapy (ART)?</b> (*),  91 (48.9) |  186, 18 (50.0) |  36, 25 (45.5) |  55, 48 (50.5) |  95
+<b> Most recent CD4 count (cells/uL)</b> (*),,,,
+   ↳ Less than 50,  54 (22.2) |  243, 11 (22.4) |  49, 15 (24.2) |  62, 28 (21.2) | 132
+   ↳ 50-99,  51 (21.0) |  243,  6 (12.2) |  49, 13 (21.0) |  62, 32 (24.2) | 132
+   ↳ 100-199,  47 (19.3) |  243,  7 (14.3) |  49, 13 (21.0) |  62, 27 (20.5) | 132
+   ↳ 200-499,  50 (20.6) |  243, 11 (22.4) |  49, 13 (21.0) |  62, 26 (19.7) | 132
+   ↳ 500 and over,  41 (16.9) |  243, 14 (28.6) |  49,  8 (12.9) |  62, 19 (14.4) | 132
+<b>Tuberculosis</b> (*), 339 (52.9) |  641, 82 (52.6) | 156, 87 (50.3) | 173,170 (54.5) | 312
+<b>Obesity</b> (*), 331 (51.7) |  640, 74 (51.4) | 144, 83 (46.6) | 178,174 (54.7) | 318
+<b>Asplenia</b> (*), 286 (49.2) |  581, 75 (51.0) | 147, 72 (46.8) | 154,139 (49.6) | 280
+<b>Malignant neoplasm</b> (*), 303 (48.2) |  628, 69 (50.7) | 136, 75 (45.5) | 165,159 (48.6) | 327
+<b>Chronic hematologic disease</b> (*), 305 (47.3) |  645, 80 (51.9) | 154, 72 (44.4) | 162,153 (46.5) | 329
+<b>Rheumatologic disorder</b> (*), 345 (53.1) |  650, 88 (50.9) | 173, 80 (50.0) | 160,177 (55.8) | 317
+<b>Diabetes mellitus</b> (*), 334 (51.8) |  645, 84 (51.5) | 163, 87 (52.1) | 167,163 (51.7) | 315
+<b>Type 1 diabetes mellitus</b> (*), 100 (47.6) |  210, 25 (52.1) |  48, 27 (47.4) |  57, 48 (45.7) | 105
+<b>Type 2 diabetes mellitus</b> (*), 117 (53.7) |  218, 34 (59.6) |  57, 32 (58.2) |  55, 51 (48.1) | 106
+<b>Gestational diabetes mellitus</b> (*), 104 (52.0) |  200, 21 (43.8) |  48, 23 (47.9) |  48, 60 (57.7) | 104
+<b>HbA1C result within last 6 months </b> (+),45.1 (26.4-71.7) |  313,48.2 (30.1-67.0) |  79,45.6 (28.6-70.2) |  80,43.9 (24.7-72.7) | 154
+<b>Malnutrition</b> (*), 328 (51.5) |  637, 70 (49.6) | 141, 88 (52.7) | 167,170 (51.7) | 329
+<b>Ever smoked</b> (*), 312 (48.7) |  641, 84 (51.5) | 163, 77 (50.3) | 153,151 (46.5) | 325
+<b> Current smoker</b> (*),  92 (49.5) |  186, 27 (52.9) |  51, 26 (46.4) |  56, 39 (49.4) |  79
+<b> Former smoker</b> (*), 102 (52.0) |  196, 28 (54.9) |  51, 23 (43.4) |  53, 51 (55.4) |  92
+<b>Other relevant comorbidity(s)</b> (*), 322 (51.3) |  628, 67 (46.9) | 143, 82 (50.6) | 162,173 (53.6) | 323
+<b>Select other relevant comorbidity(s)</b> (*),,,,
+   ↳ Acute-on-chronic renal failure,   3 ( 1.0) |  307,  0 ( 0.0) |  64,  2 ( 2.5) |  80,  1 ( 0.6) | 163
+   ↳ Asplenia,   7 ( 2.3) |  307,  2 ( 3.1) |  64,  3 ( 3.8) |  80,  2 ( 1.2) | 163
+   ↳ Atrial Fibrillation,   3 ( 1.0) |  307,  1 ( 1.6) |  64,  2 ( 2.5) |  80,  0 ( 0.0) | 163
+   ↳ Autoimmune Disease,   4 ( 1.3) |  307,  0 ( 0.0) |  64,  0 ( 0.0) |  80,  4 ( 2.5) | 163
+   ↳ Blood coagulation disorder,   7 ( 2.3) |  307,  5 ( 7.8) |  64,  2 ( 2.5) |  80,  0 ( 0.0) | 163
+   ↳ Cardiomyopathy,   7 ( 2.3) |  307,  1 ( 1.6) |  64,  2 ( 2.5) |  80,  4 ( 2.5) | 163
+   ↳ Cerebrovascular Disease,   6 ( 2.0) |  307,  1 ( 1.6) |  64,  0 ( 0.0) |  80,  5 ( 3.1) | 163
+   ↳ Chronic Haematological Disease,   1 ( 0.3) |  307,  0 ( 0.0) |  64,  0 ( 0.0) |  80,  1 ( 0.6) | 163
+   ↳ Chronic Infection,   6 ( 2.0) |  307,  1 ( 1.6) |  64,  2 ( 2.5) |  80,  3 ( 1.8) | 163
+   ↳ Chronic Kidney Disease,   4 ( 1.3) |  307,  0 ( 0.0) |  64,  0 ( 0.0) |  80,  4 ( 2.5) | 163
+   ↳ Chronic Viral Hepatitis,   6 ( 2.0) |  307,  2 ( 3.1) |  64,  2 ( 2.5) |  80,  2 ( 1.2) | 163
+   ↳ Chronic heart disease,   6 ( 2.0) |  307,  0 ( 0.0) |  64,  2 ( 2.5) |  80,  4 ( 2.5) | 163
+   ↳ Chronic inflammatory disorder,   6 ( 2.0) |  307,  1 ( 1.6) |  64,  0 ( 0.0) |  80,  5 ( 3.1) | 163
+   ↳ Chronic lung disease,   7 ( 2.3) |  307,  1 ( 1.6) |  64,  2 ( 2.5) |  80,  4 ( 2.5) | 163
+   ↳ Chronic metabolic disorder,   3 ( 1.0) |  307,  0 ( 0.0) |  64,  0 ( 0.0) |  80,  3 ( 1.8) | 163
+   ↳ Congenital Heart Disease,   6 ( 2.0) |  307,  0 ( 0.0) |  64,  3 ( 3.8) |  80,  3 ( 1.8) | 163
+   ↳ Congestive Heart Failure,   7 ( 2.3) |  307,  1 ( 1.6) |  64,  3 ( 3.8) |  80,  3 ( 1.8) | 163
+   ↳ Dementia,   2 ( 0.7) |  307,  0 ( 0.0) |  64,  1 ( 1.2) |  80,  1 ( 0.6) | 163
+   ↳ Diabetes Mellitus (all types),   6 ( 2.0) |  307,  2 ( 3.1) |  64,  0 ( 0.0) |  80,  4 ( 2.5) | 163
+   ↳ Disease of liver,   3 ( 1.0) |  307,  1 ( 1.6) |  64,  1 ( 1.2) |  80,  1 ( 0.6) | 163
+   ↳ Disorder of lipid metabolism,   8 ( 2.6) |  307,  2 ( 3.1) |  64,  1 ( 1.2) |  80,  5 ( 3.1) | 163
+   ↳ Disorder of pulmonary circulation,  10 ( 3.3) |  307,  4 ( 6.2) |  64,  1 ( 1.2) |  80,  5 ( 3.1) | 163
+   ↳ Essential hypertension,  11 ( 3.6) |  307,  2 ( 3.1) |  64,  4 ( 5.0) |  80,  5 ( 3.1) | 163
+   ↳ Heart valve disorder,   5 ( 1.6) |  307,  3 ( 4.7) |  64,  0 ( 0.0) |  80,  2 ( 1.2) | 163
+   ↳ Hemiplegia,   6 ( 2.0) |  307,  1 ( 1.6) |  64,  2 ( 2.5) |  80,  3 ( 1.8) | 163
+   ↳ Human immunodeficiency virus [HIV] disease,   8 ( 2.6) |  307,  2 ( 3.1) |  64,  3 ( 3.8) |  80,  3 ( 1.8) | 163
+   ↳ Hyperthyroidism,   5 ( 1.6) |  307,  1 ( 1.6) |  64,  1 ( 1.2) |  80,  3 ( 1.8) | 163
+   ↳ Hypothyroidism,  10 ( 3.3) |  307,  2 ( 3.1) |  64,  1 ( 1.2) |  80,  7 ( 4.3) | 163
+   ↳ Immunosuppression,   4 ( 1.3) |  307,  0 ( 0.0) |  64,  1 ( 1.2) |  80,  3 ( 1.8) | 163
+   ↳ Ischaemic Heart Disease,   5 ( 1.6) |  307,  0 ( 0.0) |  64,  1 ( 1.2) |  80,  4 ( 2.5) | 163
+   ↳ Leukemia,   4 ( 1.3) |  307,  0 ( 0.0) |  64,  2 ( 2.5) |  80,  2 ( 1.2) | 163
+   ↳ Malignant lymphoma,   7 ( 2.3) |  307,  0 ( 0.0) |  64,  4 ( 5.0) |  80,  3 ( 1.8) | 163
+   ↳ Metastatic carcinoid tumor Cancer,   3 ( 1.0) |  307,  2 ( 3.1) |  64,  1 ( 1.2) |  80,  0 ( 0.0) | 163
+   ↳ Moderate or Severe Liver Disease,   6 ( 2.0) |  307,  1 ( 1.6) |  64,  2 ( 2.5) |  80,  3 ( 1.8) | 163
+   ↳ Moderate or Severe Renal Disease,   5 ( 1.6) |  307,  2 ( 3.1) |  64,  0 ( 0.0) |  80,  3 ( 1.8) | 163
+   ↳ Multiple Myeloma,   1 ( 0.3) |  307,  0 ( 0.0) |  64,  0 ( 0.0) |  80,  1 ( 0.6) | 163
+   ↳ Myocardial Infarction,   8 ( 2.6) |  307,  4 ( 6.2) |  64,  1 ( 1.2) |  80,  3 ( 1.8) | 163
+   ↳ Neurodegenerative Disorders,   9 ( 2.9) |  307,  1 ( 1.6) |  64,  1 ( 1.2) |  80,  7 ( 4.3) | 163
+   ↳ Neurological disorder confirmed,   2 ( 0.7) |  307,  0 ( 0.0) |  64,  0 ( 0.0) |  80,  2 ( 1.2) | 163
+   ↳ Obesity,   3 ( 1.0) |  307,  0 ( 0.0) |  64,  1 ( 1.2) |  80,  2 ( 1.2) | 163
+   ↳ Paraplegia,   5 ( 1.6) |  307,  2 ( 3.1) |  64,  2 ( 2.5) |  80,  1 ( 0.6) | 163
+   ↳ Peripheral Vascular Disease,   7 ( 2.3) |  307,  1 ( 1.6) |  64,  2 ( 2.5) |  80,  4 ( 2.5) | 163
+   ↳ Primary malignant neoplasm,   4 ( 1.3) |  307,  2 ( 3.1) |  64,  0 ( 0.0) |  80,  2 ( 1.2) | 163
+   ↳ Psychoactive substance use disorder,   9 ( 2.9) |  307,  0 ( 0.0) |  64,  4 ( 5.0) |  80,  5 ( 3.1) | 163
+   ↳ Rare Diseases and Inborn Errors of Metabolism,   8 ( 2.6) |  307,  3 ( 4.7) |  64,  3 ( 3.8) |  80,  2 ( 1.2) | 163
+   ↳ Reactive psychoses,   8 ( 2.6) |  307,  2 ( 3.1) |  64,  2 ( 2.5) |  80,  4 ( 2.5) | 163
+   ↳ Recurrent deep vein thrombosis,   7 ( 2.3) |  307,  1 ( 1.6) |  64,  2 ( 2.5) |  80,  4 ( 2.5) | 163
+   ↳ Rheumatoid Disorders,   1 ( 0.3) |  307,  0 ( 0.0) |  64,  1 ( 1.2) |  80,  0 ( 0.0) | 163
+   ↳ Smoking,   5 ( 1.6) |  307,  2 ( 3.1) |  64,  1 ( 1.2) |  80,  2 ( 1.2) | 163
+   ↳ Solid tumor configuration,   4 ( 1.3) |  307,  1 ( 1.6) |  64,  0 ( 0.0) |  80,  3 ( 1.8) | 163
+   ↳ Stroke,   3 ( 1.0) |  307,  0 ( 0.0) |  64,  1 ( 1.2) |  80,  2 ( 1.2) | 163
+   ↳ Transplant present,   9 ( 2.9) |  307,  2 ( 3.1) |  64,  5 ( 6.2) |  80,  2 ( 1.2) | 163
+   ↳ Tuberculosis,   5 ( 1.6) |  307,  1 ( 1.6) |  64,  1 ( 1.2) |  80,  3 ( 1.8) | 163
+   ↳ Undifferentiated connective tissue disease,   8 ( 2.6) |  307,  0 ( 0.0) |  64,  1 ( 1.2) |  80,  7 ( 4.3) | 163
+   ↳ Other,   4 ( 1.3) |  307,  1 ( 1.6) |  64,  1 ( 1.2) |  80,  2 ( 1.2) | 163
+<b>Any additional other relevant comorbidity(s) ?</b> (*), 102 (49.8) |  205, 21 (45.7) |  46, 25 (53.2) |  47, 56 (50.0) | 112
+<b>>Select additional other relevant comorbidity(s) 2</b> (*),,,,
+   ↳ Acute-on-chronic renal failure,   1 ( 1.0) |   97,  0 ( 0.0) |  20,  0 ( 0.0) |  24,  1 ( 1.9) |  53
+   ↳ Asplenia,   2 ( 2.1) |   97,  1 ( 5.0) |  20,  0 ( 0.0) |  24,  1 ( 1.9) |  53
+   ↳ Atrial Fibrillation,   1 ( 1.0) |   97,  0 ( 0.0) |  20,  0 ( 0.0) |  24,  1 ( 1.9) |  53
+   ↳ Autoimmune Disease,   2 ( 2.1) |   97,  1 ( 5.0) |  20,  1 ( 4.2) |  24,  0 ( 0.0) |  53
+   ↳ Blood coagulation disorder,   1 ( 1.0) |   97,  0 ( 0.0) |  20,  0 ( 0.0) |  24,  1 ( 1.9) |  53
+   ↳ Cerebrovascular Disease,   4 ( 4.1) |   97,  0 ( 0.0) |  20,  0 ( 0.0) |  24,  4 ( 7.5) |  53
+   ↳ Chronic Haematological Disease,   2 ( 2.1) |   97,  1 ( 5.0) |  20,  0 ( 0.0) |  24,  1 ( 1.9) |  53
+   ↳ Chronic Infection,   4 ( 4.1) |   97,  0 ( 0.0) |  20,  0 ( 0.0) |  24,  4 ( 7.5) |  53
+   ↳ Chronic Viral Hepatitis,   1 ( 1.0) |   97,  0 ( 0.0) |  20,  0 ( 0.0) |  24,  1 ( 1.9) |  53
+   ↳ Chronic lung disease,   1 ( 1.0) |   97,  0 ( 0.0) |  20,  0 ( 0.0) |  24,  1 ( 1.9) |  53
+   ↳ Chronic metabolic disorder,   2 ( 2.1) |   97,  1 ( 5.0) |  20,  0 ( 0.0) |  24,  1 ( 1.9) |  53
+   ↳ Congenital Heart Disease,   6 ( 6.2) |   97,  0 ( 0.0) |  20,  3 (12.5) |  24,  3 ( 5.7) |  53
+   ↳ Dementia,   2 ( 2.1) |   97,  2 (10.0) |  20,  0 ( 0.0) |  24,  0 ( 0.0) |  53
+   ↳ Diabetes Mellitus (all types),   3 ( 3.1) |   97,  1 ( 5.0) |  20,  0 ( 0.0) |  24,  2 ( 3.8) |  53
+   ↳ Disease of liver,   2 ( 2.1) |   97,  0 ( 0.0) |  20,  0 ( 0.0) |  24,  2 ( 3.8) |  53
+   ↳ Disorder of lipid metabolism,   4 ( 4.1) |   97,  1 ( 5.0) |  20,  1 ( 4.2) |  24,  2 ( 3.8) |  53
+   ↳ Disorder of pulmonary circulation,   3 ( 3.1) |   97,  2 (10.0) |  20,  0 ( 0.0) |  24,  1 ( 1.9) |  53
+   ↳ Essential hypertension,   2 ( 2.1) |   97,  0 ( 0.0) |  20,  1 ( 4.2) |  24,  1 ( 1.9) |  53
+   ↳ Heart valve disorder,   3 ( 3.1) |   97,  0 ( 0.0) |  20,  1 ( 4.2) |  24,  2 ( 3.8) |  53
+   ↳ Human immunodeficiency virus [HIV] disease,   3 ( 3.1) |   97,  0 ( 0.0) |  20,  1 ( 4.2) |  24,  2 ( 3.8) |  53
+   ↳ Hyperthyroidism,   3 ( 3.1) |   97,  0 ( 0.0) |  20,  2 ( 8.3) |  24,  1 ( 1.9) |  53
+   ↳ Hypothyroidism,   1 ( 1.0) |   97,  0 ( 0.0) |  20,  1 ( 4.2) |  24,  0 ( 0.0) |  53
+   ↳ Immunosuppression,   4 ( 4.1) |   97,  0 ( 0.0) |  20,  1 ( 4.2) |  24,  3 ( 5.7) |  53
+   ↳ Ischaemic Heart Disease,   4 ( 4.1) |   97,  1 ( 5.0) |  20,  1 ( 4.2) |  24,  2 ( 3.8) |  53
+   ↳ Leukemia,   5 ( 5.2) |   97,  1 ( 5.0) |  20,  1 ( 4.2) |  24,  3 ( 5.7) |  53
+   ↳ Malignant lymphoma,   2 ( 2.1) |   97,  1 ( 5.0) |  20,  0 ( 0.0) |  24,  1 ( 1.9) |  53
+   ↳ Metastatic carcinoid tumor Cancer,   1 ( 1.0) |   97,  0 ( 0.0) |  20,  1 ( 4.2) |  24,  0 ( 0.0) |  53
+   ↳ Multiple Myeloma,   3 ( 3.1) |   97,  1 ( 5.0) |  20,  0 ( 0.0) |  24,  2 ( 3.8) |  53
+   ↳ Myocardial Infarction,   2 ( 2.1) |   97,  0 ( 0.0) |  20,  2 ( 8.3) |  24,  0 ( 0.0) |  53
+   ↳ Neurodegenerative Disorders,   2 ( 2.1) |   97,  0 ( 0.0) |  20,  0 ( 0.0) |  24,  2 ( 3.8) |  53
+   ↳ Neurological disorder confirmed,   2 ( 2.1) |   97,  2 (10.0) |  20,  0 ( 0.0) |  24,  0 ( 0.0) |  53
+   ↳ Paraplegia,   2 ( 2.1) |   97,  1 ( 5.0) |  20,  0 ( 0.0) |  24,  1 ( 1.9) |  53
+   ↳ Peripheral Vascular Disease,   3 ( 3.1) |   97,  3 (15.0) |  20,  0 ( 0.0) |  24,  0 ( 0.0) |  53
+   ↳ Primary malignant neoplasm,   1 ( 1.0) |   97,  0 ( 0.0) |  20,  0 ( 0.0) |  24,  1 ( 1.9) |  53
+   ↳ Psychoactive substance use disorder,   2 ( 2.1) |   97,  0 ( 0.0) |  20,  1 ( 4.2) |  24,  1 ( 1.9) |  53
+   ↳ Rare Diseases and Inborn Errors of Metabolism,   1 ( 1.0) |   97,  0 ( 0.0) |  20,  1 ( 4.2) |  24,  0 ( 0.0) |  53
+   ↳ Reactive psychoses,   1 ( 1.0) |   97,  0 ( 0.0) |  20,  0 ( 0.0) |  24,  1 ( 1.9) |  53
+   ↳ Recurrent deep vein thrombosis,   1 ( 1.0) |   97,  0 ( 0.0) |  20,  1 ( 4.2) |  24,  0 ( 0.0) |  53
+   ↳ Rheumatoid Disorders,   2 ( 2.1) |   97,  0 ( 0.0) |  20,  1 ( 4.2) |  24,  1 ( 1.9) |  53
+   ↳ Smoking,   1 ( 1.0) |   97,  0 ( 0.0) |  20,  1 ( 4.2) |  24,  0 ( 0.0) |  53
+   ↳ Stroke,   2 ( 2.1) |   97,  0 ( 0.0) |  20,  1 ( 4.2) |  24,  1 ( 1.9) |  53
+   ↳ Transplant present,   1 ( 1.0) |   97,  0 ( 0.0) |  20,  1 ( 4.2) |  24,  0 ( 0.0) |  53
+   ↳ Undifferentiated connective tissue disease,   1 ( 1.0) |   97,  0 ( 0.0) |  20,  0 ( 0.0) |  24,  1 ( 1.9) |  53
+   ↳ Other,   1 ( 1.0) |   97,  0 ( 0.0) |  20,  0 ( 0.0) |  24,  1 ( 1.9) |  53
+<b>>Any additional other relevant comorbidity(s) ?</b> (*),  28 (42.4) |   66,  4 (28.6) |  14,  5 (33.3) |  15, 19 (51.4) |  37
+<b>->Select additional other relevant comorbidity(s) 3</b> (*),,,,
+   ↳ Atrial Fibrillation,   1 ( 3.7) |   27,  0 ( 0.0) |   4,  0 ( 0.0) |   5,  1 ( 5.6) |  18
+   ↳ Blood coagulation disorder,   2 ( 7.4) |   27,  0 ( 0.0) |   4,  1 (20.0) |   5,  1 ( 5.6) |  18
+   ↳ Cerebrovascular Disease,   1 ( 3.7) |   27,  1 (25.0) |   4,  0 ( 0.0) |   5,  0 ( 0.0) |  18
+   ↳ Chronic Viral Hepatitis,   1 ( 3.7) |   27,  0 ( 0.0) |   4,  1 (20.0) |   5,  0 ( 0.0) |  18
+   ↳ Chronic inflammatory disorder,   2 ( 7.4) |   27,  0 ( 0.0) |   4,  0 ( 0.0) |   5,  2 (11.1) |  18
+   ↳ Congenital Heart Disease,   1 ( 3.7) |   27,  0 ( 0.0) |   4,  0 ( 0.0) |   5,  1 ( 5.6) |  18
+   ↳ Congestive Heart Failure,   1 ( 3.7) |   27,  0 ( 0.0) |   4,  0 ( 0.0) |   5,  1 ( 5.6) |  18
+   ↳ Diabetes Mellitus (all types),   1 ( 3.7) |   27,  0 ( 0.0) |   4,  0 ( 0.0) |   5,  1 ( 5.6) |  18
+   ↳ Disease of liver,   1 ( 3.7) |   27,  0 ( 0.0) |   4,  0 ( 0.0) |   5,  1 ( 5.6) |  18
+   ↳ Human immunodeficiency virus [HIV] disease,   2 ( 7.4) |   27,  0 ( 0.0) |   4,  1 (20.0) |   5,  1 ( 5.6) |  18
+   ↳ Hyperthyroidism,   1 ( 3.7) |   27,  1 (25.0) |   4,  0 ( 0.0) |   5,  0 ( 0.0) |  18
+   ↳ Hypothyroidism,   1 ( 3.7) |   27,  0 ( 0.0) |   4,  0 ( 0.0) |   5,  1 ( 5.6) |  18
+   ↳ Leukemia,   1 ( 3.7) |   27,  0 ( 0.0) |   4,  0 ( 0.0) |   5,  1 ( 5.6) |  18
+   ↳ Malignant lymphoma,   1 ( 3.7) |   27,  0 ( 0.0) |   4,  0 ( 0.0) |   5,  1 ( 5.6) |  18
+   ↳ Metastatic carcinoid tumor Cancer,   1 ( 3.7) |   27,  0 ( 0.0) |   4,  0 ( 0.0) |   5,  1 ( 5.6) |  18
+   ↳ Moderate or Severe Liver Disease,   2 ( 7.4) |   27,  0 ( 0.0) |   4,  1 (20.0) |   5,  1 ( 5.6) |  18
+   ↳ Moderate or Severe Renal Disease,   1 ( 3.7) |   27,  0 ( 0.0) |   4,  1 (20.0) |   5,  0 ( 0.0) |  18
+   ↳ Neurodegenerative Disorders,   3 (11.1) |   27,  1 (25.0) |   4,  0 ( 0.0) |   5,  2 (11.1) |  18
+   ↳ Primary malignant neoplasm,   1 ( 3.7) |   27,  0 ( 0.0) |   4,  0 ( 0.0) |   5,  1 ( 5.6) |  18
+   ↳ Psychoactive substance use disorder,   1 ( 3.7) |   27,  1 (25.0) |   4,  0 ( 0.0) |   5,  0 ( 0.0) |  18
+   ↳ Stroke,   1 ( 3.7) |   27,  0 ( 0.0) |   4,  0 ( 0.0) |   5,  1 ( 5.6) |  18
+<b>->Any additional other relevant comorbidity(s) ?</b> (*),  13 (56.5) |   23,  2 (66.7) |   3,  2 (40.0) |   5,  9 (60.0) |  15
+<b>>->Select additional other relevant comorbidity(s) 4</b> (*),,,,
+   ↳ Chronic Infection,   1 ( 8.3) |   12,  0 ( 0.0) |   2,  0 ( 0.0) |   1,  1 (11.1) |   9
+   ↳ Chronic inflammatory disorder,   1 ( 8.3) |   12,  0 ( 0.0) |   2,  1 (100.) |   1,  0 ( 0.0) |   9
+   ↳ Chronic metabolic disorder,   1 ( 8.3) |   12,  0 ( 0.0) |   2,  0 ( 0.0) |   1,  1 (11.1) |   9
+   ↳ Disease of liver,   1 ( 8.3) |   12,  1 (50.0) |   2,  0 ( 0.0) |   1,  0 ( 0.0) |   9
+   ↳ Hypothyroidism,   2 (16.7) |   12,  0 ( 0.0) |   2,  0 ( 0.0) |   1,  2 (22.2) |   9
+   ↳ Leukemia,   1 ( 8.3) |   12,  1 (50.0) |   2,  0 ( 0.0) |   1,  0 ( 0.0) |   9
+   ↳ Malignant lymphoma,   1 ( 8.3) |   12,  0 ( 0.0) |   2,  0 ( 0.0) |   1,  1 (11.1) |   9
+   ↳ Rare Diseases and Inborn Errors of Metabolism,   1 ( 8.3) |   12,  0 ( 0.0) |   2,  0 ( 0.0) |   1,  1 (11.1) |   9
+   ↳ Reactive psychoses,   1 ( 8.3) |   12,  0 ( 0.0) |   2,  0 ( 0.0) |   1,  1 (11.1) |   9
+   ↳ Recurrent deep vein thrombosis,   1 ( 8.3) |   12,  0 ( 0.0) |   2,  0 ( 0.0) |   1,  1 (11.1) |   9
+   ↳ Rheumatoid Disorders,   1 ( 8.3) |   12,  0 ( 0.0) |   2,  0 ( 0.0) |   1,  1 (11.1) |   9
+<b>>->Any additional other relevant comorbidity(s) ?</b> (*),   4 (50.0) |    8,  0 ( 0.0) |   2,  2 (100.) |   2,  2 (50.0) |   4
+<b>->->Select additional other relevant comorbidity(s) 5</b> (*),,,,
+   ↳ Hypothyroidism,   1 (25.0) |    4,N/A,  0 ( 0.0) |   2,  1 (50.0) |   2
+   ↳ Ischaemic Heart Disease,   1 (25.0) |    4,N/A,  1 (50.0) |   2,  0 ( 0.0) |   2
+   ↳ Neurodegenerative Disorders,   1 (25.0) |    4,N/A,  0 ( 0.0) |   2,  1 (50.0) |   2
+   ↳ Peripheral Vascular Disease,   1 (25.0) |    4,N/A,  1 (50.0) |   2,  0 ( 0.0) |   2

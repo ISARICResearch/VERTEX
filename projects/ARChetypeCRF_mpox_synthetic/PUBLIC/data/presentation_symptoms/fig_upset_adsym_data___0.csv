@@ -1,0 +1,6 @@
+index,count,short_label,label
+adsym_chestpain,348,<b>Chest pain</b>,<b>Chest pain</b>
+adsym_seizconv,339,<b>Seizures / convulsions</b>,<b>Seizures / convulsions</b>
+adsym_cough_hemop,103,<b>Hemoptysis</b>,<b>Hemoptysis</b>
+adsym_cough_nonprod,102,<b>Non-productive </b>,<b>Non-productive </b>
+adsym_unlisted_2addi,15,<b>->Any additional other sign(s) or ...</b>,<b>->Any additional other sign(s) or symptom(s) ?</b>

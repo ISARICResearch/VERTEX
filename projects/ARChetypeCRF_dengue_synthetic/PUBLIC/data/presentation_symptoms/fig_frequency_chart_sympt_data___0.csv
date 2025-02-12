@@ -1,0 +1,11 @@
+variable,proportion,label,short_label
+sympt_haemorrhag_sev,0.5185185185185185,<b>Severe bleeding / haemorrhage (requires intervention)</b>,<b>Severe bleeding / haemorrhage (requires ...</b>
+sympt_restlessne,0.49498327759197325,<b>Restlessness</b>,<b>Restlessness</b>
+sympt_retroorbit,0.46511627906976744,<b>Retro-orbital pain</b>,<b>Retro-orbital pain</b>
+sympt_haemorrhag_yn,0.41638225255972694,<b>Bleeding / haemorrhage</b>,<b>Bleeding / haemorrhage</b>
+sympt_haemorrhag_site___Skin,0.23711340206185566,"<b>If yes: Specify bleeding / haemorrhage site(s)</b>, Skin","<b>If yes: Specify bleeding / haemorrhage ...</b>, Skin"
+sympt_haemorrhag_site___Other(s),0.23367697594501718,"<b>If yes: Specify bleeding / haemorrhage site(s)</b>, Other(s)","<b>If yes: Specify bleeding / haemorrhage ...</b>, Other(s)"
+sympt_haemorrhag_site___Unknown,0.20962199312714777,"<b>If yes: Specify bleeding / haemorrhage site(s)</b>, Unknown","<b>If yes: Specify bleeding / haemorrhage ...</b>, Unknown"
+sympt_haemorrhag_site___Petechiae,0.2027491408934708,"<b>If yes: Specify bleeding / haemorrhage site(s)</b>, Petechiae","<b>If yes: Specify bleeding / haemorrhage ...</b>, Petechiae"
+sympt_haemorrhag_site___Nose,0.2027491408934708,"<b>If yes: Specify bleeding / haemorrhage site(s)</b>, Nose","<b>If yes: Specify bleeding / haemorrhage ...</b>, Nose"
+sympt_haemorrhag_site___Urinary tract,0.1958762886597938,"<b>If yes: Specify bleeding / haemorrhage site(s)</b>, Urinary tract","<b>If yes: Specify bleeding / haemorrhage ...</b>, Urinary tract"

@@ -1,0 +1,12 @@
+index,label,count
+"('inter_suppleo2',)","('<b>Any supplemental oxygen?</b>',)",142
+"('inter_surg',)","('<b>Any surgical intervention performed in relation to the infection with pathogen of interest?</b>',)",138
+"('inter_surg2', 'inter_surg')","('<b>Was a second surgical intervention performed in relation to the infection with pathogen of interest?</b>', '<b>Any surgical intervention performed in relation to the infection with pathogen of interest?</b>')",81
+"('inter_surg', 'inter_suppleo2')","('<b>Any surgical intervention performed in relation to the infection with pathogen of interest?</b>', '<b>Any supplemental oxygen?</b>')",65
+"('inter_ecmo___Veno-venous (VV)', 'inter_suppleo2')","('<b>Type of ECLS / ECMO</b>, Veno-venous (VV)', '<b>Any supplemental oxygen?</b>')",32
+"('inter_ecmo___Veno-arterial (VA)', 'inter_suppleo2')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Any supplemental oxygen?</b>')",26
+"('inter_surg2', 'inter_surg', 'inter_suppleo2')","('<b>Was a second surgical intervention performed in relation to the infection with pathogen of interest?</b>', '<b>Any surgical intervention performed in relation to the infection with pathogen of interest?</b>', '<b>Any supplemental oxygen?</b>')",22
+"('inter_surg', 'inter_ecmo___Veno-arterial (VA)', 'inter_suppleo2')","('<b>Any surgical intervention performed in relation to the infection with pathogen of interest?</b>', '<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Any supplemental oxygen?</b>')",11
+"('inter_surg2', 'inter_surg', 'inter_ecmo___Veno-arterial (VA)', 'inter_suppleo2')","('<b>Was a second surgical intervention performed in relation to the infection with pathogen of interest?</b>', '<b>Any surgical intervention performed in relation to the infection with pathogen of interest?</b>', '<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Any supplemental oxygen?</b>')",8
+"('inter_surg2', 'inter_surg', 'inter_ecmo___Veno-venous (VV)', 'inter_suppleo2')","('<b>Was a second surgical intervention performed in relation to the infection with pathogen of interest?</b>', '<b>Any surgical intervention performed in relation to the infection with pathogen of interest?</b>', '<b>Type of ECLS / ECMO</b>, Veno-venous (VV)', '<b>Any supplemental oxygen?</b>')",7
+"('inter_surg', 'inter_ecmo___Veno-venous (VV)', 'inter_suppleo2')","('<b>Any surgical intervention performed in relation to the infection with pathogen of interest?</b>', '<b>Type of ECLS / ECMO</b>, Veno-venous (VV)', '<b>Any supplemental oxygen?</b>')",7

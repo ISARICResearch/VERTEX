@@ -1,0 +1,11 @@
+variable,proportion,label,short_label
+inter_ecmo___Veno-arterial (VA),0.5595238095238095,"<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)","<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)"
+inter_bpt_yn,0.5321543408360129,<b>Blood product transfusion</b>,<b>Blood product transfusion</b>
+inter_nacetylcys,0.5173501577287066,<b>N-acetyl cysteine</b>,<b>N-acetyl cysteine</b>
+inter_fluiddrain_reas___Pleural effusion,0.5052264808362369,"<b>If yes: Reason for this drainage</b>, Pleural effusion","<b>If yes: Reason for this drainage</b>, Pleural effusion"
+inter_fluiddrain_reas___Ascites,0.49477351916376305,"<b>If yes: Reason for this drainage</b>, Ascites","<b>If yes: Reason for this drainage</b>, Ascites"
+inter_diuretics,0.494488188976378,<b>Diuretics</b>,<b>Diuretics</b>
+inter_ivimmunogl,0.49393939393939396,<b>Intravenous immunoglobulin</b>,<b>Intravenous immunoglobulin</b>
+inter_ivfluid_occur,0.4912559618441971,<b>Parenteral / IV fluid</b>,<b>Parenteral / IV fluid</b>
+inter_plasmaex,0.490625,<b>Plasmapheresis / plasma exchange</b>,<b>Plasmapheresis / plasma exchange</b>
+inter_fluiddrain,0.48183254344391785,<b>Fluid drainage</b>,<b>Fluid drainage</b>

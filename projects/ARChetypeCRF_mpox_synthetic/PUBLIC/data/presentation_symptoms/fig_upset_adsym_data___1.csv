@@ -1,0 +1,23 @@
+index,label,count
+"('adsym_chestpain',)","('<b>Chest pain</b>',)",205
+"('adsym_seizconv',)","('<b>Seizures / convulsions</b>',)",176
+"('adsym_chestpain', 'adsym_seizconv')","('<b>Chest pain</b>', '<b>Seizures / convulsions</b>')",93
+"('adsym_cough_nonprod',)","('<b>Non-productive </b>',)",30
+"('adsym_cough_hemop',)","('<b>Hemoptysis</b>',)",29
+"('adsym_cough_hemop', 'adsym_cough_nonprod')","('<b>Hemoptysis</b>', '<b>Non-productive </b>')",16
+"('adsym_cough_hemop', 'adsym_seizconv')","('<b>Hemoptysis</b>', '<b>Seizures / convulsions</b>')",15
+"('adsym_cough_hemop', 'adsym_cough_nonprod', 'adsym_seizconv')","('<b>Hemoptysis</b>', '<b>Non-productive </b>', '<b>Seizures / convulsions</b>')",13
+"('adsym_chestpain', 'adsym_cough_nonprod', 'adsym_seizconv')","('<b>Chest pain</b>', '<b>Non-productive </b>', '<b>Seizures / convulsions</b>')",12
+"('adsym_cough_nonprod', 'adsym_seizconv')","('<b>Non-productive </b>', '<b>Seizures / convulsions</b>')",12
+"('adsym_cough_hemop', 'adsym_chestpain', 'adsym_seizconv')","('<b>Hemoptysis</b>', '<b>Chest pain</b>', '<b>Seizures / convulsions</b>')",11
+"('adsym_chestpain', 'adsym_cough_nonprod')","('<b>Chest pain</b>', '<b>Non-productive </b>')",9
+"('adsym_cough_hemop', 'adsym_chestpain')","('<b>Hemoptysis</b>', '<b>Chest pain</b>')",8
+"('adsym_unlisted_2addi',)","('<b>->Any additional other sign(s) or symptom(s) ?</b>',)",6
+"('adsym_cough_hemop', 'adsym_chestpain', 'adsym_cough_nonprod')","('<b>Hemoptysis</b>', '<b>Chest pain</b>', '<b>Non-productive </b>')",6
+"('adsym_unlisted_2addi', 'adsym_cough_hemop', 'adsym_seizconv')","('<b>->Any additional other sign(s) or symptom(s) ?</b>', '<b>Hemoptysis</b>', '<b>Seizures / convulsions</b>')",2
+"('adsym_unlisted_2addi', 'adsym_seizconv')","('<b>->Any additional other sign(s) or symptom(s) ?</b>', '<b>Seizures / convulsions</b>')",2
+"('adsym_unlisted_2addi', 'adsym_cough_nonprod')","('<b>->Any additional other sign(s) or symptom(s) ?</b>', '<b>Non-productive </b>')",2
+"('adsym_cough_hemop', 'adsym_chestpain', 'adsym_cough_nonprod', 'adsym_seizconv')","('<b>Hemoptysis</b>', '<b>Chest pain</b>', '<b>Non-productive </b>', '<b>Seizures / convulsions</b>')",2
+"('adsym_unlisted_2addi', 'adsym_cough_hemop')","('<b>->Any additional other sign(s) or symptom(s) ?</b>', '<b>Hemoptysis</b>')",1
+"('adsym_unlisted_2addi', 'adsym_chestpain', 'adsym_seizconv')","('<b>->Any additional other sign(s) or symptom(s) ?</b>', '<b>Chest pain</b>', '<b>Seizures / convulsions</b>')",1
+"('adsym_unlisted_2addi', 'adsym_chestpain')","('<b>->Any additional other sign(s) or symptom(s) ?</b>', '<b>Chest pain</b>')",1

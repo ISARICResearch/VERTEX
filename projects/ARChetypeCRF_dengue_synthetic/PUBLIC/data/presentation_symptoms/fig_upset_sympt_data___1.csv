@@ -1,0 +1,19 @@
+index,label,count
+"('sympt_restlessne',)","('<b>Restlessness</b>',)",76
+"('sympt_retroorbit',)","('<b>Retro-orbital pain</b>',)",76
+"('sympt_restlessne', 'sympt_retroorbit')","('<b>Restlessness</b>', '<b>Retro-orbital pain</b>')",37
+"('sympt_haemorrhag_yn', 'sympt_haemorrhag_site___Skin')","('<b>Bleeding / haemorrhage</b>', '<b>If yes: Specify bleeding / haemorrhage site(s)</b>, Skin')",23
+"('sympt_haemorrhag_yn',)","('<b>Bleeding / haemorrhage</b>',)",23
+"('sympt_haemorrhag_sev', 'sympt_haemorrhag_yn')","('<b>Severe bleeding / haemorrhage (requires intervention)</b>', '<b>Bleeding / haemorrhage</b>')",11
+"('sympt_haemorrhag_sev', 'sympt_haemorrhag_yn', 'sympt_haemorrhag_site___Skin')","('<b>Severe bleeding / haemorrhage (requires intervention)</b>', '<b>Bleeding / haemorrhage</b>', '<b>If yes: Specify bleeding / haemorrhage site(s)</b>, Skin')",10
+"('sympt_retroorbit', 'sympt_haemorrhag_yn', 'sympt_haemorrhag_site___Skin')","('<b>Retro-orbital pain</b>', '<b>Bleeding / haemorrhage</b>', '<b>If yes: Specify bleeding / haemorrhage site(s)</b>, Skin')",10
+"('sympt_restlessne', 'sympt_haemorrhag_yn', 'sympt_haemorrhag_site___Skin')","('<b>Restlessness</b>', '<b>Bleeding / haemorrhage</b>', '<b>If yes: Specify bleeding / haemorrhage site(s)</b>, Skin')",9
+"('sympt_haemorrhag_sev', 'sympt_restlessne', 'sympt_haemorrhag_yn', 'sympt_haemorrhag_site___Skin')","('<b>Severe bleeding / haemorrhage (requires intervention)</b>', '<b>Restlessness</b>', '<b>Bleeding / haemorrhage</b>', '<b>If yes: Specify bleeding / haemorrhage site(s)</b>, Skin')",7
+"('sympt_restlessne', 'sympt_haemorrhag_yn')","('<b>Restlessness</b>', '<b>Bleeding / haemorrhage</b>')",7
+"('sympt_haemorrhag_sev', 'sympt_restlessne', 'sympt_haemorrhag_yn')","('<b>Severe bleeding / haemorrhage (requires intervention)</b>', '<b>Restlessness</b>', '<b>Bleeding / haemorrhage</b>')",5
+"('sympt_haemorrhag_sev', 'sympt_retroorbit', 'sympt_haemorrhag_yn', 'sympt_haemorrhag_site___Skin')","('<b>Severe bleeding / haemorrhage (requires intervention)</b>', '<b>Retro-orbital pain</b>', '<b>Bleeding / haemorrhage</b>', '<b>If yes: Specify bleeding / haemorrhage site(s)</b>, Skin')",4
+"('sympt_restlessne', 'sympt_retroorbit', 'sympt_haemorrhag_yn', 'sympt_haemorrhag_site___Skin')","('<b>Restlessness</b>', '<b>Retro-orbital pain</b>', '<b>Bleeding / haemorrhage</b>', '<b>If yes: Specify bleeding / haemorrhage site(s)</b>, Skin')",4
+"('sympt_haemorrhag_sev', 'sympt_retroorbit', 'sympt_haemorrhag_yn')","('<b>Severe bleeding / haemorrhage (requires intervention)</b>', '<b>Retro-orbital pain</b>', '<b>Bleeding / haemorrhage</b>')",3
+"('sympt_retroorbit', 'sympt_haemorrhag_yn')","('<b>Retro-orbital pain</b>', '<b>Bleeding / haemorrhage</b>')",3
+"('sympt_haemorrhag_sev', 'sympt_restlessne', 'sympt_retroorbit', 'sympt_haemorrhag_yn', 'sympt_haemorrhag_site___Skin')","('<b>Severe bleeding / haemorrhage (requires intervention)</b>', '<b>Restlessness</b>', '<b>Retro-orbital pain</b>', '<b>Bleeding / haemorrhage</b>', '<b>If yes: Specify bleeding / haemorrhage site(s)</b>, Skin')",2
+"('sympt_restlessne', 'sympt_retroorbit', 'sympt_haemorrhag_yn')","('<b>Restlessness</b>', '<b>Retro-orbital pain</b>', '<b>Bleeding / haemorrhage</b>')",1
