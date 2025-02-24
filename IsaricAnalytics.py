@@ -10,6 +10,8 @@ import pandas as pd
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
 from lifelines import CoxPHFitter
+from scipy.stats import norm
+from statsmodels.genmod.bayes_mixed_glm import BinomialBayesMixedGLM
 
 # from sklearn.impute import KNNImputer
 # from sklearn.linear_model import LogisticRegression
@@ -617,39 +619,39 @@ def extract_topic_embeddings(
 
 
 def execute_glmm_regression(elr_dataframe_df, elr_outcome_str, elr_predictors_list, 
-                                     elr_groups_str, model_type='linear', 
-                                     print_results=True, labels=False, reg_type="multi"):
+                            elr_groups_str, model_type='linear', 
+                            print_results=True, labels=False, reg_type="multi"):
     """
-    Executa um modelo de efeitos mistos para regressão linear ou logística.
+    Executes a mixed effects model for linear or logistic regression.
     
-    Parâmetros:
-    - elr_dataframe_df: DataFrame do pandas com os dados.
-    - elr_outcome_str: Nome da variável resposta.
-    - elr_predictors_list: Lista de nomes das variáveis preditoras.
-    - elr_groups_str: Nome da variável que define os grupos (efeito aleatório).
-    - model_type: 'linear' para regressão linear ou 'logistic' para regressão logística.
-    - print_results: Se True, imprime o resumo dos resultados.
-    - labels: (Opcional) Dicionário para mapear nomes das variáveis para rótulos legíveis.
-    - reg_type: 'uni' ou 'multi', para renomear as colunas do output.
+    Parameters:
+    - elr_dataframe_df: Pandas DataFrame containing the data.
+    - elr_outcome_str: Name of the response variable.
+    - elr_predictors_list: List of predictor variable names.
+    - elr_groups_str: Name of the variable that defines the groups (random effect).
+    - model_type: 'linear' for linear regression or 'logistic' for logistic regression.
+    - print_results: If True, prints the summary of the results.
+    - labels: (Optional) Dictionary to map variable names to readable labels.
+    - reg_type: 'uni' or 'multi', to rename the output columns.
     
-    Retorna:
-    - elr_summary_df: DataFrame com os resultados do modelo.
+    Returns:
+    - elr_summary_df: DataFrame with the model results.
     """
 
-    # Monta a fórmula
+    # Builds the formula
     elr_formula_str = elr_outcome_str + ' ~ ' + ' + '.join(elr_predictors_list)
     
-    # Converte variáveis categóricas das preditoras
+    # Converts predictor categorical variables
     elr_categorical_vars_list = elr_dataframe_df.select_dtypes(include=['object', 'category'])
     elr_categorical_vars_list = elr_categorical_vars_list.columns.intersection(elr_predictors_list)
     for elr_var_str in elr_categorical_vars_list:
         elr_dataframe_df[elr_var_str] = elr_dataframe_df[elr_var_str].astype('category')
     
-    # Converte a coluna de grupos para string para garantir que os valores sejam hashable
+    # Converts the groups column to string to ensure that the values are hashable
     elr_dataframe_df[elr_groups_str] = elr_dataframe_df[elr_groups_str].astype(str)
     
     if model_type.lower() == 'linear':
-        # Modelo linear misto usando MixedLM (seguindo sua função)
+        # Mixed linear model using MixedLM (following your function)
         elr_model_obj = smf.mixedlm(formula=elr_formula_str, 
                                     data=elr_dataframe_df, 
                                     groups=elr_dataframe_df[elr_groups_str])
@@ -668,9 +670,9 @@ def execute_glmm_regression(elr_dataframe_df, elr_outcome_str, elr_predictors_li
         })
     
     elif model_type.lower() == 'logistic':
-        # Modelo logístico misto usando BinomialBayesMixedGLM (abordagem Bayesiana via VB)
+        # Mixed logistic model using BinomialBayesMixedGLM (Bayesian approach via VB)
 
-        # Define vc_formula para efeito aleatório (intercepto aleatório por grupo)
+        # Defines vc_formula for random effect (random intercept per group)
         vc_formula = {elr_groups_str: "0 + C({})".format(elr_groups_str)}
         
         elr_model_obj = BinomialBayesMixedGLM.from_formula(formula=elr_formula_str,
@@ -678,12 +680,12 @@ def execute_glmm_regression(elr_dataframe_df, elr_outcome_str, elr_predictors_li
                                                            data=elr_dataframe_df)
         elr_result_obj = elr_model_obj.fit_vb()
         
-         # Extrai os nomes dos efeitos fixos e determina quantos são
+        # Extracts the fixed effect names and determines how many there are
         param_names = elr_model_obj.exog_names
         n_fixed = len(param_names)
         fixed_effects = pd.Series(elr_result_obj.params[:n_fixed], index=param_names)
         
-        # Tenta obter a matriz de covariância e extrai a fatia correspondente aos efeitos fixos
+        # Attempts to obtain the covariance matrix and extracts the slice corresponding to fixed effects
         try:
             cov_params = elr_result_obj.cov_params()
         except Exception:
@@ -692,14 +694,14 @@ def execute_glmm_regression(elr_dataframe_df, elr_outcome_str, elr_predictors_li
             except Exception:
                 cov_params = None
         if cov_params is not None:
-            # Se for DataFrame, use .iloc; caso contrário, assume array NumPy
+            # If it is a DataFrame, use .iloc; otherwise, assume a NumPy array
             if hasattr(cov_params, 'iloc'):
                 cov_params_fixed = cov_params.iloc[:n_fixed, :n_fixed]
             else:
                 cov_params_fixed = cov_params[:n_fixed, :n_fixed]
             bse = np.sqrt(np.diag(cov_params_fixed))
             bse = pd.Series(bse, index=param_names)
-            # Calcula p-valores manualmente (teste Wald, aproximação normal)
+            # Calculates p-values manually (Wald test, normal approximation)
             z_values = fixed_effects / bse
             pvalues = 2 * (1 - norm.cdf(np.abs(z_values)))
             pvalues = pd.Series(pvalues, index=param_names)
@@ -707,11 +709,11 @@ def execute_glmm_regression(elr_dataframe_df, elr_outcome_str, elr_predictors_li
             bse = pd.Series(np.full(fixed_effects.shape, np.nan), index=param_names)
             pvalues = pd.Series(np.full(fixed_effects.shape, np.nan), index=param_names)
         
-        # Calcula intervalos de confiança usando 1.96 como quantil da normal
+        # Calculates confidence intervals using 1.96 as the quantile of the normal distribution
         lower_ci = fixed_effects - 1.96 * bse
         upper_ci = fixed_effects + 1.96 * bse
         
-        # Calcula Odds Ratios e intervalos correspondentes
+        # Calculates Odds Ratios and corresponding intervals
         odds_ratios = np.exp(fixed_effects)
         odds_lower = np.exp(lower_ci)
         odds_upper = np.exp(upper_ci)
@@ -724,9 +726,9 @@ def execute_glmm_regression(elr_dataframe_df, elr_outcome_str, elr_predictors_li
             'p-value': pvalues.values
         })
     else:
-        raise ValueError("model_type deve ser 'linear' ou 'logistic'")
+        raise ValueError("model_type must be 'linear' or 'logistic'")
     
-    # Aplica mapeamento de rótulos, se fornecido
+    # Applies label mapping if provided
     if labels:
         def elr_parse_variable_name(var_name):
             if var_name == 'Intercept' or var_name.lower() == 'const':
@@ -742,16 +744,16 @@ def execute_glmm_regression(elr_dataframe_df, elr_outcome_str, elr_predictors_li
                 return labels.get(var_name_clean, var_name_clean)
         elr_summary_df['Study'] = elr_summary_df['Study'].apply(elr_parse_variable_name)
     
-    # Remove a linha do intercepto, se presente
+    # Removes the intercept row if present
     elr_summary_df = elr_summary_df[~elr_summary_df['Study'].isin(['Intercept', 'const'])]
     
-    # Reordena as colunas de acordo com o modelo
+    # Reorders the columns according to the model
     if model_type.lower() == 'logistic':
         elr_summary_df = elr_summary_df[['Study', 'OddsRatio', 'IC Low', 'IC High', 'p-value']]
     else:
         elr_summary_df = elr_summary_df[['Study', 'Coef', 'IC Low', 'IC High', 'p-value']]
     
-    # Formata os valores numéricos
+    # Formats the numerical values
     if model_type.lower() == 'logistic':
         elr_summary_df['OddsRatio'] = elr_summary_df['OddsRatio'].round(3)
     else:
@@ -760,7 +762,7 @@ def execute_glmm_regression(elr_dataframe_df, elr_outcome_str, elr_predictors_li
     elr_summary_df['IC High'] = elr_summary_df['IC High'].round(3)
     elr_summary_df['p-value'] = elr_summary_df['p-value'].apply(lambda x: f'{x:.4f}')
     
-    # Renomeia as colunas de acordo com o parâmetro reg_type
+    # Renames the columns according to the reg_type parameter
     if reg_type.lower() == 'uni':
         if model_type.lower() == 'logistic':
             elr_summary_df.rename(columns={
@@ -801,45 +803,45 @@ def execute_glmm_regression(elr_dataframe_df, elr_outcome_str, elr_predictors_li
 def execute_glm_regression(elr_dataframe_df, elr_outcome_str, elr_predictors_list, 
                            model_type='linear', print_results=True, labels=False, reg_type="Multi"):
     """
-    Executa um modelo GLM (Generalized Linear Model) para regressão linear ou logística.
+    Executes a GLM (Generalized Linear Model) for linear or logistic regression.
     
-    Parâmetros:
-    - elr_dataframe_df: DataFrame do pandas com os dados.
-    - elr_outcome_str: Nome da variável resposta.
-    - elr_predictors_list: Lista de nomes das variáveis preditoras.
-    - model_type: 'linear' para regressão linear (Gaussiana) ou 'logistic' para regressão logística (Binomial).
-    - print_results: Se True, imprime a tabela de resultados.
-    - labels: (Opcional) Dicionário para mapear nomes das variáveis para rótulos legíveis.
-    - reg_type: Tipo de regressão ('uni' ou 'multi') para renomear as colunas do output.
+    Parameters:
+    - elr_dataframe_df: Pandas DataFrame containing the data.
+    - elr_outcome_str: Name of the response variable.
+    - elr_predictors_list: List of predictor variable names.
+    - model_type: 'linear' for linear regression (Gaussian) or 'logistic' for logistic regression (Binomial).
+    - print_results: If True, prints the results table.
+    - labels: (Optional) Dictionary to map variable names to readable labels.
+    - reg_type: Type of regression ('uni' or 'multi') to rename the output columns.
     
-    Retorna:
-    - summary_df: DataFrame com os resultados do modelo.
+    Returns:
+    - summary_df: DataFrame with the model results.
     """
 
-    # Define a família de acordo com o model_type
+    # Defines the family according to model_type
     if model_type.lower() == 'logistic':
         family = sm.families.Binomial()
     elif model_type.lower() == 'linear':
         family = sm.families.Gaussian()
     else:
-        raise ValueError("model_type deve ser 'linear' ou 'logistic'")
+        raise ValueError("model_type must be 'linear' or 'logistic'")
 
-    # Monta a fórmula
+    # Builds the formula
     formula = elr_outcome_str + ' ~ ' + ' + '.join(elr_predictors_list)
 
-    # Converte variáveis categóricas para o tipo 'category'
+    # Converts categorical variables to 'category' type
     categorical_vars = elr_dataframe_df.select_dtypes(include=['object', 'category']).columns.intersection(elr_predictors_list)
     for var in categorical_vars:
         elr_dataframe_df[var] = elr_dataframe_df[var].astype('category')
 
-    # Ajusta o modelo GLM
+    # Fits the GLM model
     model = smf.glm(formula=formula, data=elr_dataframe_df, family=family)
     result = model.fit()
 
-    # Extrai a tabela de resultados
+    # Extracts the results table
     summary_table = result.summary2().tables[1].copy()
 
-    # Para regressão logística, calcula Odds Ratios; para linear, utiliza os coeficientes diretamente.
+    # For logistic regression, calculates Odds Ratios; for linear, uses the coefficients directly.
     if model_type.lower() == 'logistic':
         summary_table['Odds Ratio'] = np.exp(summary_table['Coef.'])
         summary_table['IC Low'] = np.exp(summary_table['[0.025'])
@@ -859,7 +861,7 @@ def execute_glm_regression(elr_dataframe_df, elr_outcome_str, elr_predictors_lis
                                                   '0.975]': 'UpperCI',
                                                   'P>|z|': 'p-value'})
 
-    # Mapeia nomes das variáveis para rótulos legíveis, se fornecido
+    # Maps variable names to readable labels, if provided
     if labels:
         def parse_variable_name(var_name):
             if var_name == 'Intercept':
@@ -875,25 +877,24 @@ def execute_glm_regression(elr_dataframe_df, elr_outcome_str, elr_predictors_lis
                 return labels.get(var_name_clean, var_name_clean)
         summary_df['Study'] = summary_df['Study'].apply(parse_variable_name)
 
-    # Reordena as colunas
+    # Reorders the columns
     if model_type.lower() == 'logistic':
         summary_df = summary_df[['Study', 'OddsRatio', 'LowerCI', 'UpperCI', 'p-value']]
     else:
         summary_df = summary_df[['Study', 'Coefficient', 'LowerCI', 'UpperCI', 'p-value']]
 
-    # Remove the letter 'T.' from categorical variables
+    # Removes the letter 'T.' from categorical variables
     summary_df['Study'] = summary_df['Study'].str.replace('T.', '')
 
-    # Formata os valores numéricos
+    # Formats the numerical values
     for col in summary_df.columns[1:-1]:
         summary_df[col] = summary_df[col].round(3)
     summary_df['p-value'] = summary_df['p-value'].apply(lambda x: f'{x:.4f}')
     
-
-    # Remove linha do intercepto, se desejar (opcional)
+    # Removes the intercept row if desired (optional)
     summary_df = summary_df[summary_df['Study'] != 'Intercept']
 
-    # Renomeia as colunas conforme o tipo de regressão
+    # Renames the columns according to the type of regression
     if reg_type.lower() == 'uni':
         if model_type.lower() == 'logistic':
             summary_df.rename(columns={
