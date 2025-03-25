@@ -1,11 +1,13 @@
-import numpy as np
-import pandas as pd
-import plotly.graph_objs as go
-from plotly.subplots import make_subplots
-import plotly.express as px
 import os
 import sys
 
+import numpy as np
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objs as go
+from lifelines import KaplanMeierFitter
+from lifelines.statistics import logrank_test, multivariate_logrank_test
+from plotly.subplots import make_subplots
 
 default_height = 430
 
@@ -740,3 +742,100 @@ def rgb_to_rgba(rgb_value, alpha):
     """
     rgba_color = f"rgba{rgb_value[3:-1]}, {alpha})"
     return rgba_color
+
+def plot_kaplan_meier_plotly(df, duration_col, event_col, group_col, title=None):
+    """
+    Plots a Kaplan-Meier survival curve with a risk table and p-value using Plotly.
+
+    Parameters:
+    df (pd.DataFrame): The dataset containing survival information.
+    duration_col (str): Column name representing the duration until the event or censoring.
+    event_col (str): Column name indicating whether the event occurred (1) or was censored (0).
+    group_col (str): Column name used to group data for comparison.
+    title (str): Title for the plot.
+    """
+    df = df.dropna(subset=[duration_col, event_col, group_col])
+    kmf = KaplanMeierFitter()
+
+    unique_groups = df[group_col].unique()
+    colors = [f"hsl({i * (360 / len(unique_groups))}, 70%, 50%)" for i in range(len(unique_groups))]
+
+    # Create figure with subplots
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True,
+                        row_heights=[0.7, 0.3],  # Mais espaço para a tabela
+                        vertical_spacing=0.1,
+                        specs=[[{"type": "xy"}], [{"type": "table"}]],
+                        subplot_titles=[title, "Risk Table"])
+
+    survival_data = {}
+
+    for i, (group, color) in enumerate(zip(unique_groups, colors)):
+        group_data = df[df[group_col] == group]
+        kmf.fit(group_data[duration_col], event_observed=group_data[event_col], label=str(group))
+        survival_data[group] = kmf.survival_function_ * 100
+
+        # Add Kaplan-Meier Curve
+        fig.add_trace(go.Scatter(
+            x=kmf.survival_function_.index,
+            y=kmf.survival_function_[group] * 100,
+            mode='lines',
+            name=str(group),
+            line=dict(color=color)
+        ), row=1, col=1)
+
+        # Add confidence interval (shaded area)
+        ci_upper = kmf.confidence_interval_[f'{group}_upper_0.95'] * 100
+        ci_lower = kmf.confidence_interval_[f'{group}_lower_0.95'] * 100
+        fig.add_trace(go.Scatter(
+            x=ci_upper.index.tolist() + ci_lower.index[::-1].tolist(),
+            y=ci_upper.tolist() + ci_lower[::-1].tolist(),
+            fill='toself',
+            fillcolor=color.replace("hsl", "hsla").replace(")", ",0.2)"),
+            line=dict(color='rgba(255,255,255,0)'),
+            name=f"CI {group}",
+            showlegend=False,
+            hoverinfo='text',
+            text=[f"CI {group}" for _ in range(len(ci_upper) + len(ci_lower))]
+        ), row=1, col=1)
+
+    # Log-rank test
+    if len(unique_groups) == 2:
+        group1_data = df[df[group_col] == unique_groups[0]]
+        group2_data = df[df[group_col] == unique_groups[1]]
+        result = logrank_test(group1_data[duration_col], group2_data[duration_col],
+                              event_observed_A=group1_data[event_col],
+                              event_observed_B=group2_data[event_col])
+        p_value = result.p_value
+    elif len(unique_groups) > 2:
+        result = multivariate_logrank_test(df[duration_col], df[group_col], df[event_col])
+        p_value = result.p_value
+    else:
+        p_value = np.nan
+
+    # Add p-value annotation
+    p_value_text = f'p-value: <0.0001' if p_value < 0.0001 else f'p-value: {p_value:.4f}'
+    fig.add_annotation(text=p_value_text,
+                       x=0.75, y=90, xref='paper', yref='y1',
+                       showarrow=False, font=dict(size=12, color='black'),
+                       bgcolor='white', bordercolor='black', borderwidth=1)
+
+    # Risk Table aligned with X-axis
+    times = np.arange(0, 61, 10)
+    risk_counts = {group: [(df[(df[group_col] == group) & (df[duration_col] >= t)]).shape[0] for t in times] for group in unique_groups}
+
+    risk_table = pd.DataFrame(risk_counts, index=times).T
+    risk_table.insert(0, "Group", risk_table.index)
+
+    fig.add_trace(go.Table(
+        header=dict(values=["Group"] + [str(t) for t in times], fill_color='lightgrey', align='center',
+                    font=dict(size=14), height=35),  # Altura maior para cabeçalho
+        cells=dict(values=[risk_table[col].tolist() for col in risk_table.columns], fill_color='white', align='center',
+                   font=dict(size=14), height=35)  # Altura maior para células
+    ), row=2, col=1)
+
+    fig.update_yaxes(title_text="Survival Probability", range=[0, 100], tickvals=np.arange(0, 110, 10),
+                     ticktext=[f"{i}%" for i in range(0, 110, 10)], row=1, col=1)
+    fig.update_xaxes(title_text="Time (days)", row=2, col=1)
+    fig.update_layout(height=1000, width=850, showlegend=True)  # Aumenta a altura do gráfico
+
+    return fig
