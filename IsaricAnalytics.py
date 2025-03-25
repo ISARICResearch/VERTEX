@@ -101,14 +101,6 @@ def extend_dictionary(dictionary, new_variable_dict, data, sep='___'):
     dictionary = dictionary.reset_index(drop=True)
     return dictionary
 
-# def get_variable_list(dictionary, sections):
-#     '''Get all variables in the dictionary belonging to sections
-#     (assumes ARC format)'''
-#     section_ids = dictionary['field_name'].apply(lambda x: x.split('_')[0])
-#     variable_list = dictionary['field_name'].loc[section_ids.isin(sections)]
-#     variable_list = list(variable_list)
-#     return variable_list
-
 
 def get_variables_by_section_and_type(
         df, dictionary,
@@ -137,29 +129,6 @@ def get_variables_by_section_and_type(
     include_variables = dictionary.loc[include_ind, 'field_name'].tolist()
     include_variables = [col for col in include_variables if col in df.columns]
     return include_variables
-
-
-# def get_variables_from_sections(
-#         variable_list, section_list,
-#         required_variables=None, exclude_suffix=None):
-#     '''
-#     Get only the variables from sections, plus any required variables
-#     '''
-#     include_variables = []
-#     for section in section_list:
-#         include_variables += [
-#             var for var in variable_list if var.startswith(section + '_')]
-#
-#     if required_variables is not None:
-#         required_variables = [
-#             var for var in required_variables if var not in include_variables]
-#         include_variables = required_variables + include_variables
-#
-#     if exclude_suffix is not None:
-#         include_variables = [
-#             var for var in include_variables
-#             if (var.endswith(tuple(exclude_suffix)) == 0)]
-#     return include_variables
 
 
 def convert_categorical_to_onehot(
@@ -304,17 +273,12 @@ def get_descriptive_data(
         include_subjid=False, exclude_negatives=True):
     df = data.copy()
 
-    # include_columns = dictionary.loc[(
-    #     dictionary['field_type'].isin(include_types)), 'field_name'].tolist()
-    # include_columns = [col for col in include_columns if col in df.columns]
     include_columns = get_variables_by_section_and_type(
         df, dictionary,
         include_types=include_types, include_subjid=include_subjid,
         include_sections=include_sections, exclude_suffix=exclude_suffix)
     if (by_column is not None) & (by_column not in include_columns):
         include_columns = [by_column] + include_columns
-    # if include_subjid:
-    #     include_columns = ['subjid'] + include_columns
     df = df[include_columns].dropna(axis=1, how='all').copy()
 
     # Convert categorical variables to onehot-encoded binary columns
@@ -516,13 +480,6 @@ def get_upset_counts_intersections(
     short_format = format_variables(dictionary, max_len=40)
     format_dict = dict(zip(dictionary['field_name'], long_format))
     short_format_dict = dict(zip(dictionary['field_name'], short_format))
-    # df = df.rename(columns=format_dict).copy()
-    # if variables is not None:
-    #     variables = [format_dict[var] for var in variables]
-    # if proportions is not None:
-    #     variables = proportions.sort_values(
-    #         by='proportion', ascending=False)['variable'].head(n_variables)
-    #     variables = variables.tolist()
 
     if variables is None:
         variables = df.columns.tolist()
@@ -541,11 +498,6 @@ def get_upset_counts_intersections(
 
     variable_order_dict = dict(zip(counts['index'], counts.index))
     variables = counts['index'].tolist()
-    # if variables is None:
-    #     variable_order_dict = dict(zip(counts['index'], counts.index))
-    #     variables = counts['index'].tolist()
-    # else:
-    #     variable_order_dict = dict(zip(variables, range(len(variables))))
     if n_variables is not None:
         variables = variables[:n_variables]
 
@@ -734,12 +686,12 @@ def extract_topic_embeddings(
 ############################################
 
 
-def execute_glmm_regression(elr_dataframe_df, elr_outcome_str, elr_predictors_list, 
-                            elr_groups_str, model_type='linear', 
+def execute_glmm_regression(elr_dataframe_df, elr_outcome_str, elr_predictors_list,
+                            elr_groups_str, model_type='linear',
                             print_results=True, labels=False, reg_type="multi"):
     """
     Executes a mixed effects model for linear or logistic regression.
-    
+
     Parameters:
     - elr_dataframe_df: Pandas DataFrame containing the data.
     - elr_outcome_str: Name of the response variable.
@@ -749,34 +701,34 @@ def execute_glmm_regression(elr_dataframe_df, elr_outcome_str, elr_predictors_li
     - print_results: If True, prints the summary of the results.
     - labels: (Optional) Dictionary to map variable names to readable labels.
     - reg_type: 'uni' or 'multi', to rename the output columns.
-    
+
     Returns:
     - elr_summary_df: DataFrame with the model results.
     """
 
     # Builds the formula
     elr_formula_str = elr_outcome_str + ' ~ ' + ' + '.join(elr_predictors_list)
-    
+
     # Converts predictor categorical variables
     elr_categorical_vars_list = elr_dataframe_df.select_dtypes(include=['object', 'category'])
     elr_categorical_vars_list = elr_categorical_vars_list.columns.intersection(elr_predictors_list)
     for elr_var_str in elr_categorical_vars_list:
         elr_dataframe_df[elr_var_str] = elr_dataframe_df[elr_var_str].astype('category')
-    
+
     # Converts the groups column to string to ensure that the values are hashable
     elr_dataframe_df[elr_groups_str] = elr_dataframe_df[elr_groups_str].astype(str)
-    
+
     if model_type.lower() == 'linear':
         # Mixed linear model using MixedLM (following your function)
-        elr_model_obj = smf.mixedlm(formula=elr_formula_str, 
-                                    data=elr_dataframe_df, 
+        elr_model_obj = smf.mixedlm(formula=elr_formula_str,
+                                    data=elr_dataframe_df,
                                     groups=elr_dataframe_df[elr_groups_str])
         elr_result_obj = elr_model_obj.fit()
-        
+
         fixed_effects = elr_result_obj.fe_params
         conf_int_df = elr_result_obj.conf_int().loc[fixed_effects.index]
         pvalues = elr_result_obj.pvalues.loc[fixed_effects.index]
-        
+
         elr_summary_df = pd.DataFrame({
             'Study': fixed_effects.index,
             'Coef': fixed_effects.values,
@@ -784,23 +736,23 @@ def execute_glmm_regression(elr_dataframe_df, elr_outcome_str, elr_predictors_li
             'IC High': conf_int_df.iloc[:, 1].values,
             'p-value': pvalues.values
         })
-    
+
     elif model_type.lower() == 'logistic':
         # Mixed logistic model using BinomialBayesMixedGLM (Bayesian approach via VB)
 
         # Defines vc_formula for random effect (random intercept per group)
         vc_formula = {elr_groups_str: "0 + C({})".format(elr_groups_str)}
-        
+
         elr_model_obj = BinomialBayesMixedGLM.from_formula(formula=elr_formula_str,
                                                            vc_formulas=vc_formula,
                                                            data=elr_dataframe_df)
         elr_result_obj = elr_model_obj.fit_vb()
-        
+
         # Extracts the fixed effect names and determines how many there are
         param_names = elr_model_obj.exog_names
         n_fixed = len(param_names)
         fixed_effects = pd.Series(elr_result_obj.params[:n_fixed], index=param_names)
-        
+
         # Attempts to obtain the covariance matrix and extracts the slice corresponding to fixed effects
         try:
             cov_params = elr_result_obj.cov_params()
@@ -824,16 +776,16 @@ def execute_glmm_regression(elr_dataframe_df, elr_outcome_str, elr_predictors_li
         else:
             bse = pd.Series(np.full(fixed_effects.shape, np.nan), index=param_names)
             pvalues = pd.Series(np.full(fixed_effects.shape, np.nan), index=param_names)
-        
+
         # Calculates confidence intervals using 1.96 as the quantile of the normal distribution
         lower_ci = fixed_effects - 1.96 * bse
         upper_ci = fixed_effects + 1.96 * bse
-        
+
         # Calculates Odds Ratios and corresponding intervals
         odds_ratios = np.exp(fixed_effects)
         odds_lower = np.exp(lower_ci)
         odds_upper = np.exp(upper_ci)
-        
+
         elr_summary_df = pd.DataFrame({
             'Study': fixed_effects,
             'OddsRatio': odds_ratios.values,
@@ -843,7 +795,7 @@ def execute_glmm_regression(elr_dataframe_df, elr_outcome_str, elr_predictors_li
         })
     else:
         raise ValueError("model_type must be 'linear' or 'logistic'")
-    
+
     # Applies label mapping if provided
     if labels:
         def elr_parse_variable_name(var_name):
@@ -859,16 +811,16 @@ def execute_glmm_regression(elr_dataframe_df, elr_outcome_str, elr_predictors_li
                 var_name_clean = var_name.replace('C(', '').replace(')', '').strip()
                 return labels.get(var_name_clean, var_name_clean)
         elr_summary_df['Study'] = elr_summary_df['Study'].apply(elr_parse_variable_name)
-    
+
     # Removes the intercept row if present
     elr_summary_df = elr_summary_df[~elr_summary_df['Study'].isin(['Intercept', 'const'])]
-    
+
     # Reorders the columns according to the model
     if model_type.lower() == 'logistic':
         elr_summary_df = elr_summary_df[['Study', 'OddsRatio', 'IC Low', 'IC High', 'p-value']]
     else:
         elr_summary_df = elr_summary_df[['Study', 'Coef', 'IC Low', 'IC High', 'p-value']]
-    
+
     # Formats the numerical values
     if model_type.lower() == 'logistic':
         elr_summary_df['OddsRatio'] = elr_summary_df['OddsRatio'].round(3)
@@ -877,50 +829,50 @@ def execute_glmm_regression(elr_dataframe_df, elr_outcome_str, elr_predictors_li
     elr_summary_df['IC Low'] = elr_summary_df['IC Low'].round(3)
     elr_summary_df['IC High'] = elr_summary_df['IC High'].round(3)
     elr_summary_df['p-value'] = elr_summary_df['p-value'].apply(lambda x: f'{x:.4f}')
-    
+
     # Renames the columns according to the reg_type parameter
     if reg_type.lower() == 'uni':
         if model_type.lower() == 'logistic':
             elr_summary_df.rename(columns={
-                'OddsRatio': 'OddsRatio (uni)', 
-                'IC Low': 'LowerCI (uni)', 
-                'IC High': 'UpperCI (uni)', 
+                'OddsRatio': 'OddsRatio (uni)',
+                'IC Low': 'LowerCI (uni)',
+                'IC High': 'UpperCI (uni)',
                 'p-value': 'p-value (uni)'
             }, inplace=True)
         else:
             elr_summary_df.rename(columns={
-                'Coef': 'Coef (uni)', 
-                'IC Low': 'LowerCI (uni)', 
-                'IC High': 'UpperCI (uni)', 
+                'Coef': 'Coef (uni)',
+                'IC Low': 'LowerCI (uni)',
+                'IC High': 'UpperCI (uni)',
                 'p-value': 'p-value (uni)'
             }, inplace=True)
     else:
         if model_type.lower() == 'logistic':
             elr_summary_df.rename(columns={
-                'OddsRatio': 'OddsRatio (multi)', 
-                'IC Low': 'LowerCI (multi)', 
-                'IC High': 'UpperCI (multi)', 
+                'OddsRatio': 'OddsRatio (multi)',
+                'IC Low': 'LowerCI (multi)',
+                'IC High': 'UpperCI (multi)',
                 'p-value': 'p-value (multi)'
             }, inplace=True)
         else:
             elr_summary_df.rename(columns={
-                'Coef': 'Coef (multi)', 
-                'IC Low': 'LowerCI (multi)', 
-                'IC High': 'UpperCI (multi)', 
+                'Coef': 'Coef (multi)',
+                'IC Low': 'LowerCI (multi)',
+                'IC High': 'UpperCI (multi)',
                 'p-value': 'p-value (multi)'
             }, inplace=True)
-    
+
     if print_results:
         print(elr_summary_df)
-    
+
     return elr_summary_df
 
 
-def execute_glm_regression(elr_dataframe_df, elr_outcome_str, elr_predictors_list, 
+def execute_glm_regression(elr_dataframe_df, elr_outcome_str, elr_predictors_list,
                            model_type='linear', print_results=True, labels=False, reg_type="Multi"):
     """
     Executes a GLM (Generalized Linear Model) for linear or logistic regression.
-    
+
     Parameters:
     - elr_dataframe_df: Pandas DataFrame containing the data.
     - elr_outcome_str: Name of the response variable.
@@ -929,7 +881,7 @@ def execute_glm_regression(elr_dataframe_df, elr_outcome_str, elr_predictors_lis
     - print_results: If True, prints the results table.
     - labels: (Optional) Dictionary to map variable names to readable labels.
     - reg_type: Type of regression ('uni' or 'multi') to rename the output columns.
-    
+
     Returns:
     - summary_df: DataFrame with the model results.
     """
@@ -962,7 +914,7 @@ def execute_glm_regression(elr_dataframe_df, elr_outcome_str, elr_predictors_lis
         summary_table['Odds Ratio'] = np.exp(summary_table['Coef.'])
         summary_table['IC Low'] = np.exp(summary_table['[0.025'])
         summary_table['IC High'] = np.exp(summary_table['0.975]'])
-        
+
         summary_df = summary_table[['Odds Ratio', 'IC Low', 'IC High', 'P>|z|']].reset_index()
         summary_df = summary_df.rename(columns={'index': 'Study',
                                                   'Odds Ratio': 'OddsRatio',
@@ -1006,7 +958,7 @@ def execute_glm_regression(elr_dataframe_df, elr_outcome_str, elr_predictors_lis
     for col in summary_df.columns[1:-1]:
         summary_df[col] = summary_df[col].round(3)
     summary_df['p-value'] = summary_df['p-value'].apply(lambda x: f'{x:.4f}')
-    
+
     # Removes the intercept row if desired (optional)
     summary_df = summary_df[summary_df['Study'] != 'Intercept']
 
@@ -1014,31 +966,31 @@ def execute_glm_regression(elr_dataframe_df, elr_outcome_str, elr_predictors_lis
     if reg_type.lower() == 'uni':
         if model_type.lower() == 'logistic':
             summary_df.rename(columns={
-                'OddsRatio': 'OddsRatio (uni)', 
-                'LowerCI': 'LowerCI (uni)', 
-                'UpperCI': 'UpperCI (uni)', 
+                'OddsRatio': 'OddsRatio (uni)',
+                'LowerCI': 'LowerCI (uni)',
+                'UpperCI': 'UpperCI (uni)',
                 'p-value': 'p-value (uni)'
             }, inplace=True)
         else:
             summary_df.rename(columns={
                 'Coefficient': 'Coefficient (uni)',
-                'LowerCI': 'LowerCI (uni)', 
-                'UpperCI': 'UpperCI (uni)', 
+                'LowerCI': 'LowerCI (uni)',
+                'UpperCI': 'UpperCI (uni)',
                 'p-value': 'p-value (uni)'
             }, inplace=True)
     elif reg_type.lower() == 'multi':
         if model_type.lower() == 'logistic':
             summary_df.rename(columns={
-                'OddsRatio': 'OddsRatio (multi)', 
-                'LowerCI': 'LowerCI (multi)', 
-                'UpperCI': 'UpperCI (multi)', 
+                'OddsRatio': 'OddsRatio (multi)',
+                'LowerCI': 'LowerCI (multi)',
+                'UpperCI': 'UpperCI (multi)',
                 'p-value': 'p-value (multi)'
             }, inplace=True)
         else:
             summary_df.rename(columns={
-                'Coefficient': 'Coefficient (multi)', 
-                'LowerCI': 'LowerCI (multi)', 
-                'UpperCI': 'UpperCI (multi)', 
+                'Coefficient': 'Coefficient (multi)',
+                'LowerCI': 'LowerCI (multi)',
+                'UpperCI': 'UpperCI (multi)',
                 'p-value': 'p-value (multi)'
             }, inplace=True)
 
