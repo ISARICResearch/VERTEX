@@ -25,11 +25,11 @@ import webbrowser
 ############################################
 
 # init_project_path = 'projects/ARChetypeCRF_mpox_synthetic/'
-# init_project_path = 'projects/ARChetypeCRF_dengue_synthetic/'
-init_project_path = 'projects/ARChetypeCRF_h5nx_synthetic/'
-# init_project_path = 'projects/example/'
-# init_project_path = '../VERTEX_projects/dengue_global/'
+init_project_path = 'projects/ARChetypeCRF_dengue_synthetic/'
+# init_project_path = 'projects/ARChetypeCRF_h5nx_synthetic/'
 
+# init_project_path = '../VERTEX_projects/dengue_global/'
+# init_project_path = '../VERTEX_projects/pos_ari/'
 
 # def get_project_path():
 #     with open('vertex_projects_path.txt', 'r') as f:
@@ -71,8 +71,7 @@ def get_config(init_project_path, config_defaults):
         _ = config_dict['api_url']
     except Exception:
         error_message = f'''config_file.json is required in \
-        {init_project_path}. This file must contain both "api_key" and \
-        "api_url".'''
+{init_project_path}. This file must contain both "api_key" and "api_url".'''
         print(error_message)
         raise SystemExit
     # The default for the list of insight panels is all that exist in the
@@ -104,15 +103,15 @@ def get_config(init_project_path, config_defaults):
         config_dict['insight_panels'] = [
             x for x in config_dict['insight_panels'] if x in insight_panels]
     if any([x not in config_dict['insight_panels'] for x in insight_panels]):
-        print('The following insight panel files are not listed in \
-        config_file.json:')
+        print('''The following insight panel files are not listed in \
+config_file.json:''')
         missing_insight_panels = [
             x for x in insight_panels
             if x not in config_dict['insight_panels']]
         print('\n'.join(missing_insight_panels))
-        print('These will not appear in the dashboard. Please add them \
-        to the list "insight_panels" in config_file.json to include them in \
-        the dashboard.')
+        print('''These will not appear in the dashboard. Please add them \
+to the list "insight_panels" in config_file.json to include them in \
+the dashboard.''')
     return config_dict
 
 
@@ -197,12 +196,20 @@ def interpolate_colors(colors, n):
     if len(interpolated_colors) < n:
         interpolated_colors.append(
             f'rgb({rgbs[-1][0]}, {rgbs[-1][1]}, {rgbs[-1][2]})')
+
+    if len(rgbs) > n:
+        interpolated_colors = [
+            f'rgb({rgb[0]}, {rgb[1]}, {rgb[2]})' for rgb in rgbs[:n]]
     return interpolated_colors
 
 
 def get_map_colorscale(
         df_countries,
         map_percentile_cutoffs=[10, 20, 30, 40, 50, 60, 70, 80, 90, 99, 100]):
+    if df_countries['country_count'].count() < 10:
+        n = df_countries['country_count'].count()
+        map_percentile_cutoffs = np.linspace(
+            0, 100, n + 1)[1:]
     cutoffs = np.percentile(
         df_countries['country_count'], map_percentile_cutoffs)
     cutoffs = cutoffs / df_countries['country_count'].max()
@@ -217,13 +224,22 @@ def get_map_colorscale(
 
 
 def create_map(df_countries, map_layout_dict=None):
-    geojson = 'https://raw.githubusercontent.com/johan/world.geo.json/master/'
-    geojson = geojson + 'countries.geo.json'
+    geojson = os.path.join(
+        'https://raw.githubusercontent.com/',
+        'martynafford/natural-earth-geojson/master/',
+        '50m/cultural/ne_50m_admin_0_countries.json')
+    # geojson = os.path.join(
+    #     'https://raw.githubusercontent.com/',
+    #     'datasets/geo-countries/blob/main/data/countries.geojson')
+    # geojson = os.path.join(
+    #     'https://raw.githubusercontent.com/',
+    #     'johan/world.geo.json/master/countries.geo.json')
 
     map_colorscale = get_map_colorscale(df_countries)
 
-    fig = go.Figure(go.Choroplethmapbox(
+    fig = go.Figure(go.Choroplethmap(
         geojson=geojson,
+        featureidkey='properties.ADM0_A3',
         locations=df_countries['country_iso'],
         z=df_countries['country_count'],
         text=df_countries['country_name'],
@@ -231,8 +247,9 @@ def create_map(df_countries, map_layout_dict=None):
         showscale=True,
         zmin=1,
         zmax=df_countries['country_count'].max(),
+        marker_line_color='black',
         marker_opacity=0.5,
-        marker_line_width=0,
+        marker_line_width=0.3,
         colorbar={
             'bgcolor': 'rgba(0,0,0,0)', 'thickness': 20, 'ticklen': 1,
             'x': 1, 'xref': 'paper', 'xanchor': 'left'},
@@ -712,10 +729,20 @@ def register_callbacks(
             (df_map['filters_outcome'].isin(outcomes)) &
             (df_map['filters_country'].isin(countries)))]
         if df_map_filtered.empty:
-            geojson = 'https://raw.githubusercontent.com/johan/world.geo.json/'
-            geojson = geojson + 'master/countries.geo.json'
+            geojson = os.path.join(
+                'https://raw.githubusercontent.com/',
+                'martynafford/natural-earth-geojson/master/',
+                '50m/cultural/ne_50m_admin_0_map_units.json')
+            #
+            # geojson = os.path.join(
+            #     'https://raw.githubusercontent.com/',
+            #     'johan/world.geo.json/master/countries.geo.json')
+
             fig = go.Figure(
-                go.Choroplethmapbox(geojson=geojson),
+                go.Choroplethmap(
+                    geojson=geojson,
+                    featureidkey='properties.ISO_A3'
+                ),
                 layout=map_layout_dict)
         else:
             df_countries = get_countries(df_map_filtered)
@@ -1036,6 +1063,7 @@ def main():
         'public_path': 'PUBLIC/',
         'save_filtered_public_outputs': False,
         'insight_panels_path': 'insight_panels/',
+        'insight_panels': [],
     }
 
     # projects_path, init_project_path = get_project_path()
@@ -1048,10 +1076,42 @@ def main():
 
     api_url = config_dict['api_url']
     api_key = config_dict['api_key']
+    get_data_from_api = (api_url is not None) and (api_key is not None)
 
-    print('Retrieving data from the API')
-    df_map, df_forms_dict, dictionary, quality_report = getRC.get_redcap_data(
-        api_url, api_key)
+    if get_data_from_api:
+        # get_data_kwargs = {}
+        print('Retrieving data from the API')
+        df_map, df_forms_dict, dictionary, quality_report = (
+            getRC.get_redcap_data(api_url, api_key))  # **get_data_kwargs
+
+    if get_data_from_api is False:
+        try:
+            vertex_dataframes_path = os.path.join(
+                init_project_path, config_dict['vertex_dataframes_path'])
+            vertex_dataframes = os.listdir(vertex_dataframes_path)
+            df_map = pd.read_csv(
+                os.path.join(vertex_dataframes_path, 'df_map.csv'))
+            dictionary = pd.read_csv(
+                os.path.join(vertex_dataframes_path, 'vertex_dictionary.csv'))
+            # dictionary = dictionary.fillna('')
+            if 'quality_report.json' in vertex_dataframes:
+                quality_report_file = os.path.join(
+                    vertex_dataframes_path, 'quality_report.json')
+                with open(quality_report_file, 'r') as json_data:
+                    quality_report = json.load(json_data)
+            else:
+                quality_report = {}
+            exclude_files = ('df_map.csv', 'vertex_dictionary.csv')
+            vertex_dataframes = [
+                file for file in vertex_dataframes
+                if file.endswith('.csv') and (file not in exclude_files)]
+            df_forms_dict = {
+                k.split('.csv')[0]: pd.read_csv(
+                    os.path.join(vertex_dataframes_path, k))
+                for k in vertex_dataframes}
+        except Exception:
+            print('Could not load the VERTEX dataframes.')
+            raise
 
     df_map_with_countries = merge_data_with_countries(df_map)
     df_countries = get_countries(df_map_with_countries)

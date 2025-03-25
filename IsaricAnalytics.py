@@ -124,8 +124,10 @@ def get_variables_by_section_and_type(
     include_ind = dictionary['field_name'].apply(
         lambda x: x.startswith(tuple(x + '_' for x in include_sections)))
     include_ind &= dictionary['field_type'].isin(include_types)
+    # include_ind &= (dictionary['field_name'].apply(
+    #     lambda x: x.endswith(tuple('___' + x for x in exclude_suffix))) == 0)
     include_ind &= (dictionary['field_name'].apply(
-        lambda x: x.endswith(tuple('___' + x for x in exclude_suffix))) == 0)
+        lambda x: x.endswith(tuple(x for x in exclude_suffix))) == 0)
     if isinstance(required_variables, list):
         include_ind |= dictionary['field_name'].isin(required_variables)
     if include_subjid:
@@ -462,14 +464,37 @@ def format_variables(dictionary, max_len=40):
 ############################################
 
 
-def get_proportions(df, dictionary, max_n_variables=10):
-    proportions = df.apply(lambda x: x.sum() / x.count()).reset_index()
+def get_counts(df, dictionary, max_n_variables=10):
+    counts = df.apply(lambda x: x.sum()).T.reset_index()
 
-    proportions.columns = ['variable', 'proportion']
+    counts.columns = ['variable', 'count']
+    counts = counts.sort_values(
+        by=['count'], ascending=False).reset_index(drop=True)
+    if counts.shape[0] > max_n_variables:
+        counts = counts.head(max_n_variables)
+
+    short_format = format_variables(dictionary, max_len=40)
+    long_format = format_variables(dictionary, max_len=1000)
+    format_dict = dict(zip(dictionary['field_name'], long_format))
+    short_format_dict = dict(zip(dictionary['field_name'], short_format))
+    counts['label'] = counts['variable'].map(format_dict)
+    counts['short_label'] = counts['variable'].map(short_format_dict)
+    return counts
+
+
+def get_proportions(df, dictionary, max_n_variables=10):
+    proportions = df.apply(
+        lambda x: (x.sum() / x.count(), x.sum())).T.reset_index()
+
+    proportions.columns = ['variable', 'proportion', 'count']
     proportions = proportions.sort_values(
-        by=['proportion'], ascending=False).reset_index(drop=True)
+        by=['count'], ascending=False).reset_index(drop=True)
     if proportions.shape[0] > max_n_variables:
         proportions = proportions.head(max_n_variables)
+
+    proportions = proportions.drop(columns='count')
+    proportions = proportions.sort_values(
+        by=['proportion'], ascending=False).reset_index(drop=True)
 
     short_format = format_variables(dictionary, max_len=40)
     long_format = format_variables(dictionary, max_len=1000)
@@ -628,7 +653,7 @@ def get_clusters(
 
     # use bertopic topic modelling pipeline
     topic_model = BERTopic(
-        embedding_model=embedding_model,  # how we embed the strings, default to sentence transformers
+        embedding_model=embedding_model,
         representation_model=representation_model,
         nr_topics=nr_topics,
     )

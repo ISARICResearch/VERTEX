@@ -360,9 +360,77 @@ def fig_upset(
     return fig, graph_id, graph_label, graph_about
 
 
+def fig_count_chart(
+        df,
+        title='Count Chart', base_color_map=None, height=350,
+        suffix='', filepath='', save_inputs=False,
+        graph_id='', graph_label='', graph_about=''):
+
+    if save_inputs:
+        inputs = save_inputs_to_file(locals())
+
+    column_names = ['label', 'count', 'short_label']
+
+    # Error Handling
+    if not all(col in df.columns for col in column_names):
+        error_str = 'Dataframe must contain the following columns: '
+        error_str += f'{column_names}'
+        raise ValueError(error_str)
+
+    # Prepare Data Traces
+    traces = []
+    default_color = '#007E71'
+    yes_color = (
+        base_color_map.get('Yes', default_color)
+        if base_color_map else default_color)
+
+    for ii in reversed(range(df.shape[0])):
+        hoverlabel = df.loc[ii, column_names[0]]
+        yes_count = df.loc[ii, column_names[1]]
+        label = df.loc[ii, column_names[2]]
+        # Add 'Yes' bar
+        traces.append(
+            go.Bar(
+                x=[yes_count],
+                y=[label],
+                name='Yes',
+                orientation='h',
+                width=0.9,
+                offset=-0.45,
+                marker=dict(color=yes_color),
+                customdata=[hoverlabel],
+                hovertemplate='%{customdata}: %{x:.2f}',
+                # Show legend only for the first
+                showlegend=(ii == 0))
+        )
+
+    xlim = [0, df[column_names[1]].max()]
+    layout = go.Layout(
+        title={'text': title, 'x': 0.5, 'xanchor': 'center'},
+        barmode='stack',
+        xaxis=dict(title=column_names[1].capitalize(), range=xlim),
+        yaxis=dict(
+            title='Variable', automargin=True,
+            tickmode='array', tickvals=df[column_names[2]],
+            ticktext=df[column_names[2]]),
+        bargap=0.1,  # Smaller gap between bars. Adjust this value as needed.
+        # legend=dict(x=1.05, y=1),
+        legend={
+            'orientation': 'h',
+            'yanchor': 'bottom', 'y': 1.02, 'xanchor': 'right', 'x': 1},
+        margin=dict(l=100, r=100, t=100, b=50),
+        height=height,
+        minreducedwidth=500,
+    )
+
+    fig = go.Figure(data=traces, layout=layout)
+    graph_id = get_graph_id(graph_id, suffix)
+    return fig, graph_id, graph_label, graph_about
+
+
 def fig_frequency_chart(
         df,
-        title='Frequency Chart', base_color_map=None,
+        title='Frequency Chart', base_color_map=None, height=350,
         suffix='', filepath='', save_inputs=False,
         graph_id='', graph_label='', graph_about=''):
 
@@ -439,7 +507,7 @@ def fig_frequency_chart(
             'orientation': 'h',
             'yanchor': 'bottom', 'y': 1.02, 'xanchor': 'right', 'x': 1},
         margin=dict(l=100, r=100, t=100, b=50),
-        height=350,
+        height=height,
         minreducedwidth=500,
     )
 
@@ -486,7 +554,10 @@ def fig_table(
     if 'columnwidth' in table_format_dict.keys():
         columnwidth = table_format_dict['columnwidth']
     else:
-        columnwidth = [firstwidth] + [(1 - firstwidth)/(n - 1)]*(n - 1)
+        if n < 2:
+            columnwidth = [1]
+        else:
+            columnwidth = [firstwidth] + [(1 - firstwidth)/(n - 1)]*(n - 1)
 
     fig = go.Figure(data=[go.Table(
         header={'values': list(df.columns), **header_format_dict},
