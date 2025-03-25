@@ -25,11 +25,8 @@ import webbrowser
 ############################################
 
 # init_project_path = 'projects/ARChetypeCRF_mpox_synthetic/'
-init_project_path = 'projects/ARChetypeCRF_dengue_synthetic/'
-# init_project_path = 'projects/ARChetypeCRF_h5nx_synthetic/'
-
-# init_project_path = '../VERTEX_projects/dengue_global/'
-# init_project_path = '../VERTEX_projects/pos_ari/'
+# init_project_path = 'projects/ARChetypeCRF_dengue_synthetic/'
+init_project_path = 'projects/ARChetypeCRF_h5nx_synthetic/'
 
 # def get_project_path():
 #     with open('vertex_projects_path.txt', 'r') as f:
@@ -131,8 +128,6 @@ the dashboard.''')
 #     # End of cache function
 #     return
 
-# ip_list = ip_list + dengue_ip_list
-
 ############################################
 # MAP
 ############################################
@@ -148,12 +143,6 @@ def merge_data_with_countries(df_map):
         'Region': 'country_region',
         'Income group': 'country_income'}, inplace=True)
     df_map = pd.merge(df_map, countries, on='country_iso', how='left')
-    # df_map.rename(columns={
-    #     # 'country': 'country_iso',  # country_iso
-    #     'Country': 'country_name',  # slider_country
-    #     'Region': 'country_region',
-    #     'Income group': 'country_income'}, inplace=True)
-    # df_map.drop(columns=['Code'], inplace=True)
     return df_map
 
 
@@ -162,7 +151,6 @@ def get_countries(df_map):
     df_countries = df_countries.groupby(
         ['country_iso', 'country_name']).count().reset_index()
     df_countries.rename(columns={'subjid': 'country_count'}, inplace=True)
-    # print(df_countries)
     return df_countries
 
 
@@ -179,12 +167,15 @@ def interpolate_colors(colors, n):
 
     # Calculate the number of steps for each transition
     steps_per_transition = n // transitions
+    steps_per_transition = (
+        [steps_per_transition + 1]*(n % transitions) +
+        [steps_per_transition]*(transitions - (n % transitions)))
 
     # Interpolate between each pair of colors
     for i in range(transitions):
-        for step in range(steps_per_transition):
+        for step in range(steps_per_transition[i]):
             interpolated_rgb = [
-                int(rgbs[i][j] + (float(step)/steps_per_transition)*(
+                int(rgbs[i][j] + (float(step)/steps_per_transition[i])*(
                     rgbs[i+1][j]-rgbs[i][j]))
                 for j in range(3)]
             interpolated_colors.append(
@@ -198,6 +189,7 @@ def interpolate_colors(colors, n):
             f'rgb({rgbs[-1][0]}, {rgbs[-1][1]}, {rgbs[-1][2]})')
 
     if len(rgbs) > n:
+        print(len(rgbs))
         interpolated_colors = [
             f'rgb({rgb[0]}, {rgb[1]}, {rgb[2]})' for rgb in rgbs[:n]]
     return interpolated_colors
@@ -206,12 +198,10 @@ def interpolate_colors(colors, n):
 def get_map_colorscale(
         df_countries,
         map_percentile_cutoffs=[10, 20, 30, 40, 50, 60, 70, 80, 90, 99, 100]):
-    if df_countries['country_count'].count() < 10:
-        n = df_countries['country_count'].count()
-        map_percentile_cutoffs = np.linspace(
-            0, 100, n + 1)[1:]
     cutoffs = np.percentile(
         df_countries['country_count'], map_percentile_cutoffs)
+    if df_countries['country_count'].count() < len(map_percentile_cutoffs):
+        cutoffs = df_countries['country_count'].sort_values()
     cutoffs = cutoffs / df_countries['country_count'].max()
     num_colors = len(cutoffs)
     cutoffs = np.insert(np.repeat(cutoffs, 2)[:-1], 0, 0)
@@ -1059,7 +1049,8 @@ def main():
         'map_layout_center_latitude': 6,
         'map_layout_center_longitude': -75,
         'map_layout_zoom': 1.7,
-        'save_public_outputs': True,
+        'save_public_outputs': False,
+        'save_base_files_to_public_path': False,
         'public_path': 'PUBLIC/',
         'save_filtered_public_outputs': False,
         'insight_panels_path': 'insight_panels/',
@@ -1200,12 +1191,13 @@ def main():
             dictionary=dictionary, quality_report=quality_report,
             filepath=os.path.join(public_path, 'data', ''))
         os.makedirs(os.path.dirname(public_path), exist_ok=True)
-        shutil.copy('descriptive_dashboard_public.py', public_path)
-        shutil.copy('IsaricDraw.py', public_path)
-        shutil.copy('requirements.txt', public_path)
-        assets_path = os.path.join(public_path, 'assets/')
-        os.makedirs(os.path.dirname(assets_path), exist_ok=True)
-        shutil.copytree('assets', assets_path, dirs_exist_ok=True)
+        if config_dict['save_base_files_to_public_path']:
+            shutil.copy('descriptive_dashboard_public.py', public_path)
+            shutil.copy('IsaricDraw.py', public_path)
+            shutil.copy('requirements.txt', public_path)
+            assets_path = os.path.join(public_path, 'assets/')
+            os.makedirs(os.path.dirname(assets_path), exist_ok=True)
+            shutil.copytree('assets', assets_path, dirs_exist_ok=True)
         metadata_file = os.path.join(
             public_path, 'data/dashboard_metadata.txt')
         with open(metadata_file, 'w') as metadata:
