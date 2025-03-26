@@ -15,9 +15,7 @@ demog_healthcare,presentation,binary,Employed as a healthcare worker,demog
 comor,presentation,section,CO-MORBIDITIES AND RISK FACTORS,
 comor_hypertensi,presentation,binary,Hypertension (physician diagnosed),comor
 comor_chrkidney,presentation,binary,Chronic kidney disease,comor
-comor_chrkidney_stag,presentation,categorical,Stage of chronic kidney disease,comor
 comor_liverdisease,presentation,binary,Liver disease,comor
-comor_liverdisease_type,presentation,categorical,Type of liver disease,comor
 comor_obesity,presentation,binary,Obesity,comor
 comor_diabetes_yn,presentation,binary,Diabetes mellitus,comor
 comor_smoking_yn,presentation,binary,Ever smoked,comor
@@ -33,7 +31,7 @@ vital_highesttem_c,daily,numeric,Highest temperature (°C),vital
 vital_hr,daily,numeric,HR (beats/minute),vital
 vital_rr,daily,numeric,RR (bpm),vital
 vital_meanbp,daily,numeric,Mean arterial blood pressure (mmHg),vital
-vital_gcs,daily,numeric,Glasgow Coma Score (GCS / 15) ,vital
+vital_gcs,daily,numeric,Glasgow Coma Score (GCS / 15),vital
 sympt,daily,section,SIGNS AND SYMPTOMS,
 sympt_fever,daily,binary,Fever,sympt
 sympt_headache,daily,binary,Headache,sympt
@@ -62,13 +60,16 @@ inter_o2support_type___Unknown,outcome,binary,Unknown,inter_o2support_type
 outco,outcome,section,OUTCOME,
 outco_date,outcome,date,Outcome date,outco
 outco_outcome,outcome,categorical,Outcome,outco
+outco_outcome___Discharged alive,outcome,binary,Discharged alive,outco_outcome
+outco_outcome___Still hospitalised,outcome,binary,Still hospitalised,outco_outcome
+outco_outcome___Death,outcome,binary,Death,outco_outcome
 outco_binary_outcome,outcome,categorical,Outcome (binary),outco
 outco_binary_outcome___Death,outcome,binary,Death,outco_binary_outcome
 outco_binary_outcome___Discharged,outcome,binary,Discharged,outco_binary_outcome
 outco_binary_outcome___Censored,outcome,binary,Censored,outco_binary_outcome
 country,presentation,section,COUNTRY,
 country_iso,presentation,categorical,Country ISO Code,country
+country_iso___COL,presentation,binary,COL,country_iso
 country_iso___GBR,presentation,binary,GBR,country_iso
 country_iso___CAN,presentation,binary,CAN,country_iso
-country_iso___COL,presentation,binary,COL,country_iso
 country_iso___BRA,presentation,binary,BRA,country_iso
