@@ -1,12 +1,9 @@
 import os
 import sys
-
 import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objs as go
-from lifelines import KaplanMeierFitter
-from lifelines.statistics import logrank_test, multivariate_logrank_test
 from plotly.subplots import make_subplots
 
 default_height = 430
