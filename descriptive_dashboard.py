@@ -26,7 +26,8 @@ import webbrowser
 
 # init_project_path = 'projects/ARChetypeCRF_mpox_synthetic/'
 # init_project_path = 'projects/ARChetypeCRF_dengue_synthetic/'
-init_project_path = 'projects/ARChetypeCRF_h5nx_synthetic/'
+# init_project_path = 'projects/ARChetypeCRF_h5nx_synthetic/'
+init_project_path = 'projects/ARChetypeCRF_h5nx_synthetic_mf/'
 
 # def get_project_path():
 #     with open('vertex_projects_path.txt', 'r') as f:
@@ -189,7 +190,6 @@ def interpolate_colors(colors, n):
             f'rgb({rgbs[-1][0]}, {rgbs[-1][1]}, {rgbs[-1][2]})')
 
     if len(rgbs) > n:
-        print(len(rgbs))
         interpolated_colors = [
             f'rgb({rgb[0]}, {rgb[1]}, {rgb[2]})' for rgb in rgbs[:n]]
     return interpolated_colors
@@ -1116,11 +1116,11 @@ def main():
         'outco_binary_outcome': 'filters_outcome'
     }
 
-    mapbox_style = ['open-street-map', 'carto-positron']
+    map_style = ['open-street-map', 'carto-positron']
     map_layout_dict = dict(
-        mapbox_style=mapbox_style[1],
-        mapbox_zoom=config_dict['map_layout_zoom'],
-        mapbox_center={
+        map_style=map_style[1],
+        map_zoom=config_dict['map_layout_zoom'],
+        map_center={
             'lat': config_dict['map_layout_center_latitude'],
             'lon': config_dict['map_layout_center_longitude']},
         margin={'r': 0, 't': 0, 'l': 0, 'b': 0},

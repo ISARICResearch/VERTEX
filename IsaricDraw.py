@@ -651,9 +651,11 @@ def fig_dual_stack_pyramid(
     # sorted_ranges = sorted(split_ranges, key=lambda x: x[0])
     # sorted_y_axis = [f'{start}-{end}' for start, end in sorted_ranges]
 
-    max_value = max(
-        df['value'].abs().max(),
-        df.loc[(df['side'] != df['side'].unique()[0]), 'value'].abs().max())
+    # max_value = max(
+    #     df['value'].abs().max(),
+    #     df.loc[(df['side'] != df['side'].unique()[0]), 'value'].abs().max())
+    max_value = df.groupby(
+        ['side', 'y_axis'], observed=True).sum()['value'].max()
 
     if yaxis_label is None:
         yaxis_label = 'Category'
