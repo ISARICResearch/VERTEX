@@ -1,0 +1,4 @@
+index,label,count
+"('adsym_fever',)","('<b>Fever</b>',)",387
+"('adsym_fever', 'adsym_headache')","('<b>Fever</b>', '<b>Headache</b>')",327
+"('adsym_headache',)","('<b>Headache</b>',)",162

@@ -1,6 +1,6 @@
 index,count,short_label,label
 compl_focalneuro,339,<b>Focal neurological signs</b>,<b>Focal neurological signs</b>
+compl_severeliver,328,<b>Severe liver disease (new onset)</b>,<b>Severe liver disease (new onset)</b>
+compl_severebleed_yn,325,<b>Severe bleeding (requiring intervention)</b>,<b>Severe bleeding (requiring intervention)</b>
 compl_myocarditis,323,<b>Myocarditis</b>,<b>Myocarditis</b>
-compl_sepsis,313,<b>Sepsis</b>,<b>Sepsis</b>
-compl_ards,303,<b>Acute Respiratory Distress Syndrome ...</b>,<b>Acute Respiratory Distress Syndrome (ARDS)</b>
-compl_unlisted_3addi,6,<b>>->Any additional other complication(s) ...</b>,<b>>->Any additional other complication(s) ?</b>
+compl_meningitis,322,<b>Meningitis</b>,<b>Meningitis</b>

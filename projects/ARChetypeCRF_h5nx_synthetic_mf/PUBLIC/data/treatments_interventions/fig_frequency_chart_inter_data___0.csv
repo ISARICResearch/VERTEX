@@ -1,0 +1,6 @@
+variable,proportion,label,short_label
+inter_suppleo2,0.612,<b>Any supplemental oxygen?</b>,<b>Any supplemental oxygen?</b>
+inter_o2support_type___Non-invasive ventilation,0.3600844772967265,"<b>If yes: Select all types of respiratory support the patient received</b>, Non-invasive ventilation","<b>If yes: Select all types of respiratory ...</b>, Non-invasive ventilation"
+inter_o2support_type___High-flow nasal oxygen,0.35691657866948256,"<b>If yes: Select all types of respiratory support the patient received</b>, High-flow nasal oxygen","<b>If yes: Select all types of respiratory ...</b>, High-flow nasal oxygen"
+inter_o2support_type___Invasive ventilation,0.17106652587117213,"<b>If yes: Select all types of respiratory support the patient received</b>, Invasive ventilation","<b>If yes: Select all types of respiratory ...</b>, Invasive ventilation"
+inter_o2support_type___Unknown,0.014783526927138331,"<b>If yes: Select all types of respiratory support the patient received</b>, Unknown","<b>If yes: Select all types of respiratory ...</b>, Unknown"

@@ -44,7 +44,6 @@ Variable,All,Discharged,Death,Censored
 <b>Type of ECLS / ECMO</b> (*),,,,
    ↳ Veno-venous (VV),  21 (36.2) |   58,  3 (23.1) |  13,  6 (40.0) |  15, 12 (40.0) |  30
    ↳ Veno-arterial (VA),  37 (63.8) |   58, 10 (76.9) |  13,  9 (60.0) |  15, 18 (60.0) |  30
-<b>Other intervention(s) or procedure(s)</b> (*), 157 (50.2) |  313, 45 (54.9) |  82, 42 (48.3) |  87, 70 (48.6) | 144
 <b><i>INTERVENTIONS</i></b>,,,,
 <b>Parenteral / IV fluid</b> (*), 309 (49.1) |  629, 88 (50.6) | 174, 72 (41.9) | 172,149 (52.7) | 283
 <b> Select all parenteral / IV fluid that were administered</b>,,,,
@@ -103,4 +102,3 @@ Variable,All,Discharged,Death,Censored
 <b>Type of ECLS / ECMO</b> (*),,,,
    ↳ Veno-venous (VV),  37 (44.0) |   84,  9 (45.0) |  20, 11 (36.7) |  30, 17 (50.0) |  34
    ↳ Veno-arterial (VA),  47 (56.0) |   84, 11 (55.0) |  20, 19 (63.3) |  30, 17 (50.0) |  34
-<b>Other intervention(s) or procedure(s)</b> (*), 301 (47.6) |  632, 73 (45.1) | 162, 90 (48.9) | 184,138 (48.3) | 286

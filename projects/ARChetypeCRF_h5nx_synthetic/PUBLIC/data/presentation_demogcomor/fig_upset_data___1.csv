@@ -1,28 +1,28 @@
 index,label,count
-"('comor_hypertensi', 'comor_tuberculos', 'comor_asthma', 'comor_chrkidney', 'comor_liverdisease')","('<b>Hypertension (physician diagnosed)</b>', '<b>Tuberculosis</b>', '<b>Asthma (physician diagnosed)</b>', '<b>Chronic kidney disease</b>', '<b>Liver disease</b>')",434
-"('comor_tuberculos', 'comor_asthma', 'comor_chrkidney', 'comor_liverdisease')","('<b>Tuberculosis</b>', '<b>Asthma (physician diagnosed)</b>', '<b>Chronic kidney disease</b>', '<b>Liver disease</b>')",109
-"('comor_hypertensi', 'comor_tuberculos', 'comor_asthma', 'comor_chrkidney')","('<b>Hypertension (physician diagnosed)</b>', '<b>Tuberculosis</b>', '<b>Asthma (physician diagnosed)</b>', '<b>Chronic kidney disease</b>')",99
-"('comor_hypertensi', 'comor_tuberculos', 'comor_chrkidney', 'comor_liverdisease')","('<b>Hypertension (physician diagnosed)</b>', '<b>Tuberculosis</b>', '<b>Chronic kidney disease</b>', '<b>Liver disease</b>')",85
-"('comor_hypertensi', 'comor_asthma', 'comor_chrkidney', 'comor_liverdisease')","('<b>Hypertension (physician diagnosed)</b>', '<b>Asthma (physician diagnosed)</b>', '<b>Chronic kidney disease</b>', '<b>Liver disease</b>')",56
-"('comor_hypertensi', 'comor_tuberculos', 'comor_asthma', 'comor_liverdisease')","('<b>Hypertension (physician diagnosed)</b>', '<b>Tuberculosis</b>', '<b>Asthma (physician diagnosed)</b>', '<b>Liver disease</b>')",44
-"('comor_tuberculos', 'comor_chrkidney', 'comor_liverdisease')","('<b>Tuberculosis</b>', '<b>Chronic kidney disease</b>', '<b>Liver disease</b>')",26
-"('comor_tuberculos', 'comor_asthma', 'comor_chrkidney')","('<b>Tuberculosis</b>', '<b>Asthma (physician diagnosed)</b>', '<b>Chronic kidney disease</b>')",23
-"('comor_hypertensi', 'comor_tuberculos', 'comor_chrkidney')","('<b>Hypertension (physician diagnosed)</b>', '<b>Tuberculosis</b>', '<b>Chronic kidney disease</b>')",21
-"('comor_hypertensi', 'comor_tuberculos', 'comor_asthma')","('<b>Hypertension (physician diagnosed)</b>', '<b>Tuberculosis</b>', '<b>Asthma (physician diagnosed)</b>')",13
+"('comor_chrkidney', 'comor_tuberculos', 'comor_asthma', 'comor_liverdisease', 'comor_hypertensi')","('<b>Chronic kidney disease</b>', '<b>Tuberculosis</b>', '<b>Asthma (physician diagnosed)</b>', '<b>Liver disease</b>', '<b>Hypertension (physician diagnosed)</b>')",434
+"('comor_chrkidney', 'comor_tuberculos', 'comor_asthma', 'comor_liverdisease')","('<b>Chronic kidney disease</b>', '<b>Tuberculosis</b>', '<b>Asthma (physician diagnosed)</b>', '<b>Liver disease</b>')",109
+"('comor_chrkidney', 'comor_tuberculos', 'comor_asthma', 'comor_hypertensi')","('<b>Chronic kidney disease</b>', '<b>Tuberculosis</b>', '<b>Asthma (physician diagnosed)</b>', '<b>Hypertension (physician diagnosed)</b>')",99
+"('comor_chrkidney', 'comor_tuberculos', 'comor_liverdisease', 'comor_hypertensi')","('<b>Chronic kidney disease</b>', '<b>Tuberculosis</b>', '<b>Liver disease</b>', '<b>Hypertension (physician diagnosed)</b>')",85
+"('comor_chrkidney', 'comor_asthma', 'comor_liverdisease', 'comor_hypertensi')","('<b>Chronic kidney disease</b>', '<b>Asthma (physician diagnosed)</b>', '<b>Liver disease</b>', '<b>Hypertension (physician diagnosed)</b>')",56
+"('comor_tuberculos', 'comor_asthma', 'comor_liverdisease', 'comor_hypertensi')","('<b>Tuberculosis</b>', '<b>Asthma (physician diagnosed)</b>', '<b>Liver disease</b>', '<b>Hypertension (physician diagnosed)</b>')",44
+"('comor_chrkidney', 'comor_tuberculos', 'comor_liverdisease')","('<b>Chronic kidney disease</b>', '<b>Tuberculosis</b>', '<b>Liver disease</b>')",26
+"('comor_chrkidney', 'comor_tuberculos', 'comor_asthma')","('<b>Chronic kidney disease</b>', '<b>Tuberculosis</b>', '<b>Asthma (physician diagnosed)</b>')",23
+"('comor_chrkidney', 'comor_tuberculos', 'comor_hypertensi')","('<b>Chronic kidney disease</b>', '<b>Tuberculosis</b>', '<b>Hypertension (physician diagnosed)</b>')",21
+"('comor_tuberculos', 'comor_asthma', 'comor_hypertensi')","('<b>Tuberculosis</b>', '<b>Asthma (physician diagnosed)</b>', '<b>Hypertension (physician diagnosed)</b>')",13
 "('comor_tuberculos', 'comor_asthma', 'comor_liverdisease')","('<b>Tuberculosis</b>', '<b>Asthma (physician diagnosed)</b>', '<b>Liver disease</b>')",13
-"('comor_asthma', 'comor_chrkidney', 'comor_liverdisease')","('<b>Asthma (physician diagnosed)</b>', '<b>Chronic kidney disease</b>', '<b>Liver disease</b>')",12
-"('comor_hypertensi', 'comor_asthma', 'comor_chrkidney')","('<b>Hypertension (physician diagnosed)</b>', '<b>Asthma (physician diagnosed)</b>', '<b>Chronic kidney disease</b>')",10
-"('comor_hypertensi', 'comor_tuberculos', 'comor_liverdisease')","('<b>Hypertension (physician diagnosed)</b>', '<b>Tuberculosis</b>', '<b>Liver disease</b>')",9
-"('comor_hypertensi', 'comor_chrkidney', 'comor_liverdisease')","('<b>Hypertension (physician diagnosed)</b>', '<b>Chronic kidney disease</b>', '<b>Liver disease</b>')",9
+"('comor_chrkidney', 'comor_asthma', 'comor_liverdisease')","('<b>Chronic kidney disease</b>', '<b>Asthma (physician diagnosed)</b>', '<b>Liver disease</b>')",12
+"('comor_chrkidney', 'comor_asthma', 'comor_hypertensi')","('<b>Chronic kidney disease</b>', '<b>Asthma (physician diagnosed)</b>', '<b>Hypertension (physician diagnosed)</b>')",10
+"('comor_chrkidney', 'comor_liverdisease', 'comor_hypertensi')","('<b>Chronic kidney disease</b>', '<b>Liver disease</b>', '<b>Hypertension (physician diagnosed)</b>')",9
+"('comor_tuberculos', 'comor_liverdisease', 'comor_hypertensi')","('<b>Tuberculosis</b>', '<b>Liver disease</b>', '<b>Hypertension (physician diagnosed)</b>')",9
 "('comor_tuberculos', 'comor_asthma')","('<b>Tuberculosis</b>', '<b>Asthma (physician diagnosed)</b>')",7
-"('comor_hypertensi', 'comor_asthma', 'comor_liverdisease')","('<b>Hypertension (physician diagnosed)</b>', '<b>Asthma (physician diagnosed)</b>', '<b>Liver disease</b>')",6
 "('comor_chrkidney', 'comor_liverdisease')","('<b>Chronic kidney disease</b>', '<b>Liver disease</b>')",6
+"('comor_asthma', 'comor_liverdisease', 'comor_hypertensi')","('<b>Asthma (physician diagnosed)</b>', '<b>Liver disease</b>', '<b>Hypertension (physician diagnosed)</b>')",6
+"('comor_chrkidney', 'comor_asthma')","('<b>Chronic kidney disease</b>', '<b>Asthma (physician diagnosed)</b>')",4
 "('comor_tuberculos', 'comor_liverdisease')","('<b>Tuberculosis</b>', '<b>Liver disease</b>')",4
-"('comor_asthma', 'comor_chrkidney')","('<b>Asthma (physician diagnosed)</b>', '<b>Chronic kidney disease</b>')",4
-"('comor_hypertensi', 'comor_liverdisease')","('<b>Hypertension (physician diagnosed)</b>', '<b>Liver disease</b>')",2
-"('comor_tuberculos', 'comor_chrkidney')","('<b>Tuberculosis</b>', '<b>Chronic kidney disease</b>')",2
+"('comor_chrkidney', 'comor_tuberculos')","('<b>Chronic kidney disease</b>', '<b>Tuberculosis</b>')",2
 "('comor_asthma', 'comor_liverdisease')","('<b>Asthma (physician diagnosed)</b>', '<b>Liver disease</b>')",2
-"('comor_hypertensi', 'comor_tuberculos')","('<b>Hypertension (physician diagnosed)</b>', '<b>Tuberculosis</b>')",1
-"('comor_hypertensi', 'comor_asthma')","('<b>Hypertension (physician diagnosed)</b>', '<b>Asthma (physician diagnosed)</b>')",1
-"('comor_hypertensi', 'comor_chrkidney')","('<b>Hypertension (physician diagnosed)</b>', '<b>Chronic kidney disease</b>')",1
+"('comor_liverdisease', 'comor_hypertensi')","('<b>Liver disease</b>', '<b>Hypertension (physician diagnosed)</b>')",2
+"('comor_chrkidney', 'comor_hypertensi')","('<b>Chronic kidney disease</b>', '<b>Hypertension (physician diagnosed)</b>')",1
+"('comor_tuberculos', 'comor_hypertensi')","('<b>Tuberculosis</b>', '<b>Hypertension (physician diagnosed)</b>')",1
+"('comor_asthma', 'comor_hypertensi')","('<b>Asthma (physician diagnosed)</b>', '<b>Hypertension (physician diagnosed)</b>')",1
 "('comor_asthma',)","('<b>Asthma (physician diagnosed)</b>',)",1

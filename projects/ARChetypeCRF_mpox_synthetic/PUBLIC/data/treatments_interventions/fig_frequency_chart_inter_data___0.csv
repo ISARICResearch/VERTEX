@@ -1,11 +1,11 @@
 variable,proportion,label,short_label
-inter_surg2,0.5221238938053098,<b>Was a second surgical intervention performed in relation to the infection with pathogen of interest?</b>,<b>Was a second surgical intervention ...</b>
 inter_surg,0.5151975683890577,<b>Any surgical intervention performed in relation to the infection with pathogen of interest?</b>,<b>Any surgical intervention performed in ...</b>
-inter_ecmo___Veno-venous (VV),0.5054945054945055,"<b>Type of ECLS / ECMO</b>, Veno-venous (VV)","<b>Type of ECLS / ECMO</b>, Veno-venous (VV)"
-inter_ecmo___Veno-arterial (VA),0.4945054945054945,"<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)","<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)"
 inter_suppleo2,0.4930662557781202,<b>Any supplemental oxygen?</b>,<b>Any supplemental oxygen?</b>
-inter_unlisted,0.49282296650717705,<b>Other intervention(s) or procedure(s)</b>,<b>Other intervention(s) or procedure(s)</b>
 inter_prone_yn,0.48847926267281105,<b>Prone positioning</b>,<b>Prone positioning</b>
-inter_nivent___CPAP,0.42201834862385323,"<b>Type of non-invasive ventilation</b>, CPAP","<b>Type of non-invasive ventilation</b>, CPAP"
-inter_nivent___Other,0.3302752293577982,"<b>Type of non-invasive ventilation</b>, Other","<b>Type of non-invasive ventilation</b>, Other"
 inter_o2support_type___Invasive ventilation,0.2638230647709321,"<b>Select all types of respiratory support the patient received</b>, Invasive ventilation","<b>Select all types of respiratory support ...</b>, Invasive ventilation"
+inter_o2support_type___High-flow nasal oxygen,0.25434439178515006,"<b>Select all types of respiratory support the patient received</b>, High-flow nasal oxygen","<b>Select all types of respiratory support ...</b>, High-flow nasal oxygen"
+inter_o2support_type___Face mask,0.25118483412322273,"<b>Select all types of respiratory support the patient received</b>, Face mask","<b>Select all types of respiratory support ...</b>, Face mask"
+inter_o2support_type___Unknown,0.25118483412322273,"<b>Select all types of respiratory support the patient received</b>, Unknown","<b>Select all types of respiratory support ...</b>, Unknown"
+inter_o2support_type___ECLS/ ECMO,0.2353870458135861,"<b>Select all types of respiratory support the patient received</b>, ECLS/ ECMO","<b>Select all types of respiratory support ...</b>, ECLS/ ECMO"
+inter_o2support_type___Nasal prong,0.23222748815165878,"<b>Select all types of respiratory support the patient received</b>, Nasal prong","<b>Select all types of respiratory support ...</b>, Nasal prong"
+inter_o2support_type___Non-invasive ventilation,0.23064770932069512,"<b>Select all types of respiratory support the patient received</b>, Non-invasive ventilation","<b>Select all types of respiratory support ...</b>, Non-invasive ventilation"

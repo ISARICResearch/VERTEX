@@ -39,38 +39,6 @@ def create_visuals(
         graph_label='Descriptive Table',
         graph_about='Summary of treatments and interventions.')
 
-    # Treatments frequency and upset charts
-    section = 'treat'
-    section_name = 'Treatments'
-    df_daily = df_forms_dict['daily']
-    df_upset = ia.get_descriptive_data(
-        df_daily, dictionary,
-        include_sections=[section], include_types=['binary', 'categorical'],
-        include_subjid=True)
-    df_upset = df_upset.groupby('subjid').max()
-    proportions = ia.get_proportions(df_upset, dictionary)
-    counts_intersections = ia.get_upset_counts_intersections(
-        df_upset, dictionary, proportions=proportions)
-
-    about = f'Frequency of the ten most common {section_name.lower()}'
-    freq_chart_treat = idw.fig_frequency_chart(
-        proportions,
-        title=f'Frequency of {section_name} (SYNTHETIC DATA)',
-        suffix=suffix, filepath=filepath, save_inputs=save_inputs,
-        graph_id=section,
-        graph_label=section_name + ': Frequency',
-        graph_about=about)
-
-    about = f'Intersection sizes of the five most common \
-    {section_name.lower()}'
-    upset_plot_treat = idw.fig_upset(
-        counts_intersections,
-        title=f'Intersection sizes of {section_name.lower()} (SYNTHETIC DATA)',
-        suffix=suffix, filepath=filepath, save_inputs=save_inputs,
-        graph_id=section,
-        graph_label=section_name + ': Intersections',
-        graph_about=about)
-
     # Interventions frequency and upset charts
     section = 'inter'
     section_name = 'Interventions'
@@ -100,6 +68,4 @@ def create_visuals(
         graph_label=section_name + ': Intersections',
         graph_about=about)
 
-    return (
-        fig_table, freq_chart_treat, upset_plot_treat,
-        freq_chart_inter, upset_plot_inter)
+    return (fig_table, freq_chart_inter, upset_plot_inter)

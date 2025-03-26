@@ -1,11 +1,11 @@
 variable,proportion,label,short_label
-compl_unlisted_3addi,1.0,<b>>->Any additional other complication(s) ?</b>,<b>>->Any additional other complication(s) ...</b>
 compl_focalneuro,0.5389507154213037,<b>Focal neurological signs</b>,<b>Focal neurological signs</b>
 compl_myocarditis,0.5235008103727715,<b>Myocarditis</b>,<b>Myocarditis</b>
 compl_sepsis,0.5207986688851913,<b>Sepsis</b>,<b>Sepsis</b>
-compl_ards,0.5153061224489796,<b>Acute Respiratory Distress Syndrome (ARDS)</b>,<b>Acute Respiratory Distress Syndrome ...</b>
 compl_severebleed_yn,0.5070202808112324,<b>Severe bleeding (requiring intervention)</b>,<b>Severe bleeding (requiring intervention)</b>
-compl_unlisted_0addi,0.5052631578947369,<b>Any additional other complication(s) ?</b>,<b>Any additional other complication(s) ?</b>
 compl_severeliver,0.5038402457757296,<b>Severe liver disease (new onset)</b>,<b>Severe liver disease (new onset)</b>
 compl_meningitis,0.5023400936037441,<b>Meningitis</b>,<b>Meningitis</b>
 compl_cardiarrest,0.5015822784810127,<b>Cardiac arrest</b>,<b>Cardiac arrest</b>
+compl_acuterenal,0.4945054945054945,<b>Acute renal injury / acute renal failure</b>,<b>Acute renal injury / acute renal failure</b>
+compl_reshock,0.4861111111111111,<b>Re-shock episodes</b>,<b>Re-shock episodes</b>
+compl_coagulatio,0.4803030303030303,<b>Coagulation disorder / DIC</b>,<b>Coagulation disorder / DIC</b>

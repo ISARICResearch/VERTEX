@@ -1,0 +1,12 @@
+Variable,All,Female,Male
+<b>Totals</b>,1000,530,470
+<b><i>DEMOGRAPHICS</i></b>,,,
+<b>Age</b> (+),45.0 (30.0-65.0) | 1000,43.0 (29.0-61.0) | 530,46.0 (31.0-68.8) | 470
+<b>Employed as a healthcare worker</b> (*), 173 (17.3) | 1000,106 (20.0) | 530, 67 (14.3) | 470
+<b><i>CO-MORBIDITIES AND RISK FACTORS</i></b>,,,
+<b>Hypertension (physician diagnosed)</b> (*), 253 (25.3) | 1000,155 (29.2) | 530, 98 (20.9) | 470
+<b>Chronic kidney disease</b> (*), 146 (14.6) | 1000, 64 (12.1) | 530, 82 (17.4) | 470
+<b>Liver disease</b> (*), 144 (14.4) | 1000, 58 (10.9) | 530, 86 (18.3) | 470
+<b>Obesity</b> (*), 270 (27.0) | 1000,130 (24.5) | 530,140 (29.8) | 470
+<b>Diabetes mellitus</b> (*), 181 (18.1) | 1000, 76 (14.3) | 530,105 (22.3) | 470
+<b>Ever smoked</b> (*), 180 (18.0) | 1000, 97 (18.3) | 530, 83 (17.7) | 470

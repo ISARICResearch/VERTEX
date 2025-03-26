@@ -1,6 +1,6 @@
 index,count,short_label,label
 inter_surg,339,<b>Any surgical intervention performed in ...</b>,<b>Any surgical intervention performed in relation to the infection with pathogen of interest?</b>
 inter_suppleo2,320,<b>Any supplemental oxygen?</b>,<b>Any supplemental oxygen?</b>
-inter_surg2,118,<b>Was a second surgical intervention ...</b>,<b>Was a second surgical intervention performed in relation to the infection with pathogen of interest?</b>
-inter_ecmo___Veno-venous (VV),46,"<b>Type of ECLS / ECMO</b>, Veno-venous (VV)","<b>Type of ECLS / ECMO</b>, Veno-venous (VV)"
-inter_ecmo___Veno-arterial (VA),45,"<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)","<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)"
+inter_prone_yn,318,<b>Prone positioning</b>,<b>Prone positioning</b>
+inter_o2support_type___Invasive ventilation,167,"<b>Select all types of respiratory support ...</b>, Invasive ventilation","<b>Select all types of respiratory support the patient received</b>, Invasive ventilation"
+inter_o2support_type___High-flow nasal oxygen,161,"<b>Select all types of respiratory support ...</b>, High-flow nasal oxygen","<b>Select all types of respiratory support the patient received</b>, High-flow nasal oxygen"

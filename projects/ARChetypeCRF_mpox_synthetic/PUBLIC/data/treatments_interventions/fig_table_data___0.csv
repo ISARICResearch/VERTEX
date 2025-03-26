@@ -28,7 +28,6 @@ Variable,All,Discharged,Death,Censored
 <b>When was the prone positioning?</b> (*),,,,
    ↳ During invasive ventilation,  48 (50.0) |   96, 10 (41.7) |  24, 16 (61.5) |  26, 22 (47.8) |  46
    ↳ Whilst self-ventilating,  48 (50.0) |   96, 14 (58.3) |  24, 10 (38.5) |  26, 24 (52.2) |  46
-<b>Other intervention(s) or procedure(s)</b> (*), 150 (52.4) |  286, 40 (55.6) |  72, 43 (57.3) |  75, 67 (48.2) | 139
 <b><i>INTERVENTIONS</i></b>,,,,
 <b>Any supplemental oxygen?</b> (*), 320 (49.3) |  649, 89 (51.1) | 174, 89 (53.3) | 167,142 (46.1) | 308
 <b>Select all types of respiratory support the patient received</b>,,,,
@@ -59,4 +58,3 @@ Variable,All,Discharged,Death,Censored
 <b>Prone positioning</b> (*), 318 (48.8) |  651, 85 (46.2) | 184, 81 (51.9) | 156,152 (48.9) | 311
 <b>Any surgical intervention performed in relation to the infection with pathogen of interest?</b> (*), 339 (51.5) |  658, 94 (57.3) | 164,101 (55.2) | 183,144 (46.3) | 311
 <b>Was a second surgical intervention performed in relation to the infection with pathogen of interest?</b> (*), 118 (52.2) |  226, 31 (49.2) |  63, 35 (52.2) |  67, 52 (54.2) |  96
-<b>Other intervention(s) or procedure(s)</b> (*), 309 (49.3) |  627, 87 (51.8) | 168, 73 (45.1) | 162,149 (50.2) | 297

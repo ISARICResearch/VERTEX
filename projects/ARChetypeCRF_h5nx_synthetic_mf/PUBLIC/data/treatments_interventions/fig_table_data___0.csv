@@ -1,0 +1,11 @@
+Variable,All,Discharged,Death,Censored
+<b>Totals</b>,1000,518,103,379
+<b><i>TREATMENTS & INTERVENTIONS</i></b>,,,,
+<b>Supplemental oxygen</b> (*), 332 (33.2) | 1000,160 (30.9) | 518, 40 (38.8) | 103,132 (34.8) | 379
+<b><i>INTERVENTIONS</i></b>,,,,
+<b>Any supplemental oxygen?</b> (*), 612 (61.2) | 1000,305 (58.9) | 518, 74 (71.8) | 103,233 (61.5) | 379
+<b> Select all types of respiratory support the patient received</b>,,,,
+   ↳ High-flow nasal oxygen, 338 (35.7) |  947,167 (33.9) | 492, 41 (43.6) |  94,130 (36.0) | 361
+   ↳ Non-invasive ventilation, 341 (36.0) |  947,171 (34.8) | 492, 44 (46.8) |  94,126 (34.9) | 361
+   ↳ Invasive ventilation, 162 (17.1) |  947, 97 (19.7) | 492, 10 (10.6) |  94, 55 (15.2) | 361
+   ↳ Unknown,  14 ( 1.5) |  947,  7 ( 1.4) | 492,  0 ( 0.0) |  94,  7 ( 1.9) | 361

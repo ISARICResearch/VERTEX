@@ -1,22 +1,32 @@
 index,label,count
-"('inter_bpt_yn',)","('<b>Blood product transfusion</b>',)",165
-"('inter_nacetylcys',)","('<b>N-acetyl cysteine</b>',)",159
-"('inter_bpt_yn', 'inter_nacetylcys')","('<b>Blood product transfusion</b>', '<b>N-acetyl cysteine</b>')",69
-"('inter_fluiddrain_reas___Ascites',)","('<b>If yes: Reason for this drainage</b>, Ascites',)",67
-"('inter_fluiddrain_reas___Pleural effusion',)","('<b>If yes: Reason for this drainage</b>, Pleural effusion',)",60
-"('inter_nacetylcys', 'inter_fluiddrain_reas___Ascites')","('<b>N-acetyl cysteine</b>', '<b>If yes: Reason for this drainage</b>, Ascites')",36
-"('inter_bpt_yn', 'inter_fluiddrain_reas___Pleural effusion')","('<b>Blood product transfusion</b>', '<b>If yes: Reason for this drainage</b>, Pleural effusion')",33
-"('inter_nacetylcys', 'inter_fluiddrain_reas___Pleural effusion')","('<b>N-acetyl cysteine</b>', '<b>If yes: Reason for this drainage</b>, Pleural effusion')",32
-"('inter_bpt_yn', 'inter_fluiddrain_reas___Ascites')","('<b>Blood product transfusion</b>', '<b>If yes: Reason for this drainage</b>, Ascites')",24
-"('inter_ecmo___Veno-arterial (VA)',)","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)',)",18
-"('inter_bpt_yn', 'inter_nacetylcys', 'inter_fluiddrain_reas___Pleural effusion')","('<b>Blood product transfusion</b>', '<b>N-acetyl cysteine</b>', '<b>If yes: Reason for this drainage</b>, Pleural effusion')",13
-"('inter_bpt_yn', 'inter_nacetylcys', 'inter_fluiddrain_reas___Ascites')","('<b>Blood product transfusion</b>', '<b>N-acetyl cysteine</b>', '<b>If yes: Reason for this drainage</b>, Ascites')",9
-"('inter_ecmo___Veno-arterial (VA)', 'inter_bpt_yn')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Blood product transfusion</b>')",8
-"('inter_ecmo___Veno-arterial (VA)', 'inter_bpt_yn', 'inter_nacetylcys')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Blood product transfusion</b>', '<b>N-acetyl cysteine</b>')",5
-"('inter_ecmo___Veno-arterial (VA)', 'inter_fluiddrain_reas___Pleural effusion')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>If yes: Reason for this drainage</b>, Pleural effusion')",4
-"('inter_ecmo___Veno-arterial (VA)', 'inter_fluiddrain_reas___Ascites')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>If yes: Reason for this drainage</b>, Ascites')",3
-"('inter_ecmo___Veno-arterial (VA)', 'inter_nacetylcys')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>N-acetyl cysteine</b>')",3
-"('inter_ecmo___Veno-arterial (VA)', 'inter_bpt_yn', 'inter_fluiddrain_reas___Ascites')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Blood product transfusion</b>', '<b>If yes: Reason for this drainage</b>, Ascites')",2
-"('inter_ecmo___Veno-arterial (VA)', 'inter_bpt_yn', 'inter_fluiddrain_reas___Pleural effusion')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Blood product transfusion</b>', '<b>If yes: Reason for this drainage</b>, Pleural effusion')",2
-"('inter_ecmo___Veno-arterial (VA)', 'inter_bpt_yn', 'inter_nacetylcys', 'inter_fluiddrain_reas___Ascites')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Blood product transfusion</b>', '<b>N-acetyl cysteine</b>', '<b>If yes: Reason for this drainage</b>, Ascites')",1
-"('inter_ecmo___Veno-arterial (VA)', 'inter_nacetylcys', 'inter_fluiddrain_reas___Pleural effusion')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>N-acetyl cysteine</b>', '<b>If yes: Reason for this drainage</b>, Pleural effusion')",1
+"('inter_nacetylcys',)","('<b>N-acetyl cysteine</b>',)",77
+"('inter_bpt_yn',)","('<b>Blood product transfusion</b>',)",75
+"('inter_ivimmunogl',)","('<b>Intravenous immunoglobulin</b>',)",68
+"('inter_plasmaex',)","('<b>Plasmapheresis / plasma exchange</b>',)",68
+"('inter_diuretics',)","('<b>Diuretics</b>',)",53
+"('inter_bpt_yn', 'inter_ivimmunogl')","('<b>Blood product transfusion</b>', '<b>Intravenous immunoglobulin</b>')",46
+"('inter_nacetylcys', 'inter_diuretics')","('<b>N-acetyl cysteine</b>', '<b>Diuretics</b>')",37
+"('inter_bpt_yn', 'inter_nacetylcys')","('<b>Blood product transfusion</b>', '<b>N-acetyl cysteine</b>')",31
+"('inter_nacetylcys', 'inter_ivimmunogl')","('<b>N-acetyl cysteine</b>', '<b>Intravenous immunoglobulin</b>')",31
+"('inter_ivimmunogl', 'inter_diuretics')","('<b>Intravenous immunoglobulin</b>', '<b>Diuretics</b>')",29
+"('inter_bpt_yn', 'inter_plasmaex')","('<b>Blood product transfusion</b>', '<b>Plasmapheresis / plasma exchange</b>')",28
+"('inter_bpt_yn', 'inter_diuretics')","('<b>Blood product transfusion</b>', '<b>Diuretics</b>')",28
+"('inter_plasmaex', 'inter_diuretics')","('<b>Plasmapheresis / plasma exchange</b>', '<b>Diuretics</b>')",28
+"('inter_nacetylcys', 'inter_plasmaex')","('<b>N-acetyl cysteine</b>', '<b>Plasmapheresis / plasma exchange</b>')",27
+"('inter_ivimmunogl', 'inter_plasmaex')","('<b>Intravenous immunoglobulin</b>', '<b>Plasmapheresis / plasma exchange</b>')",22
+"('inter_ivimmunogl', 'inter_plasmaex', 'inter_diuretics')","('<b>Intravenous immunoglobulin</b>', '<b>Plasmapheresis / plasma exchange</b>', '<b>Diuretics</b>')",21
+"('inter_nacetylcys', 'inter_ivimmunogl', 'inter_diuretics')","('<b>N-acetyl cysteine</b>', '<b>Intravenous immunoglobulin</b>', '<b>Diuretics</b>')",19
+"('inter_bpt_yn', 'inter_plasmaex', 'inter_diuretics')","('<b>Blood product transfusion</b>', '<b>Plasmapheresis / plasma exchange</b>', '<b>Diuretics</b>')",18
+"('inter_nacetylcys', 'inter_ivimmunogl', 'inter_plasmaex')","('<b>N-acetyl cysteine</b>', '<b>Intravenous immunoglobulin</b>', '<b>Plasmapheresis / plasma exchange</b>')",18
+"('inter_bpt_yn', 'inter_nacetylcys', 'inter_plasmaex')","('<b>Blood product transfusion</b>', '<b>N-acetyl cysteine</b>', '<b>Plasmapheresis / plasma exchange</b>')",17
+"('inter_bpt_yn', 'inter_ivimmunogl', 'inter_plasmaex')","('<b>Blood product transfusion</b>', '<b>Intravenous immunoglobulin</b>', '<b>Plasmapheresis / plasma exchange</b>')",16
+"('inter_nacetylcys', 'inter_plasmaex', 'inter_diuretics')","('<b>N-acetyl cysteine</b>', '<b>Plasmapheresis / plasma exchange</b>', '<b>Diuretics</b>')",15
+"('inter_bpt_yn', 'inter_nacetylcys', 'inter_diuretics')","('<b>Blood product transfusion</b>', '<b>N-acetyl cysteine</b>', '<b>Diuretics</b>')",14
+"('inter_bpt_yn', 'inter_ivimmunogl', 'inter_diuretics')","('<b>Blood product transfusion</b>', '<b>Intravenous immunoglobulin</b>', '<b>Diuretics</b>')",14
+"('inter_bpt_yn', 'inter_nacetylcys', 'inter_plasmaex', 'inter_diuretics')","('<b>Blood product transfusion</b>', '<b>N-acetyl cysteine</b>', '<b>Plasmapheresis / plasma exchange</b>', '<b>Diuretics</b>')",9
+"('inter_bpt_yn', 'inter_ivimmunogl', 'inter_plasmaex', 'inter_diuretics')","('<b>Blood product transfusion</b>', '<b>Intravenous immunoglobulin</b>', '<b>Plasmapheresis / plasma exchange</b>', '<b>Diuretics</b>')",9
+"('inter_bpt_yn', 'inter_nacetylcys', 'inter_ivimmunogl', 'inter_diuretics')","('<b>Blood product transfusion</b>', '<b>N-acetyl cysteine</b>', '<b>Intravenous immunoglobulin</b>', '<b>Diuretics</b>')",8
+"('inter_bpt_yn', 'inter_nacetylcys', 'inter_ivimmunogl')","('<b>Blood product transfusion</b>', '<b>N-acetyl cysteine</b>', '<b>Intravenous immunoglobulin</b>')",7
+"('inter_nacetylcys', 'inter_ivimmunogl', 'inter_plasmaex', 'inter_diuretics')","('<b>N-acetyl cysteine</b>', '<b>Intravenous immunoglobulin</b>', '<b>Plasmapheresis / plasma exchange</b>', '<b>Diuretics</b>')",7
+"('inter_bpt_yn', 'inter_nacetylcys', 'inter_ivimmunogl', 'inter_plasmaex')","('<b>Blood product transfusion</b>', '<b>N-acetyl cysteine</b>', '<b>Intravenous immunoglobulin</b>', '<b>Plasmapheresis / plasma exchange</b>')",6
+"('inter_bpt_yn', 'inter_nacetylcys', 'inter_ivimmunogl', 'inter_plasmaex', 'inter_diuretics')","('<b>Blood product transfusion</b>', '<b>N-acetyl cysteine</b>', '<b>Intravenous immunoglobulin</b>', '<b>Plasmapheresis / plasma exchange</b>', '<b>Diuretics</b>')",5

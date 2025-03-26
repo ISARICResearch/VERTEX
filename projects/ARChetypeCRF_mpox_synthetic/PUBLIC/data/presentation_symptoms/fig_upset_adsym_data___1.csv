@@ -1,23 +1,32 @@
 index,label,count
-"('adsym_chestpain',)","('<b>Chest pain</b>',)",205
-"('adsym_seizconv',)","('<b>Seizures / convulsions</b>',)",176
-"('adsym_chestpain', 'adsym_seizconv')","('<b>Chest pain</b>', '<b>Seizures / convulsions</b>')",93
-"('adsym_cough_nonprod',)","('<b>Non-productive </b>',)",30
-"('adsym_cough_hemop',)","('<b>Hemoptysis</b>',)",29
-"('adsym_cough_hemop', 'adsym_cough_nonprod')","('<b>Hemoptysis</b>', '<b>Non-productive </b>')",16
-"('adsym_cough_hemop', 'adsym_seizconv')","('<b>Hemoptysis</b>', '<b>Seizures / convulsions</b>')",15
-"('adsym_cough_hemop', 'adsym_cough_nonprod', 'adsym_seizconv')","('<b>Hemoptysis</b>', '<b>Non-productive </b>', '<b>Seizures / convulsions</b>')",13
-"('adsym_chestpain', 'adsym_cough_nonprod', 'adsym_seizconv')","('<b>Chest pain</b>', '<b>Non-productive </b>', '<b>Seizures / convulsions</b>')",12
-"('adsym_cough_nonprod', 'adsym_seizconv')","('<b>Non-productive </b>', '<b>Seizures / convulsions</b>')",12
-"('adsym_cough_hemop', 'adsym_chestpain', 'adsym_seizconv')","('<b>Hemoptysis</b>', '<b>Chest pain</b>', '<b>Seizures / convulsions</b>')",11
-"('adsym_chestpain', 'adsym_cough_nonprod')","('<b>Chest pain</b>', '<b>Non-productive </b>')",9
-"('adsym_cough_hemop', 'adsym_chestpain')","('<b>Hemoptysis</b>', '<b>Chest pain</b>')",8
-"('adsym_unlisted_2addi',)","('<b>->Any additional other sign(s) or symptom(s) ?</b>',)",6
-"('adsym_cough_hemop', 'adsym_chestpain', 'adsym_cough_nonprod')","('<b>Hemoptysis</b>', '<b>Chest pain</b>', '<b>Non-productive </b>')",6
-"('adsym_unlisted_2addi', 'adsym_cough_hemop', 'adsym_seizconv')","('<b>->Any additional other sign(s) or symptom(s) ?</b>', '<b>Hemoptysis</b>', '<b>Seizures / convulsions</b>')",2
-"('adsym_unlisted_2addi', 'adsym_seizconv')","('<b>->Any additional other sign(s) or symptom(s) ?</b>', '<b>Seizures / convulsions</b>')",2
-"('adsym_unlisted_2addi', 'adsym_cough_nonprod')","('<b>->Any additional other sign(s) or symptom(s) ?</b>', '<b>Non-productive </b>')",2
-"('adsym_cough_hemop', 'adsym_chestpain', 'adsym_cough_nonprod', 'adsym_seizconv')","('<b>Hemoptysis</b>', '<b>Chest pain</b>', '<b>Non-productive </b>', '<b>Seizures / convulsions</b>')",2
-"('adsym_unlisted_2addi', 'adsym_cough_hemop')","('<b>->Any additional other sign(s) or symptom(s) ?</b>', '<b>Hemoptysis</b>')",1
-"('adsym_unlisted_2addi', 'adsym_chestpain', 'adsym_seizconv')","('<b>->Any additional other sign(s) or symptom(s) ?</b>', '<b>Chest pain</b>', '<b>Seizures / convulsions</b>')",1
-"('adsym_unlisted_2addi', 'adsym_chestpain')","('<b>->Any additional other sign(s) or symptom(s) ?</b>', '<b>Chest pain</b>')",1
+"('adsym_chestpain',)","('<b>Chest pain</b>',)",73
+"('adsym_seizconv',)","('<b>Seizures / convulsions</b>',)",69
+"('adsym_mobilchg',)","('<b>Change in mobility from baseline</b>',)",65
+"('adsym_arthralgia',)","('<b>Joint pain / arthralgia</b>',)",62
+"('adsym_urine',)","('<b>Urinary retention</b>',)",62
+"('adsym_seizconv', 'adsym_mobilchg')","('<b>Seizures / convulsions</b>', '<b>Change in mobility from baseline</b>')",49
+"('adsym_chestpain', 'adsym_urine')","('<b>Chest pain</b>', '<b>Urinary retention</b>')",40
+"('adsym_chestpain', 'adsym_arthralgia')","('<b>Chest pain</b>', '<b>Joint pain / arthralgia</b>')",36
+"('adsym_urine', 'adsym_mobilchg')","('<b>Urinary retention</b>', '<b>Change in mobility from baseline</b>')",36
+"('adsym_chestpain', 'adsym_seizconv')","('<b>Chest pain</b>', '<b>Seizures / convulsions</b>')",35
+"('adsym_arthralgia', 'adsym_urine')","('<b>Joint pain / arthralgia</b>', '<b>Urinary retention</b>')",32
+"('adsym_seizconv', 'adsym_arthralgia')","('<b>Seizures / convulsions</b>', '<b>Joint pain / arthralgia</b>')",30
+"('adsym_chestpain', 'adsym_seizconv', 'adsym_arthralgia')","('<b>Chest pain</b>', '<b>Seizures / convulsions</b>', '<b>Joint pain / arthralgia</b>')",28
+"('adsym_seizconv', 'adsym_urine')","('<b>Seizures / convulsions</b>', '<b>Urinary retention</b>')",24
+"('adsym_chestpain', 'adsym_mobilchg')","('<b>Chest pain</b>', '<b>Change in mobility from baseline</b>')",23
+"('adsym_arthralgia', 'adsym_urine', 'adsym_mobilchg')","('<b>Joint pain / arthralgia</b>', '<b>Urinary retention</b>', '<b>Change in mobility from baseline</b>')",23
+"('adsym_arthralgia', 'adsym_mobilchg')","('<b>Joint pain / arthralgia</b>', '<b>Change in mobility from baseline</b>')",22
+"('adsym_chestpain', 'adsym_urine', 'adsym_mobilchg')","('<b>Chest pain</b>', '<b>Urinary retention</b>', '<b>Change in mobility from baseline</b>')",21
+"('adsym_seizconv', 'adsym_arthralgia', 'adsym_mobilchg')","('<b>Seizures / convulsions</b>', '<b>Joint pain / arthralgia</b>', '<b>Change in mobility from baseline</b>')",18
+"('adsym_chestpain', 'adsym_arthralgia', 'adsym_mobilchg')","('<b>Chest pain</b>', '<b>Joint pain / arthralgia</b>', '<b>Change in mobility from baseline</b>')",15
+"('adsym_chestpain', 'adsym_seizconv', 'adsym_urine')","('<b>Chest pain</b>', '<b>Seizures / convulsions</b>', '<b>Urinary retention</b>')",14
+"('adsym_chestpain', 'adsym_arthralgia', 'adsym_urine')","('<b>Chest pain</b>', '<b>Joint pain / arthralgia</b>', '<b>Urinary retention</b>')",14
+"('adsym_seizconv', 'adsym_arthralgia', 'adsym_urine')","('<b>Seizures / convulsions</b>', '<b>Joint pain / arthralgia</b>', '<b>Urinary retention</b>')",14
+"('adsym_chestpain', 'adsym_seizconv', 'adsym_mobilchg')","('<b>Chest pain</b>', '<b>Seizures / convulsions</b>', '<b>Change in mobility from baseline</b>')",13
+"('adsym_chestpain', 'adsym_seizconv', 'adsym_arthralgia', 'adsym_urine')","('<b>Chest pain</b>', '<b>Seizures / convulsions</b>', '<b>Joint pain / arthralgia</b>', '<b>Urinary retention</b>')",11
+"('adsym_seizconv', 'adsym_urine', 'adsym_mobilchg')","('<b>Seizures / convulsions</b>', '<b>Urinary retention</b>', '<b>Change in mobility from baseline</b>')",10
+"('adsym_chestpain', 'adsym_seizconv', 'adsym_urine', 'adsym_mobilchg')","('<b>Chest pain</b>', '<b>Seizures / convulsions</b>', '<b>Urinary retention</b>', '<b>Change in mobility from baseline</b>')",9
+"('adsym_chestpain', 'adsym_arthralgia', 'adsym_urine', 'adsym_mobilchg')","('<b>Chest pain</b>', '<b>Joint pain / arthralgia</b>', '<b>Urinary retention</b>', '<b>Change in mobility from baseline</b>')",7
+"('adsym_seizconv', 'adsym_arthralgia', 'adsym_urine', 'adsym_mobilchg')","('<b>Seizures / convulsions</b>', '<b>Joint pain / arthralgia</b>', '<b>Urinary retention</b>', '<b>Change in mobility from baseline</b>')",6
+"('adsym_chestpain', 'adsym_seizconv', 'adsym_arthralgia', 'adsym_mobilchg')","('<b>Chest pain</b>', '<b>Seizures / convulsions</b>', '<b>Joint pain / arthralgia</b>', '<b>Change in mobility from baseline</b>')",5
+"('adsym_chestpain', 'adsym_seizconv', 'adsym_arthralgia', 'adsym_urine', 'adsym_mobilchg')","('<b>Chest pain</b>', '<b>Seizures / convulsions</b>', '<b>Joint pain / arthralgia</b>', '<b>Urinary retention</b>', '<b>Change in mobility from baseline</b>')",4

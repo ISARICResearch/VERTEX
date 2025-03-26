@@ -1,6 +1,4 @@
 variable,proportion,label,short_label
-treat_o2supp_ecmotyp___Veno-arterial (VA),0.6,"<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)","<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)"
-treat_unlisted,0.5814889336016097,<b>Other intervention(s) or procedure(s)</b>,<b>Other intervention(s) or procedure(s)</b>
 treat_fluid_parent,0.5776805251641138,<b>Parenteral IV fluid?</b>,<b>Parenteral IV fluid?</b>
 treat_antibiotic,0.5619834710743802,<b>Antibiotics</b>,<b>Antibiotics</b>
 treat_steroids,0.5590062111801242,<b>Corticosteroids</b>,<b>Corticosteroids</b>
@@ -9,3 +7,5 @@ treat_blood_occur,0.5460122699386503,<b>Blood / blood products transfusion</b>,<
 treat_intravenim,0.5448851774530271,<b>Intravenous immunoglobulin</b>,<b>Intravenous immunoglobulin</b>
 treat_fluid_oral,0.5419222903885481,<b>Oral rehydration</b>,<b>Oral rehydration</b>
 treat_o2supp_suppleo2,0.5257936507936508,<b>Supplemental oxygen</b>,<b>Supplemental oxygen</b>
+treat_plasmapher,0.5244897959183673,<b>Plasmapheresis / plasma exchange</b>,<b>Plasmapheresis / plasma exchange</b>
+treat_o2supp_type___Unknown,0.3090909090909091,"<b>If yes: Select all types of respiratory support the patient received (from 00:00 to 24:00) on the day of assessment</b>, Unknown","<b>If yes: Select all types of respiratory ...</b>, Unknown"

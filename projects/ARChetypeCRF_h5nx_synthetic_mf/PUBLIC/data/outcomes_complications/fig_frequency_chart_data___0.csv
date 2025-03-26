@@ -1,0 +1,4 @@
+variable,proportion,label,short_label
+compl_severeliver,0.175,<b>Severe liver disease (new onset)</b>,<b>Severe liver disease (new onset)</b>
+compl_acuterenal,0.165,<b>Acute renal injury / acute renal failure</b>,<b>Acute renal injury / acute renal failure</b>
+compl_ards,0.155,<b>Acute Respiratory Distress Syndrome (ARDS)</b>,<b>Acute Respiratory Distress Syndrome ...</b>
