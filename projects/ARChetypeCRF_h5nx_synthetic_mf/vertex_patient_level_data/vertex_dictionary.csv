@@ -15,7 +15,17 @@ demog_healthcare,presentation,binary,Employed as a healthcare worker,demog
 comor,presentation,section,CO-MORBIDITIES AND RISK FACTORS,
 comor_hypertensi,presentation,binary,Hypertension (physician diagnosed),comor
 comor_chrkidney,presentation,binary,Chronic kidney disease,comor
+comor_chrkidney_stag,presentation,categorical,Stage of chronic kidney disease,comor
+comor_chrkidney_stag___Stage 1,presentation,binary,Stage 1,comor_chrkidney_stag
+comor_chrkidney_stag___Stage 2,presentation,binary,Stage 2,comor_chrkidney_stag
+comor_chrkidney_stag___Stage 3a,presentation,binary,Stage 3a,comor_chrkidney_stag
+comor_chrkidney_stag___Stage 3b,presentation,binary,Stage 3b,comor_chrkidney_stag
+comor_chrkidney_stag___Stage 4,presentation,binary,Stage 4,comor_chrkidney_stag
+comor_chrkidney_stag___Stage 5,presentation,binary,Stage 5,comor_chrkidney_stag
 comor_liverdisease,presentation,binary,Liver disease,comor
+comor_liverdisease_type,presentation,categorical,Type of liver disease,comor
+comor_liverdisease_type___Mild,presentation,binary,Mild,comor_liverdisease_type
+comor_liverdisease_type___Moderate or severe,presentation,binary,Moderate or severe,comor_liverdisease_type
 comor_obesity,presentation,binary,Obesity,comor
 comor_diabetes_yn,presentation,binary,Diabetes mellitus,comor
 comor_smoking_yn,presentation,binary,Ever smoked,comor

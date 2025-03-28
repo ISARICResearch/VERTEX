@@ -1,4 +1,8 @@
 variable,proportion,label,short_label
+comor_liverdisease_type___Mild,0.5972222222222222,"<b>Type of liver disease</b>, Mild","<b>Type of liver disease</b>, Mild"
+comor_liverdisease_type___Moderate or severe,0.4027777777777778,"<b>Type of liver disease</b>, Moderate or severe","<b>Type of liver disease</b>, Moderate or severe"
+comor_chrkidney_stag___Stage 2,0.3767123287671233,"<b>Stage of chronic kidney disease</b>, Stage 2","<b>Stage of chronic kidney disease</b>, Stage 2"
+comor_chrkidney_stag___Stage 3a,0.2808219178082192,"<b>Stage of chronic kidney disease</b>, Stage 3a","<b>Stage of chronic kidney disease</b>, Stage 3a"
 comor_obesity,0.27,<b>Obesity</b>,<b>Obesity</b>
 comor_hypertensi,0.253,<b>Hypertension (physician diagnosed)</b>,<b>Hypertension (physician diagnosed)</b>
 comor_diabetes_yn,0.181,<b>Diabetes mellitus</b>,<b>Diabetes mellitus</b>

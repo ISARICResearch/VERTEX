@@ -17,20 +17,21 @@ def get_graph_id(graph_id_suffix, suffix, frame=1):
     return graph_id
 
 
-def save_inputs_to_file(locals):
+def save_inputs_to_file(local_args):
     fig_name = sys._getframe(1).f_code.co_name
-    data = locals.pop('df')
+    data = local_args.pop('df')
     # Convert to list (if not already)
     data = data if isinstance(data, tuple) else (data,)
-    path = locals['filepath']
-    graph_id = get_graph_id(locals['graph_id'], locals['suffix'], frame=2)
+    path = local_args['filepath']
+    graph_id = get_graph_id(
+        local_args['graph_id'], local_args['suffix'], frame=2)
     fig_data = [
         graph_id + '_data___' + str(ii) + '.csv'
         for ii in range(len(data))]
     metadata = {
         'fig_id': graph_id,
         'fig_name': fig_name,
-        'fig_arguments': locals,
+        'fig_arguments': local_args,
         'fig_data': fig_data,
     }
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -775,6 +776,67 @@ def fig_flowchart(
         plot_bgcolor='rgba(0, 0, 0, 0)')
     fig = go.Figure(layout=layout)
 
+    graph_id = get_graph_id(graph_id, suffix)
+    return fig, graph_id, graph_label, graph_about
+
+
+def fig_forest_plot(
+        df,
+        title='Forest Plot',
+        labels=['Variable', 'OddsRatio', 'LowerCI', 'UpperCI'],
+        suffix='', filepath='', save_inputs=False,
+        graph_id='forest-plot', graph_label='', graph_about=''):
+
+    # Ordering Values -> Descending Order
+    df = df.sort_values(by=labels[1], ascending=True)
+
+    # Error Handling
+    if not set(labels).issubset(df.columns):
+        print(df.columns)
+        error_str = f'Dataframe must contain the following columns: {labels}'
+        raise ValueError(error_str)
+
+    # Prepare Data Traces
+    traces = []
+
+    # Add the point estimates as scatter plot points
+    traces.append(
+     go.Scatter(
+         x=df[labels[1]],
+         y=df[labels[0]],
+         mode='markers',
+         name='Odds Ratio',
+         marker=dict(color='blue', size=10))
+    )
+
+    # Add the confidence intervals as lines
+    for index, row in df.iterrows():
+        traces.append(
+            go.Scatter(
+                x=[row[labels[2]], row[labels[3]]],
+                y=[row[labels[0]], row[labels[0]]],
+                mode='lines',
+                showlegend=False,
+                line=dict(color='blue', width=2)
+            )
+        )
+
+    # Define layout
+    layout = go.Layout(
+     title=title,
+     xaxis=dict(title='Odds Ratio'),
+     yaxis=dict(
+         title='', automargin=True, tickmode='array',
+         tickvals=df[labels[0]].tolist(), ticktext=df[labels[0]].tolist()),
+     shapes=[
+         dict(
+             type='line', x0=1, y0=-0.5, x1=1, y1=len(df[labels[0]])-0.5,
+             line=dict(color='red', width=2)
+         )],  # Line of no effect
+     margin=dict(l=100, r=100, t=100, b=50),
+     height=600
+    )
+    fig = {'data': traces, 'layout': layout}
     graph_id = get_graph_id(graph_id, suffix)
     return fig, graph_id, graph_label, graph_about
 

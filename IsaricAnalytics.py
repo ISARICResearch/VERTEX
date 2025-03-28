@@ -1079,7 +1079,7 @@ def execute_cox_model(df, duration_col, event_col, predictors, labels=None):
 
 ############################################
 ############################################
-# SOME RAPS 
+# SOME RAPS
 # (basic imputation, variance check, correlation check and feature selection)
 ############################################
 ############################################
@@ -1098,7 +1098,7 @@ def impute_miss_val(df, missing_threshold=0.7):
     # Identify columns to drop
     cols_to_drop = missing_proportions[missing_proportions > missing_threshold].index
     df = df.drop(columns=cols_to_drop)
-  
+
     # Impute missing values in remaining columns
     for col in df.columns:
         if df[col].isnull().any():
@@ -1135,10 +1135,10 @@ def rmv_low_var(df, mad_threshold=0.1, freq_threshold=0.05):
     # Remove single-valued columns first
     single_value_cols = df.columns[df.nunique() == 1]
     df = df.drop(columns=single_value_cols)
-    
+
     # Select numeric columns
     numeric_cols = df.select_dtypes(include=[np.number]).columns
-    
+
    # Select numeric columns and identify binary columns
     numeric_cols = df.select_dtypes(include=[np.number]).columns
     binary_cols = df.columns[df.nunique() == 2]
@@ -1156,12 +1156,12 @@ def rmv_low_var(df, mad_threshold=0.1, freq_threshold=0.05):
     if len(binary_cols) > 0:
         X_bin = df[binary_cols].apply(lambda x: pd.factorize(x)[0])
         binary_counts = X_bin.apply(pd.value_counts, normalize=True)
-        keep_cols = [col for col in binary_cols if 
+        keep_cols = [col for col in binary_cols if
                     binary_counts[col].min() >= freq_threshold]
         X_bin = df[keep_cols]  # Keep original values for these columns
     else:
         X_bin = pd.DataFrame()  # Empty DataFrame if no binary columns
-    
+
     # Normalise the numeric columns by max
     df_tmp = df
     for col in non_binary_cols:
@@ -1172,28 +1172,28 @@ def rmv_low_var(df, mad_threshold=0.1, freq_threshold=0.05):
     for col in non_binary_cols:
         mad = np.median(np.abs(df[col] - np.median(df[col])))
         mad_values[col] = mad
-    
+
     # Create a Series from the MAD values
     mad_series = pd.Series(mad_values)
     #print(mad_series)
-    
-    # Identify columns to keep: 
+
+    # Identify columns to keep:
     # 1. Non-numeric columns
     # 2. Binary numeric columns
     # 3. Non-binary numeric columns with MAD above threshold
     cols_to_keep = set(df.columns) - set(non_binary_cols)-set(binary_cols)  # Start with all CAT columns
     cols_to_keep.update(mad_series[mad_series >= mad_threshold].index)  # Add high MAD columns
-    
+
     # Keep only the identified columns
     X_comb = pd.concat([df[list(cols_to_keep)], X_bin], axis=1)
     df = X_comb
-    
+
     # Print summary for debugging
-   
+
     print("High Frequency Binary columns kept:", X_bin.shape)
     print(f"Columns removed due to low MAD: {len(non_binary_cols) - len(mad_series[mad_series >= mad_threshold])}")
-   
-  
+
+
     return df
 
 
@@ -1208,19 +1208,19 @@ def rmv_high_corr(df, correlation_threshold=0.5):
     # Step 3: Identify highly correlated columns with a double loop
     to_drop = set()  # Use a set to avoid duplicates
     num_cols = corr_matrix.shape[0]
-    
+
     for i in range(num_cols):
         for j in range(i + 1, num_cols):  # Only look at the upper triangle
             if corr_matrix.iloc[i, j] > correlation_threshold:
                 # Identify the columns with high correlation
                 col1 = corr_matrix.columns[i]
                 col2 = corr_matrix.columns[j]
-                
+
                 # Add one of the columns to `to_drop`
                 to_drop.add(col2)  # Arbitrarily drop the second column
 
     # Step 4: Drop highly correlated columns
-   
+
     print("\nCORR Summary")
     print(f"Columns removed due to high correlation: {len(to_drop)}")
     df = df.drop(columns=list(to_drop))
@@ -1237,7 +1237,7 @@ def lasso_var_sel_binary(df, outcome_col='mapped_outcome', random_state=42):
     if outcome_col not in df.columns:
         raise ValueError(f"Outcome column '{outcome_col}' not found in DataFrame")
 
-    
+
     # Separate predictors and outcome
     y = df[outcome_col].copy()
     X_ini = df.drop(columns=[outcome_col])
@@ -1246,12 +1246,12 @@ def lasso_var_sel_binary(df, outcome_col='mapped_outcome', random_state=42):
     # Encode the binary outcome
     label_encoder = LabelEncoder()
     y = label_encoder.fit_transform(y)
-    
+
     # Verify that we have a binary outcome
     n_classes = len(np.unique(y))
     if n_classes != 2:
         raise ValueError("This function is designed for binary classification only. More than two classes found.")
-    
+
     # Standardize features
     scaler = StandardScaler()
     numeric_cols = X_ini.select_dtypes(include=[np.number]).columns
@@ -1280,13 +1280,13 @@ def lasso_var_sel_binary(df, outcome_col='mapped_outcome', random_state=42):
     X = pd.get_dummies(X, columns=multi_cats, prefix_sep='*_*')
     print(f"\nshape of X after one-hot: {X.shape}")
     X.to_csv('ISARIC_mpox2rmv_1hot.csv', index=True)
-    
+
     if X.shape[1] > 0:
         print("First actual predictor column:", X.columns[0])
     else:
         raise ValueError("No predictor columns left after dropping outcome (and ID if applicable).")
 
-    
+
 
     # Fit binary logistic regression with elastic net
     # For binary classification, multi_class defaults to 'ovr', which yields a single set of coefficients.
@@ -1305,7 +1305,7 @@ def lasso_var_sel_binary(df, outcome_col='mapped_outcome', random_state=42):
         scoring='balanced_accuracy'
     )
 
-    
+
     # Below is the original way we started
     logistic.fit(X, y)
 
@@ -1317,17 +1317,17 @@ def lasso_var_sel_binary(df, outcome_col='mapped_outcome', random_state=42):
         print(f"\nRow {i} (supposed to be l1_ratio = {l1_vec[i]}):")
         print(logistic.scores_[1][0, :10, i])
 
-    
-    scores_dt = np.mean(logistic.scores_[1],axis=0) 
+
+    scores_dt = np.mean(logistic.scores_[1],axis=0)
     print("Mean scores for varying l1_ratio and Cs")
-    print(scores_dt)  # print matrix for this fold 
-    
+    print(scores_dt)  # print matrix for this fold
+
     scores_df = pd.DataFrame(
     scores_dt,  # Transpose to get l1_ratios as rows
     index=C_vec,
     columns=l1_vec
     )
-    
+
     # Label the axes
     scores_df.index.name = 'C'
     scores_df.columns.name = 'l1_ratio'
@@ -1387,7 +1387,7 @@ def lasso_var_sel_binary(df, outcome_col='mapped_outcome', random_state=42):
         'accuracy': accuracy_score(y, y_pred),
         'cv_scores': all_class_scores
     }
-    
+
     original_features = {}
     for feature in selected_features:
       if '*_*' in feature:
@@ -1421,7 +1421,7 @@ def lasso_var_sel_binary(df, outcome_col='mapped_outcome', random_state=42):
             main_fields.append(field)
         else:
             main_fields.append(field)  # For regular features
-    
+
     # Convert main_fields list to a single-column DataFrame
     main_fields_df = pd.DataFrame({'Main Features': main_fields})
     print(main_fields_df)
@@ -1431,7 +1431,7 @@ def lasso_var_sel_binary(df, outcome_col='mapped_outcome', random_state=42):
     print(top_params)
 
     return results_df, scores_df, main_fields_df, top_params, X_selected, y, selected_features, coef_df, label_encoder, feature_importance, metrics
-    
+
     # Group features by main field and sort by importance
 def create_grouped_results(selected_features, feature_importance):
     """
@@ -1441,7 +1441,7 @@ def create_grouped_results(selected_features, feature_importance):
     # Step 1: Identify one-hot encoded and regular features
     categorical_fields = set()
     regular_features = []
-    
+
     for feature in selected_features:
         if '*_*' in feature:
             # One-hot encoded feature
@@ -1449,10 +1449,10 @@ def create_grouped_results(selected_features, feature_importance):
         else:
             # Regular feature
             regular_features.append(feature)
-    
+
     # Step 2: Organize features by main field
     field_groups = {}
-    
+
     # Process categorical fields
     for field in categorical_fields:
         field_groups[field] = []
@@ -1466,7 +1466,7 @@ def create_grouped_results(selected_features, feature_importance):
                     'Coefficient': coef,
                     'AbsCoef': abs(coef)
                 })
-    
+
     # Process regular features
     for feature in regular_features:
         coef = feature_importance[feature]
@@ -1476,18 +1476,18 @@ def create_grouped_results(selected_features, feature_importance):
             'Coefficient': coef,
             'AbsCoef': abs(coef)
         }]
-    
+
     # Get max coefficient for each field for sorting
     field_max_coef = {}
     for field, categories in field_groups.items():
         field_max_coef[field] = max(cat['AbsCoef'] for cat in categories)
-    
+
     #  Sort fields by their max coefficient
     sorted_fields = sorted(field_groups.keys(), key=lambda f: field_max_coef[f], reverse=True)
-    
+
     # Create the final DataFrame with the desired structure
     results = []
-    
+
     for field in sorted_fields:
         if field in categorical_fields:
             # For categorical fields, add header row with no coefficient
@@ -1495,7 +1495,7 @@ def create_grouped_results(selected_features, feature_importance):
                 'Feature': field,
                 'Coefficient': "..."
             })
-            
+
             # Add all categories
             categories = sorted(field_groups[field], key=lambda x: x['AbsCoef'], reverse=True)
             for cat in categories:
@@ -1509,7 +1509,7 @@ def create_grouped_results(selected_features, feature_importance):
                 'Feature': field,
                 'Coefficient': field_groups[field][0]['Coefficient']
             })
-    
+
     return pd.DataFrame(results), sorted_fields, categorical_fields
 
 def get_parameter_ranking(logistic, n_top=10):
@@ -1519,32 +1519,32 @@ def get_parameter_ranking(logistic, n_top=10):
     """
     import pandas as pd
     import numpy as np
-    
+
     # Create empty list to store parameter information
     param_scores = []
-    
+
     # Get model parameters
     l1_ratios = logistic.l1_ratios_
     Cs = logistic.Cs_
-    
+
     # Get first class key (for binary classification, there's only one set of scores)
     first_class = list(logistic.scores_.keys())[0]
-    
+
     # Loop through all parameter combinations
     for l1_ratio_idx, l1_ratio in enumerate(l1_ratios):
         for C_idx, C in enumerate(Cs):
             # Get mean score across folds for this parameter combination
             score = np.mean(logistic.scores_[first_class][:, C_idx, l1_ratio_idx])
-            
+
             # Get coefficients for this parameter combination
             coef_path = logistic.coefs_paths_[first_class][:, C_idx, l1_ratio_idx, :]
-            
+
             # Average across folds
             mean_coef = np.mean(coef_path, axis=0)
-            
+
             # Count non-zero coefficients
             n_features = np.sum(np.abs(mean_coef) > 1e-3)
-            
+
             # Append to our list
             param_scores.append({
                 'l1_ratio': l1_ratio,
@@ -1552,9 +1552,9 @@ def get_parameter_ranking(logistic, n_top=10):
                 'score': score,
                 'n_features': n_features
             })
-    
+
     # Convert to DataFrame and sort
     params_df = pd.DataFrame(param_scores)
     params_df = params_df.sort_values('score', ascending=False).head(n_top)
-    
+
     return params_df

@@ -1,0 +1,15 @@
+Variable,Coefficient (multi),LowerCI (multi),UpperCI (multi),p-value (multi),Coefficient (uni),LowerCI (uni),UpperCI (uni),p-value (uni)
+<b>Fever (admission)</b>,-0.191,-0.333,-0.048,0.0088,0.152,-0.297,0.602,0.5071
+<b>Headache (admission)</b>,-0.476,-0.612,-0.341,0.0000,-0.564,-0.97,-0.159,0.0063
+<b>Chronic kidney disease</b>,0.918,0.738,1.098,0.0000,1.353,0.804,1.902,0.0000
+<b>Diabetes mellitus</b>,0.636,0.466,0.806,0.0000,0.208,-0.309,0.725,0.4307
+<b>Hypertension (physician diagnosed)</b>,0.385,0.239,0.53,0.0000,0.495,0.037,0.953,0.0341
+<b>Liver disease</b>,1.607,1.421,1.793,0.0000,1.48,0.903,2.058,0.0000
+<b>Ever smoked</b>,0.075,-0.088,0.238,0.3675,-0.254,-0.762,0.255,0.3283
+<b>Acute Respiratory Distress Syndrome ...</b>,3.527,3.353,3.7,0.0000,3.396,2.92,3.872,0.0000
+"<b>Age</b>, Over 64",2.753,2.609,2.896,0.0000,2.881,2.497,3.265,0.0000
+"<b>Sex at birth</b>, Male",-0.107,-0.244,0.03,0.1272,0.245,-0.162,0.653,0.2382
+"<b>If yes: Select all types of respiratory ...</b>, High-flow nasal oxygen",0.42,0.278,0.562,0.0000,1.416,0.993,1.838,0.0000
+"<b>If yes: Select all types of respiratory ...</b>, Non-invasive ventilation",1.587,1.447,1.726,0.0000,1.801,1.388,2.215,0.0000
+"<b>If yes: Select all types of respiratory ...</b>, Invasive ventilation",2.433,2.25,2.616,0.0000,2.815,2.288,3.341,0.0000
+<b>Vaccinated for seasonal influenza (ever)</b>,-1.413,-1.544,-1.282,0.0000,-0.835,-1.238,-0.433,0.0000
