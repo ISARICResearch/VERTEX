@@ -95,7 +95,87 @@ def fig_pie(
     graph_id = get_graph_id(graph_id, suffix)
     return fig, graph_id, graph_label, graph_about
 
+def fig_timelines( df,
+        title='Timeline',
+        label_col='',
+        group_col='',
+        start_date='start_date',
+        end_date='end_date',
+        size_col=None,
+        min_width=2,
+        max_width=10,
+        suffix='',
+        filepath='',
+        save_inputs=False,
+        graph_id='',
+        graph_label='',
+        graph_about=''
+    ):
 
+    if save_inputs:
+        inputs = save_inputs_to_file(locals())
+
+    df = df.copy()
+    df[start_date] = pd.to_datetime(df[start_date])
+    df[end_date] = pd.to_datetime(df[end_date])
+    max_end = df[end_date].max()
+
+    # Assign colors by group_col
+    unique_groups = df[group_col].unique()
+    color_map = {
+        group: px.colors.qualitative.Plotly[i % len(px.colors.qualitative.Plotly)]
+        for i, group in enumerate(unique_groups)
+    }
+
+    # Assign line widths if size_col is used
+    if size_col and df[size_col].notnull().any():
+        values = df[size_col].fillna(0).astype(float)
+        min_val, max_val = values.min(), values.max()
+        if min_val == max_val:
+            widths = {row[label_col]: (min_width + max_width) / 2 for _, row in df.iterrows()}
+        else:
+            widths = {
+                row[label_col]: min_width + (val - min_val) / (max_val - min_val) * (max_width - min_width)
+                for row, val in zip(df.to_dict(orient='records'), values)
+            }
+    else:
+        widths = {row[label_col]: 3 for _, row in df.iterrows()}
+
+    fig = go.Figure()
+
+    for _, row in df.iterrows():
+        y = row[label_col]
+        x_start = row[start_date]
+        x_end = row[end_date] if pd.notnull(row[end_date]) else max_end
+        ongoing = pd.isnull(row[end_date])
+        color = color_map[row[group_col]]
+        width = widths[y]
+
+        fig.add_trace(go.Scatter(
+            x=[x_start, x_end],
+            y=[y, y],
+            mode='lines+markers',
+            line=dict(color=color, width=width),
+            marker=dict(
+                size=[14, 18],
+                symbol=['circle', 'arrow-right'] if ongoing else ['circle', 'circle'],
+                color=color,
+                line=dict(width=1, color='black')
+            ),
+            name=row[group_col],
+            legendgroup=row[group_col],
+            showlegend=(row[group_col] not in [t.name for t in fig.data])
+        ))
+
+    fig.update_layout(
+        title=title,
+        xaxis_title='Date',
+        yaxis=dict(title=label_col, tickfont=dict(size=10)),
+        margin=dict(l=250, r=20, t=40, b=40),
+        height=300 + 40 * len(df)
+    )
+    graph_id = get_graph_id(graph_id, suffix)
+    return fig, graph_id, graph_label, graph_about
 
 def fig_sunburst(
         df,
