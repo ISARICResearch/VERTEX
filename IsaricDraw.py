@@ -74,6 +74,28 @@ def fig_placeholder(
     graph_id = get_graph_id(graph_id, suffix)
     return fig, graph_id, graph_label, graph_about
 
+def fig_pie(
+        df,
+        title='Pie chart',
+        item='',
+        value='',
+        suffix='', filepath='', save_inputs=False,
+        graph_id='', graph_label='', graph_about=''):
+
+    if save_inputs:
+        inputs = save_inputs_to_file(locals())
+
+    fig = px.pie(df, values=value, names=item, title=title)
+    fig.update_layout(
+        title=title,
+        xaxis_title='X Axis',
+        yaxis_title='Y Axis',
+        yaxis_range=[10, 15])
+
+    graph_id = get_graph_id(graph_id, suffix)
+    return fig, graph_id, graph_label, graph_about
+
+
 
 def fig_sunburst(
         df,
