@@ -1219,8 +1219,6 @@ def main():
             json.dump(save_config_dict, file)
     return app
 
-app = main()
-server = app.server
 
 if __name__ == '__main__':
     app = main()
