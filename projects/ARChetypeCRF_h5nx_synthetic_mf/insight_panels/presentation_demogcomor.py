@@ -22,6 +22,7 @@ def create_visuals(
     '''
     Create all visuals in the insight panel from the RAP dataframe
     '''
+
     # Leftmost edge of the bins
     age_groups = [
         '0-5', '6-10', '11-15', '16-20', '21-25', '26-30', '31-35', '36-40',

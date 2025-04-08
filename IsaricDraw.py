@@ -28,6 +28,8 @@ def save_inputs_to_file(local_args):
     fig_data = [
         graph_id + '_data___' + str(ii) + '.csv'
         for ii in range(len(data))]
+    _ = local_args.pop('filepath')
+    _ = local_args.pop('save_inputs')
     metadata = {
         'fig_id': graph_id,
         'fig_name': fig_name,

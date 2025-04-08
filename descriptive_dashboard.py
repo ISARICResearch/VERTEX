@@ -458,8 +458,9 @@ def get_visuals(
     for ii in range(len(buttons)):
         suffix = buttons[ii]['suffix']
         visuals = insight_panels[suffix].create_visuals(
-            df_map=df_map, df_forms_dict=df_forms_dict,
-            dictionary=dictionary, quality_report=quality_report,
+            df_map=df_map.copy(),
+            df_forms_dict={k: v.copy() for k, v in df_forms_dict.items()},
+            dictionary=dictionary.copy(), quality_report=quality_report,
             suffix=suffix, filepath=filepath, save_inputs=True)
         buttons[ii]['graph_ids'] = [id for _, id, _, _ in visuals]
     return buttons
@@ -841,8 +842,9 @@ def register_callbacks(
             button_id = ctx.triggered[0]['prop_id'].split('.')[0]
             suffix = json.loads(button_id)['index']
             visuals = insight_panels[suffix].create_visuals(
-                df_map=df_map, df_forms_dict=df_forms_dict,
-                dictionary=dictionary, quality_report=quality_report,
+                df_map=df_map.copy(),
+                df_forms_dict={k: v.copy() for k, v in df_forms_dict.items()},
+                dictionary=dictionary.copy(), quality_report=quality_report,
                 suffix=suffix, filepath=filepath, save_inputs=False)
             button = {
                 **insight_panels[suffix].define_button(), **{'suffix': suffix}}
@@ -989,8 +991,11 @@ def register_callbacks(
             modal = ()
         else:
             visuals = insight_panels[suffix].create_visuals(
-                df_map=df_map_filtered, df_forms_dict=df_forms_filtered,
-                dictionary=dictionary, quality_report=quality_report,
+                df_map=df_map_filtered.copy(),
+                df_forms_dict={
+                    k: v.copy() for k, v in df_forms_filtered.items()},
+                dictionary=dictionary.copy(),
+                quality_report=quality_report,
                 filepath=filepath, suffix=suffix,
                 save_inputs=save_inputs)
             modal = create_modal(visuals, button, filter_options)

@@ -1,10 +1,12 @@
 import pandas as pd
 import numpy as np
+import warnings
 from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.linear_model import LogisticRegressionCV, LogisticRegression
-from sklearn.model_selection import StratifiedKFold, GridSearchCV
-from scipy.stats import fisher_exact
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, balanced_accuracy_score, make_scorer
+from sklearn.model_selection import StratifiedKFold
+# from scipy.stats import fisher_exact
+from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import confusion_matrix
+# from sklearn.metrics import balanced_accuracy_score, make_scorer
 # from typing import List, Union
 # from bertopic import BERTopic
 # from bertopic.representation import KeyBERTInspired, MaximalMarginalRelevance
@@ -13,6 +15,7 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 # from sklearn.preprocessing import MinMaxScaler
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
+from statsmodels.stats.outliers_influence import variance_inflation_factor
 from lifelines import CoxPHFitter
 from scipy.stats import norm
 from statsmodels.genmod.bayes_mixed_glm import BinomialBayesMixedGLM
@@ -67,10 +70,11 @@ def extend_dictionary(dictionary, new_variable_dict, data, sep='___'):
             else:
                 new_ind = dictionary.loc[(
                     dictionary['field_name'] == parent), 'index'].max()
+                parent = dictionary.loc[new_ind, 'field_name']
                 while (parent in dictionary['parent'].values):
-                    parent = dictionary.loc[new_ind, 'field_name']
                     new_ind = dictionary.loc[(
                         dictionary['parent'] == parent), 'index'].max()
+                    parent = dictionary.loc[new_ind, 'field_name']
                 new_ind = new_ind + 0.1
         else:
             new_ind = new_dictionary.loc[(
@@ -85,6 +89,7 @@ def extend_dictionary(dictionary, new_variable_dict, data, sep='___'):
     for ind in ind_list:
         variable = new_dictionary.loc[ind, 'field_name']
         options = data[variable].drop_duplicates().sort_values().dropna()
+        options = [y for y in options if y not in (True, False)]
         options = [
             y for y in options
             if (variable + sep + str(y))
@@ -137,7 +142,8 @@ def get_variables_by_section_and_type(
 
 
 def convert_categorical_to_onehot(
-        df, dictionary, categorical_columns, sep='___', missing_val='nan'):
+        df, dictionary, categorical_columns,
+        sep='___', missing_val='nan', drop_first=False):
     '''Convert categorical variables into onehot-encoded variables.'''
     categorical_columns = [
         col for col in df.columns if col in categorical_columns]
@@ -157,6 +163,15 @@ def convert_categorical_to_onehot(
             mask = (df[categorical_column + sep + missing_val] == 1)
             df.loc[mask, onehot_columns] = np.nan
             df = df.drop(columns=[categorical_column + sep + missing_val])
+        else:
+            if drop_first:
+                drop_column_ind = dictionary.apply(
+                    lambda x: (
+                        (x['parent'] == categorical_column) &
+                        (x['field_name'].split('___')[0] == categorical_column)
+                    ), axis=1)
+                df = df.drop(columns=[
+                    dictionary.loc[drop_column_ind, 'field_name'].values[0]])
 
     columns = [
         col for col in dictionary['field_name'].values if col in df.columns]
@@ -397,7 +412,7 @@ def trim_field_label(x, max_len=40):
     return x
 
 
-def format_descriptive_table_variables(dictionary, max_len=100):
+def format_descriptive_table_variables(dictionary, max_len=100, add_key=True):
     name = dictionary['field_name'].apply(
         lambda x: '   ↳ ' if '___' in x else '<b>')
     name += dictionary['field_type'].map({'section': '<i>'}).fillna('')
@@ -407,9 +422,12 @@ def format_descriptive_table_variables(dictionary, max_len=100):
     name += dictionary['field_type'].map({'section': '</i>'}).fillna('')
     name += dictionary['field_name'].apply(
         lambda x: '' if '___' in x else '</b>')
-    field_type = dictionary['field_type'].map({
-        'categorical': ' (*)', 'binary': ' (*)', 'numeric': ' (+)'}).fillna('')
-    name += field_type*(dictionary['field_name'].str.contains('___') == 0)
+    if add_key is True:
+        field_type = dictionary['field_type'].map({
+            'categorical': ' (*)',
+            'binary': ' (*)',
+            'numeric': ' (+)'}).fillna('')
+        name += field_type*(dictionary['field_name'].str.contains('___') == 0)
     return name
 
 
@@ -689,6 +707,234 @@ def extract_topic_embeddings(
 # Logistic Regression from Risk Factors
 ############################################
 ############################################
+
+
+def get_modelling_data(
+        data, dictionary, outcome_columns,
+        include_sections=[
+            'demog', 'comor', 'adsym', 'vacci', 'vital', 'sympt', 'labs'],
+        required_variables=None,
+        include_types=['binary', 'categorical', 'numeric'],
+        exclude_suffix=[
+            '_units', 'addi', 'otherl2', 'item', '_oth',
+            '_unlisted', 'otherl3'],
+        include_subjid=False, exclude_negatives=True,
+        fillna=True, drop_first=False):
+    df = data.copy()
+
+    if isinstance(outcome_columns, str):
+        outcome_columns = [outcome_columns]
+
+    include_columns = get_variables_by_section_and_type(
+        df, dictionary,
+        required_variables=required_variables,
+        include_types=include_types, include_subjid=include_subjid,
+        include_sections=include_sections, exclude_suffix=exclude_suffix)
+    for outcome_column in outcome_columns:
+        if (outcome_column not in include_columns):
+            include_columns = [outcome_column] + include_columns
+    df = df[include_columns].dropna(axis=1, how='all').copy()
+
+    # Convert categorical variables to onehot-encoded binary columns
+    categorical_ind = (dictionary['field_type'] == 'categorical')
+    columns = dictionary.loc[categorical_ind, 'field_name'].tolist()
+    columns = [col for col in columns if col not in tuple(outcome_columns)]
+    df = convert_categorical_to_onehot(
+        df, dictionary, categorical_columns=columns, drop_first=drop_first)
+
+    binary_ind = (dictionary['field_type'] == 'binary')
+    columns = dictionary.loc[binary_ind, 'field_name'].tolist()
+    columns = [col for col in columns if col in df.columns]
+    if fillna is True:
+        with pd.option_context('future.no_silent_downcasting', True):
+            df[columns] = df[columns].fillna(False)
+
+    negative_values = ('no', 'never smoked')
+    negative_columns = [
+        col for col in df.columns
+        if col.split('___')[-1].lower() in negative_values]
+    if exclude_negatives:
+        df.drop(columns=negative_columns, inplace=True)
+    return df
+
+
+def variance_influence_factor_backwards_elimination(
+        data, dictionary, predictors_list, sep='___'):
+    df = data.copy()
+
+    numeric_ind = (dictionary['field_type'] == 'numeric')
+    numeric_columns = dictionary.loc[numeric_ind, 'field_name'].tolist()
+    numeric_columns = [col for col in numeric_columns if col in df.columns]
+    numeric_columns = [
+        col for col in numeric_columns if col in predictors_list]
+
+    categorical_ind = dictionary['field_type'].isin(['binary'])
+    categorical_columns = dictionary.loc[
+        categorical_ind, 'field_name'].tolist()
+    categorical_columns = [
+        col for col in categorical_columns if col in df.columns]
+    categorical_columns = [
+        col for col in categorical_columns if col in predictors_list]
+
+    df[numeric_columns] = ((
+            df[numeric_columns] - df[numeric_columns].mean()
+        ) / df[numeric_columns].std())
+
+    df = 1.0 * pd.concat([
+            df[numeric_columns],
+            df[categorical_columns]
+        ], axis=1).astype(float)
+
+    keep_columns = df.columns
+    iterative_vif = pd.DataFrame(keep_columns, columns=['variable'])
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', category=RuntimeWarning)
+        iterative_vif['vif_iter_1'] = [
+            variance_inflation_factor(df[keep_columns].values, ii)
+            for ii in range(len(keep_columns))]
+    n = 1
+    while (iterative_vif['vif_iter_' + str(n)] > 10).any():
+        remove_column = iterative_vif.loc[
+            iterative_vif['vif_iter_' + str(n)].idxmax(), 'variable']
+        remove_column = remove_column.split(sep)[0]
+        keep_columns = [
+            col for col in keep_columns
+            if (col.split(sep)[0] != remove_column)]
+        n += 1
+        vif = pd.DataFrame(keep_columns, columns=['variable'])
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=RuntimeWarning)
+            vif['vif_iter_' + str(n)] = [
+                variance_inflation_factor(df[keep_columns].values, ii)
+                for ii in range(len(keep_columns))]
+        iterative_vif = pd.merge(iterative_vif, vif, how='left', on='variable')
+    return keep_columns, iterative_vif
+
+
+def remove_single_binary_outcome_predictors(
+        data, dictionary, predictors_list, outcome_str):
+    """
+    Removes binary predictors that are associated with only one outcome (e.g.
+    if all patients with some_variable=1 have outcome=1)
+
+    Parameters:
+    - data: Pandas DataFrame containing the data.
+    - outcome_str: Name of the response variable.
+    - predictors_list: List of predictor variable names.
+
+    Returns:
+    - updated_predictors_list: List of predictor variable names excluding
+    any that can't be used in the logistic regression model.
+    """
+    df = data.copy()
+
+    numeric_ind = (dictionary['field_type'] == 'numeric')
+    numeric_columns = dictionary.loc[numeric_ind, 'field_name'].tolist()
+    numeric_columns = [col for col in numeric_columns if col in df.columns]
+    numeric_columns = [
+        col for col in numeric_columns if col in predictors_list]
+
+    categorical_ind = dictionary['field_type'].isin(['binary'])
+    categorical_columns = dictionary.loc[
+        categorical_ind, 'field_name'].tolist()
+    categorical_columns = [
+        col for col in categorical_columns if col in data.columns]
+    categorical_columns = [
+        col for col in categorical_columns if col in predictors_list]
+
+    result = df.groupby(outcome_str)[categorical_columns].apply(
+        lambda x: x.isin([True]).any() & x.isin([False]).any(),
+        include_groups=False).T
+    keep_columns = result.loc[result.all(axis=1)].index.tolist()
+    keep_columns = keep_columns + numeric_columns
+    return keep_columns
+
+
+def regression_summary_table(
+        table, dictionary,
+        highlight_predictors=None, p_values=None, result_type='OddsRatio'):
+    variables = table['Variable'].tolist()
+    new_variables = variables + dictionary.loc[(
+            (dictionary['field_name'].isin(variables)) &
+            (dictionary['parent'].isin(['']) == 0)
+        ), 'parent'].tolist()
+    new_variables = list(set(new_variables))
+    while (len(variables) != len(new_variables)):
+        variables = new_variables
+        new_variables = variables + dictionary.loc[(
+                (dictionary['field_name'].isin(variables)) &
+                (dictionary['parent'].isin(['']) == 0)
+            ), 'parent'].tolist()
+        new_variables = list(set(new_variables))
+    # Reorders the variables
+    dictionary = dictionary.set_index('field_name')
+    nonrepeated_parent = dictionary.loc[variables].groupby('parent').apply(
+        len, include_groups=False).eq(1)
+    nonrepeated_parent = [
+        p for p in nonrepeated_parent.loc[nonrepeated_parent].index
+        if (dictionary.loc[p, 'field_type'] != 'section')]
+    variables = [var for var in variables if var not in nonrepeated_parent]
+    dictionary = dictionary.reset_index()
+
+    variables = dictionary.loc[(
+        dictionary['field_name'].isin(variables)), 'field_name'].tolist()
+
+    for reg_type in ['multi', 'uni']:
+        table[f'{result_type} ({reg_type})'] = table.apply(
+            lambda x:
+                '%.2f' % x[f'{result_type} ({reg_type})'] +
+                ' (' + '%.2f' % x[f'LowerCI ({reg_type})'] +
+                ', ' + '%.2f' % x[f'UpperCI ({reg_type})'] + ')', axis=1)
+
+        if p_values is not None:
+            significance = pd.Series('', index=table.index)
+            for key in p_values:
+                min_threshold = max(
+                    v for k, v in p_values.items() if (k != key))
+                if (min_threshold > p_values[key]):
+                    min_threshold = 0
+                ind = (
+                    (table[f'p-value ({reg_type})'] < p_values[key]) &
+                    (table[f'p-value ({reg_type})'] > (min_threshold - 1e-8)))
+                significance.loc[ind] = f' ({key})'
+
+            table[f'p-value ({reg_type})'] = (
+                table[f'p-value ({reg_type})'].apply(
+                    lambda x: '%.3f' % x) + significance)
+
+        table = table.drop(
+            columns=[f'LowerCI ({reg_type})', f'UpperCI ({reg_type})'])
+
+    add_variables = [
+        var for var in variables if var not in table['Variable'].tolist()]
+    add_table = pd.DataFrame(
+        '', columns=table.columns, index=range(len(add_variables)))
+    add_table['Variable'] = add_variables
+    table = pd.concat([table, add_table], axis=0)
+    table = table.set_index('Variable').loc[variables].reset_index()
+
+    add_key = pd.Series('', index=table.index)
+    if highlight_predictors is not None:
+        for key in highlight_predictors:
+            add_key.loc[
+                table['Variable'].isin(highlight_predictors[key])] += key
+        add_key = add_key.apply(lambda x: x if x == '' else f' ({x})')
+
+    formatted_labels_v1 = format_descriptive_table_variables(
+        dictionary, add_key=False)
+    formatted_labels_v2 = format_variables(dictionary)
+    v1_ind = (dictionary['parent'].isin(variables))
+    v2_ind = (dictionary['parent'].isin(variables) == 0)
+    mapping_dict = {
+        **dict(zip(
+            dictionary.loc[v1_ind, 'field_name'],
+            formatted_labels_v1.loc[v1_ind])),
+        **dict(zip(
+            dictionary.loc[v2_ind, 'field_name'],
+            formatted_labels_v2.loc[v2_ind]))}
+    table['Variable'] = table['Variable'].map(mapping_dict)
+    table['Variable'] = table['Variable'] + add_key
+    return table
 
 
 def execute_glmm_regression(elr_dataframe_df, elr_outcome_str, elr_predictors_list,
@@ -1059,8 +1305,9 @@ def execute_cox_model(df, duration_col, event_col, predictors, labels=None):
         summary['coef'] - 1.96 * summary['se(coef)'])
     summary['CI_upper'] = np.exp(
         summary['coef'] + 1.96 * summary['se(coef)'])
-    summary['p_adj'] = summary['p'].apply(
-        lambda p: "<0.001" if p < 0.001 else round(p, 3))
+    # summary['p_adj'] = summary['p'].apply(
+    #     lambda p: "<0.001" if p < 0.001 else round(p, 3))
+    summary['p_adj'] = summary['p'].apply(lambda p: round(p, 3))
 
     # Select relevant columns for the final summary
     summary_df = summary[[

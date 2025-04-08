@@ -22,6 +22,7 @@ def create_visuals(
     '''
     Create all visuals in the insight panel from the RAP dataframe
     '''
+
     # Interventions descriptive table
     # split_column = 'demog_sex'
     # split_column_order = ['Female', 'Male', 'Other / Unknown']
