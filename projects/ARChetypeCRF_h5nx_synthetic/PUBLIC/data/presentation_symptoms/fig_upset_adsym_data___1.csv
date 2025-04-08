@@ -1,18 +1,27 @@
 index,label,count
-"('adsym_reduvisiacu', 'adsym_palpitations', 'adsym_sorethroat', 'adsym_pruritus')","('<b>Newly reduced visual acuity</b>', '<b>Palpitations</b>', '<b>Sore throat</b>', '<b>Itch / pruritus</b>')",590
-"('adsym_reduvisiacu', 'adsym_sorethroat', 'adsym_pruritus')","('<b>Newly reduced visual acuity</b>', '<b>Sore throat</b>', '<b>Itch / pruritus</b>')",125
-"('adsym_palpitations', 'adsym_sorethroat', 'adsym_pruritus')","('<b>Palpitations</b>', '<b>Sore throat</b>', '<b>Itch / pruritus</b>')",84
-"('adsym_reduvisiacu', 'adsym_palpitations', 'adsym_sorethroat')","('<b>Newly reduced visual acuity</b>', '<b>Palpitations</b>', '<b>Sore throat</b>')",71
-"('adsym_reduvisiacu', 'adsym_palpitations', 'adsym_pruritus')","('<b>Newly reduced visual acuity</b>', '<b>Palpitations</b>', '<b>Itch / pruritus</b>')",64
-"('adsym_reduvisiacu', 'adsym_sorethroat')","('<b>Newly reduced visual acuity</b>', '<b>Sore throat</b>')",14
-"('adsym_reduvisiacu', 'adsym_pruritus')","('<b>Newly reduced visual acuity</b>', '<b>Itch / pruritus</b>')",14
-"('adsym_palpitations', 'adsym_sorethroat')","('<b>Palpitations</b>', '<b>Sore throat</b>')",10
-"('adsym_sorethroat', 'adsym_pruritus')","('<b>Sore throat</b>', '<b>Itch / pruritus</b>')",8
-"('adsym_reduvisiacu', 'adsym_palpitations')","('<b>Newly reduced visual acuity</b>', '<b>Palpitations</b>')",6
-"('adsym_palpitations', 'adsym_pruritus')","('<b>Palpitations</b>', '<b>Itch / pruritus</b>')",4
-"('adsym_unlisted_2addi', 'adsym_reduvisiacu', 'adsym_palpitations', 'adsym_sorethroat', 'adsym_pruritus')","('<b>->Any additional other sign(s) or symptom(s) ?</b>', '<b>Newly reduced visual acuity</b>', '<b>Palpitations</b>', '<b>Sore throat</b>', '<b>Itch / pruritus</b>')",3
-"('adsym_sorethroat',)","('<b>Sore throat</b>',)",2
-"('adsym_unlisted_2addi', 'adsym_reduvisiacu', 'adsym_palpitations', 'adsym_pruritus')","('<b>->Any additional other sign(s) or symptom(s) ?</b>', '<b>Newly reduced visual acuity</b>', '<b>Palpitations</b>', '<b>Itch / pruritus</b>')",1
-"('adsym_unlisted_2addi', 'adsym_reduvisiacu', 'adsym_sorethroat', 'adsym_pruritus')","('<b>->Any additional other sign(s) or symptom(s) ?</b>', '<b>Newly reduced visual acuity</b>', '<b>Sore throat</b>', '<b>Itch / pruritus</b>')",1
-"('adsym_reduvisiacu',)","('<b>Newly reduced visual acuity</b>',)",1
-"('adsym_pruritus',)","('<b>Itch / pruritus</b>',)",1
+"('adsym_sorethroat', 'adsym_pruritus', 'adsym_reduvisiacu', 'adsym_palpitations', 'adsym_chestindrw')","('<b>Sore throat</b>', '<b>Itch / pruritus</b>', '<b>Newly reduced visual acuity</b>', '<b>Palpitations</b>', '<b>Lower chest wall indrawing</b>')",442
+"('adsym_sorethroat', 'adsym_pruritus', 'adsym_reduvisiacu', 'adsym_palpitations')","('<b>Sore throat</b>', '<b>Itch / pruritus</b>', '<b>Newly reduced visual acuity</b>', '<b>Palpitations</b>')",151
+"('adsym_sorethroat', 'adsym_pruritus', 'adsym_reduvisiacu', 'adsym_chestindrw')","('<b>Sore throat</b>', '<b>Itch / pruritus</b>', '<b>Newly reduced visual acuity</b>', '<b>Lower chest wall indrawing</b>')",91
+"('adsym_sorethroat', 'adsym_pruritus', 'adsym_palpitations', 'adsym_chestindrw')","('<b>Sore throat</b>', '<b>Itch / pruritus</b>', '<b>Palpitations</b>', '<b>Lower chest wall indrawing</b>')",65
+"('adsym_sorethroat', 'adsym_reduvisiacu', 'adsym_palpitations', 'adsym_chestindrw')","('<b>Sore throat</b>', '<b>Newly reduced visual acuity</b>', '<b>Palpitations</b>', '<b>Lower chest wall indrawing</b>')",53
+"('adsym_pruritus', 'adsym_reduvisiacu', 'adsym_palpitations', 'adsym_chestindrw')","('<b>Itch / pruritus</b>', '<b>Newly reduced visual acuity</b>', '<b>Palpitations</b>', '<b>Lower chest wall indrawing</b>')",51
+"('adsym_sorethroat', 'adsym_pruritus', 'adsym_reduvisiacu')","('<b>Sore throat</b>', '<b>Itch / pruritus</b>', '<b>Newly reduced visual acuity</b>')",35
+"('adsym_sorethroat', 'adsym_pruritus', 'adsym_palpitations')","('<b>Sore throat</b>', '<b>Itch / pruritus</b>', '<b>Palpitations</b>')",19
+"('adsym_sorethroat', 'adsym_reduvisiacu', 'adsym_palpitations')","('<b>Sore throat</b>', '<b>Newly reduced visual acuity</b>', '<b>Palpitations</b>')",18
+"('adsym_pruritus', 'adsym_reduvisiacu', 'adsym_palpitations')","('<b>Itch / pruritus</b>', '<b>Newly reduced visual acuity</b>', '<b>Palpitations</b>')",14
+"('adsym_sorethroat', 'adsym_reduvisiacu', 'adsym_chestindrw')","('<b>Sore throat</b>', '<b>Newly reduced visual acuity</b>', '<b>Lower chest wall indrawing</b>')",12
+"('adsym_pruritus', 'adsym_reduvisiacu', 'adsym_chestindrw')","('<b>Itch / pruritus</b>', '<b>Newly reduced visual acuity</b>', '<b>Lower chest wall indrawing</b>')",12
+"('adsym_sorethroat', 'adsym_palpitations', 'adsym_chestindrw')","('<b>Sore throat</b>', '<b>Palpitations</b>', '<b>Lower chest wall indrawing</b>')",9
+"('adsym_sorethroat', 'adsym_pruritus', 'adsym_chestindrw')","('<b>Sore throat</b>', '<b>Itch / pruritus</b>', '<b>Lower chest wall indrawing</b>')",5
+"('adsym_reduvisiacu', 'adsym_palpitations', 'adsym_chestindrw')","('<b>Newly reduced visual acuity</b>', '<b>Palpitations</b>', '<b>Lower chest wall indrawing</b>')",5
+"('adsym_sorethroat', 'adsym_pruritus')","('<b>Sore throat</b>', '<b>Itch / pruritus</b>')",3
+"('adsym_pruritus', 'adsym_palpitations')","('<b>Itch / pruritus</b>', '<b>Palpitations</b>')",3
+"('adsym_sorethroat', 'adsym_reduvisiacu')","('<b>Sore throat</b>', '<b>Newly reduced visual acuity</b>')",2
+"('adsym_sorethroat', 'adsym_chestindrw')","('<b>Sore throat</b>', '<b>Lower chest wall indrawing</b>')",2
+"('adsym_pruritus', 'adsym_reduvisiacu')","('<b>Itch / pruritus</b>', '<b>Newly reduced visual acuity</b>')",2
+"('adsym_sorethroat', 'adsym_palpitations')","('<b>Sore throat</b>', '<b>Palpitations</b>')",1
+"('adsym_pruritus', 'adsym_palpitations', 'adsym_chestindrw')","('<b>Itch / pruritus</b>', '<b>Palpitations</b>', '<b>Lower chest wall indrawing</b>')",1
+"('adsym_pruritus', 'adsym_chestindrw')","('<b>Itch / pruritus</b>', '<b>Lower chest wall indrawing</b>')",1
+"('adsym_reduvisiacu', 'adsym_chestindrw')","('<b>Newly reduced visual acuity</b>', '<b>Lower chest wall indrawing</b>')",1
+"('adsym_reduvisiacu', 'adsym_palpitations')","('<b>Newly reduced visual acuity</b>', '<b>Palpitations</b>')",1
+"('adsym_chestindrw',)","('<b>Lower chest wall indrawing</b>',)",1

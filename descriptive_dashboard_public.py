@@ -265,7 +265,8 @@ def get_visuals(path, buttons):
         metadata_files = [
             file for file in metadata_files if file.endswith('.txt')]
         for file in metadata_files:
-            with open(os.path.join(path, suffix, file), 'r') as f:
+            new_file_path = os.path.join(path, suffix, file)
+            with open(new_file_path, 'r', encoding='latin-1') as f:
                 new_file = eval(f.read())
             fig_id = new_file['fig_id']
             data = tuple(

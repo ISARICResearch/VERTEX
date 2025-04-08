@@ -1,22 +1,32 @@
 index,label,count
-"('adsym_abdpain',)","('<b>Abdominal pain</b>',)",136
-"('adsym_fatigue',)","('<b>Fatigue / malaise / lethargy</b>',)",117
-"('adsym_vomit',)","('<b>Vomiting</b>',)",111
-"('adsym_fatigue', 'adsym_vomit')","('<b>Fatigue / malaise / lethargy</b>', '<b>Vomiting</b>')",75
-"('adsym_abdpain', 'adsym_vomit')","('<b>Abdominal pain</b>', '<b>Vomiting</b>')",68
-"('adsym_abdpain', 'adsym_fatigue')","('<b>Abdominal pain</b>', '<b>Fatigue / malaise / lethargy</b>')",64
-"('adsym_abdpain', 'adsym_fatigue', 'adsym_vomit')","('<b>Abdominal pain</b>', '<b>Fatigue / malaise / lethargy</b>', '<b>Vomiting</b>')",42
-"('adsym_cough_nonprod',)","('<b>Non-productive </b>',)",26
-"('adsym_fatigue', 'adsym_cough_nonprod')","('<b>Fatigue / malaise / lethargy</b>', '<b>Non-productive </b>')",20
-"('adsym_abdpain', 'adsym_cough_nonprod')","('<b>Abdominal pain</b>', '<b>Non-productive </b>')",14
-"('adsym_cough_nonprod', 'adsym_vomit')","('<b>Non-productive </b>', '<b>Vomiting</b>')",13
-"('adsym_abdpain', 'adsym_fatigue', 'adsym_cough_nonprod')","('<b>Abdominal pain</b>', '<b>Fatigue / malaise / lethargy</b>', '<b>Non-productive </b>')",12
-"('adsym_fatigue', 'adsym_cough_nonprod', 'adsym_vomit')","('<b>Fatigue / malaise / lethargy</b>', '<b>Non-productive </b>', '<b>Vomiting</b>')",10
-"('adsym_abdpain', 'adsym_fatigue', 'adsym_cough_nonprod', 'adsym_vomit')","('<b>Abdominal pain</b>', '<b>Fatigue / malaise / lethargy</b>', '<b>Non-productive </b>', '<b>Vomiting</b>')",4
-"('adsym_abdpain', 'adsym_cough_nonprod', 'adsym_vomit')","('<b>Abdominal pain</b>', '<b>Non-productive </b>', '<b>Vomiting</b>')",4
-"('adsym_unlisted_2addi', 'adsym_abdpain', 'adsym_fatigue')","('<b>->Any additional other sign(s) or symptom(s) ?</b>', '<b>Abdominal pain</b>', '<b>Fatigue / malaise / lethargy</b>')",3
-"('adsym_unlisted_2addi',)","('<b>->Any additional other sign(s) or symptom(s) ?</b>',)",3
-"('adsym_unlisted_2addi', 'adsym_abdpain')","('<b>->Any additional other sign(s) or symptom(s) ?</b>', '<b>Abdominal pain</b>')",2
-"('adsym_unlisted_2addi', 'adsym_abdpain', 'adsym_vomit')","('<b>->Any additional other sign(s) or symptom(s) ?</b>', '<b>Abdominal pain</b>', '<b>Vomiting</b>')",1
-"('adsym_unlisted_2addi', 'adsym_cough_nonprod')","('<b>->Any additional other sign(s) or symptom(s) ?</b>', '<b>Non-productive </b>')",1
-"('adsym_unlisted_2addi', 'adsym_fatigue')","('<b>->Any additional other sign(s) or symptom(s) ?</b>', '<b>Fatigue / malaise / lethargy</b>')",1
+"('adsym_abdpain',)","('<b>Abdominal pain</b>',)",71
+"('adsym_restlessne',)","('<b>Restlessness</b>',)",67
+"('adsym_fatigue',)","('<b>Fatigue / malaise / lethargy</b>',)",59
+"('adsym_headache',)","('<b>Headache</b>',)",53
+"('adsym_vomit',)","('<b>Vomiting</b>',)",46
+"('adsym_fatigue', 'adsym_vomit')","('<b>Fatigue / malaise / lethargy</b>', '<b>Vomiting</b>')",41
+"('adsym_fatigue', 'adsym_restlessne')","('<b>Fatigue / malaise / lethargy</b>', '<b>Restlessness</b>')",40
+"('adsym_abdpain', 'adsym_headache')","('<b>Abdominal pain</b>', '<b>Headache</b>')",37
+"('adsym_abdpain', 'adsym_fatigue')","('<b>Abdominal pain</b>', '<b>Fatigue / malaise / lethargy</b>')",36
+"('adsym_fatigue', 'adsym_headache')","('<b>Fatigue / malaise / lethargy</b>', '<b>Headache</b>')",30
+"('adsym_vomit', 'adsym_restlessne')","('<b>Vomiting</b>', '<b>Restlessness</b>')",29
+"('adsym_vomit', 'adsym_headache')","('<b>Vomiting</b>', '<b>Headache</b>')",28
+"('adsym_abdpain', 'adsym_vomit')","('<b>Abdominal pain</b>', '<b>Vomiting</b>')",26
+"('adsym_abdpain', 'adsym_restlessne')","('<b>Abdominal pain</b>', '<b>Restlessness</b>')",26
+"('adsym_headache', 'adsym_restlessne')","('<b>Headache</b>', '<b>Restlessness</b>')",26
+"('adsym_abdpain', 'adsym_fatigue', 'adsym_headache')","('<b>Abdominal pain</b>', '<b>Fatigue / malaise / lethargy</b>', '<b>Headache</b>')",22
+"('adsym_vomit', 'adsym_headache', 'adsym_restlessne')","('<b>Vomiting</b>', '<b>Headache</b>', '<b>Restlessness</b>')",21
+"('adsym_fatigue', 'adsym_vomit', 'adsym_restlessne')","('<b>Fatigue / malaise / lethargy</b>', '<b>Vomiting</b>', '<b>Restlessness</b>')",20
+"('adsym_abdpain', 'adsym_fatigue', 'adsym_vomit', 'adsym_headache')","('<b>Abdominal pain</b>', '<b>Fatigue / malaise / lethargy</b>', '<b>Vomiting</b>', '<b>Headache</b>')",19
+"('adsym_abdpain', 'adsym_vomit', 'adsym_restlessne')","('<b>Abdominal pain</b>', '<b>Vomiting</b>', '<b>Restlessness</b>')",19
+"('adsym_abdpain', 'adsym_headache', 'adsym_restlessne')","('<b>Abdominal pain</b>', '<b>Headache</b>', '<b>Restlessness</b>')",18
+"('adsym_abdpain', 'adsym_fatigue', 'adsym_vomit')","('<b>Abdominal pain</b>', '<b>Fatigue / malaise / lethargy</b>', '<b>Vomiting</b>')",17
+"('adsym_abdpain', 'adsym_vomit', 'adsym_headache')","('<b>Abdominal pain</b>', '<b>Vomiting</b>', '<b>Headache</b>')",16
+"('adsym_fatigue', 'adsym_vomit', 'adsym_headache')","('<b>Fatigue / malaise / lethargy</b>', '<b>Vomiting</b>', '<b>Headache</b>')",16
+"('adsym_abdpain', 'adsym_fatigue', 'adsym_restlessne')","('<b>Abdominal pain</b>', '<b>Fatigue / malaise / lethargy</b>', '<b>Restlessness</b>')",14
+"('adsym_abdpain', 'adsym_vomit', 'adsym_headache', 'adsym_restlessne')","('<b>Abdominal pain</b>', '<b>Vomiting</b>', '<b>Headache</b>', '<b>Restlessness</b>')",12
+"('adsym_fatigue', 'adsym_headache', 'adsym_restlessne')","('<b>Fatigue / malaise / lethargy</b>', '<b>Headache</b>', '<b>Restlessness</b>')",9
+"('adsym_fatigue', 'adsym_vomit', 'adsym_headache', 'adsym_restlessne')","('<b>Fatigue / malaise / lethargy</b>', '<b>Vomiting</b>', '<b>Headache</b>', '<b>Restlessness</b>')",8
+"('adsym_abdpain', 'adsym_fatigue', 'adsym_headache', 'adsym_restlessne')","('<b>Abdominal pain</b>', '<b>Fatigue / malaise / lethargy</b>', '<b>Headache</b>', '<b>Restlessness</b>')",7
+"('adsym_abdpain', 'adsym_fatigue', 'adsym_vomit', 'adsym_restlessne')","('<b>Abdominal pain</b>', '<b>Fatigue / malaise / lethargy</b>', '<b>Vomiting</b>', '<b>Restlessness</b>')",6
+"('adsym_abdpain', 'adsym_fatigue', 'adsym_vomit', 'adsym_headache', 'adsym_restlessne')","('<b>Abdominal pain</b>', '<b>Fatigue / malaise / lethargy</b>', '<b>Vomiting</b>', '<b>Headache</b>', '<b>Restlessness</b>')",4

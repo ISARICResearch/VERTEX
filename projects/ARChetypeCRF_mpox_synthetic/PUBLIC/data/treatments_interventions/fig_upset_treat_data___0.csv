@@ -1,6 +1,6 @@
 index,count,short_label,label
 treat_prone,283,<b>Prone positioning</b>,<b>Prone positioning</b>
 treat_o2supp_suppleo2,275,<b>Supplemental oxygen</b>,<b>Supplemental oxygen</b>
-treat_unlisted,264,<b>Other intervention(s) or procedure(s)</b>,<b>Other intervention(s) or procedure(s)</b>
-treat_prone_when___Whilst self-ventilating,103,"<b>When was the prone positioning?</b>, Whilst self-ventilating","<b>When was the prone positioning?</b>, Whilst self-ventilating"
-treat_o2supp_ecmotyp___Veno-venous (VV),49,"<b>Type of ECLS / ECMO</b>, Veno-venous (VV)","<b>Type of ECLS / ECMO</b>, Veno-venous (VV)"
+treat_o2supp_type___Face mask,154,"<b>Select all types of respiratory support ...</b>, Face mask","<b>Select all types of respiratory support the patient received (from 00:00 to 24:00) on the day of assessment</b>, Face mask"
+treat_o2supp_type___Non-invasive ventilation,145,"<b>Select all types of respiratory support ...</b>, Non-invasive ventilation","<b>Select all types of respiratory support the patient received (from 00:00 to 24:00) on the day of assessment</b>, Non-invasive ventilation"
+treat_o2supp_type___ECLS/ ECMO,144,"<b>Select all types of respiratory support ...</b>, ECLS/ ECMO","<b>Select all types of respiratory support the patient received (from 00:00 to 24:00) on the day of assessment</b>, ECLS/ ECMO"

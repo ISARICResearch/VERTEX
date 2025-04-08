@@ -1,5 +1,12 @@
-import numpy as np
 import pandas as pd
+import numpy as np
+import warnings
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.model_selection import StratifiedKFold
+# from scipy.stats import fisher_exact
+from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import confusion_matrix
+# from sklearn.metrics import balanced_accuracy_score, make_scorer
 # from typing import List, Union
 # from bertopic import BERTopic
 # from bertopic.representation import KeyBERTInspired, MaximalMarginalRelevance
@@ -8,13 +15,16 @@ import pandas as pd
 # from sklearn.preprocessing import MinMaxScaler
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+from lifelines import CoxPHFitter
+from scipy.stats import norm
+from statsmodels.genmod.bayes_mixed_glm import BinomialBayesMixedGLM
 # from sklearn.impute import KNNImputer
 # from sklearn.linear_model import LogisticRegression
 # from sklearn.metrics import roc_auc_score, roc_curve, accuracy_score
 # from sklearn.preprocessing import LabelEncoder, StandardScaler
 # from sklearn.model_selection import train_test_split, GridSearchCV
 # from sklearn.linear_model import LogisticRegression
-# from sklearn.impute import KNNImputer
 # import xgboost as xgb
 # import itertools
 # from collections import OrderedDict
@@ -26,13 +36,80 @@ import statsmodels.formula.api as smf
 ############################################
 
 
-# def get_variable_list(dictionary, sections):
-#     '''Get all variables in the dictionary belonging to sections
-#     (assumes ARC format)'''
-#     section_ids = dictionary['field_name'].apply(lambda x: x.split('_')[0])
-#     variable_list = dictionary['field_name'].loc[section_ids.isin(sections)]
-#     variable_list = list(variable_list)
-#     return variable_list
+def extend_dictionary(dictionary, new_variable_dict, data, sep='___'):
+    '''Add new custom variables to the VERTEX dictionary.
+
+    Args:
+        dictionary (pd.DataFrame):
+            VERTEX dictionary containing columns 'field_name', 'form_name',
+            'field_type', 'field_label', 'parent'.
+        new_variable_dict (dict):
+            A dict with the same keys as the dictionary columns, the values for
+            each item can be a string or a list.
+        data (pd.DataFrame):
+            pandas dataframe containing the data for the project. The columns
+            of this dataframe must include the variables in
+            new_variable_dict['field_type'].
+        sep (str): separator for creating new one-hot-encoded variable names.
+
+    Returns:
+        dictionary (pd.DataFrame):
+            VERTEX dictionary containing the original variables, plus the new
+            variables and any one-hot-encoded variables derived from this.'''
+    # Convert dict values to list if all are strings (otherwise a pandas error)
+    if all(isinstance(v, str) for v in new_variable_dict.values()):
+        new_variable_dict = {k: [v] for k, v in new_variable_dict.items()}
+    new_dictionary = pd.DataFrame.from_dict(new_variable_dict)
+    new_dictionary['index'] = np.nan
+    dictionary = dictionary.reset_index(drop=False)
+    for ind in new_dictionary.index:
+        parent = new_dictionary.loc[ind, 'parent']
+        if (parent not in new_dictionary['field_name'].values):
+            if (parent not in dictionary['field_name'].values):
+                new_ind = dictionary['index'].max() + 0.1
+            else:
+                new_ind = dictionary.loc[(
+                    dictionary['field_name'] == parent), 'index'].max()
+                parent = dictionary.loc[new_ind, 'field_name']
+                while (parent in dictionary['parent'].values):
+                    new_ind = dictionary.loc[(
+                        dictionary['parent'] == parent), 'index'].max()
+                    parent = dictionary.loc[new_ind, 'field_name']
+                new_ind = new_ind + 0.1
+        else:
+            new_ind = new_dictionary.loc[(
+                new_dictionary['field_name'] == parent), 'index'].max() + 0.1
+            # new_ind = new_ind + 0.1
+        new_dictionary.loc[ind, 'index'] = new_ind
+    categorical_ind = new_dictionary['field_type'].isin(['categorical'])
+    new_dictionary_list = [new_dictionary]
+    ind_list = [
+        ind for ind in categorical_ind.index
+        if new_dictionary.loc[ind, 'field_name'] in data.columns]
+    for ind in ind_list:
+        variable = new_dictionary.loc[ind, 'field_name']
+        options = data[variable].drop_duplicates().sort_values().dropna()
+        options = [y for y in options if y not in (True, False)]
+        options = [
+            y for y in options
+            if (variable + sep + str(y))
+            not in new_dictionary['field_name'].values]
+        add_options = pd.DataFrame(
+            columns=dictionary.columns, index=range(len(options)))
+        add_options['field_name'] = [
+            variable + sep + str(y) for y in options]
+        add_options['form_name'] = new_dictionary.loc[ind, 'form_name']
+        add_options['field_type'] = 'binary'
+        add_options['field_label'] = options
+        add_options['parent'] = variable
+        add_options['index'] = np.linspace(
+            new_dictionary.loc[ind, 'index'] + 0.2,
+            np.ceil(new_dictionary.loc[ind, 'index']) - 0.1, len(options))
+        new_dictionary_list += [add_options]
+    dictionary = pd.concat([dictionary] + new_dictionary_list, axis=0)
+    dictionary = dictionary.sort_values(by='index').drop(columns='index')
+    dictionary = dictionary.reset_index(drop=True)
+    return dictionary
 
 
 def get_variables_by_section_and_type(
@@ -51,8 +128,10 @@ def get_variables_by_section_and_type(
     include_ind = dictionary['field_name'].apply(
         lambda x: x.startswith(tuple(x + '_' for x in include_sections)))
     include_ind &= dictionary['field_type'].isin(include_types)
+    # include_ind &= (dictionary['field_name'].apply(
+    #     lambda x: x.endswith(tuple('___' + x for x in exclude_suffix))) == 0)
     include_ind &= (dictionary['field_name'].apply(
-        lambda x: x.endswith(tuple('___' + x for x in exclude_suffix))) == 0)
+        lambda x: x.endswith(tuple(x for x in exclude_suffix))) == 0)
     if isinstance(required_variables, list):
         include_ind |= dictionary['field_name'].isin(required_variables)
     if include_subjid:
@@ -62,31 +141,9 @@ def get_variables_by_section_and_type(
     return include_variables
 
 
-# def get_variables_from_sections(
-#         variable_list, section_list,
-#         required_variables=None, exclude_suffix=None):
-#     '''
-#     Get only the variables from sections, plus any required variables
-#     '''
-#     include_variables = []
-#     for section in section_list:
-#         include_variables += [
-#             var for var in variable_list if var.startswith(section + '_')]
-#
-#     if required_variables is not None:
-#         required_variables = [
-#             var for var in required_variables if var not in include_variables]
-#         include_variables = required_variables + include_variables
-#
-#     if exclude_suffix is not None:
-#         include_variables = [
-#             var for var in include_variables
-#             if (var.endswith(tuple(exclude_suffix)) == 0)]
-#     return include_variables
-
-
 def convert_categorical_to_onehot(
-        df, dictionary, categorical_columns, sep='___', missing_val='nan'):
+        df, dictionary, categorical_columns,
+        sep='___', missing_val='nan', drop_first=False):
     '''Convert categorical variables into onehot-encoded variables.'''
     categorical_columns = [
         col for col in df.columns if col in categorical_columns]
@@ -106,6 +163,15 @@ def convert_categorical_to_onehot(
             mask = (df[categorical_column + sep + missing_val] == 1)
             df.loc[mask, onehot_columns] = np.nan
             df = df.drop(columns=[categorical_column + sep + missing_val])
+        else:
+            if drop_first:
+                drop_column_ind = dictionary.apply(
+                    lambda x: (
+                        (x['parent'] == categorical_column) &
+                        (x['field_name'].split('___')[0] == categorical_column)
+                    ), axis=1)
+                df = df.drop(columns=[
+                    dictionary.loc[drop_column_ind, 'field_name'].values[0]])
 
     columns = [
         col for col in dictionary['field_name'].values if col in df.columns]
@@ -227,17 +293,12 @@ def get_descriptive_data(
         include_subjid=False, exclude_negatives=True):
     df = data.copy()
 
-    # include_columns = dictionary.loc[(
-    #     dictionary['field_type'].isin(include_types)), 'field_name'].tolist()
-    # include_columns = [col for col in include_columns if col in df.columns]
     include_columns = get_variables_by_section_and_type(
         df, dictionary,
         include_types=include_types, include_subjid=include_subjid,
         include_sections=include_sections, exclude_suffix=exclude_suffix)
     if (by_column is not None) & (by_column not in include_columns):
         include_columns = [by_column] + include_columns
-    # if include_subjid:
-    #     include_columns = ['subjid'] + include_columns
     df = df[include_columns].dropna(axis=1, how='all').copy()
 
     # Convert categorical variables to onehot-encoded binary columns
@@ -266,7 +327,8 @@ def get_descriptive_data(
 
 def descriptive_table(
         data, dictionary, by_column=None,
-        include_totals=True, column_reorder=None):
+        include_totals=True, column_reorder=None,
+        include_raw_variable_name=False):
     '''
     Descriptive table for binary (including onehot-encoded categorical) and
     numerical variables in data. The descriptive table will have seperate
@@ -299,8 +361,11 @@ def descriptive_table(
                 col for col in add_columns if col not in column_reorder]
         else:
             table_columns += add_columns
+    table_columns += ['Raw variable name']
     table = pd.DataFrame('', index=index, columns=table_columns)
 
+    table['Raw variable name'] = [
+        var if var in df.columns else '' for var in index]
     table['Variable'] = format_descriptive_table_variables(
         table_dictionary).tolist()
 
@@ -329,6 +394,8 @@ def descriptive_table(
     if include_totals:
         table = pd.concat([totals, table], axis=0).reset_index(drop=True)
     table_key = '<b>KEY</b><br>(*) Count (%) | N<br>(+) Median (IQR) | N'
+    if include_raw_variable_name is False:
+        table.drop(columns=['Raw variable name'], inplace=True)
     return table, table_key
 
 
@@ -345,7 +412,7 @@ def trim_field_label(x, max_len=40):
     return x
 
 
-def format_descriptive_table_variables(dictionary, max_len=100):
+def format_descriptive_table_variables(dictionary, max_len=100, add_key=True):
     name = dictionary['field_name'].apply(
         lambda x: '   ↳ ' if '___' in x else '<b>')
     name += dictionary['field_type'].map({'section': '<i>'}).fillna('')
@@ -355,9 +422,12 @@ def format_descriptive_table_variables(dictionary, max_len=100):
     name += dictionary['field_type'].map({'section': '</i>'}).fillna('')
     name += dictionary['field_name'].apply(
         lambda x: '' if '___' in x else '</b>')
-    field_type = dictionary['field_type'].map({
-        'categorical': ' (*)', 'binary': ' (*)', 'numeric': ' (+)'}).fillna('')
-    name += field_type*(dictionary['field_name'].str.contains('___') == 0)
+    if add_key is True:
+        field_type = dictionary['field_type'].map({
+            'categorical': ' (*)',
+            'binary': ' (*)',
+            'numeric': ' (+)'}).fillna('')
+        name += field_type*(dictionary['field_name'].str.contains('___') == 0)
     return name
 
 
@@ -383,14 +453,37 @@ def format_variables(dictionary, max_len=40):
 ############################################
 
 
-def get_proportions(df, dictionary, max_n_variables=10):
-    proportions = df.apply(lambda x: x.sum() / x.count()).reset_index()
+def get_counts(df, dictionary, max_n_variables=10):
+    counts = df.apply(lambda x: x.sum()).T.reset_index()
 
-    proportions.columns = ['variable', 'proportion']
+    counts.columns = ['variable', 'count']
+    counts = counts.sort_values(
+        by=['count'], ascending=False).reset_index(drop=True)
+    if counts.shape[0] > max_n_variables:
+        counts = counts.head(max_n_variables)
+
+    short_format = format_variables(dictionary, max_len=40)
+    long_format = format_variables(dictionary, max_len=1000)
+    format_dict = dict(zip(dictionary['field_name'], long_format))
+    short_format_dict = dict(zip(dictionary['field_name'], short_format))
+    counts['label'] = counts['variable'].map(format_dict)
+    counts['short_label'] = counts['variable'].map(short_format_dict)
+    return counts
+
+
+def get_proportions(df, dictionary, max_n_variables=10):
+    proportions = df.apply(
+        lambda x: (x.sum() / x.count(), x.sum())).T.reset_index()
+
+    proportions.columns = ['variable', 'proportion', 'count']
     proportions = proportions.sort_values(
-        by=['proportion'], ascending=False).reset_index(drop=True)
+        by=['count'], ascending=False).reset_index(drop=True)
     if proportions.shape[0] > max_n_variables:
         proportions = proportions.head(max_n_variables)
+
+    proportions = proportions.drop(columns='count')
+    proportions = proportions.sort_values(
+        by=['proportion'], ascending=False).reset_index(drop=True)
 
     short_format = format_variables(dictionary, max_len=40)
     long_format = format_variables(dictionary, max_len=1000)
@@ -402,20 +495,21 @@ def get_proportions(df, dictionary, max_n_variables=10):
 
 
 def get_upset_counts_intersections(
-        df, dictionary, proportions=None, variables=None, n_variables=5):
+        df, dictionary,
+        proportions=None,  # Deprecated
+        variables=None, n_variables=5):
     # Convert variables and column names into their formatted names
     long_format = format_variables(dictionary, max_len=1000)
     short_format = format_variables(dictionary, max_len=40)
     format_dict = dict(zip(dictionary['field_name'], long_format))
     short_format_dict = dict(zip(dictionary['field_name'], short_format))
-    # df = df.rename(columns=format_dict).copy()
-    # if variables is not None:
-    #     variables = [format_dict[var] for var in variables]
-    if proportions is not None:
-        variables = proportions.sort_values(
-            by='proportion', ascending=False)['variable'].head(n_variables)
-        variables = variables.tolist()
 
+    if variables is None:
+        variables = df.columns.tolist()
+
+    binary_columns = dictionary.loc[(
+        dictionary['field_type'] == 'binary'), 'field_name'].tolist()
+    variables = [col for col in variables if col in binary_columns]
     variables = [var for var in variables if df[var].sum() > 0]
     df = df[variables].astype(float).fillna(0)
 
@@ -424,13 +518,14 @@ def get_upset_counts_intersections(
         by='count', ascending=False).reset_index(drop=True)
     counts['short_label'] = counts['index'].map(short_format_dict)
     counts['label'] = counts['index'].map(format_dict)
-    if variables is None:
-        variable_order_dict = dict(zip(counts['index'], counts.index))
-        variables = counts['index'].tolist()
-    else:
-        variable_order_dict = dict(zip(variables, range(len(variables))))
+
+    variable_order_dict = dict(zip(counts['index'], counts.index))
+    variables = counts['index'].tolist()
     if n_variables is not None:
         variables = variables[:n_variables]
+
+    df = df[variables]
+    counts = counts.loc[counts['index'].isin(variables)]
 
     intersections = df.loc[df.any(axis=1)].value_counts().reset_index()
     intersections['index'] = intersections.drop(columns='count').apply(
@@ -535,7 +630,7 @@ def get_clusters(
 
     # use bertopic topic modelling pipeline
     topic_model = BERTopic(
-        embedding_model=embedding_model,  # how we embed the strings, default to sentence transformers
+        embedding_model=embedding_model,
         representation_model=representation_model,
         nr_topics=nr_topics,
     )
@@ -614,589 +709,1099 @@ def extract_topic_embeddings(
 ############################################
 
 
-def execute_logistic_regression(
-        elr_dataframe_df, elr_outcome_str, elr_predictors_list,
-        print_results=True, labels=False, reg_type="multi"):
+def get_modelling_data(
+        data, dictionary, outcome_columns,
+        include_sections=[
+            'demog', 'comor', 'adsym', 'vacci', 'vital', 'sympt', 'labs'],
+        required_variables=None,
+        include_types=['binary', 'categorical', 'numeric'],
+        exclude_suffix=[
+            '_units', 'addi', 'otherl2', 'item', '_oth',
+            '_unlisted', 'otherl3'],
+        include_subjid=False, exclude_negatives=True,
+        fillna=True, drop_first=False):
+    df = data.copy()
+
+    if isinstance(outcome_columns, str):
+        outcome_columns = [outcome_columns]
+
+    include_columns = get_variables_by_section_and_type(
+        df, dictionary,
+        required_variables=required_variables,
+        include_types=include_types, include_subjid=include_subjid,
+        include_sections=include_sections, exclude_suffix=exclude_suffix)
+    for outcome_column in outcome_columns:
+        if (outcome_column not in include_columns):
+            include_columns = [outcome_column] + include_columns
+    df = df[include_columns].dropna(axis=1, how='all').copy()
+
+    # Convert categorical variables to onehot-encoded binary columns
+    categorical_ind = (dictionary['field_type'] == 'categorical')
+    columns = dictionary.loc[categorical_ind, 'field_name'].tolist()
+    columns = [col for col in columns if col not in tuple(outcome_columns)]
+    df = convert_categorical_to_onehot(
+        df, dictionary, categorical_columns=columns, drop_first=drop_first)
+
+    binary_ind = (dictionary['field_type'] == 'binary')
+    columns = dictionary.loc[binary_ind, 'field_name'].tolist()
+    columns = [col for col in columns if col in df.columns]
+    if fillna is True:
+        with pd.option_context('future.no_silent_downcasting', True):
+            df[columns] = df[columns].fillna(False)
+
+    negative_values = ('no', 'never smoked')
+    negative_columns = [
+        col for col in df.columns
+        if col.split('___')[-1].lower() in negative_values]
+    if exclude_negatives:
+        df.drop(columns=negative_columns, inplace=True)
+    return df
+
+
+def variance_influence_factor_backwards_elimination(
+        data, dictionary, predictors_list, sep='___'):
+    df = data.copy()
+
+    numeric_ind = (dictionary['field_type'] == 'numeric')
+    numeric_columns = dictionary.loc[numeric_ind, 'field_name'].tolist()
+    numeric_columns = [col for col in numeric_columns if col in df.columns]
+    numeric_columns = [
+        col for col in numeric_columns if col in predictors_list]
+
+    categorical_ind = dictionary['field_type'].isin(['binary'])
+    categorical_columns = dictionary.loc[
+        categorical_ind, 'field_name'].tolist()
+    categorical_columns = [
+        col for col in categorical_columns if col in df.columns]
+    categorical_columns = [
+        col for col in categorical_columns if col in predictors_list]
+
+    df[numeric_columns] = ((
+            df[numeric_columns] - df[numeric_columns].mean()
+        ) / df[numeric_columns].std())
+
+    df = 1.0 * pd.concat([
+            df[numeric_columns],
+            df[categorical_columns]
+        ], axis=1).astype(float)
+
+    keep_columns = df.columns
+    iterative_vif = pd.DataFrame(keep_columns, columns=['variable'])
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', category=RuntimeWarning)
+        iterative_vif['vif_iter_1'] = [
+            variance_inflation_factor(df[keep_columns].values, ii)
+            for ii in range(len(keep_columns))]
+    n = 1
+    while (iterative_vif['vif_iter_' + str(n)] > 10).any():
+        remove_column = iterative_vif.loc[
+            iterative_vif['vif_iter_' + str(n)].idxmax(), 'variable']
+        remove_column = remove_column.split(sep)[0]
+        keep_columns = [
+            col for col in keep_columns
+            if (col.split(sep)[0] != remove_column)]
+        n += 1
+        vif = pd.DataFrame(keep_columns, columns=['variable'])
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=RuntimeWarning)
+            vif['vif_iter_' + str(n)] = [
+                variance_inflation_factor(df[keep_columns].values, ii)
+                for ii in range(len(keep_columns))]
+        iterative_vif = pd.merge(iterative_vif, vif, how='left', on='variable')
+    return keep_columns, iterative_vif
+
+
+def remove_single_binary_outcome_predictors(
+        data, dictionary, predictors_list, outcome_str):
     """
-    Performs a logistic regression and returns a table with the coefficients
-    and effects of the predictor variables.
+    Removes binary predictors that are associated with only one outcome (e.g.
+    if all patients with some_variable=1 have outcome=1)
 
     Parameters:
-    - elr_dataframe_df (pd.DataFrame): DataFrame containing the data.
-    - elr_outcome_str (str): Name of the outcome variable.
-    - elr_predictors_list (list):
-        List of strings with the names of the predictor variables.
-    - print_results (bool, optional):
-        Flag to print the regression results. Default is True.
-    - labels (dict, optional):
-        Dictionary mapping variable names to readable labels.
-        Can accept an empty dictionary.
-    - reg_type (str, optional):
-        Type of regression ('multi' for multivariate, 'uni' for univariate).
-        Default is "multi".
+    - data: Pandas DataFrame containing the data.
+    - outcome_str: Name of the response variable.
+    - predictors_list: List of predictor variable names.
+
     Returns:
-    - elr_summary_df (pd.DataFrame):
-        DataFrame with the results of the logistic regression.
+    - updated_predictors_list: List of predictor variable names excluding
+    any that can't be used in the logistic regression model.
+    """
+    df = data.copy()
+
+    numeric_ind = (dictionary['field_type'] == 'numeric')
+    numeric_columns = dictionary.loc[numeric_ind, 'field_name'].tolist()
+    numeric_columns = [col for col in numeric_columns if col in df.columns]
+    numeric_columns = [
+        col for col in numeric_columns if col in predictors_list]
+
+    categorical_ind = dictionary['field_type'].isin(['binary'])
+    categorical_columns = dictionary.loc[
+        categorical_ind, 'field_name'].tolist()
+    categorical_columns = [
+        col for col in categorical_columns if col in data.columns]
+    categorical_columns = [
+        col for col in categorical_columns if col in predictors_list]
+
+    result = df.groupby(outcome_str)[categorical_columns].apply(
+        lambda x: x.isin([True]).any() & x.isin([False]).any(),
+        include_groups=False).T
+    keep_columns = result.loc[result.all(axis=1)].index.tolist()
+    keep_columns = keep_columns + numeric_columns
+    return keep_columns
+
+
+def regression_summary_table(
+        table, dictionary,
+        highlight_predictors=None, p_values=None, result_type='OddsRatio'):
+    variables = table['Variable'].tolist()
+    new_variables = variables + dictionary.loc[(
+            (dictionary['field_name'].isin(variables)) &
+            (dictionary['parent'].isin(['']) == 0)
+        ), 'parent'].tolist()
+    new_variables = list(set(new_variables))
+    while (len(variables) != len(new_variables)):
+        variables = new_variables
+        new_variables = variables + dictionary.loc[(
+                (dictionary['field_name'].isin(variables)) &
+                (dictionary['parent'].isin(['']) == 0)
+            ), 'parent'].tolist()
+        new_variables = list(set(new_variables))
+    # Reorders the variables
+    dictionary = dictionary.set_index('field_name')
+    nonrepeated_parent = dictionary.loc[variables].groupby('parent').apply(
+        len, include_groups=False).eq(1)
+    nonrepeated_parent = [
+        p for p in nonrepeated_parent.loc[nonrepeated_parent].index
+        if (dictionary.loc[p, 'field_type'] != 'section')]
+    variables = [var for var in variables if var not in nonrepeated_parent]
+    dictionary = dictionary.reset_index()
+
+    variables = dictionary.loc[(
+        dictionary['field_name'].isin(variables)), 'field_name'].tolist()
+
+    for reg_type in ['multi', 'uni']:
+        table[f'{result_type} ({reg_type})'] = table.apply(
+            lambda x:
+                '%.2f' % x[f'{result_type} ({reg_type})'] +
+                ' (' + '%.2f' % x[f'LowerCI ({reg_type})'] +
+                ', ' + '%.2f' % x[f'UpperCI ({reg_type})'] + ')', axis=1)
+
+        if p_values is not None:
+            significance = pd.Series('', index=table.index)
+            for key in p_values:
+                min_threshold = max(
+                    v for k, v in p_values.items() if (k != key))
+                if (min_threshold > p_values[key]):
+                    min_threshold = 0
+                ind = (
+                    (table[f'p-value ({reg_type})'] < p_values[key]) &
+                    (table[f'p-value ({reg_type})'] > (min_threshold - 1e-8)))
+                significance.loc[ind] = f' ({key})'
+
+            table[f'p-value ({reg_type})'] = (
+                table[f'p-value ({reg_type})'].apply(
+                    lambda x: '%.3f' % x) + significance)
+
+        table = table.drop(
+            columns=[f'LowerCI ({reg_type})', f'UpperCI ({reg_type})'])
+
+    add_variables = [
+        var for var in variables if var not in table['Variable'].tolist()]
+    add_table = pd.DataFrame(
+        '', columns=table.columns, index=range(len(add_variables)))
+    add_table['Variable'] = add_variables
+    table = pd.concat([table, add_table], axis=0)
+    table = table.set_index('Variable').loc[variables].reset_index()
+
+    add_key = pd.Series('', index=table.index)
+    if highlight_predictors is not None:
+        for key in highlight_predictors:
+            add_key.loc[
+                table['Variable'].isin(highlight_predictors[key])] += key
+        add_key = add_key.apply(lambda x: x if x == '' else f' ({x})')
+
+    formatted_labels_v1 = format_descriptive_table_variables(
+        dictionary, add_key=False)
+    formatted_labels_v2 = format_variables(dictionary)
+    v1_ind = (dictionary['parent'].isin(variables))
+    v2_ind = (dictionary['parent'].isin(variables) == 0)
+    mapping_dict = {
+        **dict(zip(
+            dictionary.loc[v1_ind, 'field_name'],
+            formatted_labels_v1.loc[v1_ind])),
+        **dict(zip(
+            dictionary.loc[v2_ind, 'field_name'],
+            formatted_labels_v2.loc[v2_ind]))}
+    table['Variable'] = table['Variable'].map(mapping_dict)
+    table['Variable'] = table['Variable'] + add_key
+    return table
+
+
+def execute_glmm_regression(elr_dataframe_df, elr_outcome_str, elr_predictors_list,
+                            elr_groups_str, model_type='linear',
+                            print_results=True, labels=False, reg_type="multi"):
+    """
+    Executes a mixed effects model for linear or logistic regression.
+
+    Parameters:
+    - elr_dataframe_df: Pandas DataFrame containing the data.
+    - elr_outcome_str: Name of the response variable.
+    - elr_predictors_list: List of predictor variable names.
+    - elr_groups_str: Name of the variable that defines the groups (random effect).
+    - model_type: 'linear' for linear regression or 'logistic' for logistic regression.
+    - print_results: If True, prints the summary of the results.
+    - labels: (Optional) Dictionary to map variable names to readable labels.
+    - reg_type: 'uni' or 'multi', to rename the output columns.
+
+    Returns:
+    - elr_summary_df: DataFrame with the model results.
     """
 
-    # Prepare the formula for the model
+    # Builds the formula
     elr_formula_str = elr_outcome_str + ' ~ ' + ' + '.join(elr_predictors_list)
 
-    # Identify categorical variables that are also predictors
-    elr_categorical_vars_list = elr_dataframe_df.select_dtypes(
-        include=['object', 'category'])
-    elr_categorical_vars_list = elr_categorical_vars_list.columns.intersection(
-        elr_predictors_list)
-
-    # Convert categorical variables to the 'category' data type
+    # Converts predictor categorical variables
+    elr_categorical_vars_list = elr_dataframe_df.select_dtypes(include=['object', 'category'])
+    elr_categorical_vars_list = elr_categorical_vars_list.columns.intersection(elr_predictors_list)
     for elr_var_str in elr_categorical_vars_list:
-        elr_dataframe_df[elr_var_str] = (
-            elr_dataframe_df[elr_var_str].astype('category'))
+        elr_dataframe_df[elr_var_str] = elr_dataframe_df[elr_var_str].astype('category')
 
-    # Fit the logistic regression model
-    elr_model_obj = smf.glm(
-        formula=elr_formula_str,
-        data=elr_dataframe_df, family=sm.families.Binomial())
-    elr_result_obj = elr_model_obj.fit()
+    # Converts the groups column to string to ensure that the values are hashable
+    elr_dataframe_df[elr_groups_str] = elr_dataframe_df[elr_groups_str].astype(str)
 
-    # Extract the summary table from the regression results
-    elr_summary_table_df = elr_result_obj.summary2().tables[1]
+    if model_type.lower() == 'linear':
+        # Mixed linear model using MixedLM (following your function)
+        elr_model_obj = smf.mixedlm(formula=elr_formula_str,
+                                    data=elr_dataframe_df,
+                                    groups=elr_dataframe_df[elr_groups_str])
+        elr_result_obj = elr_model_obj.fit()
 
-    # Calculate Odds Ratios and confidence intervals
-    elr_summary_table_df['Odds Ratio'] = np.exp(elr_summary_table_df['Coef.'])
-    elr_summary_table_df['IC Low'] = np.exp(elr_summary_table_df['[0.025'])
-    elr_summary_table_df['IC High'] = np.exp(elr_summary_table_df['0.975]'])
+        fixed_effects = elr_result_obj.fe_params
+        conf_int_df = elr_result_obj.conf_int().loc[fixed_effects.index]
+        pvalues = elr_result_obj.pvalues.loc[fixed_effects.index]
 
-    # Select relevant columns and rename them as needed
-    elr_summary_df = elr_summary_table_df[[
-        'Odds Ratio', 'IC Low', 'IC High', 'P>|z|']]
-    elr_summary_df = elr_summary_df.rename(columns={'P>|z|': 'p-value'})
-    elr_summary_df = elr_summary_df.reset_index()
-    elr_summary_df.rename(
-        columns={
-            'index': 'Study',
-            'Odds Ratio': 'OddsRatio',
-            'IC Low': 'LowerCI',
-            'IC High': 'UpperCI'
-        }, inplace=True
-    )
+        elr_summary_df = pd.DataFrame({
+            'Study': fixed_effects.index,
+            'Coef': fixed_effects.values,
+            'IC Low': conf_int_df.iloc[:, 0].values,
+            'IC High': conf_int_df.iloc[:, 1].values,
+            'p-value': pvalues.values
+        })
 
-    # Map variable names to readable labels
+    elif model_type.lower() == 'logistic':
+        # Mixed logistic model using BinomialBayesMixedGLM (Bayesian approach via VB)
+
+        # Defines vc_formula for random effect (random intercept per group)
+        vc_formula = {elr_groups_str: "0 + C({})".format(elr_groups_str)}
+
+        elr_model_obj = BinomialBayesMixedGLM.from_formula(formula=elr_formula_str,
+                                                           vc_formulas=vc_formula,
+                                                           data=elr_dataframe_df)
+        elr_result_obj = elr_model_obj.fit_vb()
+
+        # Extracts the fixed effect names and determines how many there are
+        param_names = elr_model_obj.exog_names
+        n_fixed = len(param_names)
+        fixed_effects = pd.Series(elr_result_obj.params[:n_fixed], index=param_names)
+
+        # Attempts to obtain the covariance matrix and extracts the slice corresponding to fixed effects
+        try:
+            cov_params = elr_result_obj.cov_params()
+        except Exception:
+            try:
+                cov_params = elr_result_obj.vcov
+            except Exception:
+                cov_params = None
+        if cov_params is not None:
+            # If it is a DataFrame, use .iloc; otherwise, assume a NumPy array
+            if hasattr(cov_params, 'iloc'):
+                cov_params_fixed = cov_params.iloc[:n_fixed, :n_fixed]
+            else:
+                cov_params_fixed = cov_params[:n_fixed, :n_fixed]
+            bse = np.sqrt(np.diag(cov_params_fixed))
+            bse = pd.Series(bse, index=param_names)
+            # Calculates p-values manually (Wald test, normal approximation)
+            z_values = fixed_effects / bse
+            pvalues = 2 * (1 - norm.cdf(np.abs(z_values)))
+            pvalues = pd.Series(pvalues, index=param_names)
+        else:
+            bse = pd.Series(np.full(fixed_effects.shape, np.nan), index=param_names)
+            pvalues = pd.Series(np.full(fixed_effects.shape, np.nan), index=param_names)
+
+        # Calculates confidence intervals using 1.96 as the quantile of the normal distribution
+        lower_ci = fixed_effects - 1.96 * bse
+        upper_ci = fixed_effects + 1.96 * bse
+
+        # Calculates Odds Ratios and corresponding intervals
+        odds_ratios = np.exp(fixed_effects)
+        odds_lower = np.exp(lower_ci)
+        odds_upper = np.exp(upper_ci)
+
+        elr_summary_df = pd.DataFrame({
+            'Study': fixed_effects,
+            'OddsRatio': odds_ratios.values,
+            'IC Low': odds_lower.values,
+            'IC High': odds_upper.values,
+            'p-value': pvalues.values
+        })
+    else:
+        raise ValueError("model_type must be 'linear' or 'logistic'")
+
+    # Applies label mapping if provided
     if labels:
         def elr_parse_variable_name(var_name):
-            if var_name == 'Intercept':
+            if var_name == 'Intercept' or var_name.lower() == 'const':
                 return labels.get('Intercept', 'Intercept')
             elif '[' in var_name:
                 base_var = var_name.split('[')[0]
                 level = var_name.split('[')[1].split(']')[0]
-                base_var_name = base_var.replace(
-                    'C(', '').replace(')', '').strip()
+                base_var_name = base_var.replace('C(', '').replace(')', '').strip()
                 label = labels.get(base_var_name, base_var_name)
                 return f'{label} ({level})'
             else:
-                var_name_clean = var_name.replace(
-                    'C(', '').replace(')', '').strip()
+                var_name_clean = var_name.replace('C(', '').replace(')', '').strip()
                 return labels.get(var_name_clean, var_name_clean)
+        elr_summary_df['Study'] = elr_summary_df['Study'].apply(elr_parse_variable_name)
 
-        elr_summary_df['Study'] = elr_summary_df['Study'].apply(
-            elr_parse_variable_name)
+    # Removes the intercept row if present
+    elr_summary_df = elr_summary_df[~elr_summary_df['Study'].isin(['Intercept', 'const'])]
 
-    # Reorder the columns
-    elr_summary_df = elr_summary_df[[
-        'Study', 'OddsRatio', 'LowerCI', 'UpperCI', 'p-value']]
-
-    # Format numerical values
-    elr_summary_df['OddsRatio'] = elr_summary_df['OddsRatio'].round(2)
-    elr_summary_df['LowerCI'] = elr_summary_df['LowerCI'].round(2)
-    elr_summary_df['UpperCI'] = elr_summary_df['UpperCI'].round(2)
-    elr_summary_df['p-value'] = elr_summary_df['p-value'].apply(
-        lambda x: f'{x:.4f}')
-
-    # Remove the letter 'T.' from categorical variables
-    elr_summary_df['Study'] = elr_summary_df['Study'].str.replace('T.', '')
-
-    # Remove intercept from the results
-    elr_summary_df = elr_summary_df[elr_summary_df['Study'] != 'Intercept']
-
-    # Rename columns based on regression type
-    if reg_type == 'uni':
-        elr_summary_df.rename(columns={
-            'OddsRatio': 'OddsRatio (uni)',
-            'LowerCI': 'LowerCI (uni)',
-            'UpperCI': 'UpperCI (uni)',
-            'p-value': 'p-value (uni)'
-        }, inplace=True)
+    # Reorders the columns according to the model
+    if model_type.lower() == 'logistic':
+        elr_summary_df = elr_summary_df[['Study', 'OddsRatio', 'IC Low', 'IC High', 'p-value']]
     else:
-        elr_summary_df.rename(columns={
-            'OddsRatio': 'OddsRatio (multi)',
-            'LowerCI': 'LowerCI (multi)',
-            'UpperCI': 'UpperCI (multi)',
-            'p-value': 'p-value (multi)'
-        }, inplace=True)
+        elr_summary_df = elr_summary_df[['Study', 'Coef', 'IC Low', 'IC High', 'p-value']]
 
-    # Print results if the flag is set
+    # Formats the numerical values
+    if model_type.lower() == 'logistic':
+        elr_summary_df['OddsRatio'] = elr_summary_df['OddsRatio'].round(3)
+    else:
+        elr_summary_df['Coef'] = elr_summary_df['Coef'].round(3)
+    elr_summary_df['IC Low'] = elr_summary_df['IC Low'].round(3)
+    elr_summary_df['IC High'] = elr_summary_df['IC High'].round(3)
+    elr_summary_df['p-value'] = elr_summary_df['p-value'].apply(lambda x: f'{x:.4f}')
+
+    # Renames the columns according to the reg_type parameter
+    if reg_type.lower() == 'uni':
+        if model_type.lower() == 'logistic':
+            elr_summary_df.rename(columns={
+                'OddsRatio': 'OddsRatio (uni)',
+                'IC Low': 'LowerCI (uni)',
+                'IC High': 'UpperCI (uni)',
+                'p-value': 'p-value (uni)'
+            }, inplace=True)
+        else:
+            elr_summary_df.rename(columns={
+                'Coef': 'Coef (uni)',
+                'IC Low': 'LowerCI (uni)',
+                'IC High': 'UpperCI (uni)',
+                'p-value': 'p-value (uni)'
+            }, inplace=True)
+    else:
+        if model_type.lower() == 'logistic':
+            elr_summary_df.rename(columns={
+                'OddsRatio': 'OddsRatio (multi)',
+                'IC Low': 'LowerCI (multi)',
+                'IC High': 'UpperCI (multi)',
+                'p-value': 'p-value (multi)'
+            }, inplace=True)
+        else:
+            elr_summary_df.rename(columns={
+                'Coef': 'Coef (multi)',
+                'IC Low': 'LowerCI (multi)',
+                'IC High': 'UpperCI (multi)',
+                'p-value': 'p-value (multi)'
+            }, inplace=True)
+
     if print_results:
         print(elr_summary_df)
 
     return elr_summary_df
 
 
-############################################
-############################################
-# Modelling
-############################################
-############################################
+def execute_glm_regression(elr_dataframe_df, elr_outcome_str, elr_predictors_list,
+                           model_type='linear', print_results=True, labels=False, reg_type="Multi"):
+    """
+    Executes a GLM (Generalized Linear Model) for linear or logistic regression.
+
+    Parameters:
+    - elr_dataframe_df: Pandas DataFrame containing the data.
+    - elr_outcome_str: Name of the response variable.
+    - elr_predictors_list: List of predictor variable names.
+    - model_type: 'linear' for linear regression (Gaussian) or 'logistic' for logistic regression (Binomial).
+    - print_results: If True, prints the results table.
+    - labels: (Optional) Dictionary to map variable names to readable labels.
+    - reg_type: Type of regression ('uni' or 'multi') to rename the output columns.
+
+    Returns:
+    - summary_df: DataFrame with the model results.
+    """
+
+    # Defines the family according to model_type
+    if model_type.lower() == 'logistic':
+        family = sm.families.Binomial()
+    elif model_type.lower() == 'linear':
+        family = sm.families.Gaussian()
+    else:
+        raise ValueError("model_type must be 'linear' or 'logistic'")
+
+    # Builds the formula
+    formula = elr_outcome_str + ' ~ ' + ' + '.join(elr_predictors_list)
+
+    # Converts categorical variables to 'category' type
+    categorical_vars = elr_dataframe_df.select_dtypes(include=['object', 'category']).columns.intersection(elr_predictors_list)
+    for var in categorical_vars:
+        elr_dataframe_df[var] = elr_dataframe_df[var].astype('category')
+
+    # Fits the GLM model
+    model = smf.glm(formula=formula, data=elr_dataframe_df, family=family)
+    result = model.fit()
+
+    # Extracts the results table
+    summary_table = result.summary2().tables[1].copy()
+
+    # For logistic regression, calculates Odds Ratios; for linear, uses the coefficients directly.
+    if model_type.lower() == 'logistic':
+        summary_table['Odds Ratio'] = np.exp(summary_table['Coef.'])
+        summary_table['IC Low'] = np.exp(summary_table['[0.025'])
+        summary_table['IC High'] = np.exp(summary_table['0.975]'])
+
+        summary_df = summary_table[['Odds Ratio', 'IC Low', 'IC High', 'P>|z|']].reset_index()
+        summary_df = summary_df.rename(columns={'index': 'Study',
+                                                  'Odds Ratio': 'OddsRatio',
+                                                  'IC Low': 'LowerCI',
+                                                  'IC High': 'UpperCI',
+                                                  'P>|z|': 'p-value'})
+    else:
+        summary_df = summary_table[['Coef.', '[0.025', '0.975]', 'P>|z|']].reset_index()
+        summary_df = summary_df.rename(columns={'index': 'Study',
+                                                  'Coef.': 'Coefficient',
+                                                  '[0.025': 'LowerCI',
+                                                  '0.975]': 'UpperCI',
+                                                  'P>|z|': 'p-value'})
+
+    # Maps variable names to readable labels, if provided
+    if labels:
+        def parse_variable_name(var_name):
+            if var_name == 'Intercept':
+                return labels.get('Intercept', 'Intercept')
+            elif '[' in var_name:
+                base_var = var_name.split('[')[0]
+                level = var_name.split('[')[1].split(']')[0]
+                base_var_name = base_var.replace('C(', '').replace(')', '').strip()
+                label = labels.get(base_var_name, base_var_name)
+                return f'{label} ({level})'
+            else:
+                var_name_clean = var_name.replace('C(', '').replace(')', '').strip()
+                return labels.get(var_name_clean, var_name_clean)
+        summary_df['Study'] = summary_df['Study'].apply(parse_variable_name)
+
+    # Reorders the columns
+    if model_type.lower() == 'logistic':
+        summary_df = summary_df[['Study', 'OddsRatio', 'LowerCI', 'UpperCI', 'p-value']]
+    else:
+        summary_df = summary_df[['Study', 'Coefficient', 'LowerCI', 'UpperCI', 'p-value']]
+
+    # Removes the letter 'T.' from categorical variables
+    summary_df['Study'] = summary_df['Study'].str.replace('T.', '')
+
+    # Formats the numerical values
+    for col in summary_df.columns[1:-1]:
+        summary_df[col] = summary_df[col].round(3)
+    summary_df['p-value'] = summary_df['p-value'].apply(lambda x: f'{x:.4f}')
+
+    # Removes the intercept row if desired (optional)
+    summary_df = summary_df[summary_df['Study'] != 'Intercept']
+
+    # Renames the columns according to the type of regression
+    if reg_type.lower() == 'uni':
+        if model_type.lower() == 'logistic':
+            summary_df.rename(columns={
+                'OddsRatio': 'OddsRatio (uni)',
+                'LowerCI': 'LowerCI (uni)',
+                'UpperCI': 'UpperCI (uni)',
+                'p-value': 'p-value (uni)'
+            }, inplace=True)
+        else:
+            summary_df.rename(columns={
+                'Coefficient': 'Coefficient (uni)',
+                'LowerCI': 'LowerCI (uni)',
+                'UpperCI': 'UpperCI (uni)',
+                'p-value': 'p-value (uni)'
+            }, inplace=True)
+    elif reg_type.lower() == 'multi':
+        if model_type.lower() == 'logistic':
+            summary_df.rename(columns={
+                'OddsRatio': 'OddsRatio (multi)',
+                'LowerCI': 'LowerCI (multi)',
+                'UpperCI': 'UpperCI (multi)',
+                'p-value': 'p-value (multi)'
+            }, inplace=True)
+        else:
+            summary_df.rename(columns={
+                'Coefficient': 'Coefficient (multi)',
+                'LowerCI': 'LowerCI (multi)',
+                'UpperCI': 'UpperCI (multi)',
+                'p-value': 'p-value (multi)'
+            }, inplace=True)
+
+    if print_results:
+        print(summary_df)
+
+    return summary_df
+
+
+def execute_cox_model(df, duration_col, event_col, predictors, labels=None):
+    """
+    Performs a Cox Proportional Hazards model without weights and
+    returns a summary of the results.
+
+    Parameters:
+    - df: Pandas DataFrame containing the data.
+    - duration_col: String with the name of the time variable.
+    - event_col: String with the name of the outcome variable (binary event).
+    - predictors: List of strings with the names of predictor variables.
+    - labels (Optional):
+        Dictionary mapping variable names to readable labels.
+        Default is None.
+
+    Returns:
+    - summary_df: DataFrame with the results of the Cox model.
+    """
+
+    # Ensure categorical variables are treated appropriately
+    categorical_vars = df.select_dtypes(
+        include=['object', 'category']).columns.intersection(predictors)
+    for var in categorical_vars:
+        df[var] = df[var].astype('category')
+
+    # Convert categorical variables to dummies
+    df = pd.get_dummies(df, columns=categorical_vars, drop_first=True)
+
+    # Ensure numerical variables have the correct type
+    df[duration_col] = pd.to_numeric(df[duration_col], errors='coerce')
+    df[event_col] = pd.to_numeric(df[event_col], errors='coerce')
+
+    # Update predictors to include one-hot encoded columns
+    predictors = [
+        c for c in df.columns
+        if c in predictors or any(
+            c.startswith(p + '_') for p in categorical_vars)]
+
+    # Remove rows with missing values in essential columns
+    df = df.dropna(subset=[duration_col, event_col] + predictors)
+
+    # Select relevant columns
+    df_cox = df[[duration_col, event_col] + predictors]
+
+    # Fit the Cox model
+    cph = CoxPHFitter()
+    cph.fit(df_cox, duration_col=duration_col, event_col=event_col)
+
+    # Model summary
+    summary = cph.summary
+    summary['HR'] = np.exp(summary['coef'])
+    summary['CI_lower'] = np.exp(
+        summary['coef'] - 1.96 * summary['se(coef)'])
+    summary['CI_upper'] = np.exp(
+        summary['coef'] + 1.96 * summary['se(coef)'])
+    # summary['p_adj'] = summary['p'].apply(
+    #     lambda p: "<0.001" if p < 0.001 else round(p, 3))
+    summary['p_adj'] = summary['p'].apply(lambda p: round(p, 3))
+
+    # Select relevant columns for the final summary
+    summary_df = summary[[
+        'HR', 'p_adj', 'CI_lower', 'CI_upper']].reset_index()
+    summary_df.rename(
+        columns={'index': 'Variable', 'p_adj': 'p-value'}, inplace=True)
+
+    # Replace variable labels if provided
+    if labels:
+        summary_df['Variable'] = summary_df['Variable'].map(
+            labels).fillna(summary_df['Variable'])
+
+    return summary_df
+
+
 
 ############################################
 ############################################
-# Graveyard
+# SOME RAPS
+# (basic imputation, variance check, correlation check and feature selection)
 ############################################
 ############################################
 
 
-# def preprocessing_for_risk(data, sections=['comor', 'adsym']):
-#     df_map = data
-#     comor = []
-#     for i in df_map:
-#         if 'comor_' in i:
-#             comor.append(i)
-#     sympt = []
-#     for i in df_map:
-#         if 'adsym_' in i:
-#             sympt.append(i)
-#
-#     sdata = df_map[sympt+comor+['age', 'slider_sex', 'outcome']].copy()
-#
-#     sdata = sdata.applymap(lambda x: x.lower() if isinstance(x, str) else x)
-#     sdata[sympt+comor] = (sdata[sympt+comor] != 'no')
-#     sdata = sdata.loc[(sdata['outcome'] != 'censored')]
-#
-#     outcome_binary_map = {'discharge': 0, 'death': 1}
-#     sex_binary_map = {'female': 0, 'male': 1}
-#     sdata['outcome'] = sdata['outcome'].map(outcome_binary_map)
-#     sdata['slider_sex'] = sdata['slider_sex'].map(sex_binary_map)
-#     return sdata
-#
-#
-# def remove_columns(data, limit_var=60):
-#     nan_percentage = (data.isna().sum() / len(data))*100
-#     nan_percentage = nan_percentage.reset_index()
-#     variables_included = nan_percentage.loc[(
-#         nan_percentage[0] <= limit_var), 'index']
-#     return data[variables_included]
-#
-#
-# def num_imputation_nn(df, n_neighbor=5):
-#     # Separating numerical and encoded nominal variables
-#     numerical_data = df.select_dtypes(include=[np.number])
-#     # Initializing the KNN Imputer
-#     imputer = KNNImputer(n_neighbors=n_neighbor)
-#     # Imputing missing values
-#     imputed_data = imputer.fit_transform(numerical_data)
-#     # Converting imputed data back to a DataFrame
-#     return pd.DataFrame(imputed_data, columns=numerical_data.columns)
-#
-#
-# def binary_model(data, variables, outcome, num_estimators=10):
-#     data_path = data.dropna(subset=[outcome])
-#     combined_df = data_path.dropna(subset=[outcome])
-#
-#     # X_Transm = combined_df[variables]
-#     X = combined_df[variables]
-#
-#     y = combined_df[outcome]
-#     le = LabelEncoder()
-#     y = list(le.fit_transform(y))
-#
-#     # Initialize XGBoost model for classification
-#     xgb_model = xgb.XGBClassifier(
-#         objective='multi:softmax', num_class=len(set(y)),
-#         random_state=182, use_label_encoder=False, eval_metric='mlogloss',
-#         enable_categorical=True, max_depth=4, n_estimators=num_estimators)
-#     for X_x in X:
-#         X[X_x] = X[X_x].astype('category')
-#     # Train the model
-#     xgb_model.fit(X, y)
-#     # Make predictions
-#     predictions = xgb_model.predict(X)
-#     probabilities = xgb_model.predict_proba(X)
-#     combined_df['Predictions'] = predictions
-#     if (len(set(y)) == 2):
-#         probabilities = pd.DataFrame(data=probabilities)
-#         combined_df['probabilities'] = probabilities[1]
-#
-#     # Evaluate the model using a classification metric
-#     accuracy = accuracy_score(y, predictions)
-#     roc = roc_auc_score(y, combined_df['probabilities'])
-#     fpr, tpr, thresholds = roc_curve(y, combined_df['probabilities'])
-#
-#     # Calculate the Youden's index
-#     optimal_idx = np.argmax(tpr - fpr)
-#     optimal_threshold = thresholds[optimal_idx]
-#
-#     # Feature importances
-#     importances = xgb_model.feature_importances_
-#     feature_names = X.columns
-#     feature_importances = pd.DataFrame(
-#         {'Feature': feature_names, 'Importance': importances})
-#
-#     # Sort the features by importance
-#     feature_importances = feature_importances.sort_values(
-#         by='Importance', ascending=False)
-#     return feature_importances, accuracy, roc, optimal_threshold, combined_df
-#
-#
-# def lasso_rf(data, outcome_var='Outcome'):
-#     Y = data[outcome_var]
-#     X = data.drop(outcome_var, axis=1)
-#
-#     # Feature Scaling
-#     scaler = StandardScaler()
-#     X_scaled = scaler.fit_transform(X)
-#
-#     # Splitting the dataset into cross-validation set and hold-out set
-#     X_cv, X_holdout, Y_cv, Y_holdout, idx_cv, idx_holdout = train_test_split(
-#         X_scaled, Y, range(len(data)),
-#         test_size=0.2, random_state=666, stratify=Y)
-#
-#     # Logistic Regression with L1 regularization
-#     log_reg_l1 = LogisticRegression(penalty='l1', solver='liblinear')
-#
-#     # Hyperparameter tuning using GridSearchCV
-#     parameters = {'C': [0.0001, 0.001, 0.01]}
-#     log_reg_cv = GridSearchCV(log_reg_l1, parameters, cv=10, scoring='roc_auc')
-#     log_reg_cv.fit(X_cv, Y_cv)
-#
-#     # Best hyperparameter value
-#     best_C = log_reg_cv.best_params_['C']
-#
-#     # Evaluate using the best parameter on the hold-out set
-#     log_reg_best = LogisticRegression(
-#         penalty='l1', C=best_C, solver='liblinear')
-#     log_reg_best.fit(X_cv, Y_cv)
-#
-#     # Predicting probabilities
-#     Y_pred_proba = log_reg_best.predict_proba(X_holdout)[:, 1]
-#
-#     # Calculating ROC AUC
-#     roc_auc = roc_auc_score(Y_holdout, Y_pred_proba)
-#
-#     # Print coefficients
-#     feature_names = X.columns
-#     coefficients = log_reg_best.coef_[0]
-#     non_zero_indices = np.where(coefficients != 0)[0]
-#
-#     # Standard errors, CIs, and p-values
-#     # intercept = log_reg_best.intercept_
-#     log_reg_best.fit(X_cv[:, non_zero_indices], Y_cv)
-#     standard_errors = np.sqrt(np.diag(np.linalg.inv(np.dot(
-#         X_cv[:, non_zero_indices].T, X_cv[:, non_zero_indices]))))
-#     z_scores = coefficients[non_zero_indices] / standard_errors
-#     p_values = [stats.norm.sf(abs(x)) * 2 for x in z_scores]
-#
-#     # Calculate odds ratios and confidence intervals
-#     odds_ratios = np.exp(coefficients[non_zero_indices])
-#     conf_intervals = np.exp(
-#         coefficients[non_zero_indices][:, np.newaxis] +
-#         np.array([-1, 1]) * 1.96 * standard_errors[:, np.newaxis])
-#
-#     # Format the coefficients, OR, CI, and p-values
-#     formatted_coefficients = [
-#         f'{coef:.3f}' for coef in coefficients[non_zero_indices]]
-#     formatted_odds_ratios = [
-#         f'{or_val:.3f}' for or_val in odds_ratios]
-#     formatted_conf_intervals = [
-#         (f'{ci[0]:.3f}', f'{ci[1]:.3f}') for ci in conf_intervals]
-#     formatted_p_values = [
-#         '<0.005' if pv < 0.005 else f'{pv:.3f}' for pv in p_values]
-#
-#     coef_df = pd.DataFrame({
-#         'Feature': feature_names[non_zero_indices],
-#         'Coefficient': formatted_coefficients,
-#         'Odds Ratio': formatted_odds_ratios,
-#         'CI Lower 95%': [ci[0] for ci in formatted_conf_intervals],
-#         'CI Upper 95%': [ci[1] for ci in formatted_conf_intervals],
-#         'P-value': formatted_p_values
-#     })
-#
-#     return coef_df, roc_auc, best_C
-#
-#
-# def mapSex(df):
-#     mapping_dict = {
-#         'Female': 'Female',
-#         'Male': 'Male'
-#     }
-#     other_outcome = (df['demog_sex'].isin(mapping_dict.keys()) == 0)
-#     df['demog_sex'] = df['demog_sex'].map(mapping_dict)
-#     df.loc[other_outcome, 'demog_sex'] = 'Other / Unknown'
-#     return df
-#
-#
-# def mapOutcomes(df):
-#     mapping_dict = {
-#         'Discharged alive': 'Discharged',
-#         'Discharged against medical advice': 'Discharged',
-#         'Death': 'Death',
-#         # 'Transfer to other facility': 'Censored',
-#         # 'Still hospitalised': 'Censored',
-#         # 'Palliative care': 'Censored',
-#         # 'Other': 'Censored'
-#     }
-#     other_outcome = (df['outco_outcome'].isin(mapping_dict.keys()) == 0)
-#     df['outco_outcome'] = df['outco_outcome'].map(mapping_dict)
-#     df.loc[other_outcome, 'outco_outcome'] = 'Censored'
-#     return df
+def impute_miss_val(df, missing_threshold=0.7):
+    """
+    Imputes missing values or drops columns based on missing value proportion and median
 
-# def rename_variables(df_variables, dictionary, missing_data_codes=None):
-#     choices_dict = get_label_value_dict(dictionary, missing_data_codes)
-#     variable_dict = dict(zip(
-#         dictionary['field_label'], dictionary['field_name']))
-#     df_variable_split = df_variables.apply(lambda x: x.split(' '))
-#     df_variable_names = df_variable_split.apply(lambda x: x[0].split('___')[0])
-#     df_variable_names = df_variable_names.replace(variable_dict)
-#     df_choices_names = df_variable_split.apply(
-#         lambda x: x[0].split('___')[1] if '___' in x[0] else '')
-#     df_choices_names = 1
-#     return
+     Returns:
+    - df: DataFrame with missing values imputed or columns dropped
+    """
+    # Calculate the proportion of missing values in each column
+    missing_proportions = df.isnull().mean()
 
-# def get_variables_type(data):
-#     final_binary_variables = []
-#     final_numeric_variables = []
-#     final_categorical_variables = []
-#
-#     for column in data:
-#         column_data = data[column].dropna()
-#
-#         if column_data.empty:
-#             continue
-#
-#         # Check if the column is numeric
-#         if pd.api.types.is_numeric_dtype(column_data):
-#             unique_values = column_data.unique()
-#             if (len(unique_values) == 2) and (set(unique_values) == {0, 1}):
-#                 final_binary_variables.append(column)
-#             else:
-#                 try:
-#                     pd.to_numeric(column_data)
-#                     final_numeric_variables.append(column)
-#                 except ValueError as e:
-#                     print(f'An error occurred: {e}')
-#                     for col_value_i in column_data:
-#                         print(col_value_i)
-#         else:
-#             unique_values = column_data.unique()
-#             # Consider column as categorical if it has a few unique values
-#             if len(unique_values) <= 10:
-#                 final_categorical_variables.append(column)
-#
-#     return final_binary_variables, final_numeric_variables, final_categorical_variables
-#
-#
-# def categorical_feature(data, categoricals):
-#     categorical_results_t = []
-#     for variable in categoricals:
-#         data_variable = data[[variable]].dropna()
-#         category_variable = 1
-#         data_aux_cat = data_variable.loc[(data_variable[variable] == 1)]
-#         try:
-#             n = len(data_aux_cat)
-#             pe = round(100 * (n / len(data_variable)), 1)
-#             categorical_results_t.append([
-#                 str(variable) + ': ' + str(category_variable),
-#                 str(n) + ' (' + str(pe) + ')'])
-#         except Exception:
-#             print(variable)
-#     categorical_results_t = pd.DataFrame(
-#         data=categorical_results_t, columns=['Variable', 'Count'])
-#     return categorical_results_t
-#
-#
-# def categorical_feature_outcome(data, outcome):
-#     binary_variables, numeric_variables, categorical_variables = get_variables_type(data)
-#     try:
-#         binary_variables.remove(outcome)
-#     except Exception:
-#         print('Outcome not in dataframe')
-#     suitable_cat = []
-#
-#     categorical_results = []
-#     categorical_results_t = []
-#     for variable in binary_variables:
-#         data_variable = data[[variable, outcome]].dropna()
-#         x = data_variable[variable]
-#         y = data_variable[outcome]
-#         data_crosstab = pd.crosstab(x, y, margins=False)
-#         stat, p, dof, expected = stats.chi2_contingency(data_crosstab)
-#
-#         if p < 0.2:
-#             suitable_cat.append(variable)
-#         if p < 0.001:
-#             p = '<0.001'
-#         elif p <= 0.05:
-#             p = str(round(p, 3))
-#         else:
-#             p = str(round(p, 2))
-#
-#         data_variable0 = data_variable.loc[(data_variable[outcome] == 0)]
-#         data_variable1 = data_variable.loc[(data_variable[outcome] == 1)]
-#         for category_variable in [1]:
-#             data_aux_cat = data_variable.loc[(
-#                 data_variable[variable] == category_variable)]
-#             n = len(data_aux_cat)
-#             count = data_aux_cat[outcome].value_counts().reset_index()
-#             n0 = count.loc[(count[outcome] == 0), 'count']
-#             n1 = count.loc[(count[outcome] == 1), 'count']
-#             p0 = round(100*(n0 / len(data_variable0)), 1)
-#             p1 = round(100*(n1 / len(data_variable1)), 1)
-#             pe = round(100*(n / len(data_variable)), 1)
-#             if len(n0) == 0:
-#                 n0, p0 = 0, 0
-#             else:
-#                 n0 = n0.iloc[0]
-#                 p0 = p0.iloc[0]
-#             if len(n1) == 0:
-#                 n1, p1 = 0, 0
-#             else:
-#                 n1 = n1.iloc[0]
-#                 p1 = p1.iloc[0]
-#
-#             categorical_results.append([
-#                 str(variable),
-#                 str(n1) + ' (' + str(p1) + ')',
-#                 str(n0) + ' (' + str(p0) + ')',
-#                 str(n) + ' (' + str(pe) + ')',
-#                 p])
-#             categorical_results_t.append([
-#                 str(variable) + ': ' + str(category_variable),
-#                 str(n) + ' (' + str(pe) + ')'])
-#
-#     column1 = 'Characteristic'
-#     column2 = outcome + '=1 (n=' + str(round(data[outcome].sum())) + ')'
-#     column3 = outcome + '=0 (n=' + str(round(len(data) - data[outcome].sum()))
-#     column3 += ')'
-#     column4 = 'All cohort (n=' + str(round(len(data))) + ')'
-#
-#     categorical_results = pd.DataFrame(
-#         data=categorical_results,
-#         columns=[column1, column2, column3, column4, 'p-value'])
-#
-#     categorical_results_t = pd.DataFrame(
-#         data=categorical_results_t, columns=['Variable', 'Count'])
-#     return categorical_results, suitable_cat, categorical_results_t
-#
-#
-# def numeric_outcome_results(data, outcome):
-#     binary_variables, numeric_variables, categorical_variables = get_variables_type(data)
-#     results_array = []
-#     results_t = []
-#     suitable_num = []
-#     for variable in numeric_variables:
-#         try:
-#             data[variable] = pd.to_numeric(data[variable], errors='coerce')
-#             data_variable = data[[variable, outcome]].dropna()
-#             data0 = data_variable.loc[(data_variable[outcome] == 0), variable]
-#             data1 = data_variable.loc[(data_variable[outcome] == 1), variable]
-#             data_t = data_variable[variable]
-#             # complete = round((100 * (len(data_variable) / len(data))), 1)
-#             if len(data_variable) > 2:
-#                 # On the whole variable
-#                 stat, p = stats.shapiro(data_variable[variable])
-#                 alpha = 0.05
-#                 if p < alpha:
-#                     # print('Not normal')
-#                     w, p = stats.mannwhitneyu(
-#                         data0, y=data1, alternative='two-sided')
-#                 else:
-#                     summary, results = rp.ttest(
-#                         group1=data.loc[(data[outcome] == 0), variable],
-#                         group1_name='0',
-#                         group2=data.loc[(data[outcome] == 1), variable],
-#                         group2_name='1')
-#                     p = results['results'].loc[3]
-#
-#                 detail0 = str(round(data0.median(), 1)) + ' ('
-#                 detail0 += str(round(data0.quantile(0.25), 1)) + '-'
-#                 detail0 += str(round(data0.quantile(0.75), 1)) + ')'
-#                 detail1 = str(round(data1.median(), 1)) + ' ('
-#                 detail1 += str(round(data1.quantile(0.25), 1)) + '-'
-#                 detail1 += str(round(data1.quantile(0.75), 1)) + ')'
-#                 detail_t = str(round(data_t.median(), 1)) + ' ('
-#                 detail_t += str(round(data_t.quantile(0.25), 1)) + '-'
-#                 detail_t += str(round(data_t.quantile(0.75), 1)) + ')'
-#                 if p < 0.2:
-#                     suitable_num.append(variable)
-#                 if p < 0.001:
-#                     p = '<0.001'
-#                 elif p <= 0.05:
-#                     p = str(round(p, 3))
-#                 else:
-#                     p = str(round(p, 2))
-#             else:
-#                 detail0 = str(round(data0.mean(), 1)) + ' ('
-#                 detail0 += str(round(data0.std(), 1)) + ')'
-#                 detail1 = str(round(data1.mean(), 1)) + ' ('
-#                 detail1 += str(round(data1.std(), 1)) + ')'
-#                 detail_t = str(round(data_t.mean(), 1)) + ' ('
-#                 detail_t += str(round(data_t.std(), 1)) + ')'
-#                 p = 'N/A'
-#
-#             results_array.append([variable, detail1, detail0, detail_t, p])
-#             results_t.append([variable, detail_t])
-#         except Exception:
-#             print(variable)
-#
-#     column1 = 'Characteristic'
-#     column2 = outcome + '=1 (n=' + str(round(data[outcome].sum())) + ')'
-#     column3 = outcome + '=0 (n=' + str(round(len(data) - data[outcome].sum()))
-#     column3 += ')'
-#     column4 = 'All cohort (n=' + str(round(len(data))) + ')'
-#
-#     results_df = pd.DataFrame(
-#         data=results_array,
-#         columns=[column1, column2, column3, column4, 'p-value'])
-#     results_t = pd.DataFrame(
-#         data=results_t,
-#         columns=['Variable', 'median(IQR)'])
-#     return results_df, suitable_num, results_t
-#
-#
-# def numeric_results(data, numeric_variables):
-#     results_t = []
-#     for variable in numeric_variables:
-#         try:
-#             data[variable] = pd.to_numeric(
-#                 data[variable], errors='coerce')
-#             data_variable = data[[variable]].dropna()
-#             data_t = data_variable[variable]
-#             # complete = round((100 * (len(data_variable) / len(data))), 1)
-#             if len(data_variable) > 2:
-#                 detail_t = str(round(data_t.median(), 1)) + ' ('
-#                 detail_t += str(round(data_t.quantile(0.25), 1)) + '-'
-#                 detail_t += str(round(data_t.quantile(0.75), 1)) + ')'
-#             else:
-#                 detail_t = str(round(data_t.mean(), 1)) + ' ('
-#                 detail_t += str(round(data_t.std(), 1)) + ')'
-#             results_t.append([variable, detail_t])
-#         except Exception:
-#             print(variable)
-#     results_t = pd.DataFrame(
-#         data=results_t, columns=['Variable', 'median(IQR)'])
-#     return results_t
-#
-#
-# def descriptive_table(data, correct_names, categoricals, numericals):
-#     categorical_results_t = categorical_feature(
-#         data, list(set(categoricals).intersection(set(data.columns))))
-#     numeric_results_t = numeric_results(
-#         data, list(set(numericals).intersection(set(data.columns))))
-#
-#     table = pd.merge(
-#         categorical_results_t, numeric_results_t, on='Variable', how='outer')
-#
-#     table['Variable'] = table['Variable'].apply(lambda x: x.split(':')[0])
-#     table['Variable'] = table['Variable'].replace(
-#         dict(zip(correct_names['field_name'], correct_names['field_label'])))
-#     # table['Variable'] = table['Variable'].replace(correct_names)
-#     table = table.fillna('')
-#     return table
+    # Identify columns to drop
+    cols_to_drop = missing_proportions[missing_proportions > missing_threshold].index
+    df = df.drop(columns=cols_to_drop)
+
+    # Impute missing values in remaining columns
+    for col in df.columns:
+        if df[col].isnull().any():
+            if pd.api.types.is_numeric_dtype(df[col]):
+                # Numeric column: impute with median
+                median_value = df[col].median()
+                if pd.isnull(median_value):
+                    # If median cannot be computed, drop the column
+                    df = df.drop(columns=[col])
+                else:
+                   df[col] = df[col].fillna(median_value)
+            else:
+                # Categorical column: impute with mode
+                mode_series = df[col].mode()
+                if not mode_series.empty:
+                    mode_value = mode_series[0]
+                    df[col] = df[col].fillna(mode_value)
+                else:
+                    # If mode cannot be computed, drop the column
+                    df = df.drop(columns=[col])
+    print("\nSummary after Imputation")
+    print("Size of remaining data:", df.shape)
+    return df
+
+def rmv_low_var(df, mad_threshold=0.1, freq_threshold=0.05):
+    """
+    Removes numerical variables with Median Absolute Deviation (MAD) below a threshold.
+    Excludes binary columns from MAD calculation.
+    Removes  binary columns with very low frequencies
+    Returns:
+    - df: pandas DataFrame with low MAD columns removed
+    """
+
+    # Remove single-valued columns first
+    single_value_cols = df.columns[df.nunique() == 1]
+    df = df.drop(columns=single_value_cols)
+
+    # Select numeric columns
+    numeric_cols = df.select_dtypes(include=[np.number]).columns
+
+   # Select numeric columns and identify binary columns
+    numeric_cols = df.select_dtypes(include=[np.number]).columns
+    binary_cols = df.columns[df.nunique() == 2]
+    non_binary_cols = numeric_cols.difference(binary_cols)
+
+    print(f"\nMAD Analysis Summary:")
+    print(f"Single value columns removed: {len(single_value_cols)}")
+    print(f"Total binary columns: {len(binary_cols)}")
+    print(f"Total numeric columns: {len(numeric_cols)}")
+    print(f"Non binary numeric columns: {len(non_binary_cols)}")
+    print(f"Numeric Binary columns excluded from MAD: {len(numeric_cols) - len(non_binary_cols)}")
+
+    # Calculate low frequency binary numeric column
+    # Handle binary columns - convert to numeric first
+    if len(binary_cols) > 0:
+        X_bin = df[binary_cols].apply(lambda x: pd.factorize(x)[0])
+        binary_counts = X_bin.apply(pd.value_counts, normalize=True)
+        keep_cols = [col for col in binary_cols if
+                    binary_counts[col].min() >= freq_threshold]
+        X_bin = df[keep_cols]  # Keep original values for these columns
+    else:
+        X_bin = pd.DataFrame()  # Empty DataFrame if no binary columns
+
+    # Normalise the numeric columns by max
+    df_tmp = df
+    for col in non_binary_cols:
+        df[col] = df_tmp[col]/np.max(np.abs(df_tmp[col]))
+
+    # Calculate MAD for each non-binary numeric column
+    mad_values = {}
+    for col in non_binary_cols:
+        mad = np.median(np.abs(df[col] - np.median(df[col])))
+        mad_values[col] = mad
+
+    # Create a Series from the MAD values
+    mad_series = pd.Series(mad_values)
+    #print(mad_series)
+
+    # Identify columns to keep:
+    # 1. Non-numeric columns
+    # 2. Binary numeric columns
+    # 3. Non-binary numeric columns with MAD above threshold
+    cols_to_keep = set(df.columns) - set(non_binary_cols)-set(binary_cols)  # Start with all CAT columns
+    cols_to_keep.update(mad_series[mad_series >= mad_threshold].index)  # Add high MAD columns
+
+    # Keep only the identified columns
+    X_comb = pd.concat([df[list(cols_to_keep)], X_bin], axis=1)
+    df = X_comb
+
+    # Print summary for debugging
+
+    print("High Frequency Binary columns kept:", X_bin.shape)
+    print(f"Columns removed due to low MAD: {len(non_binary_cols) - len(mad_series[mad_series >= mad_threshold])}")
+
+
+    return df
+
+
+def rmv_high_corr(df, correlation_threshold=0.5):
+    # Step 1: Select numeric columns only
+    numeric_cols = df.select_dtypes(include=[np.number]).columns
+    df_numeric = df[numeric_cols]  # DataFrame with only numeric columns
+
+    # Step 2: Calculate the correlation matrix
+    corr_matrix = df_numeric.corr().abs()
+
+    # Step 3: Identify highly correlated columns with a double loop
+    to_drop = set()  # Use a set to avoid duplicates
+    num_cols = corr_matrix.shape[0]
+
+    for i in range(num_cols):
+        for j in range(i + 1, num_cols):  # Only look at the upper triangle
+            if corr_matrix.iloc[i, j] > correlation_threshold:
+                # Identify the columns with high correlation
+                col1 = corr_matrix.columns[i]
+                col2 = corr_matrix.columns[j]
+
+                # Add one of the columns to `to_drop`
+                to_drop.add(col2)  # Arbitrarily drop the second column
+
+    # Step 4: Drop highly correlated columns
+
+    print("\nCORR Summary")
+    print(f"Columns removed due to high correlation: {len(to_drop)}")
+    df = df.drop(columns=list(to_drop))
+
+    return df
+
+
+
+def lasso_var_sel_binary(df, outcome_col='mapped_outcome', random_state=42):
+    """
+    Prepare data and select features using binary logistic regression with elastic net penalty.
+    Specifically designed for binary outcomes only.
+    """
+    if outcome_col not in df.columns:
+        raise ValueError(f"Outcome column '{outcome_col}' not found in DataFrame")
+
+
+    # Separate predictors and outcome
+    y = df[outcome_col].copy()
+    X_ini = df.drop(columns=[outcome_col])
+    print(f"\nInitial shape of X: {X_ini.shape}")
+
+    # Encode the binary outcome
+    label_encoder = LabelEncoder()
+    y = label_encoder.fit_transform(y)
+
+    # Verify that we have a binary outcome
+    n_classes = len(np.unique(y))
+    if n_classes != 2:
+        raise ValueError("This function is designed for binary classification only. More than two classes found.")
+
+    # Standardize features
+    scaler = StandardScaler()
+    numeric_cols = X_ini.select_dtypes(include=[np.number]).columns
+    print("Column dtypes:", X_ini.dtypes)
+    print("Numeric columns found:", len(numeric_cols))
+
+    X = X_ini.copy()
+    if len(numeric_cols) > 0:
+        X[numeric_cols] = scaler.fit_transform(X_ini[numeric_cols])
+    else:
+        print("No numeric columns to standardize")
+    X = pd.DataFrame(X, columns=X_ini.columns)
+
+    print("\nOutcome classes:", dict(zip(label_encoder.classes_, range(len(label_encoder.classes_)))))
+    print(f"\nInitial shape of X: {X.shape}")
+    # Encode categorical predictors
+    categorical_cols = X.select_dtypes(include=['object', 'category']).columns
+    binary_cats = [col for col in categorical_cols if X[col].nunique() == 2]
+    multi_cats = [col for col in categorical_cols if X[col].nunique() > 2]
+
+    for col in binary_cats:
+        le = LabelEncoder()
+        X[col] = le.fit_transform(X[col])
+
+    # Use dummies only for multi-category
+    X = pd.get_dummies(X, columns=multi_cats, prefix_sep='*_*')
+    print(f"\nshape of X after one-hot: {X.shape}")
+    X.to_csv('ISARIC_mpox2rmv_1hot.csv', index=True)
+
+    if X.shape[1] > 0:
+        print("First actual predictor column:", X.columns[0])
+    else:
+        raise ValueError("No predictor columns left after dropping outcome (and ID if applicable).")
+
+
+
+    # Fit binary logistic regression with elastic net
+    # For binary classification, multi_class defaults to 'ovr', which yields a single set of coefficients.
+    l1_vec = [0.1, 0.2, 0.3, 0.7, 0.8, 0.9]
+    C_vec = np.logspace(-4, 4, 40)
+    logistic = LogisticRegressionCV(
+        penalty='elasticnet',
+        l1_ratios= l1_vec,
+        solver='saga',
+        cv=StratifiedKFold(n_splits=3, shuffle=True, random_state=random_state),
+        random_state=random_state,
+        max_iter=5000,
+        class_weight='balanced',
+        Cs= C_vec,
+        tol=1e-4,
+        scoring='balanced_accuracy'
+    )
+
+
+    # Below is the original way we started
+    logistic.fit(X, y)
+
+    print("Original l1_ratios specified:", l1_vec)
+    print("Model's l1_ratios attribute:", logistic.l1_ratios)
+    print("Shape of logistic.scores_[1]:", logistic.scores_[1].shape)
+    print("\nFirst 10 scores for each row:")
+    for i in [0,1]:  # explicitly loop through both rows
+        print(f"\nRow {i} (supposed to be l1_ratio = {l1_vec[i]}):")
+        print(logistic.scores_[1][0, :10, i])
+
+
+    scores_dt = np.mean(logistic.scores_[1],axis=0)
+    print("Mean scores for varying l1_ratio and Cs")
+    print(scores_dt)  # print matrix for this fold
+
+    scores_df = pd.DataFrame(
+    scores_dt,  # Transpose to get l1_ratios as rows
+    index=C_vec,
+    columns=l1_vec
+    )
+
+    # Label the axes
+    scores_df.index.name = 'C'
+    scores_df.columns.name = 'l1_ratio'
+    # logistic.coef_ will have shape (1, n_features) for binary classification
+    coef_df = pd.DataFrame(logistic.coef_, columns=X.columns)
+    # No indexing by classes since it's binary (one row of coefficients)
+
+    # Compute feature importance as absolute value of coefficients
+    # Since there's only one class row, mean across rows is just that row
+    feature_importance = np.abs(coef_df.iloc[0, :])
+
+    # Select features with non-zero importance
+    selected_features = feature_importance[feature_importance > 0.0].index.tolist()
+
+    # Predictions
+    y_pred = logistic.predict(X)
+
+    # Performance metrics
+    print("\nPerformance Metrics:")
+    print("-------------------")
+
+    # Find the best C and corresponding CV score
+    best_c = logistic.C_[0]
+    c_index = np.where(logistic.Cs_ == best_c)[0][0]
+    all_class_scores = []
+    for cl in logistic.scores_:
+        all_class_scores.extend(logistic.scores_[cl][:, c_index])
+    best_cv_score = np.mean(all_class_scores)
+
+    print(f"Best C value: {best_c}")
+    print("\nConfusion Matrix:")
+    conf_matrix = confusion_matrix(y, y_pred)
+    print(conf_matrix)
+    print("\nClassification Report:")
+
+    target_names = [str(c) for c in label_encoder.classes_]
+    print(classification_report(y, y_pred, target_names=target_names))
+    print(f"Best CV score: {best_cv_score}")
+
+    # l1_ratio_ returns the best ratio found for each class. For binary, there should be one:
+    print(f"Best l1_ratio: {logistic.l1_ratio_[0]}")
+
+    print(f"\nSelected {len(selected_features)} features")
+
+    # Print feature importance for selected features
+    print("\nFeature importance for selected features:")
+    for feat in sorted(selected_features, key=lambda x: feature_importance[x], reverse=True):
+        print(f"{feat}: {feature_importance[feat]:.4f}")
+
+    X_selected = X[selected_features]
+    print(f"Final shape of selected features: {X_selected.shape}")
+
+    # Store metrics in a dictionary
+    metrics = {
+        'confusion_matrix': conf_matrix,
+        'classification_report': classification_report(y, y_pred, target_names=label_encoder.classes_, output_dict=True),
+        'accuracy': accuracy_score(y, y_pred),
+        'cv_scores': all_class_scores
+    }
+
+    original_features = {}
+    for feature in selected_features:
+      if '*_*' in feature:
+        orig_name = feature.split('*_*')[0]
+        coef = abs(feature_importance[feature])
+        original_features[orig_name] = max(original_features.get(orig_name, 0), coef)
+      else:
+        original_features[feature] = abs(feature_importance[feature])
+
+    # Create grouped results showing all categories
+    grp_results= create_grouped_results(selected_features, feature_importance)
+    results_df = grp_results[0]
+    sorted_fields = grp_results[1]
+    categorical_fields = grp_results[2]
+
+    # Print the grouped results
+    print("\nSelected features grouped by main field:")
+    print(results_df)
+
+    # Save to CSV
+    results_df.to_csv('feature_coefficients_grouped.csv', index=False)
+
+    # Note: We may still want to keep the original X_selected DataFrame for further analysis
+    X_selected = X[selected_features]
+    #print(f"Final shape of selected features: {X_selected.shape}")
+
+    # After running create_grouped_results, extract main fields
+    main_fields = []
+    for field in sorted_fields:  # We already have sorted_fields from earlier
+        if field in categorical_fields:
+            main_fields.append(field)
+        else:
+            main_fields.append(field)  # For regular features
+
+    # Convert main_fields list to a single-column DataFrame
+    main_fields_df = pd.DataFrame({'Main Features': main_fields})
+    print(main_fields_df)
+
+    top_params = get_parameter_ranking(logistic, n_top=20)
+    print("\nTop parameter combinations:")
+    print(top_params)
+
+    return results_df, scores_df, main_fields_df, top_params, X_selected, y, selected_features, coef_df, label_encoder, feature_importance, metrics
+
+    # Group features by main field and sort by importance
+def create_grouped_results(selected_features, feature_importance):
+    """
+    Create a DataFrame with all categories listed under their main fields,
+    with main fields sorted by their maximum coefficient magnitude.
+    """
+    # Step 1: Identify one-hot encoded and regular features
+    categorical_fields = set()
+    regular_features = []
+
+    for feature in selected_features:
+        if '*_*' in feature:
+            # One-hot encoded feature
+            categorical_fields.add(feature.split('*_*')[0])
+        else:
+            # Regular feature
+            regular_features.append(feature)
+
+    # Step 2: Organize features by main field
+    field_groups = {}
+
+    # Process categorical fields
+    for field in categorical_fields:
+        field_groups[field] = []
+        # Find all categories for this field
+        for feature in selected_features:
+            if feature.startswith(field + '*_*'):
+                category = feature.split('*_*')[1]
+                coef = feature_importance[feature]
+                field_groups[field].append({
+                    'Feature': category,
+                    'Coefficient': coef,
+                    'AbsCoef': abs(coef)
+                })
+
+    # Process regular features
+    for feature in regular_features:
+        coef = feature_importance[feature]
+        # For regular features, store coefficient directly
+        field_groups[feature] = [{
+            'Feature': '',
+            'Coefficient': coef,
+            'AbsCoef': abs(coef)
+        }]
+
+    # Get max coefficient for each field for sorting
+    field_max_coef = {}
+    for field, categories in field_groups.items():
+        field_max_coef[field] = max(cat['AbsCoef'] for cat in categories)
+
+    #  Sort fields by their max coefficient
+    sorted_fields = sorted(field_groups.keys(), key=lambda f: field_max_coef[f], reverse=True)
+
+    # Create the final DataFrame with the desired structure
+    results = []
+
+    for field in sorted_fields:
+        if field in categorical_fields:
+            # For categorical fields, add header row with no coefficient
+            results.append({
+                'Feature': field,
+                'Coefficient': "..."
+            })
+
+            # Add all categories
+            categories = sorted(field_groups[field], key=lambda x: x['AbsCoef'], reverse=True)
+            for cat in categories:
+                results.append({
+                    'Feature': f"  {cat['Feature']}",  # Indent for visual grouping
+                    'Coefficient': cat['Coefficient']
+                })
+        else:
+            # For regular features, show coefficient directly
+            results.append({
+                'Feature': field,
+                'Coefficient': field_groups[field][0]['Coefficient']
+            })
+
+    return pd.DataFrame(results), sorted_fields, categorical_fields
+
+def get_parameter_ranking(logistic, n_top=10):
+    """
+    Create a ranking of parameter combinations using stored scores
+    and coefficient paths.
+    """
+    import pandas as pd
+    import numpy as np
+
+    # Create empty list to store parameter information
+    param_scores = []
+
+    # Get model parameters
+    l1_ratios = logistic.l1_ratios_
+    Cs = logistic.Cs_
+
+    # Get first class key (for binary classification, there's only one set of scores)
+    first_class = list(logistic.scores_.keys())[0]
+
+    # Loop through all parameter combinations
+    for l1_ratio_idx, l1_ratio in enumerate(l1_ratios):
+        for C_idx, C in enumerate(Cs):
+            # Get mean score across folds for this parameter combination
+            score = np.mean(logistic.scores_[first_class][:, C_idx, l1_ratio_idx])
+
+            # Get coefficients for this parameter combination
+            coef_path = logistic.coefs_paths_[first_class][:, C_idx, l1_ratio_idx, :]
+
+            # Average across folds
+            mean_coef = np.mean(coef_path, axis=0)
+
+            # Count non-zero coefficients
+            n_features = np.sum(np.abs(mean_coef) > 1e-3)
+
+            # Append to our list
+            param_scores.append({
+                'l1_ratio': l1_ratio,
+                'C': C,
+                'score': score,
+                'n_features': n_features
+            })
+
+    # Convert to DataFrame and sort
+    params_df = pd.DataFrame(param_scores)
+    params_df = params_df.sort_values('score', ascending=False).head(n_top)
+
+    return params_df

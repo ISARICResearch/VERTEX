@@ -2,5 +2,5 @@ index,count,short_label,label
 adsym_abdpain,350,<b>Abdominal pain</b>,<b>Abdominal pain</b>
 adsym_fatigue,348,<b>Fatigue / malaise / lethargy</b>,<b>Fatigue / malaise / lethargy</b>
 adsym_vomit,328,<b>Vomiting</b>,<b>Vomiting</b>
-adsym_cough_nonprod,104,<b>Non-productive </b>,<b>Non-productive </b>
-adsym_unlisted_2addi,11,<b>->Any additional other sign(s) or ...</b>,<b>->Any additional other sign(s) or symptom(s) ?</b>
+adsym_headache,326,<b>Headache</b>,<b>Headache</b>
+adsym_restlessne,326,<b>Restlessness</b>,<b>Restlessness</b>

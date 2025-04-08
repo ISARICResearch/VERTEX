@@ -2,5 +2,5 @@ index,count,short_label,label
 sympt_dailydata,859,<b>Enter signs and symptoms data for this ...</b>,<b>Enter signs and symptoms data for this date?</b>
 sympt_anosmia,715,<b>Loss of smell / anosmia</b>,<b>Loss of smell / anosmia</b>
 sympt_wheezing,696,<b>Wheezing</b>,<b>Wheezing</b>
+sympt_jaund,654,<b>Jaundice</b>,<b>Jaundice</b>
 sympt_dizzy,637,<b>Feeling dizzy / faint</b>,<b>Feeling dizzy / faint</b>
-sympt_cough_hemop,106,<b>Hemoptysis</b>,<b>Hemoptysis</b>

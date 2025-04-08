@@ -1,31 +1,32 @@
 index,label,count
-"('treat_unlisted',)","('<b>Other intervention(s) or procedure(s)</b>',)",56
-"('treat_steroids',)","('<b>Corticosteroids</b>',)",54
-"('treat_fluid_parent',)","('<b>Parenteral IV fluid?</b>',)",53
-"('treat_antibiotic',)","('<b>Antibiotics</b>',)",44
-"('treat_unlisted', 'treat_antibiotic')","('<b>Other intervention(s) or procedure(s)</b>', '<b>Antibiotics</b>')",40
-"('treat_unlisted', 'treat_fluid_parent', 'treat_steroids')","('<b>Other intervention(s) or procedure(s)</b>', '<b>Parenteral IV fluid?</b>', '<b>Corticosteroids</b>')",36
-"('treat_fluid_parent', 'treat_antibiotic')","('<b>Parenteral IV fluid?</b>', '<b>Antibiotics</b>')",33
-"('treat_unlisted', 'treat_antibiotic', 'treat_steroids')","('<b>Other intervention(s) or procedure(s)</b>', '<b>Antibiotics</b>', '<b>Corticosteroids</b>')",32
-"('treat_fluid_parent', 'treat_steroids')","('<b>Parenteral IV fluid?</b>', '<b>Corticosteroids</b>')",32
-"('treat_unlisted', 'treat_steroids')","('<b>Other intervention(s) or procedure(s)</b>', '<b>Corticosteroids</b>')",31
-"('treat_unlisted', 'treat_fluid_parent')","('<b>Other intervention(s) or procedure(s)</b>', '<b>Parenteral IV fluid?</b>')",25
-"('treat_unlisted', 'treat_fluid_parent', 'treat_antibiotic', 'treat_steroids')","('<b>Other intervention(s) or procedure(s)</b>', '<b>Parenteral IV fluid?</b>', '<b>Antibiotics</b>', '<b>Corticosteroids</b>')",24
-"('treat_antibiotic', 'treat_steroids')","('<b>Antibiotics</b>', '<b>Corticosteroids</b>')",22
-"('treat_unlisted', 'treat_fluid_parent', 'treat_antibiotic')","('<b>Other intervention(s) or procedure(s)</b>', '<b>Parenteral IV fluid?</b>', '<b>Antibiotics</b>')",21
-"('treat_fluid_parent', 'treat_antibiotic', 'treat_steroids')","('<b>Parenteral IV fluid?</b>', '<b>Antibiotics</b>', '<b>Corticosteroids</b>')",14
-"('treat_o2supp_ecmotyp___Veno-arterial (VA)', 'treat_antibiotic')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Antibiotics</b>')",8
-"('treat_o2supp_ecmotyp___Veno-arterial (VA)',)","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)',)",8
-"('treat_o2supp_ecmotyp___Veno-arterial (VA)', 'treat_antibiotic', 'treat_steroids')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Antibiotics</b>', '<b>Corticosteroids</b>')",7
-"('treat_o2supp_ecmotyp___Veno-arterial (VA)', 'treat_fluid_parent', 'treat_antibiotic')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Parenteral IV fluid?</b>', '<b>Antibiotics</b>')",7
-"('treat_o2supp_ecmotyp___Veno-arterial (VA)', 'treat_unlisted', 'treat_fluid_parent', 'treat_antibiotic')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Other intervention(s) or procedure(s)</b>', '<b>Parenteral IV fluid?</b>', '<b>Antibiotics</b>')",6
-"('treat_o2supp_ecmotyp___Veno-arterial (VA)', 'treat_unlisted', 'treat_fluid_parent', 'treat_antibiotic', 'treat_steroids')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Other intervention(s) or procedure(s)</b>', '<b>Parenteral IV fluid?</b>', '<b>Antibiotics</b>', '<b>Corticosteroids</b>')",6
-"('treat_o2supp_ecmotyp___Veno-arterial (VA)', 'treat_unlisted', 'treat_antibiotic')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Other intervention(s) or procedure(s)</b>', '<b>Antibiotics</b>')",4
-"('treat_o2supp_ecmotyp___Veno-arterial (VA)', 'treat_unlisted', 'treat_antibiotic', 'treat_steroids')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Other intervention(s) or procedure(s)</b>', '<b>Antibiotics</b>', '<b>Corticosteroids</b>')",3
-"('treat_o2supp_ecmotyp___Veno-arterial (VA)', 'treat_fluid_parent', 'treat_steroids')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Parenteral IV fluid?</b>', '<b>Corticosteroids</b>')",3
-"('treat_o2supp_ecmotyp___Veno-arterial (VA)', 'treat_unlisted', 'treat_fluid_parent', 'treat_steroids')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Other intervention(s) or procedure(s)</b>', '<b>Parenteral IV fluid?</b>', '<b>Corticosteroids</b>')",2
-"('treat_o2supp_ecmotyp___Veno-arterial (VA)', 'treat_unlisted', 'treat_steroids')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Other intervention(s) or procedure(s)</b>', '<b>Corticosteroids</b>')",2
-"('treat_o2supp_ecmotyp___Veno-arterial (VA)', 'treat_unlisted')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Other intervention(s) or procedure(s)</b>')",1
-"('treat_o2supp_ecmotyp___Veno-arterial (VA)', 'treat_fluid_parent', 'treat_antibiotic', 'treat_steroids')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Parenteral IV fluid?</b>', '<b>Antibiotics</b>', '<b>Corticosteroids</b>')",1
-"('treat_o2supp_ecmotyp___Veno-arterial (VA)', 'treat_steroids')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Corticosteroids</b>')",1
-"('treat_o2supp_ecmotyp___Veno-arterial (VA)', 'treat_fluid_parent')","('<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)', '<b>Parenteral IV fluid?</b>')",1
+"('treat_fluid_yn',)","('<b>Any fluids prescribed</b>',)",40
+"('treat_steroids',)","('<b>Corticosteroids</b>',)",40
+"('treat_antibiotic',)","('<b>Antibiotics</b>',)",36
+"('treat_o2supp_suppleo2',)","('<b>Supplemental oxygen</b>',)",33
+"('treat_blood_occur',)","('<b>Blood / blood products transfusion</b>',)",24
+"('treat_antibiotic', 'treat_steroids')","('<b>Antibiotics</b>', '<b>Corticosteroids</b>')",23
+"('treat_steroids', 'treat_blood_occur')","('<b>Corticosteroids</b>', '<b>Blood / blood products transfusion</b>')",23
+"('treat_fluid_yn', 'treat_antibiotic')","('<b>Any fluids prescribed</b>', '<b>Antibiotics</b>')",22
+"('treat_antibiotic', 'treat_blood_occur')","('<b>Antibiotics</b>', '<b>Blood / blood products transfusion</b>')",22
+"('treat_blood_occur', 'treat_o2supp_suppleo2')","('<b>Blood / blood products transfusion</b>', '<b>Supplemental oxygen</b>')",22
+"('treat_fluid_yn', 'treat_antibiotic', 'treat_blood_occur', 'treat_o2supp_suppleo2')","('<b>Any fluids prescribed</b>', '<b>Antibiotics</b>', '<b>Blood / blood products transfusion</b>', '<b>Supplemental oxygen</b>')",21
+"('treat_fluid_yn', 'treat_blood_occur')","('<b>Any fluids prescribed</b>', '<b>Blood / blood products transfusion</b>')",21
+"('treat_fluid_yn', 'treat_steroids')","('<b>Any fluids prescribed</b>', '<b>Corticosteroids</b>')",20
+"('treat_antibiotic', 'treat_o2supp_suppleo2')","('<b>Antibiotics</b>', '<b>Supplemental oxygen</b>')",20
+"('treat_steroids', 'treat_o2supp_suppleo2')","('<b>Corticosteroids</b>', '<b>Supplemental oxygen</b>')",20
+"('treat_steroids', 'treat_blood_occur', 'treat_o2supp_suppleo2')","('<b>Corticosteroids</b>', '<b>Blood / blood products transfusion</b>', '<b>Supplemental oxygen</b>')",19
+"('treat_fluid_yn', 'treat_o2supp_suppleo2')","('<b>Any fluids prescribed</b>', '<b>Supplemental oxygen</b>')",17
+"('treat_fluid_yn', 'treat_antibiotic', 'treat_o2supp_suppleo2')","('<b>Any fluids prescribed</b>', '<b>Antibiotics</b>', '<b>Supplemental oxygen</b>')",16
+"('treat_fluid_yn', 'treat_steroids', 'treat_blood_occur')","('<b>Any fluids prescribed</b>', '<b>Corticosteroids</b>', '<b>Blood / blood products transfusion</b>')",16
+"('treat_fluid_yn', 'treat_antibiotic', 'treat_steroids', 'treat_blood_occur', 'treat_o2supp_suppleo2')","('<b>Any fluids prescribed</b>', '<b>Antibiotics</b>', '<b>Corticosteroids</b>', '<b>Blood / blood products transfusion</b>', '<b>Supplemental oxygen</b>')",16
+"('treat_fluid_yn', 'treat_antibiotic', 'treat_steroids')","('<b>Any fluids prescribed</b>', '<b>Antibiotics</b>', '<b>Corticosteroids</b>')",15
+"('treat_antibiotic', 'treat_blood_occur', 'treat_o2supp_suppleo2')","('<b>Antibiotics</b>', '<b>Blood / blood products transfusion</b>', '<b>Supplemental oxygen</b>')",14
+"('treat_fluid_yn', 'treat_antibiotic', 'treat_steroids', 'treat_o2supp_suppleo2')","('<b>Any fluids prescribed</b>', '<b>Antibiotics</b>', '<b>Corticosteroids</b>', '<b>Supplemental oxygen</b>')",13
+"('treat_fluid_yn', 'treat_antibiotic', 'treat_steroids', 'treat_blood_occur')","('<b>Any fluids prescribed</b>', '<b>Antibiotics</b>', '<b>Corticosteroids</b>', '<b>Blood / blood products transfusion</b>')",12
+"('treat_fluid_yn', 'treat_antibiotic', 'treat_blood_occur')","('<b>Any fluids prescribed</b>', '<b>Antibiotics</b>', '<b>Blood / blood products transfusion</b>')",12
+"('treat_fluid_yn', 'treat_steroids', 'treat_blood_occur', 'treat_o2supp_suppleo2')","('<b>Any fluids prescribed</b>', '<b>Corticosteroids</b>', '<b>Blood / blood products transfusion</b>', '<b>Supplemental oxygen</b>')",12
+"('treat_fluid_yn', 'treat_blood_occur', 'treat_o2supp_suppleo2')","('<b>Any fluids prescribed</b>', '<b>Blood / blood products transfusion</b>', '<b>Supplemental oxygen</b>')",12
+"('treat_fluid_yn', 'treat_steroids', 'treat_o2supp_suppleo2')","('<b>Any fluids prescribed</b>', '<b>Corticosteroids</b>', '<b>Supplemental oxygen</b>')",11
+"('treat_antibiotic', 'treat_steroids', 'treat_blood_occur')","('<b>Antibiotics</b>', '<b>Corticosteroids</b>', '<b>Blood / blood products transfusion</b>')",11
+"('treat_antibiotic', 'treat_steroids', 'treat_blood_occur', 'treat_o2supp_suppleo2')","('<b>Antibiotics</b>', '<b>Corticosteroids</b>', '<b>Blood / blood products transfusion</b>', '<b>Supplemental oxygen</b>')",10
+"('treat_antibiotic', 'treat_steroids', 'treat_o2supp_suppleo2')","('<b>Antibiotics</b>', '<b>Corticosteroids</b>', '<b>Supplemental oxygen</b>')",9

@@ -1,11 +1,11 @@
 variable,proportion,label,short_label
 treat_prone,0.5995762711864406,<b>Prone positioning</b>,<b>Prone positioning</b>
 treat_o2supp_suppleo2,0.5789473684210527,<b>Supplemental oxygen</b>,<b>Supplemental oxygen</b>
-treat_unlisted,0.5739130434782609,<b>Other intervention(s) or procedure(s)</b>,<b>Other intervention(s) or procedure(s)</b>
-treat_o2supp_ecmotyp___Veno-venous (VV),0.5697674418604651,"<b>Type of ECLS / ECMO</b>, Veno-venous (VV)","<b>Type of ECLS / ECMO</b>, Veno-venous (VV)"
 treat_prone_when___Whilst self-ventilating,0.569060773480663,"<b>When was the prone positioning?</b>, Whilst self-ventilating","<b>When was the prone positioning?</b>, Whilst self-ventilating"
-treat_prone_when___During invasive ventilation,0.4696132596685083,"<b>When was the prone positioning?</b>, During invasive ventilation","<b>When was the prone positioning?</b>, During invasive ventilation"
-treat_o2supp_ecmotyp___Veno-arterial (VA),0.46511627906976744,"<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)","<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)"
-treat_o2supp_nivtyp___Other,0.4,"<b>Type of non-invasive respiratory support</b>, Other","<b>Type of non-invasive respiratory support</b>, Other"
-treat_o2supp_nivtyp___CPAP,0.34,"<b>Type of non-invasive respiratory support</b>, CPAP","<b>Type of non-invasive respiratory support</b>, CPAP"
 treat_o2supp_type___Face mask,0.3311827956989247,"<b>Select all types of respiratory support the patient received (from 00:00 to 24:00) on the day of assessment</b>, Face mask","<b>Select all types of respiratory support ...</b>, Face mask"
+treat_o2supp_type___Non-invasive ventilation,0.3118279569892473,"<b>Select all types of respiratory support the patient received (from 00:00 to 24:00) on the day of assessment</b>, Non-invasive ventilation","<b>Select all types of respiratory support ...</b>, Non-invasive ventilation"
+treat_o2supp_type___ECLS/ ECMO,0.3096774193548387,"<b>Select all types of respiratory support the patient received (from 00:00 to 24:00) on the day of assessment</b>, ECLS/ ECMO","<b>Select all types of respiratory support ...</b>, ECLS/ ECMO"
+treat_o2supp_type___Unknown,0.2946236559139785,"<b>Select all types of respiratory support the patient received (from 00:00 to 24:00) on the day of assessment</b>, Unknown","<b>Select all types of respiratory support ...</b>, Unknown"
+treat_o2supp_type___High-flow nasal oxygen,0.2924731182795699,"<b>Select all types of respiratory support the patient received (from 00:00 to 24:00) on the day of assessment</b>, High-flow nasal oxygen","<b>Select all types of respiratory support ...</b>, High-flow nasal oxygen"
+treat_o2supp_type___Invasive ventilation,0.2860215053763441,"<b>Select all types of respiratory support the patient received (from 00:00 to 24:00) on the day of assessment</b>, Invasive ventilation","<b>Select all types of respiratory support ...</b>, Invasive ventilation"
+treat_o2supp_type___Nasal prong,0.27741935483870966,"<b>Select all types of respiratory support the patient received (from 00:00 to 24:00) on the day of assessment</b>, Nasal prong","<b>Select all types of respiratory support ...</b>, Nasal prong"

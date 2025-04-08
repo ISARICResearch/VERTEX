@@ -1,17 +1,32 @@
 index,label,count
-"('comor_smoking',)","('<b>Ever smoked</b>',)",252
-"('comor_diabetes_type1',)","('<b>Type 1 diabetes mellitus</b>',)",58
-"('comor_aids_art',)","('<b>On Anti-retroviral therapy (ART)</b>',)",52
-"('comor_unlisted_0addi',)","('<b>Any additional other relevant comorbidity(s) ?</b>',)",50
-"('comor_aids_art', 'comor_smoking')","('<b>On Anti-retroviral therapy (ART)</b>', '<b>Ever smoked</b>')",32
-"('comor_smoking', 'comor_diabetes_type1')","('<b>Ever smoked</b>', '<b>Type 1 diabetes mellitus</b>')",30
-"('comor_smoking', 'comor_unlisted_0addi')","('<b>Ever smoked</b>', '<b>Any additional other relevant comorbidity(s) ?</b>')",21
-"('comor_aids_art', 'comor_diabetes_type1')","('<b>On Anti-retroviral therapy (ART)</b>', '<b>Type 1 diabetes mellitus</b>')",8
-"('comor_aids_art', 'comor_unlisted_0addi')","('<b>On Anti-retroviral therapy (ART)</b>', '<b>Any additional other relevant comorbidity(s) ?</b>')",6
-"('comor_unlisted_0addi', 'comor_diabetes_type1')","('<b>Any additional other relevant comorbidity(s) ?</b>', '<b>Type 1 diabetes mellitus</b>')",6
-"('comor_smoking', 'comor_unlisted_0addi', 'comor_diabetes_type1')","('<b>Ever smoked</b>', '<b>Any additional other relevant comorbidity(s) ?</b>', '<b>Type 1 diabetes mellitus</b>')",5
-"('comor_unlisted_2addi', 'comor_unlisted_0addi')","('<b>->Any additional other relevant comorbidity(s) ?</b>', '<b>Any additional other relevant comorbidity(s) ?</b>')",4
-"('comor_unlisted_2addi', 'comor_aids_art', 'comor_unlisted_0addi')","('<b>->Any additional other relevant comorbidity(s) ?</b>', '<b>On Anti-retroviral therapy (ART)</b>', '<b>Any additional other relevant comorbidity(s) ?</b>')",3
-"('comor_unlisted_2addi', 'comor_smoking', 'comor_unlisted_0addi')","('<b>->Any additional other relevant comorbidity(s) ?</b>', '<b>Ever smoked</b>', '<b>Any additional other relevant comorbidity(s) ?</b>')",3
-"('comor_aids_art', 'comor_smoking', 'comor_diabetes_type1')","('<b>On Anti-retroviral therapy (ART)</b>', '<b>Ever smoked</b>', '<b>Type 1 diabetes mellitus</b>')",3
-"('comor_aids_art', 'comor_smoking', 'comor_unlisted_0addi')","('<b>On Anti-retroviral therapy (ART)</b>', '<b>Ever smoked</b>', '<b>Any additional other relevant comorbidity(s) ?</b>')",2
+"('comor_smoking',)","('<b>Ever smoked</b>',)",71
+"('comor_asthma',)","('<b>Asthma (physician diagnosed)</b>',)",68
+"('comor_tuberculos',)","('<b>Tuberculosis</b>',)",64
+"('comor_obesity',)","('<b>Obesity</b>',)",63
+"('comor_chrpulmona',)","('<b>Chronic pulmonary disease (not asthma)</b>',)",53
+"('comor_smoking', 'comor_tuberculos')","('<b>Ever smoked</b>', '<b>Tuberculosis</b>')",41
+"('comor_asthma', 'comor_chrpulmona')","('<b>Asthma (physician diagnosed)</b>', '<b>Chronic pulmonary disease (not asthma)</b>')",41
+"('comor_smoking', 'comor_asthma')","('<b>Ever smoked</b>', '<b>Asthma (physician diagnosed)</b>')",40
+"('comor_smoking', 'comor_obesity')","('<b>Ever smoked</b>', '<b>Obesity</b>')",38
+"('comor_obesity', 'comor_tuberculos')","('<b>Obesity</b>', '<b>Tuberculosis</b>')",38
+"('comor_obesity', 'comor_asthma')","('<b>Obesity</b>', '<b>Asthma (physician diagnosed)</b>')",35
+"('comor_tuberculos', 'comor_chrpulmona')","('<b>Tuberculosis</b>', '<b>Chronic pulmonary disease (not asthma)</b>')",34
+"('comor_smoking', 'comor_chrpulmona')","('<b>Ever smoked</b>', '<b>Chronic pulmonary disease (not asthma)</b>')",32
+"('comor_tuberculos', 'comor_asthma')","('<b>Tuberculosis</b>', '<b>Asthma (physician diagnosed)</b>')",32
+"('comor_obesity', 'comor_chrpulmona')","('<b>Obesity</b>', '<b>Chronic pulmonary disease (not asthma)</b>')",28
+"('comor_smoking', 'comor_obesity', 'comor_chrpulmona')","('<b>Ever smoked</b>', '<b>Obesity</b>', '<b>Chronic pulmonary disease (not asthma)</b>')",22
+"('comor_smoking', 'comor_obesity', 'comor_tuberculos')","('<b>Ever smoked</b>', '<b>Obesity</b>', '<b>Tuberculosis</b>')",17
+"('comor_smoking', 'comor_asthma', 'comor_chrpulmona')","('<b>Ever smoked</b>', '<b>Asthma (physician diagnosed)</b>', '<b>Chronic pulmonary disease (not asthma)</b>')",17
+"('comor_obesity', 'comor_tuberculos', 'comor_chrpulmona')","('<b>Obesity</b>', '<b>Tuberculosis</b>', '<b>Chronic pulmonary disease (not asthma)</b>')",17
+"('comor_smoking', 'comor_tuberculos', 'comor_chrpulmona')","('<b>Ever smoked</b>', '<b>Tuberculosis</b>', '<b>Chronic pulmonary disease (not asthma)</b>')",16
+"('comor_tuberculos', 'comor_asthma', 'comor_chrpulmona')","('<b>Tuberculosis</b>', '<b>Asthma (physician diagnosed)</b>', '<b>Chronic pulmonary disease (not asthma)</b>')",16
+"('comor_obesity', 'comor_asthma', 'comor_chrpulmona')","('<b>Obesity</b>', '<b>Asthma (physician diagnosed)</b>', '<b>Chronic pulmonary disease (not asthma)</b>')",14
+"('comor_obesity', 'comor_tuberculos', 'comor_asthma')","('<b>Obesity</b>', '<b>Tuberculosis</b>', '<b>Asthma (physician diagnosed)</b>')",13
+"('comor_smoking', 'comor_obesity', 'comor_asthma')","('<b>Ever smoked</b>', '<b>Obesity</b>', '<b>Asthma (physician diagnosed)</b>')",12
+"('comor_smoking', 'comor_obesity', 'comor_tuberculos', 'comor_chrpulmona')","('<b>Ever smoked</b>', '<b>Obesity</b>', '<b>Tuberculosis</b>', '<b>Chronic pulmonary disease (not asthma)</b>')",10
+"('comor_smoking', 'comor_tuberculos', 'comor_asthma')","('<b>Ever smoked</b>', '<b>Tuberculosis</b>', '<b>Asthma (physician diagnosed)</b>')",9
+"('comor_smoking', 'comor_obesity', 'comor_asthma', 'comor_chrpulmona')","('<b>Ever smoked</b>', '<b>Obesity</b>', '<b>Asthma (physician diagnosed)</b>', '<b>Chronic pulmonary disease (not asthma)</b>')",8
+"('comor_obesity', 'comor_tuberculos', 'comor_asthma', 'comor_chrpulmona')","('<b>Obesity</b>', '<b>Tuberculosis</b>', '<b>Asthma (physician diagnosed)</b>', '<b>Chronic pulmonary disease (not asthma)</b>')",8
+"('comor_smoking', 'comor_obesity', 'comor_tuberculos', 'comor_asthma', 'comor_chrpulmona')","('<b>Ever smoked</b>', '<b>Obesity</b>', '<b>Tuberculosis</b>', '<b>Asthma (physician diagnosed)</b>', '<b>Chronic pulmonary disease (not asthma)</b>')",6
+"('comor_smoking', 'comor_tuberculos', 'comor_asthma', 'comor_chrpulmona')","('<b>Ever smoked</b>', '<b>Tuberculosis</b>', '<b>Asthma (physician diagnosed)</b>', '<b>Chronic pulmonary disease (not asthma)</b>')",5
+"('comor_smoking', 'comor_obesity', 'comor_tuberculos', 'comor_asthma')","('<b>Ever smoked</b>', '<b>Obesity</b>', '<b>Tuberculosis</b>', '<b>Asthma (physician diagnosed)</b>')",4

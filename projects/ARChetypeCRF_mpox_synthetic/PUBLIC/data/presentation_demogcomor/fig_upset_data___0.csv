@@ -1,6 +1,6 @@
 index,count,short_label,label
 comor_smoking,348,<b>Ever smoked</b>,<b>Ever smoked</b>
-comor_diabetes_type1,110,<b>Type 1 diabetes mellitus</b>,<b>Type 1 diabetes mellitus</b>
-comor_aids_art,106,<b>On Anti-retroviral therapy (ART)</b>,<b>On Anti-retroviral therapy (ART)</b>
-comor_unlisted_0addi,100,<b>Any additional other relevant ...</b>,<b>Any additional other relevant comorbidity(s) ?</b>
-comor_unlisted_2addi,10,<b>->Any additional other relevant ...</b>,<b>->Any additional other relevant comorbidity(s) ?</b>
+comor_obesity,333,<b>Obesity</b>,<b>Obesity</b>
+comor_tuberculos,330,<b>Tuberculosis</b>,<b>Tuberculosis</b>
+comor_asthma,328,<b>Asthma (physician diagnosed)</b>,<b>Asthma (physician diagnosed)</b>
+comor_chrpulmona,327,<b>Chronic pulmonary disease (not asthma)</b>,<b>Chronic pulmonary disease (not asthma)</b>

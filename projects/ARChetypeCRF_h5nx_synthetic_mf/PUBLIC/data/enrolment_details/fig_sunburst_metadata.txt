@@ -1,0 +1,1 @@
+{'fig_id': 'enrolment_details/fig_sunburst', 'fig_name': 'fig_sunburst', 'fig_arguments': {'title': 'Enrolment by site (SYNTHETIC DATA)', 'path': ['filters_country', 'site'], 'values': 'subjid', 'base_color_map': None, 'suffix': 'enrolment_details', 'graph_id': '', 'graph_label': 'Site Enrolment', 'graph_about': '...'}, 'fig_data': ['enrolment_details/fig_sunburst_data___0.csv']}

@@ -1,6 +1,6 @@
 index,count,short_label,label
-treat_unlisted,289,<b>Other intervention(s) or procedure(s)</b>,<b>Other intervention(s) or procedure(s)</b>
+treat_fluid_yn,276,<b>Any fluids prescribed</b>,<b>Any fluids prescribed</b>
 treat_antibiotic,272,<b>Antibiotics</b>,<b>Antibiotics</b>
 treat_steroids,270,<b>Corticosteroids</b>,<b>Corticosteroids</b>
-treat_fluid_parent,264,<b>Parenteral IV fluid?</b>,<b>Parenteral IV fluid?</b>
-treat_o2supp_ecmotyp___Veno-arterial (VA),60,"<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)","<b>Type of ECLS / ECMO</b>, Veno-arterial (VA)"
+treat_blood_occur,267,<b>Blood / blood products transfusion</b>,<b>Blood / blood products transfusion</b>
+treat_o2supp_suppleo2,265,<b>Supplemental oxygen</b>,<b>Supplemental oxygen</b>
