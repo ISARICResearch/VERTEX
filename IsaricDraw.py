@@ -76,6 +76,7 @@ def fig_placeholder(
     graph_id = get_graph_id(graph_id, suffix)
     return fig, graph_id, graph_label, graph_about
 
+
 def fig_pie(
         df,
         title='Pie chart',
@@ -97,22 +98,14 @@ def fig_pie(
     graph_id = get_graph_id(graph_id, suffix)
     return fig, graph_id, graph_label, graph_about
 
-def fig_timelines( df,
-        title='Timeline',
-        label_col='',
-        group_col='',
-        start_date='start_date',
-        end_date='end_date',
-        size_col=None,
-        min_width=2,
-        max_width=10,
-        suffix='',
-        filepath='',
-        save_inputs=False,
-        graph_id='',
-        graph_label='',
-        graph_about=''
-    ):
+
+def fig_timelines(
+        df, title='Timeline',
+        label_col='', group_col='',
+        start_date='start_date', end_date='end_date',
+        size_col=None, min_width=2, max_width=10,
+        suffix='', filepath='', save_inputs=False,
+        graph_id='', graph_label='', graph_about=''):
 
     if save_inputs:
         inputs = save_inputs_to_file(locals())
@@ -134,10 +127,13 @@ def fig_timelines( df,
         values = df[size_col].fillna(0).astype(float)
         min_val, max_val = values.min(), values.max()
         if min_val == max_val:
-            widths = {row[label_col]: (min_width + max_width) / 2 for _, row in df.iterrows()}
+            widths = {
+                row[label_col]: (min_width + max_width) / 2
+                for _, row in df.iterrows()}
         else:
             widths = {
-                row[label_col]: min_width + (val - min_val) / (max_val - min_val) * (max_width - min_width)
+                row[label_col]: min_width + (val - min_val) / (
+                    max_val - min_val) * (max_width - min_width)
                 for row, val in zip(df.to_dict(orient='records'), values)
             }
     else:
@@ -153,6 +149,8 @@ def fig_timelines( df,
         color = color_map[row[group_col]]
         width = widths[y]
 
+        symbol = ['circle', 'arrow-right'] if ongoing else ['circle', 'circle']
+
         fig.add_trace(go.Scatter(
             x=[x_start, x_end],
             y=[y, y],
@@ -160,7 +158,7 @@ def fig_timelines( df,
             line=dict(color=color, width=width),
             marker=dict(
                 size=[14, 18],
-                symbol=['circle', 'arrow-right'] if ongoing else ['circle', 'circle'],
+                symbol=symbol,
                 color=color,
                 line=dict(width=1, color='black')
             ),
@@ -178,6 +176,7 @@ def fig_timelines( df,
     )
     graph_id = get_graph_id(graph_id, suffix)
     return fig, graph_id, graph_label, graph_about
+
 
 def fig_sunburst(
         df,
