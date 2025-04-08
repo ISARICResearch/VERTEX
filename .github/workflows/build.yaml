@@ -1,0 +1,52 @@
+name: Docker Build and Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -t isaric-vertex .
+
+      - name: Run Docker container
+        run: |
+          docker run -d -p 80:8050 --name isaric-vertex isaric-vertex
+
+      - name: Wait for container to be ready
+        run: |
+          sleep 5
+
+      - name: Check if container is running
+        run: |
+          if [ "$(docker inspect -f '{{.State.Running}}' isaric-vertex)" != "true" ]; then
+            exit 1
+          fi
+
+      - name: Check if app is responding
+        run: |
+          for i in {1..10}; do
+            if curl -sSf http://localhost:80 >/dev/null; then
+              echo "App responding"
+              exit 0
+            fi
+            echo "Waiting for app to be ready..."
+            sleep 2
+          done
+          exit 1
+
+      - name: Stop and remove container
+        run: |
+          docker stop isaric-vertex
+          docker rm isaric-vertex

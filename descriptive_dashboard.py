@@ -1212,11 +1212,15 @@ def main():
                 'map_layout_center_longitude', 'map_layout_zoom']
             save_config_dict = {k: config_dict[k] for k in save_config_keys}
             json.dump(save_config_dict, file)
+    return app
 
-    webbrowser.open('http://127.0.0.1:8050', new=2, autoraise=True)
-    app.run_server(debug=True, use_reloader=False)
-    return
-
+app = main()
+server = app.server
 
 if __name__ == '__main__':
-    main()
+    app = main()
+    webbrowser.open('http://127.0.0.1:8050', new=2, autoraise=True)
+    app.run_server(debug=True, use_reloader=False)
+else:
+    app = main()
+    server = app.server
