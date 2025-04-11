@@ -84,7 +84,7 @@ def extend_dictionary(dictionary, new_variable_dict, data, sep='___'):
     categorical_ind = new_dictionary['field_type'].isin(['categorical'])
     new_dictionary_list = [new_dictionary]
     ind_list = [
-        ind for ind in categorical_ind.index
+        ind for ind in categorical_ind.loc[categorical_ind].index
         if new_dictionary.loc[ind, 'field_name'] in data.columns]
     for ind in ind_list:
         variable = new_dictionary.loc[ind, 'field_name']
