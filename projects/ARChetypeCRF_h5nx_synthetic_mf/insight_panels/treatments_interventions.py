@@ -35,9 +35,9 @@ def create_visuals(
         df_table, dictionary, by_column=split_column,
         column_reorder=split_column_order)
     fig_table = idw.fig_table(
-        table, table_key=table_key + '<br><b>(SYNTHETIC DATA)</b>',
+        table, table_key=table_key,
         suffix=suffix, filepath=filepath, save_inputs=save_inputs,
-        graph_label='Descriptive Table',
+        graph_label='Descriptive Table*',
         graph_about='Summary of treatments and interventions.')
 
     # Interventions frequency and upset charts
@@ -53,20 +53,31 @@ def create_visuals(
     about = f'Frequency of the ten most common {section_name.lower()}'
     freq_chart_inter = idw.fig_frequency_chart(
         proportions,
-        title=f'Frequency of {section_name} (SYNTHETIC DATA)',
+        title=f'Frequency of {section_name}*',
         suffix=suffix, filepath=filepath, save_inputs=save_inputs,
         graph_id=section,
-        graph_label=section_name + ': Frequency',
+        graph_label=section_name + ': Frequency*',
         graph_about=about)
 
     about = f'Intersection sizes of the five most common \
     {section_name.lower()}'
     upset_plot_inter = idw.fig_upset(
         counts_intersections,
-        title=f'Intersection sizes of {section_name.lower()} (SYNTHETIC DATA)',
+        title=f'Intersection sizes of {section_name.lower()}*',
         suffix=suffix, filepath=filepath, save_inputs=save_inputs,
         graph_id=section,
-        graph_label=section_name + ': Intersections',
+        graph_label=section_name + ': Intersections*',
         graph_about=about)
 
-    return (fig_table, freq_chart_inter, upset_plot_inter)
+    disclaimer_text = '''Disclaimer: the underlying data for these figures is \
+synthetic data. Results may not be clinically relevant or accurate.'''
+    disclaimer_df = pd.DataFrame(
+        disclaimer_text, columns=['paragraphs'], index=range(1))
+    disclaimer = idw.fig_text(
+        disclaimer_df,
+        suffix=suffix, filepath=filepath, save_inputs=save_inputs,
+        graph_label='*DISCLAIMER: SYNTHETIC DATA*',
+        graph_about=disclaimer_text
+    )
+
+    return (fig_table, freq_chart_inter, upset_plot_inter, disclaimer)

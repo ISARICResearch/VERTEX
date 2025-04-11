@@ -1,0 +1,15 @@
+Variable,Coefficient (multi),p-value (multi),Coefficient (uni),p-value (uni)
+<b>DEMOGRAPHICS</b>,,,,
+"<b>Sex at birth</b>, Male","0.20 (-0.15, 0.55)",0.260,"0.29 (-0.10, 0.69)",0.144
+<b>Age</b>,"0.05 (0.04, 0.06)",0.000 (**),"0.05 (0.04, 0.06)",0.000 (**)
+<b>CO-MORBIDITIES AND RISK FACTORS</b>,,,,
+<b>Hypertension (physician diagnosed)</b>,"0.46 (0.09, 0.84)",0.016 (*),"0.56 (0.11, 1.01)",0.015 (*)
+<b>Chronic kidney disease</b>,"1.15 (0.68, 1.62)",0.000 (**),"1.40 (0.86, 1.95)",0.000 (**)
+<b>Liver disease</b>,"1.51 (1.02, 1.99)",0.000 (**),"1.54 (0.97, 2.11)",0.000 (**)
+<b>Diabetes mellitus</b>,"0.12 (-0.31, 0.55)",0.581,"0.17 (-0.33, 0.66)",0.518
+<b>Ever smoked</b>,"-0.17 (-0.59, 0.25)",0.430,"-0.19 (-0.70, 0.31)",0.452
+<b>VACCINATION</b>,,,,
+<b>Vaccinated for seasonal influenza (ever)</b>,"-1.28 (-1.61, -0.94)",0.000 (**),"-0.81 (-1.21, -0.42)",0.000 (**)
+<b>SIGNS AND SYMPTOMS ON ADMISSION</b>,,,,
+<b>Fever</b>,"-0.23 (-0.60, 0.13)",0.212,"0.20 (-0.24, 0.63)",0.371
+<b>Headache</b>,"-0.87 (-1.21, -0.53)",0.000 (**),"-0.53 (-0.93, -0.14)",0.008 (**)

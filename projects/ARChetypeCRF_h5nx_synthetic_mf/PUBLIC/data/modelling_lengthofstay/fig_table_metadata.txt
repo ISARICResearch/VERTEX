@@ -1,0 +1,1 @@
+{'fig_id': 'modelling_lengthofstay/fig_table', 'fig_name': 'fig_table', 'fig_arguments': {'table_key': '', 'table_format_dict': None, 'suffix': 'modelling_lengthofstay', 'graph_id': '', 'graph_label': 'Linear Regression for hospital length of stay*', 'graph_about': '...'}, 'fig_data': ['modelling_lengthofstay/fig_table_data___0.csv']}

@@ -28,8 +28,7 @@ def create_visuals(
     # split_column_order = ['Female', 'Male', 'Other / Unknown']
     split_column = 'outco_binary_outcome'
     split_column_order = ['Discharged', 'Death', 'Censored']
-    sections = [
-        'travel', 'expo14', 'drug7', 'drug14', 'advital', 'adsym', 'sympt']
+    sections = ['adsym', 'sympt', 'vital']
     df_table = ia.get_descriptive_data(
         df_map, dictionary, by_column=split_column,
         include_sections=sections, exclude_negatives=False)
@@ -37,69 +36,111 @@ def create_visuals(
         df_table, dictionary, by_column=split_column,
         column_reorder=split_column_order)
     fig_table = idw.fig_table(
-        table, table_key=table_key + '<br><b>(SYNTHETIC DATA)</b>',
+        table, table_key=table_key,
         suffix=suffix, filepath=filepath, save_inputs=save_inputs,
-        graph_label='Descriptive Table',
+        graph_label='Descriptive Table*',
         graph_about='Summary of demographics and comorbidities.')
 
     # Symptoms on admission frequency and upset charts
-    section = 'adsym'
-    section_name = 'Symptoms on admission'
+    section_name = 'Signs and Symptoms'
+    dictionary.loc[(
+            dictionary['field_name'].str.startswith('adsym')),
+        'field_label'] += ' (onset to admission)'
+    dictionary.loc[(
+            dictionary['field_name'].str.startswith('sympt')),
+        'field_label'] += ' (first 24hr after admission)'
     df_upset = ia.get_descriptive_data(
         df_map, dictionary,
-        include_sections=[section], include_types=['binary', 'categorical'])
+        include_sections=['adsym', 'sympt'],
+        include_types=['binary', 'categorical'])
     proportions = ia.get_proportions(df_upset, dictionary)
     counts_intersections = ia.get_upset_counts_intersections(
         df_upset, dictionary, proportions=proportions)
 
-    about = f'Frequency of the ten most common {section_name.lower()}'
-    freq_chart_adsym = idw.fig_frequency_chart(
+    about = f'Frequency of the most common {section_name.lower()}'
+    freq_chart = idw.fig_frequency_chart(
         proportions,
-        title=f'Frequency of {section_name} (SYNTHETIC DATA)',
+        title=f'Frequency of {section_name}*',
         suffix=suffix, filepath=filepath, save_inputs=save_inputs,
-        graph_id=section,
-        graph_label=section_name + ': Frequency',
+        graph_label=section_name + ': Frequency*',
         graph_about=about)
 
-    about = f'Intersection sizes of the five most common \
+    about = f'Intersection sizes of the most common \
     {section_name.lower()}'
-    upset_plot_adsym = idw.fig_upset(
+    upset_plot = idw.fig_upset(
         counts_intersections,
-        title=f'Intersection sizes of {section_name.lower()} (SYNTHETIC DATA)',
+        title=f'Intersection sizes of {section_name.lower()}*',
         suffix=suffix, filepath=filepath, save_inputs=save_inputs,
-        graph_id=section,
-        graph_label=section_name + ': Intersections',
+        graph_label=section_name + ': Intersections*',
         graph_about=about)
 
-    # Symptoms in first 24hr frequency and upset charts
-    section = 'sympt'
-    section_name = 'Symptoms in first 24hr'
-    df_upset = ia.get_descriptive_data(
-        df_map, dictionary,
-        include_sections=[section], include_types=['binary', 'categorical'])
-    proportions = ia.get_proportions(df_upset, dictionary)
-    counts_intersections = ia.get_upset_counts_intersections(
-        df_upset, dictionary, proportions=proportions)
+    # # Symptoms on admission frequency and upset charts
+    # section = 'adsym'
+    # section_name = 'Symptoms on admission'
+    # df_upset = ia.get_descriptive_data(
+    #     df_map, dictionary,
+    #     include_sections=[section], include_types=['binary', 'categorical'])
+    # proportions = ia.get_proportions(df_upset, dictionary)
+    # counts_intersections = ia.get_upset_counts_intersections(
+    #     df_upset, dictionary, proportions=proportions)
+    #
+    # about = f'Frequency of the ten most common {section_name.lower()}'
+    # freq_chart_adsym = idw.fig_frequency_chart(
+    #     proportions,
+    #     title=f'Frequency of {section_name}*',
+    #     suffix=suffix, filepath=filepath, save_inputs=save_inputs,
+    #     graph_id=section,
+    #     graph_label=section_name + ': Frequency*',
+    #     graph_about=about)
+    #
+    # about = f'Intersection sizes of the five most common \
+    # {section_name.lower()}'
+    # upset_plot_adsym = idw.fig_upset(
+    #     counts_intersections,
+    #     title=f'Intersection sizes of {section_name.lower()}*',
+    #     suffix=suffix, filepath=filepath, save_inputs=save_inputs,
+    #     graph_id=section,
+    #     graph_label=section_name + ': Intersections*',
+    #     graph_about=about)
+    #
+    # # Symptoms in first 24hr frequency and upset charts
+    # section = 'sympt'
+    # section_name = 'Symptoms in first 24hr'
+    # df_upset = ia.get_descriptive_data(
+    #     df_map, dictionary,
+    #     include_sections=[section], include_types=['binary', 'categorical'])
+    # proportions = ia.get_proportions(df_upset, dictionary)
+    # counts_intersections = ia.get_upset_counts_intersections(
+    #     df_upset, dictionary, proportions=proportions)
+    #
+    # about = f'Frequency of the ten most common {section_name.lower()}'
+    # freq_chart_sympt = idw.fig_frequency_chart(
+    #     proportions,
+    #     title=f'Frequency of {section_name}*',
+    #     suffix=suffix, filepath=filepath, save_inputs=save_inputs,
+    #     graph_id=section,
+    #     graph_label=section_name + ': Frequency*',
+    #     graph_about=about)
+    #
+    # about = f'Intersection sizes of the five most common \
+    # {section_name.lower()}'
+    # upset_plot_sympt = idw.fig_upset(
+    #     counts_intersections,
+    #     title=f'Intersection sizes of {section_name.lower()}*',
+    #     suffix=suffix, filepath=filepath, save_inputs=save_inputs,
+    #     graph_id=section,
+    #     graph_label=section_name + ': Intersections*',
+    #     graph_about=about)
 
-    about = f'Frequency of the ten most common {section_name.lower()}'
-    freq_chart_sympt = idw.fig_frequency_chart(
-        proportions,
-        title=f'Frequency of {section_name} (SYNTHETIC DATA)',
+    disclaimer_text = '''Disclaimer: the underlying data for these figures is \
+synthetic data. Results may not be clinically relevant or accurate.'''
+    disclaimer_df = pd.DataFrame(
+        disclaimer_text, columns=['paragraphs'], index=range(1))
+    disclaimer = idw.fig_text(
+        disclaimer_df,
         suffix=suffix, filepath=filepath, save_inputs=save_inputs,
-        graph_id=section,
-        graph_label=section_name + ': Frequency',
-        graph_about=about)
+        graph_label='*DISCLAIMER: SYNTHETIC DATA*',
+        graph_about=disclaimer_text
+    )
 
-    about = f'Intersection sizes of the five most common \
-    {section_name.lower()}'
-    upset_plot_sympt = idw.fig_upset(
-        counts_intersections,
-        title=f'Intersection sizes of {section_name.lower()} (SYNTHETIC DATA)',
-        suffix=suffix, filepath=filepath, save_inputs=save_inputs,
-        graph_id=section,
-        graph_label=section_name + ': Intersections',
-        graph_about=about)
-
-    return (
-        fig_table, freq_chart_adsym, upset_plot_adsym,
-        freq_chart_sympt, upset_plot_sympt)
+    return (fig_table, freq_chart, upset_plot, disclaimer)
