@@ -328,6 +328,64 @@ def replace_with_nan_for_missing_code_checkbox(df, missing_data_codes):
 ############################################
 
 
+def is_unlisted_item(x):
+    output = ''.join(
+        [y for y in x if y.isdigit() is False]).endswith('unlisted_item')
+    return output
+
+
+def combine_unlisted_variables(df, dictionary, sep='___'):
+    '''Combine variables that exist in repeated versions of the same question
+    (e.g. additional dropdown questions asked after Yes/No/Unknown questions
+    for established variables)
+    '''
+    unlisted_ind = dictionary['field_name'].str.endswith('unlisted')
+    unlisted_columns = dictionary.loc[unlisted_ind, 'field_name']
+    unlisted_item_ind = dictionary['field_name'].apply(is_unlisted_item)
+    unlisted_item_columns = dictionary.loc[unlisted_item_ind, 'field_name']
+    unlisted_item_columns = [
+        col for col in unlisted_item_columns if col in df.columns]
+
+    unlisted_columns_dict = {
+        k: [v for v in unlisted_item_columns if k in v]
+        for k in unlisted_columns}
+
+    new_dictionary_list = []
+    for ind in unlisted_columns.index:
+        column = dictionary.loc[ind, 'field_name']
+        values = df[unlisted_columns_dict[column]].stack().unique()
+        values = [val for val in values if val not in (np.nan, '', 'Other')]
+        new_df = pd.DataFrame(
+            index=df.index,
+            columns=[column + '_item' + sep + x for x in values])
+        for value in values:  # it's too slow...
+            yes_ind = (df[unlisted_columns_dict[column]] == value).any(axis=1)
+            new_df.loc[yes_ind, column + '_item' + sep + value] = True
+        column_loc = df.columns.get_loc(column)
+        df = pd.concat(
+            [df.iloc[:, :column_loc], new_df, df.iloc[:, column_loc:]],
+            axis=1)
+        new_dictionary_index = ind + np.linspace(0.1, 0.9, len(values))
+        new_dictionary = pd.DataFrame(
+            '', columns=dictionary.columns, index=new_dictionary_index)
+        new_dictionary['field_type'] = 'binary'
+        new_dictionary['field_name'] = [
+            column + '_item' + sep + value for value in values]
+        new_dictionary['field_label'] = values
+        # new_dictionary_row = dictionary.loc[ind]
+        # new_dictionary_row['field_type'] = 'radio'
+        # item_ind = (
+        #     dictionary['field_name'].str.startswith(column) &
+        #     dictionary['field_name'].str.endswith('item'))
+        # item_ind = item_ind.loc[item_ind].index.min()
+        new_dictionary['parent'] = column
+        new_dictionary['form_name'] = dictionary.loc[ind, 'form_name']
+        new_dictionary_list.append(new_dictionary)
+    dictionary = pd.concat([dictionary] + new_dictionary_list, axis=0)
+    dictionary = dictionary.sort_index().reset_index(drop=True)
+    return df, dictionary
+
+
 def rename_checkbox_variables(df, dictionary):
     '''Rename checkbox variable columns. By default the suffix is their answer
     option value. Convert this answer option value to the answer option name.
@@ -404,7 +462,7 @@ def map_variable(variable, mapping_dict, other_value_str='Other / Unknown'):
     return variable
 
 
-def homogenise_variables(df):
+def homogenise_variables(df, dictionary):
     '''
     Converts variables in a DataFrame based on a conversion table.
 
@@ -460,6 +518,9 @@ def homogenise_variables(df):
 
             # Set all units to the target unit
             df.loc[df[unit_col] == from_unit, unit_col] = to_unit
+
+            dictionary_ind = (dictionary['field_name'] == value_col)
+            dictionary.loc[dictionary_ind, 'field_label'] += f' ({to_unit})'
         except Exception:
             pass
     if 'demog_age' not in conversion_table['variable']:
@@ -467,7 +528,7 @@ def homogenise_variables(df):
             df = harmonise_age(df)
         except Exception:
             pass
-    return df
+    return df, dictionary
 
 
 def convert_onehot_to_binary(df, dictionary):
@@ -492,7 +553,6 @@ def convert_onehot_to_binary(df, dictionary):
 def initial_data_processing(data, dictionary, missing_data_codes):
     '''Initial processing of complete pandas dataframe, after REDCAP API call
     '''
-
     # Replace empty cells or 'Unknown' with NaN
     with pd.option_context('future.no_silent_downcasting', True):
         data = data.replace(['', 'Unknown', 'unknown'], np.nan)
@@ -553,13 +613,15 @@ def initial_data_processing(data, dictionary, missing_data_codes):
     numeric_columns = new_dictionary.loc[numeric_ind, 'field_name'].tolist()
     data[numeric_columns] = data[numeric_columns].apply(
         pd.to_numeric, errors='coerce')
-    data = homogenise_variables(data)
+    data, dictionary = homogenise_variables(data, dictionary)
 
     # Convert columns with dates into datetime
     date_ind = (new_dictionary['field_type'] == 'date')
     date_columns = new_dictionary.loc[date_ind, 'field_name'].tolist()
     data[date_columns] = data[date_columns].apply(
         pd.to_datetime, errors='coerce')
+
+    data, new_dictionary = combine_unlisted_variables(data, new_dictionary)
 
     # # ## TODO: Eventually move this to ISARIC Analytics instead of here?
     # # Remove columns with no data
