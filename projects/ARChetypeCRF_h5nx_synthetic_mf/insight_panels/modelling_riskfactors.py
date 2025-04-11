@@ -214,7 +214,7 @@ analysis'''
         logr_results_table,
         table_key=table_key,
         suffix=suffix, filepath=filepath, save_inputs=save_inputs,
-        graph_label='Logistic Regression for anytime in-hospital mortality',
+        graph_label='Logistic Regression for anytime in-hospital mortality*',
         graph_about='''...'''
     )
 
@@ -226,204 +226,25 @@ analysis'''
     # Create the forest plot figure
     forest_plot_m1 = idw.fig_forest_plot(
         logr_results[labels].replace({'Variable': mapping_dict}),
-        title='Forest Plot',
+        title='Forest Plot for anytime in-hospital mortality*',
         labels=labels,
         suffix=suffix, filepath=filepath, save_inputs=save_inputs,
-        graph_label='Forest Plot for anytime in-hospital mortality',
+        graph_label='Forest Plot for anytime in-hospital mortality*',
         graph_about='''...'''
     )
 
     # ----- Should we have model checking of assumptions within the RAP?
     # -----
-
-    # Linear regression for length of stay
-
-    predictors = [
-        'demog_sex___Male',
-        'demog_age',
-        'comor_smoking_yn',
-        'comor_diabetes_yn',
-        'comor_chrkidney',
-        'comor_liverdisease',
-        'comor_hypertensi',
-        'vacci_influenza_yn',
-        'adsym_fever',
-        'adsym_headache',
-        # 'compl_ards',
-        # 'inter_o2support_type___High-flow nasal oxygen',
-        # 'inter_o2support_type___Non-invasive ventilation',
-        # 'inter_o2support_type___Invasive ventilation'
-    ]
-
-    rename_columns = dict(zip(
-        predictors, ['var' + str(n) for n in range(len(predictors))]))
-
-    # Perform logistic regression with all predictors (multivariate)
-    multivariate_linr_results = ia.execute_glm_regression(
-        elr_dataframe_df=df_model.rename(columns=rename_columns).copy(),
-        elr_outcome_str='outco_lengthofstay',
-        elr_predictors_list=['var' + str(n) for n in range(len(predictors))],
-        model_type='linear',
-        print_results=False)
-
-    # Perform logistic regression for each predictor (univariate)
-    univariate_linr_results = []
-    for predictor in ['var' + str(n) for n in range(len(predictors))]:
-        univariate_linr_results.append(
-            ia.execute_glm_regression(
-                elr_dataframe_df=df_model.rename(
-                    columns=rename_columns).copy(),
-                elr_outcome_str='outco_lengthofstay',
-                elr_predictors_list=[predictor],
-                model_type='linear',
-                reg_type='uni',
-                print_results=False
-            )
-        )
-    univariate_linr_results = pd.concat(univariate_linr_results)
-
-    linr_results = pd.merge(
-        multivariate_linr_results, univariate_linr_results,
-        on='Study', how='outer')
-
-    # ----- Is it possible to move this into execute_glm_regression
-    linr_results['p-value (multi)'] = (
-        linr_results['p-value (multi)'].astype(float))
-    linr_results['p-value (uni)'] = (
-        linr_results['p-value (uni)'].astype(float))
-    linr_results = linr_results.rename(columns={'Study': 'Variable'})
-
-    linr_results['Variable'] = linr_results['Variable'].apply(
-        lambda x: '___'.join(x.strip(']').split('[')).split('___True')[0])
-
-    linr_results['Variable'] = linr_results['Variable'].apply(
-        lambda x: x.split('___')[0]).map(dict(zip(
-            ['var' + str(n) for n in range(len(predictors))], predictors))
-    ) + linr_results['Variable'].apply(
-        lambda x: '___' + x.split('___')[-1] if '___' in x else '')
-    # -----
-
-    linr_results_table = ia.regression_summary_table(
-        linr_results.copy(), dictionary,
-        p_values={'*': 0.05, '**': 0.01}, result_type='Coefficient'
-    )
-
-    table_m2 = idw.fig_table(
-        linr_results_table,
+    
+    disclaimer_text = '''Disclaimer: the underlying data for these figures is \
+synthetic data. Results may not be clinically relevant or accurate.'''
+    disclaimer_df = pd.DataFrame(
+        disclaimer_text, columns=['paragraphs'], index=range(1))
+    disclaimer = idw.fig_text(
+        disclaimer_df,
         suffix=suffix, filepath=filepath, save_inputs=save_inputs,
-        graph_label='Linear Regression for hospital length of stay',
-        graph_about='''...'''
+        graph_label='*DISCLAIMER: SYNTHETIC DATA*',
+        graph_about=disclaimer_text
     )
 
-    # Cox regression for outcome
-
-    predictors = [
-        'demog_sex___Male',
-        'demog_age',
-        'demog_healthcare',
-        'comor_smoking_yn',
-        'comor_diabetes_yn',
-        'comor_chrkidney',  #
-        # 'comor_chrkidney_stag___Stage 1',
-        # 'comor_chrkidney_stag___Stage 2',
-        # 'comor_chrkidney_stag___Stage 3a',
-        # 'comor_chrkidney_stag___Stage 3b',
-        # 'comor_chrkidney_stag___Stage 4',
-        # 'comor_chrkidney_stag___Stage 5',
-        # 'comor_chrkidney_stag___Stage 3b or 4 or 5',  #
-        'comor_liverdisease',  #
-        # 'comor_liverdisease_type___Mild',  #
-        # 'comor_liverdisease_type___Moderate or severe',  #
-        'comor_obesity',
-        'comor_hypertensi',
-        'vacci_influenza_yn',
-        'adsym_fever',
-        'adsym_headache',
-        # 'vital_highesttem_c',  #
-        # 'vital_hr',  #
-        # 'vital_rr',  #
-        # 'vital_meanbp',  #
-        'vital_gcs___Moderate',
-        'vital_gcs___Severe',
-        # 'sympt_fever',  #
-        # 'sympt_headache',  #
-        # 'labs_bilirubin_mgdl',  #
-        # 'labs_creatinine_mgdl',  #
-        # 'labs_platelets_103ul___Low',
-        # 'labs_platelets_103ul___High',
-        # 'compl_severeliver',
-        # 'compl_acuterenal',
-        # 'compl_ards',
-        # 'inter_suppleo2',
-        # 'inter_o2support_type___High-flow nasal oxygen',
-        # 'inter_o2support_type___Non-invasive ventilation',
-        # 'inter_o2support_type___Invasive ventilation'
-    ]
-
-    rename_columns = dict(zip(
-        predictors, ['var' + str(n) for n in range(len(predictors))]))
-
-    # Perform logistic regression with all predictors (multivariate)
-    multivariate_cox_results = ia.execute_cox_model(
-        df=df_model.rename(columns=rename_columns).copy(),
-        duration_col='outco_lengthofstay',
-        event_col='outco_binary_outcome',
-        predictors=['var' + str(n) for n in range(len(predictors))],
-        )
-    multivariate_cox_results.rename(columns={
-        'covariate': 'Variable',
-        'HR': 'HR (multi)', 'p-value': 'p-value (multi)',
-        'CI_lower': 'LowerCI (multi)', 'CI_upper': 'UpperCI (multi)'
-    }, inplace=True)
-
-    # Perform logistic regression for each predictor (univariate)
-    univariate_cox_results = []
-    for predictor in ['var' + str(n) for n in range(len(predictors))]:
-        univariate_cox_results.append(
-            ia.execute_cox_model(
-                df=df_model.rename(columns=rename_columns).copy(),
-                duration_col='outco_lengthofstay',
-                event_col='outco_binary_outcome',
-                predictors=[predictor],
-            )
-        )
-    univariate_cox_results = pd.concat(univariate_cox_results)
-    univariate_cox_results.rename(columns={
-        'covariate': 'Variable',
-        'HR': 'HR (uni)', 'p-value': 'p-value (uni)',
-        'CI_lower': 'LowerCI (uni)', 'CI_upper': 'UpperCI (uni)'
-    }, inplace=True)
-
-    cox_results = pd.merge(
-        multivariate_cox_results, univariate_cox_results,
-        on='Variable', how='outer')
-
-    # ----- Is it possible to move this into execute_glm_regression
-    cox_results['p-value (multi)'] = (
-        cox_results['p-value (multi)'].astype(float))
-    cox_results['p-value (uni)'] = (
-        cox_results['p-value (uni)'].astype(float))
-
-    cox_results['Variable'] = cox_results['Variable'].apply(
-        lambda x: x.split('_True')[0])
-
-    cox_results['Variable'] = cox_results['Variable'].apply(
-        lambda x: x.split('___')[0]).map(dict(zip(
-            ['var' + str(n) for n in range(len(predictors))], predictors))
-    ) + cox_results['Variable'].apply(
-        lambda x: '___' + x.split('___')[-1] if '___' in x else '')
-    # -----
-
-    cox_results_table = ia.regression_summary_table(
-        cox_results.copy(), dictionary,
-        p_values={'*': 0.05, '**': 0.01}, result_type='HR'
-    )
-
-    table_m3 = idw.fig_table(
-        cox_results_table,
-        suffix=suffix, filepath=filepath, save_inputs=save_inputs,
-        graph_label='Cox Regression for in-hospital mortality',
-        graph_about='''...'''
-    )
-
-    return (table_m1, forest_plot_m1, table_m2, table_m3)
+    return (table_m1, forest_plot_m1, disclaimer)

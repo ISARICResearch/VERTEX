@@ -190,9 +190,16 @@ def fig_sunburst(
         inputs = save_inputs_to_file(locals())
 
     fig = px.sunburst(
-        df, path=path, values=values
+        df, path=path, values=values,
     )
-    fig.update_layout(title=title)
+    fig.update_layout(title=title, title_x=0.5)
+    fig.update_traces(
+        sort=False,
+        selector=dict(type='sunburst'),
+        insidetextorientation='radial',
+        customdata=path,
+        hovertemplate='%{label}<br>N=%{value}<extra></extra>',
+    )
     graph_id = get_graph_id(graph_id, suffix)
     return fig, graph_id, graph_label, graph_about
 
@@ -757,10 +764,14 @@ def fig_dual_stack_pyramid(
     #     df.loc[(df['side'] != df['side'].unique()[0]), 'value'].abs().max())
     max_value = df.groupby(
         ['side', 'y_axis'], observed=True).sum()['value'].max()
+    max_value += (max_value % 2)
 
     if yaxis_label is None:
         yaxis_label = 'Category'
     # Layout settings
+    tickvals = [
+        -int(max_value), -int(max_value/2), 0,
+        int(max_value/2), int(max_value)]
     layout = go.Layout(
         title=title,
         barmode='relative',
@@ -768,9 +779,9 @@ def fig_dual_stack_pyramid(
             title='Count',
             range=[-max_value, max_value],
             automargin=True,
-            tickvals=[-max_value, -max_value/2, 0, max_value/2, max_value],
+            tickvals=tickvals,
             # Labels as positive numbers
-            ticktext=[max_value, max_value/2, 0, max_value/2, max_value]
+            ticktext=[str(abs(x)) for x in tickvals]
         ),
         yaxis=dict(
             title=yaxis_label,
@@ -890,6 +901,9 @@ def fig_forest_plot(
         suffix='', filepath='', save_inputs=False,
         graph_id='forest-plot', graph_label='', graph_about=''):
 
+    if save_inputs:
+        inputs = save_inputs_to_file(locals())
+
     # Ordering Values -> Descending Order
     df = df.sort_values(by=labels[1], ascending=True)
 
@@ -904,13 +918,13 @@ def fig_forest_plot(
 
     # Add the point estimates as scatter plot points
     traces.append(
-     go.Scatter(
-         x=df[labels[1]],
-         y=df[labels[0]],
-         mode='markers',
-         name='Odds Ratio',
-         marker=dict(color='blue', size=10))
-    )
+        go.Scatter(
+            x=df[labels[1]],
+            y=df[labels[0]],
+            mode='markers',
+            name='Odds Ratio',
+            marker=dict(color='blue', size=10))
+        )
 
     # Add the confidence intervals as lines
     for index, row in df.iterrows():
@@ -940,6 +954,34 @@ def fig_forest_plot(
      height=600
     )
     fig = {'data': traces, 'layout': layout}
+    graph_id = get_graph_id(graph_id, suffix)
+    return fig, graph_id, graph_label, graph_about
+
+
+def fig_text(
+        df,
+        title='Forest Plot',
+        labels=['Variable', 'OddsRatio', 'LowerCI', 'UpperCI'],
+        suffix='', filepath='', save_inputs=False,
+        graph_id='forest-plot', graph_label='', graph_about=''):
+
+    if save_inputs:
+        inputs = save_inputs_to_file(locals())
+
+    fig = go.Figure()
+
+    text = '<br>'.join(df['paragraphs'].values)
+
+    fig.add_annotation(
+        x=0, y=0, text=text, showarrow=False)
+
+    fig.update_layout(
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        xaxis=dict(visible=False, range=[-1, 1]),
+        yaxis=dict(visible=False, range=[-1, 1])
+    )
+
     graph_id = get_graph_id(graph_id, suffix)
     return fig, graph_id, graph_label, graph_about
 

@@ -1,0 +1,21 @@
+Variable,HR (multi),p-value (multi),HR (uni),p-value (uni)
+<b>DEMOGRAPHICS</b>,,,,
+"<b>Sex at birth</b>, Male","1.34 (0.83, 2.17)",0.230,"1.35 (0.88, 2.08)",0.169
+<b>Age</b>,"0.98 (0.97, 0.99)",0.000 (**),"0.98 (0.98, 0.99)",0.002 (**)
+<b>Employed as a healthcare worker</b>,"0.97 (0.49, 1.92)",0.926,"1.23 (0.65, 2.32)",0.531
+<b>CO-MORBIDITIES AND RISK FACTORS</b>,,,,
+<b>Hypertension (physician diagnosed)</b>,"1.70 (1.07, 2.70)",0.024 (*),"1.55 (1.01, 2.37)",0.045 (*)
+<b>Chronic kidney disease</b>,"0.55 (0.30, 0.99)",0.046 (*),"0.67 (0.39, 1.15)",0.145
+<b>Liver disease</b>,"0.67 (0.37, 1.20)",0.179,"0.79 (0.46, 1.37)",0.402
+<b>Obesity</b>,"1.23 (0.74, 2.04)",0.416,"1.07 (0.69, 1.68)",0.753
+<b>Diabetes mellitus</b>,"1.65 (1.00, 2.72)",0.052,"2.13 (1.35, 3.35)",0.001 (**)
+<b>Ever smoked</b>,"1.09 (0.62, 1.91)",0.769,"1.29 (0.78, 2.12)",0.325
+<b>VACCINATION</b>,,,,
+<b>Vaccinated for seasonal influenza (ever)</b>,"2.37 (1.47, 3.83)",0.000 (**),"1.97 (1.28, 3.01)",0.002 (**)
+<b>SIGNS AND SYMPTOMS ON ADMISSION</b>,,,,
+<b>Fever</b>,"1.43 (0.84, 2.45)",0.189,"1.37 (0.82, 2.29)",0.223
+<b>Headache</b>,"1.59 (0.98, 2.57)",0.059,"1.12 (0.73, 1.72)",0.595
+<b>VITAL SIGNS & ASSESSMENTS</b>,,,,
+<b>Glasgow Coma Score (GCS / 15)</b>,,,,
+   ↳ Severe (less than 9),"2.75 (1.59, 4.75)",0.000 (**),"2.19 (1.35, 3.58)",0.002 (**)
+   ↳ Moderate (9 to 11),"1.30 (0.73, 2.30)",0.370,"1.13 (0.68, 1.89)",0.638

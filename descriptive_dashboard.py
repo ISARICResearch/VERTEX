@@ -510,7 +510,7 @@ def create_modal(visuals, button, filter_options):
                     ]),
                 dbc.AccordionItem(
                     title='Insights', children=insight_children)
-                ], active_item='item-0')
+                ], active_item='item-1')
             ], style={
                 'overflowY': 'auto', 'minHeight': '75vh', 'maxHeight': '75vh'}
         ),

@@ -13,8 +13,11 @@
 			"enrolment_details",
 			"presentation_demogcomor",
 			"presentation_symptoms",
+			"presentation_labs",
    	 		"treatments_interventions",
     		"outcomes_complications",
-			"modelling_riskfactors"
+			"modelling_riskfactors",
+			"modelling_lengthofstay",
+			"modelling_survivalanalysis"
 	]
 }
