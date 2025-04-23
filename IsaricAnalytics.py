@@ -1763,13 +1763,10 @@ def create_grouped_results(selected_features, feature_importance):
     return pd.DataFrame(results), sorted_fields, categorical_fields
 
 def get_parameter_ranking(logistic, n_top=10):
-    """
+    '''
     Create a ranking of parameter combinations using stored scores
     and coefficient paths.
-    """
-    import numpy as np
-    import pandas as pd
-
+    '''
     # Create empty list to store parameter information
     param_scores = []
 
