@@ -1,11 +1,8 @@
-import pandas as pd
-import numpy as np
 import warnings
-from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.model_selection import StratifiedKFold
-# from scipy.stats import fisher_exact
-from sklearn.metrics import accuracy_score, classification_report
-from sklearn.metrics import confusion_matrix
+
+import numpy as np
+import pandas as pd
+
 # from sklearn.metrics import balanced_accuracy_score, make_scorer
 # from typing import List, Union
 # from bertopic import BERTopic
@@ -15,10 +12,16 @@ from sklearn.metrics import confusion_matrix
 # from sklearn.preprocessing import MinMaxScaler
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
-from statsmodels.stats.outliers_influence import variance_inflation_factor
 from lifelines import CoxPHFitter
 from scipy.stats import norm
+
+# from scipy.stats import fisher_exact
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.model_selection import StratifiedKFold
+from sklearn.preprocessing import LabelEncoder, StandardScaler
 from statsmodels.genmod.bayes_mixed_glm import BinomialBayesMixedGLM
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+
 # from sklearn.impute import KNNImputer
 from sklearn.linear_model import LogisticRegressionCV
 # from sklearn.metrics import roc_auc_score, roc_curve, accuracy_score
@@ -1864,3 +1867,59 @@ def get_parameter_ranking(logistic, n_top=10, threshold=1e-3):
     params_df = params_df.sort_values('score', ascending=False).head(n_top)
 
     return params_df
+
+
+## KAPLAN MEIER ##
+from lifelines import KaplanMeierFitter
+from lifelines.statistics import logrank_test, multivariate_logrank_test
+
+
+def execute_kaplan_meier(df, duration_col, event_col, group_col):
+    # Remove rows with missing values in relevant columns
+    df = df.dropna(subset=[duration_col, event_col, group_col])
+    kmf = KaplanMeierFitter()
+
+    unique_groups = df[group_col].unique()
+    survival_curves = {}
+    confidence_intervals = {}
+    times = np.arange(0, 61, 10)
+
+    # Compute survival curves and confidence intervals for each group
+    for group in unique_groups:
+        group_data = df[df[group_col] == group]
+        kmf.fit(group_data[duration_col], event_observed=group_data[event_col], label=str(group))
+        survival_curves[group] = kmf.survival_function_ * 100
+        ci_lower = kmf.confidence_interval_[f'{group}_lower_0.95'] * 100
+        ci_upper = kmf.confidence_interval_[f'{group}_upper_0.95'] * 100
+        confidence_intervals[group] = (ci_lower, ci_upper)
+
+    # Perform log-rank test
+    if len(unique_groups) == 2:
+        group1_data = df[df[group_col] == unique_groups[0]]
+        group2_data = df[df[group_col] == unique_groups[1]]
+        result = logrank_test(group1_data[duration_col], group2_data[duration_col],
+                              event_observed_A=group1_data[event_col],
+                              event_observed_B=group2_data[event_col])
+        p_value = result.p_value
+    elif len(unique_groups) > 2:
+        result = multivariate_logrank_test(df[duration_col], df[group_col], df[event_col])
+        p_value = result.p_value
+    else:
+        p_value = np.nan
+
+    # Generate risk table: number of individuals at risk over time
+    risk_counts = {
+        group: [(df[(df[group_col] == group) & (df[duration_col] >= t)]).shape[0] for t in times]
+        for group in unique_groups
+    }
+
+    risk_table = pd.DataFrame(risk_counts, index=times).T
+    risk_table.insert(0, "Group", risk_table.index)
+
+    return {
+        "survival_curves": survival_curves,
+        "confidence_intervals": confidence_intervals,
+        "risk_table": risk_table,
+        "p_value": p_value,
+        "times": times
+    }

@@ -1,5 +1,6 @@
 import os
 import sys
+
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -1019,3 +1020,154 @@ def rgb_to_rgba(rgb_value, alpha):
     """
     rgba_color = f"rgba{rgb_value[3:-1]}, {alpha})"
     return rgba_color
+
+
+## KAPLAN MEIER ##
+def plot_kaplan_meier(results, title=None):
+    survival_curves = results["survival_curves"]
+    confidence_intervals = results["confidence_intervals"]
+    risk_table = results["risk_table"]
+    p_value = results["p_value"]
+    times = results["times"]
+
+    unique_groups = list(survival_curves.keys())
+    colors = [f"hsl({i * (360 / len(unique_groups))}, 70%, 50%)" for i in range(len(unique_groups))]
+
+    # Create the figure with two rows: one for the plot and one for the risk table
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True,
+                        row_heights=[0.7, 0.3],
+                        vertical_spacing=0.1,
+                        specs=[[{"type": "xy"}], [{"type": "table"}]],
+                        subplot_titles=[title, "Risk Table"])
+
+    for group, color in zip(unique_groups, colors):
+        survival = survival_curves[group]
+        ci_lower, ci_upper = confidence_intervals[group]
+
+        # Add survival curve
+        fig.add_trace(go.Scatter(
+            x=survival.index,
+            y=survival[group],
+            mode='lines',
+            name=str(group),
+            line=dict(color=color)
+        ), row=1, col=1)
+
+        # Add confidence interval as shaded area
+        fig.add_trace(go.Scatter(
+            x=ci_upper.index.tolist() + ci_lower.index[::-1].tolist(),
+            y=ci_upper.tolist() + ci_lower[::-1].tolist(),
+            fill='toself',
+            fillcolor=color.replace("hsl", "hsla").replace(")", ",0.2)"),
+            line=dict(color='rgba(255,255,255,0)'),
+            name=f"CI {group}",
+            showlegend=False,
+            hoverinfo='text',
+            text=[f"CI {group}" for _ in range(len(ci_upper) + len(ci_lower))]
+        ), row=1, col=1)
+
+    # Add p-value annotation to the plot
+    p_value_text = f'p-value: <0.0001' if p_value < 0.0001 else f'p-value: {p_value:.4f}'
+    fig.add_annotation(text=p_value_text,
+                       x=0.75, y=90, xref='paper', yref='y1',
+                       showarrow=False, font=dict(size=12, color='black'),
+                       bgcolor='white', bordercolor='black', borderwidth=1)
+
+    # Add risk table as second row
+    fig.add_trace(go.Table(
+        header=dict(values=["Group"] + [str(t) for t in times], fill_color='lightgrey', align='center',
+                    font=dict(size=14), height=35),
+        cells=dict(values=[risk_table[col].tolist() for col in risk_table.columns], fill_color='white', align='center',
+                   font=dict(size=14), height=35)
+    ), row=2, col=1)
+
+    # Configure axes and layout
+    fig.update_yaxes(title_text="Survival Probability", range=[0, 100], tickvals=np.arange(0, 110, 10),
+                     ticktext=[f"{i}%" for i in range(0, 110, 10)], row=1, col=1)
+    fig.update_xaxes(title_text="Time (days)", row=2, col=1)
+    fig.update_layout(height=1000, width=850, showlegend=True)
+
+    fig.show()
+
+
+## FIG LINE BAR ##
+def fig_bar_line_chart(
+        df,
+        title="Combined bar line chart",
+        xlabel="x",
+        ylabel_left="y left",
+        ylabel_right="y right",
+        bar_column="Bar column",
+        line_column="Line column",
+        index_column="index",
+        bar_color=None,
+        line_color=None,
+        suffix='',
+        filepath='',
+        save_inputs=False,
+        graph_id='',
+        graph_label='',
+        graph_about=''):
+
+    if save_inputs:
+        inputs = save_inputs_to_file(locals())
+
+    # Ensure correct index
+    df = df.set_index(index_column)
+
+    # Format x-axis labels to show only the year
+    x_labels = df.index.strftime("%Y")
+
+    # Create bar trace
+    bar_trace = go.Bar(
+        x=x_labels,
+        y=df[bar_column],
+        name=bar_column.replace("_", " ").title(),
+        marker=dict(color=bar_color),
+        yaxis="y"
+    )
+
+    # Create line trace
+    line_trace = go.Scatter(
+        x=x_labels,
+        y=df[line_column],
+        mode="lines+markers",
+        name=line_column.replace("_", " ").title(),
+        marker=dict(color=line_color),
+        line=dict(color=line_color, width=2, dash="solid"),
+        yaxis="y2"
+    )
+
+    # Define layout
+    layout = go.Layout(
+        title=title,
+        barmode='stack',
+        bargap=0.3,
+        xaxis=dict(
+            title=xlabel,
+            tickmode="array",
+            tickvals=x_labels,
+            ticktext=x_labels,  # Force display as years
+            tickangle=-30,
+            tickfont=dict(size=10)
+        ),
+        yaxis=dict(
+            title=ylabel_left,
+            range=[0, df[bar_column].max() * 1.1]
+        ),
+        yaxis2=dict(
+            title=ylabel_right,
+            overlaying="y",
+            side="right",
+            showgrid=False,
+            range=[0, df[line_column].max() * 1.1]
+        ),
+        legend=dict(x=0.85, y=1, bgcolor="rgba(255,255,255,0.5)"),
+        margin=dict(l=60, r=60, t=50, b=80),
+        paper_bgcolor='white',
+        plot_bgcolor='white',
+        height=400
+    )
+
+    fig = go.Figure(data=[bar_trace, line_trace], layout=layout)
+    return fig, graph_id, graph_label, graph_about
