@@ -21,6 +21,8 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from statsmodels.genmod.bayes_mixed_glm import BinomialBayesMixedGLM
 from statsmodels.stats.outliers_influence import variance_inflation_factor
+from lifelines import KaplanMeierFitter
+from lifelines.statistics import logrank_test, multivariate_logrank_test
 
 # from sklearn.impute import KNNImputer
 from sklearn.linear_model import LogisticRegressionCV
@@ -1869,9 +1871,8 @@ def get_parameter_ranking(logistic, n_top=10, threshold=1e-3):
     return params_df
 
 
-## KAPLAN MEIER ##
-from lifelines import KaplanMeierFitter
-from lifelines.statistics import logrank_test, multivariate_logrank_test
+####
+## KAPLAN MEIER
 
 
 def execute_kaplan_meier(df, duration_col, event_col, group_col):
