@@ -16,6 +16,7 @@ import os
 import shutil
 import importlib.util
 import webbrowser
+import requests
 # import dash_auth
 # import flask_caching as fc
 
@@ -134,15 +135,34 @@ the dashboard.''')
 ############################################
 
 
-def merge_data_with_countries(df_map):
+def merge_data_with_countries(df_map, add_capital_location=False):
     '''Add country variable to df_map and merge with country metadata.'''
     contries_path = 'assets/countries.csv'
     countries = pd.read_csv(contries_path, encoding='latin-1')
+
+    geojson = os.path.join(
+        'https://raw.githubusercontent.com/',
+        'martynafford/natural-earth-geojson/master/',
+        '50m/cultural/ne_50m_populated_places_simple.json')
+    capitals = json.loads(requests.get(geojson).text)
+    features = ['adm0_a3', 'latitude', 'longitude', 'featurecla']
+    capitals = [{
+        k: x['properties'][k] for k in features} for x in capitals['features']]
+    capitals = pd.DataFrame.from_dict(capitals)
+    capitals = capitals.sort_values(by=['adm0_a3', 'featurecla'])
+    capitals = capitals.drop_duplicates(['adm0_a3']).reset_index(drop=True)
+    capitals.drop(columns=['featurecla'], inplace=True)
+    capitals.rename(columns={'adm0_a3': 'Code'}, inplace=True)
+
+    countries = pd.merge(countries, capitals, how='left', on='Code')
+
     countries.rename(columns={
         'Code': 'country_iso',
         'Country': 'country_name',
         'Region': 'country_region',
-        'Income group': 'country_income'}, inplace=True)
+        'Income group': 'country_income',
+        'latitude': 'country_capital_lat',
+        'longitude': 'country_capital_lon'}, inplace=True)
     df_map = pd.merge(df_map, countries, on='country_iso', how='left')
     return df_map
 

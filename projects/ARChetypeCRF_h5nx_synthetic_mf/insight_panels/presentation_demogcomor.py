@@ -83,7 +83,10 @@ def create_visuals(
     df_upset = ia.get_descriptive_data(
         df_map, dictionary,
         include_sections=[section], include_types=['binary', 'categorical'])
-    proportions = ia.get_proportions(df_upset, dictionary)
+    # p_columns = [
+    #     col for col in df_upset.columns if 'comor_liverdisease_' in col]
+    p_columns = [col for col in df_upset.columns]
+    proportions = ia.get_proportions(df_upset[p_columns], dictionary)
     counts_intersections = ia.get_upset_counts_intersections(
         df_upset, dictionary, proportions=proportions)
 

@@ -20,7 +20,7 @@ from lifelines import CoxPHFitter
 from scipy.stats import norm
 from statsmodels.genmod.bayes_mixed_glm import BinomialBayesMixedGLM
 # from sklearn.impute import KNNImputer
-# from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegressionCV
 # from sklearn.metrics import roc_auc_score, roc_curve, accuracy_score
 # from sklearn.preprocessing import LabelEncoder, StandardScaler
 # from sklearn.model_selection import train_test_split, GridSearchCV
@@ -471,8 +471,27 @@ def get_counts(df, dictionary, max_n_variables=10):
     return counts
 
 
-def get_proportions(df, dictionary, max_n_variables=10):
-    proportions = df.apply(
+def get_proportions(
+        df, dictionary, max_n_variables=10,
+        ignore_branching_logic=False, branching_logic=''):
+    if ignore_branching_logic:
+        columns = [col for col in df.columns]
+    else:
+        dictionary_subset = dictionary.loc[(
+            dictionary['branching_logic'] == branching_logic)]
+        columns = [
+            col for col in df.columns
+            if col in dictionary_subset['field_name'].values]
+        if (len(columns) == 0):
+            branching_logic = dictionary.loc[
+                dictionary['field_name'].isin(df.columns), 'branching_logic']
+            branching_logic = branching_logic.values[0]
+            dictionary_subset = dictionary.loc[(
+                dictionary['branching_logic'] == branching_logic)]
+            columns = [
+                col for col in df.columns
+                if col in dictionary_subset['field_name'].values]
+    proportions = df[columns].apply(
         lambda x: (x.sum() / x.count(), x.sum())).T.reset_index()
 
     proportions.columns = ['variable', 'proportion', 'count']
@@ -1323,7 +1342,6 @@ def execute_cox_model(df, duration_col, event_col, predictors, labels=None):
     return summary_df
 
 
-
 ############################################
 ############################################
 # SOME RAPS
@@ -1332,18 +1350,20 @@ def execute_cox_model(df, duration_col, event_col, predictors, labels=None):
 ############################################
 
 
-def impute_miss_val(df, missing_threshold=0.7):
-    """
-    Imputes missing values or drops columns based on missing value proportion and median
+def impute_miss_val(df, missing_threshold=0.7, verbose=False):
+    '''
+    Imputes missing values or drops columns based on missing value proportion
+    and median
 
      Returns:
     - df: DataFrame with missing values imputed or columns dropped
-    """
+    '''
     # Calculate the proportion of missing values in each column
     missing_proportions = df.isnull().mean()
 
     # Identify columns to drop
-    cols_to_drop = missing_proportions[missing_proportions > missing_threshold].index
+    cols_to_drop = missing_proportions[(
+        missing_proportions > missing_threshold)].index
     df = df.drop(columns=cols_to_drop)
 
     # Impute missing values in remaining columns
@@ -1356,7 +1376,7 @@ def impute_miss_val(df, missing_threshold=0.7):
                     # If median cannot be computed, drop the column
                     df = df.drop(columns=[col])
                 else:
-                   df[col] = df[col].fillna(median_value)
+                    df[col] = df[col].fillna(median_value)
             else:
                 # Categorical column: impute with mode
                 mode_series = df[col].mode()
@@ -1366,18 +1386,22 @@ def impute_miss_val(df, missing_threshold=0.7):
                 else:
                     # If mode cannot be computed, drop the column
                     df = df.drop(columns=[col])
-    print("\nSummary after Imputation")
-    print("Size of remaining data:", df.shape)
+
+    if verbose:
+        print('\nSummary after Imputation')
+        print('Size of remaining data:', df.shape)
     return df
 
-def rmv_low_var(df, mad_threshold=0.1, freq_threshold=0.05):
-    """
-    Removes numerical variables with Median Absolute Deviation (MAD) below a threshold.
+
+def rmv_low_var(df, mad_threshold=0.1, freq_threshold=0.05, verbose=False):
+    '''
+    Removes numerical variables with Median Absolute Deviation (MAD) below a
+    threshold.
     Excludes binary columns from MAD calculation.
     Removes  binary columns with very low frequencies
     Returns:
     - df: pandas DataFrame with low MAD columns removed
-    """
+    '''
 
     # Remove single-valued columns first
     single_value_cols = df.columns[df.nunique() == 1]
@@ -1386,25 +1410,33 @@ def rmv_low_var(df, mad_threshold=0.1, freq_threshold=0.05):
     # Select numeric columns
     numeric_cols = df.select_dtypes(include=[np.number]).columns
 
-   # Select numeric columns and identify binary columns
+    # Select numeric columns and identify binary columns
     numeric_cols = df.select_dtypes(include=[np.number]).columns
     binary_cols = df.columns[df.nunique() == 2]
     non_binary_cols = numeric_cols.difference(binary_cols)
 
-    print(f"\nMAD Analysis Summary:")
-    print(f"Single value columns removed: {len(single_value_cols)}")
-    print(f"Total binary columns: {len(binary_cols)}")
-    print(f"Total numeric columns: {len(numeric_cols)}")
-    print(f"Non binary numeric columns: {len(non_binary_cols)}")
-    print(f"Numeric Binary columns excluded from MAD: {len(numeric_cols) - len(non_binary_cols)}")
+    if verbose:
+        print('\nMAD Analysis Summary:')
+        print(f'Single value columns removed: {len(single_value_cols)}')
+        print(f'Total binary columns: {len(binary_cols)}')
+        print(f'Total numeric columns: {len(numeric_cols)}')
+        print(f'Non binary numeric columns: {len(non_binary_cols)}')
+        print(f'''Numeric Binary columns excluded from MAD: \
+{len(numeric_cols) - len(non_binary_cols)}''')
 
     # Calculate low frequency binary numeric column
     # Handle binary columns - convert to numeric first
     if len(binary_cols) > 0:
         X_bin = df[binary_cols].apply(lambda x: pd.factorize(x)[0])
-        binary_counts = X_bin.apply(pd.value_counts, normalize=True)
-        keep_cols = [col for col in binary_cols if
-                    binary_counts[col].min() >= freq_threshold]
+        binary_counts = X_bin.mean(axis=0)
+        binary_counts = binary_counts.apply(lambda x: min((x, 1 - x)))
+        keep_cols = [
+            col for col in binary_cols
+            if (binary_counts[col] >= freq_threshold)]
+        # binary_counts = X_bin.apply(pd.value_counts, normalize=True)
+        # keep_cols = [
+        #     col for col in binary_cols if
+        #     (binary_counts[col].min() >= freq_threshold)]
         X_bin = df[keep_cols]  # Keep original values for these columns
     else:
         X_bin = pd.DataFrame()  # Empty DataFrame if no binary columns
@@ -1412,7 +1444,7 @@ def rmv_low_var(df, mad_threshold=0.1, freq_threshold=0.05):
     # Normalise the numeric columns by max
     df_tmp = df
     for col in non_binary_cols:
-        df[col] = df_tmp[col]/np.max(np.abs(df_tmp[col]))
+        df[col] = (df_tmp[col] / np.max(np.abs(df_tmp[col])))
 
     # Calculate MAD for each non-binary numeric column
     mad_values = {}
@@ -1422,29 +1454,29 @@ def rmv_low_var(df, mad_threshold=0.1, freq_threshold=0.05):
 
     # Create a Series from the MAD values
     mad_series = pd.Series(mad_values)
-    #print(mad_series)
 
     # Identify columns to keep:
     # 1. Non-numeric columns
     # 2. Binary numeric columns
     # 3. Non-binary numeric columns with MAD above threshold
-    cols_to_keep = set(df.columns) - set(non_binary_cols)-set(binary_cols)  # Start with all CAT columns
-    cols_to_keep.update(mad_series[mad_series >= mad_threshold].index)  # Add high MAD columns
+    # Start with all CAT columns
+    cols_to_keep = set(df.columns) - set(non_binary_cols) - set(binary_cols)
+    # Add high MAD columns
+    cols_to_keep.update(mad_series[mad_series >= mad_threshold].index)
 
     # Keep only the identified columns
     X_comb = pd.concat([df[list(cols_to_keep)], X_bin], axis=1)
     df = X_comb
 
-    # Print summary for debugging
-
-    print("High Frequency Binary columns kept:", X_bin.shape)
-    print(f"Columns removed due to low MAD: {len(non_binary_cols) - len(mad_series[mad_series >= mad_threshold])}")
-
-
+    if verbose:
+        # Print summary for debugging
+        print('High Frequency Binary columns kept:', X_bin.shape)
+        print(f'''Columns removed due to low MAD: \
+{len(non_binary_cols) - len(mad_series[(mad_series >= mad_threshold)])}''')
     return df
 
 
-def rmv_high_corr(df, correlation_threshold=0.5):
+def rmv_high_corr(df, correlation_threshold=0.5, verbose=False):
     # Step 1: Select numeric columns only
     numeric_cols = df.select_dtypes(include=[np.number]).columns
     df_numeric = df[numeric_cols]  # DataFrame with only numeric columns
@@ -1460,35 +1492,40 @@ def rmv_high_corr(df, correlation_threshold=0.5):
         for j in range(i + 1, num_cols):  # Only look at the upper triangle
             if corr_matrix.iloc[i, j] > correlation_threshold:
                 # Identify the columns with high correlation
-                col1 = corr_matrix.columns[i]
+                # col1 = corr_matrix.columns[i]  # ??
                 col2 = corr_matrix.columns[j]
 
                 # Add one of the columns to `to_drop`
                 to_drop.add(col2)  # Arbitrarily drop the second column
 
     # Step 4: Drop highly correlated columns
-
-    print("\nCORR Summary")
-    print(f"Columns removed due to high correlation: {len(to_drop)}")
+    if verbose:
+        print('\nCORR Summary')
+        print(f'Columns removed due to high correlation: {len(to_drop)}')
     df = df.drop(columns=list(to_drop))
 
     return df
 
 
-
-def lasso_var_sel_binary(df, outcome_col='mapped_outcome', random_state=42):
-    """
-    Prepare data and select features using binary logistic regression with elastic net penalty.
+def lasso_var_sel_binary(
+        df,
+        outcome_col='mapped_outcome', metric='balanced_accuracy',
+        threshold=1e-3,
+        random_state=42, verbose=False, sep='___'):
+    '''
+    Prepare data and select features using binary logistic regression with
+    elastic net penalty.
     Specifically designed for binary outcomes only.
-    """
+    '''
     if outcome_col not in df.columns:
-        raise ValueError(f"Outcome column '{outcome_col}' not found in DataFrame")
-
+        error_str = f'Outcome column {outcome_col} not found in DataFrame'
+        raise ValueError(error_str)
 
     # Separate predictors and outcome
     y = df[outcome_col].copy()
     X_ini = df.drop(columns=[outcome_col])
-    print(f"\nInitial shape of X: {X_ini.shape}")
+    if verbose:
+        print(f"\nInitial shape of X: {X_ini.shape}")
 
     # Encode the binary outcome
     label_encoder = LabelEncoder()
@@ -1497,23 +1534,30 @@ def lasso_var_sel_binary(df, outcome_col='mapped_outcome', random_state=42):
     # Verify that we have a binary outcome
     n_classes = len(np.unique(y))
     if n_classes != 2:
-        raise ValueError("This function is designed for binary classification only. More than two classes found.")
+        error_str = '''This function is designed for binary classification \
+only. More than two classes found.'''
+        raise ValueError(error_str)
 
     # Standardize features
     scaler = StandardScaler()
     numeric_cols = X_ini.select_dtypes(include=[np.number]).columns
-    print("Column dtypes:", X_ini.dtypes)
-    print("Numeric columns found:", len(numeric_cols))
+    if verbose:
+        print('Column dtypes:', X_ini.dtypes)
+        print('Numeric columns found:', len(numeric_cols))
 
     X = X_ini.copy()
     if len(numeric_cols) > 0:
         X[numeric_cols] = scaler.fit_transform(X_ini[numeric_cols])
     else:
-        print("No numeric columns to standardize")
+        if verbose:
+            print('No numeric columns to standardize')
     X = pd.DataFrame(X, columns=X_ini.columns)
 
-    print("\nOutcome classes:", dict(zip(label_encoder.classes_, range(len(label_encoder.classes_)))))
-    print(f"\nInitial shape of X: {X.shape}")
+    if verbose:
+        outcome_classes = dict(zip(
+            label_encoder.classes_, range(len(label_encoder.classes_))))
+        print('\nOutcome classes:', outcome_classes)
+        print(f'\nInitial shape of X: {X.shape}')
     # Encode categorical predictors
     categorical_cols = X.select_dtypes(include=['object', 'category']).columns
     binary_cats = [col for col in categorical_cols if X[col].nunique() == 2]
@@ -1524,55 +1568,58 @@ def lasso_var_sel_binary(df, outcome_col='mapped_outcome', random_state=42):
         X[col] = le.fit_transform(X[col])
 
     # Use dummies only for multi-category
-    X = pd.get_dummies(X, columns=multi_cats, prefix_sep='*_*')
-    print(f"\nshape of X after one-hot: {X.shape}")
-    X.to_csv('ISARIC_mpox2rmv_1hot.csv', index=True)
+    X = pd.get_dummies(X, columns=multi_cats, prefix_sep=sep)
+    if verbose:
+        print(f'\nshape of X after one-hot: {X.shape}')
 
     if X.shape[1] > 0:
-        print("First actual predictor column:", X.columns[0])
+        if verbose:
+            print('First actual predictor column:', X.columns[0])
     else:
-        raise ValueError("No predictor columns left after dropping outcome (and ID if applicable).")
-
-
+        error_str = '''No predictor columns left after dropping outcome (and \
+ID if applicable).'''
+        raise ValueError(error_str)
 
     # Fit binary logistic regression with elastic net
-    # For binary classification, multi_class defaults to 'ovr', which yields a single set of coefficients.
-    l1_vec = [0.1, 0.2, 0.3, 0.7, 0.8, 0.9]
-    C_vec = np.logspace(-4, 4, 40)
+    # For binary classification, multi_class defaults to 'ovr', which yields a
+    # single set of coefficients.
+    l1_vec = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+    C_vec = np.logspace(-3, 1, 9)
     logistic = LogisticRegressionCV(
         penalty='elasticnet',
-        l1_ratios= l1_vec,
+        l1_ratios=l1_vec,
         solver='saga',
-        cv=StratifiedKFold(n_splits=3, shuffle=True, random_state=random_state),
+        cv=StratifiedKFold(
+            n_splits=3, shuffle=True, random_state=random_state),
         random_state=random_state,
         max_iter=5000,
         class_weight='balanced',
-        Cs= C_vec,
+        Cs=C_vec,
         tol=1e-4,
-        scoring='balanced_accuracy'
+        scoring=metric
     )
-
 
     # Below is the original way we started
     logistic.fit(X, y)
 
-    print("Original l1_ratios specified:", l1_vec)
-    print("Model's l1_ratios attribute:", logistic.l1_ratios)
-    print("Shape of logistic.scores_[1]:", logistic.scores_[1].shape)
-    print("\nFirst 10 scores for each row:")
-    for i in [0,1]:  # explicitly loop through both rows
-        print(f"\nRow {i} (supposed to be l1_ratio = {l1_vec[i]}):")
-        print(logistic.scores_[1][0, :10, i])
+    if verbose:
+        print('Original l1_ratios specified:', l1_vec)
+        print('Model\'s l1_ratios attribute:', logistic.l1_ratios)
+        print('Shape of logistic.scores_[1]:', logistic.scores_[1].shape)
+        print('\nFirst 10 scores for each row:')
+        for i in [0, 1]:  # explicitly loop through both rows
+            print(f'\nRow {i} (supposed to be l1_ratio = {l1_vec[i]}):')
+            print(logistic.scores_[1][0, :10, i])
 
-
-    scores_dt = np.mean(logistic.scores_[1],axis=0)
-    print("Mean scores for varying l1_ratio and Cs")
-    print(scores_dt)  # print matrix for this fold
+    scores_dt = np.mean(logistic.scores_[1], axis=0)
+    if verbose:
+        print('Mean scores for varying l1_ratio and Cs')
+        print(scores_dt)  # print matrix for this fold
 
     scores_df = pd.DataFrame(
-    scores_dt,  # Transpose to get l1_ratios as rows
-    index=C_vec,
-    columns=l1_vec
+        scores_dt,  # Transpose to get l1_ratios as rows
+        index=C_vec,
+        columns=l1_vec
     )
 
     # Label the axes
@@ -1587,15 +1634,13 @@ def lasso_var_sel_binary(df, outcome_col='mapped_outcome', random_state=42):
     feature_importance = np.abs(coef_df.iloc[0, :])
 
     # Select features with non-zero importance
-    selected_features = feature_importance[feature_importance > 0.0].index.tolist()
+    selected_features = feature_importance[(
+        feature_importance > 0.0)].index.tolist()
 
     # Predictions
     y_pred = logistic.predict(X)
 
     # Performance metrics
-    print("\nPerformance Metrics:")
-    print("-------------------")
-
     # Find the best C and corresponding CV score
     best_c = logistic.C_[0]
     c_index = np.where(logistic.Cs_ == best_c)[0][0]
@@ -1604,62 +1649,69 @@ def lasso_var_sel_binary(df, outcome_col='mapped_outcome', random_state=42):
         all_class_scores.extend(logistic.scores_[cl][:, c_index])
     best_cv_score = np.mean(all_class_scores)
 
-    print(f"Best C value: {best_c}")
-    print("\nConfusion Matrix:")
     conf_matrix = confusion_matrix(y, y_pred)
-    print(conf_matrix)
-    print("\nClassification Report:")
-
     target_names = [str(c) for c in label_encoder.classes_]
-    print(classification_report(y, y_pred, target_names=target_names))
-    print(f"Best CV score: {best_cv_score}")
-
-    # l1_ratio_ returns the best ratio found for each class. For binary, there should be one:
-    print(f"Best l1_ratio: {logistic.l1_ratio_[0]}")
-
-    print(f"\nSelected {len(selected_features)} features")
-
-    # Print feature importance for selected features
-    print("\nFeature importance for selected features:")
-    for feat in sorted(selected_features, key=lambda x: feature_importance[x], reverse=True):
-        print(f"{feat}: {feature_importance[feat]:.4f}")
-
     X_selected = X[selected_features]
-    print(f"Final shape of selected features: {X_selected.shape}")
+    if verbose:
+        print('\nPerformance Metrics:')
+        print('-------------------')
+        print(f'Best C value: {best_c}')
+        print('\nConfusion Matrix:')
+        print(conf_matrix)
+        print('\nClassification Report:')
+        print(classification_report(y, y_pred, target_names=target_names))
+        print(f'Best CV score: {best_cv_score}')
+        # l1_ratio_ returns the best ratio found for each class. For binary,
+        # there should be one:
+        print(f'Best l1_ratio: {logistic.l1_ratio_[0]}')
+        print(f'\nSelected {len(selected_features)} features')
+        # Print feature importance for selected features
+        print('\nFeature importance for selected features:')
+        sorted_features = sorted(
+            selected_features,
+            key=lambda x: feature_importance[x], reverse=True)
+        for feat in sorted_features:
+            print(f'{feat}: {feature_importance[feat]:.4f}')
+        print(f'Final shape of selected features: {X_selected.shape}')
 
     # Store metrics in a dictionary
+    report = classification_report(
+        y, y_pred, target_names=label_encoder.classes_, output_dict=True)
     metrics = {
         'confusion_matrix': conf_matrix,
-        'classification_report': classification_report(y, y_pred, target_names=label_encoder.classes_, output_dict=True),
+        'classification_report': report,
         'accuracy': accuracy_score(y, y_pred),
         'cv_scores': all_class_scores
     }
 
     original_features = {}
     for feature in selected_features:
-      if '*_*' in feature:
-        orig_name = feature.split('*_*')[0]
-        coef = abs(feature_importance[feature])
-        original_features[orig_name] = max(original_features.get(orig_name, 0), coef)
-      else:
-        original_features[feature] = abs(feature_importance[feature])
+        if sep in feature:
+            orig_name = feature.split(sep)[0]
+            coef = abs(feature_importance[feature])
+            original_features[orig_name] = max(
+                original_features.get(orig_name, 0), coef)
+        else:
+            original_features[feature] = abs(feature_importance[feature])
 
     # Create grouped results showing all categories
-    grp_results= create_grouped_results(selected_features, feature_importance)
+    grp_results = create_grouped_results(selected_features, feature_importance)
     results_df = grp_results[0]
     sorted_fields = grp_results[1]
     categorical_fields = grp_results[2]
 
-    # Print the grouped results
-    print("\nSelected features grouped by main field:")
-    print(results_df)
+    if verbose:
+        # Print the grouped results
+        print('\nSelected features grouped by main field:')
+        print(results_df)
 
-    # Save to CSV
-    results_df.to_csv('feature_coefficients_grouped.csv', index=False)
+    # # Save to CSV
+    # results_df.to_csv('feature_coefficients_grouped.csv', index=False)
 
-    # Note: We may still want to keep the original X_selected DataFrame for further analysis
+    # Note: We may still want to keep the original X_selected DataFrame for
+    # further analysis
     X_selected = X[selected_features]
-    #print(f"Final shape of selected features: {X_selected.shape}")
+    # print(f"Final shape of selected features: {X_selected.shape}")
 
     # After running create_grouped_results, extract main fields
     main_fields = []
@@ -1671,28 +1723,31 @@ def lasso_var_sel_binary(df, outcome_col='mapped_outcome', random_state=42):
 
     # Convert main_fields list to a single-column DataFrame
     main_fields_df = pd.DataFrame({'Main Features': main_fields})
-    print(main_fields_df)
+    top_params = get_parameter_ranking(logistic, n_top=20, threshold=threshold)
 
-    top_params = get_parameter_ranking(logistic, n_top=20)
-    print("\nTop parameter combinations:")
-    print(top_params)
+    if verbose:
+        print(main_fields_df)
+        print('\nTop parameter combinations:')
+        print(top_params)
 
-    return results_df, scores_df, main_fields_df, top_params, X_selected, y, selected_features, coef_df, label_encoder, feature_importance, metrics
+    return (
+        results_df, scores_df, main_fields_df, top_params, X_selected, y,
+        selected_features, coef_df, label_encoder, feature_importance, metrics)
 
-    # Group features by main field and sort by importance
-def create_grouped_results(selected_features, feature_importance):
-    """
+
+def create_grouped_results(selected_features, feature_importance, sep='___'):
+    '''
     Create a DataFrame with all categories listed under their main fields,
     with main fields sorted by their maximum coefficient magnitude.
-    """
+    '''
     # Step 1: Identify one-hot encoded and regular features
     categorical_fields = set()
     regular_features = []
 
     for feature in selected_features:
-        if '*_*' in feature:
+        if sep in feature:
             # One-hot encoded feature
-            categorical_fields.add(feature.split('*_*')[0])
+            categorical_fields.add(feature.split(sep)[0])
         else:
             # Regular feature
             regular_features.append(feature)
@@ -1705,8 +1760,8 @@ def create_grouped_results(selected_features, feature_importance):
         field_groups[field] = []
         # Find all categories for this field
         for feature in selected_features:
-            if feature.startswith(field + '*_*'):
-                category = feature.split('*_*')[1]
+            if feature.startswith(field + sep):
+                category = feature.split(sep)[1]
                 coef = feature_importance[feature]
                 field_groups[field].append({
                     'Feature': category,
@@ -1730,7 +1785,8 @@ def create_grouped_results(selected_features, feature_importance):
         field_max_coef[field] = max(cat['AbsCoef'] for cat in categories)
 
     #  Sort fields by their max coefficient
-    sorted_fields = sorted(field_groups.keys(), key=lambda f: field_max_coef[f], reverse=True)
+    sorted_fields = sorted(
+        field_groups.keys(), key=lambda f: field_max_coef[f], reverse=True)
 
     # Create the final DataFrame with the desired structure
     results = []
@@ -1740,14 +1796,16 @@ def create_grouped_results(selected_features, feature_importance):
             # For categorical fields, add header row with no coefficient
             results.append({
                 'Feature': field,
-                'Coefficient': "..."
+                'Coefficient': '...'
             })
 
             # Add all categories
-            categories = sorted(field_groups[field], key=lambda x: x['AbsCoef'], reverse=True)
+            categories = sorted(
+                field_groups[field], key=lambda x: x['AbsCoef'], reverse=True)
             for cat in categories:
                 results.append({
-                    'Feature': f"  {cat['Feature']}",  # Indent for visual grouping
+                    # Indent for visual grouping
+                    'Feature': f'  {cat['Feature']}',
                     'Coefficient': cat['Coefficient']
                 })
         else:
@@ -1759,14 +1817,12 @@ def create_grouped_results(selected_features, feature_importance):
 
     return pd.DataFrame(results), sorted_fields, categorical_fields
 
-def get_parameter_ranking(logistic, n_top=10):
-    """
+
+def get_parameter_ranking(logistic, n_top=10, threshold=1e-3):
+    '''
     Create a ranking of parameter combinations using stored scores
     and coefficient paths.
-    """
-    import pandas as pd
-    import numpy as np
-
+    '''
     # Create empty list to store parameter information
     param_scores = []
 
@@ -1774,23 +1830,26 @@ def get_parameter_ranking(logistic, n_top=10):
     l1_ratios = logistic.l1_ratios_
     Cs = logistic.Cs_
 
-    # Get first class key (for binary classification, there's only one set of scores)
+    # Get first class key (for binary classification,
+    # there's only one set of scores)
     first_class = list(logistic.scores_.keys())[0]
 
     # Loop through all parameter combinations
     for l1_ratio_idx, l1_ratio in enumerate(l1_ratios):
         for C_idx, C in enumerate(Cs):
             # Get mean score across folds for this parameter combination
-            score = np.mean(logistic.scores_[first_class][:, C_idx, l1_ratio_idx])
+            score = np.mean(
+                logistic.scores_[first_class][:, C_idx, l1_ratio_idx])
 
             # Get coefficients for this parameter combination
-            coef_path = logistic.coefs_paths_[first_class][:, C_idx, l1_ratio_idx, :]
+            coef_path = logistic.coefs_paths_[first_class][
+                :, C_idx, l1_ratio_idx, :]
 
-            # Average across folds
+            # Average across folds  # Why is this the mean?
             mean_coef = np.mean(coef_path, axis=0)
 
             # Count non-zero coefficients
-            n_features = np.sum(np.abs(mean_coef) > 1e-3)
+            n_features = np.sum(np.abs(mean_coef) > threshold)
 
             # Append to our list
             param_scores.append({
