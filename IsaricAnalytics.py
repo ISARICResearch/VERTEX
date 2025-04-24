@@ -249,40 +249,54 @@ def convert_onehot_to_categorical(
 ############################################
 
 
-def median_iqr_str(series, dp=1, mfw=4, min_n=3):
+def median_iqr_str(series, add_spaces=False, dp=1, mfw=4, min_n=3):
     if series.notna().sum() < min_n:
         output_str = 'N/A'
-    else:
+    elif add_spaces:
         mfw_f = int(np.log10(max((series.quantile(0.75), 1)))) + 2 + dp
         output_str = '%*.*f' % (mfw_f, dp, series.median()) + ' ('
         output_str += '%*.*f' % (mfw_f, dp, series.quantile(0.25)) + '-'
         output_str += '%*.*f' % (mfw_f, dp, series.quantile(0.75)) + ') | '
         output_str += '%*g' % (mfw, int(series.notna().sum()))
+    else:
+        output_str = '%.*f' % (dp, series.median()) + ' ('
+        output_str += '%.*f' % (dp, series.quantile(0.25)) + '-'
+        output_str += '%.*f' % (dp, series.quantile(0.75)) + ') | '
+        output_str += str(int(series.notna().sum()))
     return output_str
 
 
-def mean_std_str(series, dp=1, mfw=4, min_n=3):
+def mean_std_str(series, add_spaces=False, dp=1, mfw=4, min_n=3):
     if series.notna().sum() < min_n:
         output_str = 'N/A'
-    else:
+    elif add_spaces:
         mfw_f = int(max((np.log10(series.mean(), 1)))) + 2 + dp
         output_str = '%*.*f' % (mfw_f, dp, series.mean()) + ' ('
         output_str += '%*.*f' % (mfw_f, dp, series.std()) + ') | '
         output_str += '%*g' % (mfw, int(series.notna().sum()))
+    else:
+        output_str = '%.*f' % (dp, series.mean()) + ' ('
+        output_str += '%.*f' % (dp, series.std()) + ') | '
+        output_str += str(int(series.notna().sum()))
     return output_str
 
 
-def n_percent_str(series, dp=1, mfw=4, min_n=1):
+def n_percent_str(series, add_spaces=False, dp=1, mfw=4, min_n=1):
     if series.notna().sum() < min_n:
         output_str = 'N/A'
-    else:
+    elif add_spaces:
         output_str = '%*g' % (mfw, int(series.sum())) + ' ('
         percent = 100*series.mean()
         if percent == 100:
-            output_str += '100.) | '
+            output_str += '100.0) | '
         else:
-            output_str += '%4.*f' % (dp, percent) + ') | '
+            output_str += '%5.*f' % (dp, percent) + ') | '
         output_str += '%*g' % (mfw, int(series.notna().sum()))
+    else:
+        count = int(series.sum())
+        percent = 100*series.mean()
+        denom = int(series.notna().sum())
+        output_str = f'{str(count)} ({'%.*f' % (dp, percent)}) | {str(denom)}'
     return output_str
 
 
