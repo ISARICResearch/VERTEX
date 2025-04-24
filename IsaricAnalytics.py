@@ -1,32 +1,27 @@
 import warnings
-
 import numpy as np
 import pandas as pd
-
-# from sklearn.metrics import balanced_accuracy_score, make_scorer
-# from typing import List, Union
 # from bertopic import BERTopic
 # from bertopic.representation import KeyBERTInspired, MaximalMarginalRelevance
 # from bertopic._utils import select_topic_representation
 # from umap import UMAP
-# from sklearn.preprocessing import MinMaxScaler
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
 from lifelines import CoxPHFitter
 from scipy.stats import norm
-
 # from scipy.stats import fisher_exact
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import confusion_matrix
+# from sklearn.metrics import roc_auc_score, roc_curve
 from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import LabelEncoder, StandardScaler
+# from sklearn.preprocessing import MinMaxScaler
 from statsmodels.genmod.bayes_mixed_glm import BinomialBayesMixedGLM
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 from lifelines import KaplanMeierFitter
 from lifelines.statistics import logrank_test, multivariate_logrank_test
-
 # from sklearn.impute import KNNImputer
 from sklearn.linear_model import LogisticRegressionCV
-# from sklearn.metrics import roc_auc_score, roc_curve, accuracy_score
 # from sklearn.preprocessing import LabelEncoder, StandardScaler
 # from sklearn.model_selection import train_test_split, GridSearchCV
 # from sklearn.linear_model import LogisticRegression
@@ -47,7 +42,7 @@ def extend_dictionary(dictionary, new_variable_dict, data, sep='___'):
     Args:
         dictionary (pd.DataFrame):
             VERTEX dictionary containing columns 'field_name', 'form_name',
-            'field_type', 'field_label', 'parent'.
+            'field_type', 'field_label', 'parent', 'branching_logic'.
         new_variable_dict (dict):
             A dict with the same keys as the dictionary columns, the values for
             each item can be a string or a list.
@@ -104,6 +99,8 @@ def extend_dictionary(dictionary, new_variable_dict, data, sep='___'):
         add_options['field_name'] = [
             variable + sep + str(y) for y in options]
         add_options['form_name'] = new_dictionary.loc[ind, 'form_name']
+        add_options['branching_logic'] = (
+            new_dictionary.loc[ind, 'branching_logic'])
         add_options['field_type'] = 'binary'
         add_options['field_label'] = options
         add_options['parent'] = variable
@@ -1872,7 +1869,7 @@ def get_parameter_ranking(logistic, n_top=10, threshold=1e-3):
 
 
 ####
-## KAPLAN MEIER
+# KAPLAN MEIER
 
 
 def execute_kaplan_meier(df, duration_col, event_col, group_col):

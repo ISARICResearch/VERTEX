@@ -380,6 +380,8 @@ def combine_unlisted_variables(df, dictionary, sep='___'):
         # item_ind = item_ind.loc[item_ind].index.min()
         new_dictionary['parent'] = column
         new_dictionary['form_name'] = dictionary.loc[ind, 'form_name']
+        new_dictionary['branching_logic'] = (
+            dictionary.loc[ind, 'branching_logic'])
         new_dictionary_list.append(new_dictionary)
     dictionary = pd.concat([dictionary] + new_dictionary_list, axis=0)
     dictionary = dictionary.sort_index().reset_index(drop=True)
@@ -602,7 +604,8 @@ def initial_data_processing(data, dictionary, missing_data_codes):
     new_dictionary = convert_dictionary_field_type(new_dictionary)
 
     columns = [
-        'field_name', 'form_name', 'field_type', 'field_label', 'parent']
+        'field_name', 'form_name', 'field_type',
+        'field_label', 'parent', 'branching_logic']
     new_dictionary = new_dictionary[columns]
 
     # Convert Yes(Checked)/No(Unchecked)/Unknown to True/False/NaN
@@ -693,6 +696,7 @@ def get_df_map(data, dictionary):
     outcome_dict['field_type'] = ['categorical'] + ['binary']*len(outcomes)
     outcome_dict['field_label'] = ['Outcome (binary)'] + outcomes
     outcome_dict['parent'] = ['outco'] + ['outco_binary_outcome']*len(outcomes)
+    outcome_dict['branching_logic'] = ''
     dictionary = pd.concat([
         dictionary, pd.DataFrame.from_dict(outcome_dict)], axis=0)
     dictionary = dictionary.reset_index(drop=True)
@@ -762,6 +766,7 @@ def get_redcap_data(redcap_url, redcap_api_key, country_mapping=None):
     country_dict['field_type'] += ['binary']*len(countries)
     country_dict['field_label'] = ['COUNTRY', 'Country ISO Code'] + countries
     country_dict['parent'] = ['', 'country'] + ['country_iso']*len(countries)
+    country_dict['branching_logic'] = ''
 
     new_dictionary = pd.concat([
         new_dictionary, pd.DataFrame.from_dict(country_dict)], axis=0)
