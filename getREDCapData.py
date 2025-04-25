@@ -243,7 +243,7 @@ def add_onehot_variables(data, dictionary, sep='___'):
     ind = ind.loc[ind].index
     sections = pd.DataFrame('', columns=new_dictionary.columns, index=ind)
     sections['field_label'] = new_dictionary.loc[ind, 'section_header'].apply(
-        lambda x: x.split(':')[0])
+        lambda x: x.split(': ')[0])
     sections['field_type'] = 'section'
     sections['form_name'] = new_dictionary.loc[ind, 'form_name']
     sections['field_name'] = new_dictionary.loc[ind, 'field_name'].apply(
@@ -588,8 +588,15 @@ def initial_data_processing(data, dictionary, missing_data_codes):
     remove_variables = [
         x for x in remove_columns.map(lambda x: x.split('___')[0])
         if x not in data.columns.map(lambda x: x.split('___')[0])]
+    new_dictionary['section_header'] = (
+        new_dictionary['section_header'].replace('', np.nan))
+    new_dictionary['section_header'] = new_dictionary['section_header'].ffill()
     new_dictionary = new_dictionary.loc[(
         new_dictionary['field_name'].isin(remove_variables) == 0)]
+    new_dictionary['section_header'] = new_dictionary['section_header'].mask(
+        new_dictionary['section_header'].duplicated())
+    new_dictionary['section_header'] = (
+        new_dictionary['section_header'].fillna(''))
     new_dictionary = new_dictionary.reset_index(drop=True)
     new_dictionary = add_answer_dict(new_dictionary)
 
