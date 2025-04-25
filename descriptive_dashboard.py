@@ -1200,6 +1200,9 @@ def main():
     if config_dict['save_public_outputs']:
         public_path = os.path.join(
             init_project_path, config_dict['public_path'])
+        if os.path.exists(public_path):
+            print(f'Folder "{public_path}" already exists, removing this')
+            shutil.rmtree(public_path)
         print(f'Saving files for public dashboard to "{public_path}"')
         os.makedirs(
             os.path.dirname(os.path.join(public_path, '')), exist_ok=True)
