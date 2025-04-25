@@ -706,10 +706,14 @@ def fig_dual_stack_pyramid(
         raise ValueError(error_str)
     if df.empty:
         raise ValueError('The DataFrame is empty.')
-    if len(df['side'].unique()) != 2:  # TODO
-        fig = {}
-    left_side_label = df['side'].unique()[0]
-    right_side_label = df['side'].unique()[1]
+    # if len(df['side'].unique()) != 2:  # TODO
+    #     fig = {}
+    left_side_label = ''
+    right_side_label = ''
+    if (df['left_side'] == 1).any():
+        left_side_label = df.loc[(df['left_side'] == 1), 'side'].values[0]
+    if (df['left_side'] == 0).any():
+        right_side_label = df.loc[(df['left_side'] == 0), 'side'].values[0]
 
     # Dynamic Color Mapping
     if (base_color_map is not None) and (not isinstance(base_color_map, dict)):
@@ -739,9 +743,12 @@ def fig_dual_stack_pyramid(
                 continue
             # Get color from the color_map using both side and stack_group
             color = color_map.get((side, stack_group))
+            # x_val = (
+            #     -subset['value'] if (side == df['side'].unique()[0])
+            #     else subset['value'])
             x_val = (
-                -subset['value'] if (side == df['side'].unique()[0])
-                else subset['value'])
+                -subset['value']
+                if subset['left_side'].any() else subset['value'])
             traces.append(
                 go.Bar(
                     y=subset['y_axis'],
