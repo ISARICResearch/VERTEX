@@ -170,7 +170,7 @@ def convert_categorical_to_onehot(
                 drop_column_ind = dictionary.apply(
                     lambda x: (
                         (x['parent'] == categorical_column) &
-                        (x['field_name'].split('___')[0] == categorical_column)
+                        (x['field_name'].split(sep)[0] == categorical_column)
                     ), axis=1)
                 df = df.drop(columns=[
                     dictionary.loc[drop_column_ind, 'field_name'].values[0]])
@@ -306,7 +306,7 @@ def get_descriptive_data(
         exclude_suffix=[
             '_units', 'addi', 'otherl2', 'item', '_oth',
             '_unlisted', 'otherl3'],
-        include_subjid=False, exclude_negatives=True):
+        include_subjid=False, exclude_negatives=True, sep='___'):
     df = data.copy()
 
     include_columns = get_variables_by_section_and_type(
@@ -322,16 +322,16 @@ def get_descriptive_data(
     columns = dictionary.loc[categorical_ind, 'field_name'].tolist()
     columns = [col for col in columns if col != by_column]
     df = convert_categorical_to_onehot(
-        df, dictionary, categorical_columns=columns)
+        df, dictionary, categorical_columns=columns, sep=sep)
 
     if (by_column is not None) & (by_column not in df.columns):
         df = convert_onehot_to_categorical(
-            df, dictionary, categorical_columns=[by_column])
+            df, dictionary, categorical_columns=[by_column], sep=sep)
 
     negative_values = ('no', 'never smoked')
     negative_columns = [
         col for col in df.columns
-        if col.split('___')[-1].lower() in negative_values]
+        if col.split(sep)[-1].lower() in negative_values]
     if exclude_negatives:
         df.drop(columns=negative_columns, inplace=True)
 
@@ -344,7 +344,7 @@ def get_descriptive_data(
 def descriptive_table(
         data, dictionary, by_column=None,
         include_totals=True, column_reorder=None,
-        include_raw_variable_name=False):
+        include_raw_variable_name=False, sep='___'):
     '''
     Descriptive table for binary (including onehot-encoded categorical) and
     numerical variables in data. The descriptive table will have seperate
@@ -383,7 +383,7 @@ def descriptive_table(
     table['Raw variable name'] = [
         var if var in df.columns else '' for var in index]
     table['Variable'] = format_descriptive_table_variables(
-        table_dictionary).tolist()
+        table_dictionary, sep=sep).tolist()
 
     mfw = int(np.log10(df.shape[0])) + 1  # Min field width, for formatting
     table.loc[numeric_columns, 'All'] = df[numeric_columns].apply(
@@ -428,26 +428,27 @@ def trim_field_label(x, max_len=40):
     return x
 
 
-def format_descriptive_table_variables(dictionary, max_len=100, add_key=True):
+def format_descriptive_table_variables(
+        dictionary, max_len=100, add_key=True, sep='___'):
     name = dictionary['field_name'].apply(
-        lambda x: '   ↳ ' if '___' in x else '<b>')
+        lambda x: '   ↳ ' if sep in x else '<b>')
     name += dictionary['field_type'].map({'section': '<i>'}).fillna('')
     name += dictionary['field_label'].apply(
         lambda x: x.split(':')[-1] if x.startswith('If') else x).apply(
         trim_field_label, max_len=max_len)
     name += dictionary['field_type'].map({'section': '</i>'}).fillna('')
     name += dictionary['field_name'].apply(
-        lambda x: '' if '___' in x else '</b>')
+        lambda x: '' if sep in x else '</b>')
     if add_key is True:
         field_type = dictionary['field_type'].map({
             'categorical': ' (*)',
             'binary': ' (*)',
             'numeric': ' (+)'}).fillna('')
-        name += field_type*(dictionary['field_name'].str.contains('___') == 0)
+        name += field_type*(dictionary['field_name'].str.contains(sep) == 0)
     return name
 
 
-def format_variables(dictionary, max_len=40):
+def format_variables(dictionary, max_len=40, sep='___'):
     parent_label = dictionary['parent'].apply(
         lambda x: dictionary.loc[(
             dictionary['field_name'] == x).idxmax(), 'field_label'])
@@ -455,7 +456,7 @@ def format_variables(dictionary, max_len=40):
     name = dictionary['field_label'].apply(
         lambda x: x.split(':')[-1] if x.startswith('If') else x).apply(
         trim_field_label, max_len=max_len)
-    answer_ind = dictionary['field_name'].str.contains('___')
+    answer_ind = dictionary['field_name'].str.contains(sep)
     name = (
         ('<b>' + parent_name + '</b>, ' + name)*answer_ind +
         ('<b>' + name + '</b>')*(answer_ind == 0))
@@ -469,7 +470,7 @@ def format_variables(dictionary, max_len=40):
 ############################################
 
 
-def get_counts(df, dictionary, max_n_variables=10):
+def get_counts(df, dictionary, max_n_variables=10, sep='___'):
     counts = df.apply(lambda x: x.sum()).T.reset_index()
 
     counts.columns = ['variable', 'count']
@@ -478,8 +479,8 @@ def get_counts(df, dictionary, max_n_variables=10):
     if counts.shape[0] > max_n_variables:
         counts = counts.head(max_n_variables)
 
-    short_format = format_variables(dictionary, max_len=40)
-    long_format = format_variables(dictionary, max_len=1000)
+    short_format = format_variables(dictionary, max_len=40, sep=sep)
+    long_format = format_variables(dictionary, max_len=1000, sep=sep)
     format_dict = dict(zip(dictionary['field_name'], long_format))
     short_format_dict = dict(zip(dictionary['field_name'], short_format))
     counts['label'] = counts['variable'].map(format_dict)
@@ -489,7 +490,7 @@ def get_counts(df, dictionary, max_n_variables=10):
 
 def get_proportions(
         df, dictionary, max_n_variables=10,
-        ignore_branching_logic=False, branching_logic=''):
+        ignore_branching_logic=False, branching_logic='', sep='___'):
     if ignore_branching_logic:
         columns = [col for col in df.columns]
     else:
@@ -520,8 +521,8 @@ def get_proportions(
     proportions = proportions.sort_values(
         by=['proportion'], ascending=False).reset_index(drop=True)
 
-    short_format = format_variables(dictionary, max_len=40)
-    long_format = format_variables(dictionary, max_len=1000)
+    short_format = format_variables(dictionary, max_len=40, sep=sep)
+    long_format = format_variables(dictionary, max_len=1000, sep=sep)
     format_dict = dict(zip(dictionary['field_name'], long_format))
     short_format_dict = dict(zip(dictionary['field_name'], short_format))
     proportions['label'] = proportions['variable'].map(format_dict)
@@ -532,10 +533,10 @@ def get_proportions(
 def get_upset_counts_intersections(
         df, dictionary,
         proportions=None,  # Deprecated
-        variables=None, n_variables=5):
+        variables=None, n_variables=5, sep='___'):
     # Convert variables and column names into their formatted names
-    long_format = format_variables(dictionary, max_len=1000)
-    short_format = format_variables(dictionary, max_len=40)
+    long_format = format_variables(dictionary, max_len=1000, sep=sep)
+    short_format = format_variables(dictionary, max_len=40, sep=sep)
     format_dict = dict(zip(dictionary['field_name'], long_format))
     short_format_dict = dict(zip(dictionary['field_name'], short_format))
 
@@ -754,7 +755,7 @@ def get_modelling_data(
             '_units', 'addi', 'otherl2', 'item', '_oth',
             '_unlisted', 'otherl3'],
         include_subjid=False, exclude_negatives=True,
-        fillna=True, drop_first=False):
+        fillna=True, drop_first=False, sep='___'):
     df = data.copy()
 
     if isinstance(outcome_columns, str):
@@ -775,7 +776,8 @@ def get_modelling_data(
     columns = dictionary.loc[categorical_ind, 'field_name'].tolist()
     columns = [col for col in columns if col not in tuple(outcome_columns)]
     df = convert_categorical_to_onehot(
-        df, dictionary, categorical_columns=columns, drop_first=drop_first)
+        df, dictionary, categorical_columns=columns,
+        drop_first=drop_first, sep=sep)
 
     binary_ind = (dictionary['field_type'] == 'binary')
     columns = dictionary.loc[binary_ind, 'field_name'].tolist()
@@ -787,7 +789,7 @@ def get_modelling_data(
     negative_values = ('no', 'never smoked')
     negative_columns = [
         col for col in df.columns
-        if col.split('___')[-1].lower() in negative_values]
+        if col.split(sep)[-1].lower() in negative_values]
     if exclude_negatives:
         df.drop(columns=negative_columns, inplace=True)
     return df
@@ -887,7 +889,8 @@ def remove_single_binary_outcome_predictors(
 
 def regression_summary_table(
         table, dictionary,
-        highlight_predictors=None, p_values=None, result_type='OddsRatio'):
+        highlight_predictors=None, p_values=None,
+        result_type='OddsRatio', sep='___'):
     variables = table['Variable'].tolist()
     new_variables = variables + dictionary.loc[(
             (dictionary['field_name'].isin(variables)) &
@@ -956,8 +959,8 @@ def regression_summary_table(
         add_key = add_key.apply(lambda x: x if x == '' else f' ({x})')
 
     formatted_labels_v1 = format_descriptive_table_variables(
-        dictionary, add_key=False)
-    formatted_labels_v2 = format_variables(dictionary)
+        dictionary, add_key=False, sep=sep)
+    formatted_labels_v2 = format_variables(dictionary, sep=sep)
     v1_ind = (dictionary['parent'].isin(variables))
     v2_ind = (dictionary['parent'].isin(variables) == 0)
     mapping_dict = {
@@ -1356,6 +1359,68 @@ def execute_cox_model(df, duration_col, event_col, predictors, labels=None):
             labels).fillna(summary_df['Variable'])
 
     return summary_df
+
+
+def execute_kaplan_meier(
+        df, duration_col, event_col, group_col, alpha=0.05, n_times=5):
+    # Remove rows with missing values in relevant columns
+    df = df.dropna(subset=[duration_col, event_col, group_col])
+    kmf = KaplanMeierFitter()
+
+    unique_groups = df[group_col].sort_values().unique()
+    # survival_curves = {}
+    # confidence_intervals = {}
+    df_km = pd.DataFrame(columns=['timeline'])
+    max_time = (df[duration_col].max() // n_times) * (n_times + 1)
+    times = np.arange(0, max_time, n_times)
+
+    # Compute survival curves and confidence intervals for each group
+    for group in unique_groups:
+        group_data = df[df[group_col] == group]
+        kmf.fit(
+            group_data[duration_col],
+            event_observed=group_data[event_col],
+            label=str(group),
+            alpha=alpha)
+        ci_lower = kmf.confidence_interval_[f'{group}_lower_{1 - alpha}'] * 100
+        ci_upper = kmf.confidence_interval_[f'{group}_upper_{1 - alpha}'] * 100
+        survival_curve = pd.concat(
+            [kmf.survival_function_ * 100, ci_lower, ci_upper], axis=1)
+        survival_curve = survival_curve.drop_duplicates().reset_index().rename(
+            columns={'index': 'timeline'})
+        df_km = pd.merge(
+            df_km, survival_curve, on='timeline', how='outer').bfill()
+        # survival_curves[group] =
+        # confidence_intervals[group] = (ci_lower, ci_upper)
+
+    # Perform log-rank test
+    if len(unique_groups) == 2:
+        group1_data = df[df[group_col] == unique_groups[0]]
+        group2_data = df[df[group_col] == unique_groups[1]]
+        result = logrank_test(
+            group1_data[duration_col], group2_data[duration_col],
+            event_observed_A=group1_data[event_col],
+            event_observed_B=group2_data[event_col])
+        p_value = result.p_value
+    elif len(unique_groups) > 2:
+        result = multivariate_logrank_test(
+            df[duration_col], df[group_col], df[event_col])
+        p_value = result.p_value
+    else:
+        p_value = np.nan
+
+    # Generate risk table: number of individuals at risk over time
+    risk_counts = {
+        group: [(
+            (df[group_col] == group) & (df[duration_col] >= t)).sum()
+            for t in times]
+        for group in unique_groups
+    }
+
+    risk_table = pd.DataFrame(risk_counts, index=times).T
+    risk_table.insert(0, "Group", risk_table.index)
+
+    return df_km, risk_table, p_value
 
 
 ############################################
@@ -1880,58 +1945,3 @@ def get_parameter_ranking(logistic, n_top=10, threshold=1e-3):
     params_df = params_df.sort_values('score', ascending=False).head(n_top)
 
     return params_df
-
-
-####
-# KAPLAN MEIER
-
-
-def execute_kaplan_meier(df, duration_col, event_col, group_col):
-    # Remove rows with missing values in relevant columns
-    df = df.dropna(subset=[duration_col, event_col, group_col])
-    kmf = KaplanMeierFitter()
-
-    unique_groups = df[group_col].unique()
-    survival_curves = {}
-    confidence_intervals = {}
-    times = np.arange(0, 61, 10)
-
-    # Compute survival curves and confidence intervals for each group
-    for group in unique_groups:
-        group_data = df[df[group_col] == group]
-        kmf.fit(group_data[duration_col], event_observed=group_data[event_col], label=str(group))
-        survival_curves[group] = kmf.survival_function_ * 100
-        ci_lower = kmf.confidence_interval_[f'{group}_lower_0.95'] * 100
-        ci_upper = kmf.confidence_interval_[f'{group}_upper_0.95'] * 100
-        confidence_intervals[group] = (ci_lower, ci_upper)
-
-    # Perform log-rank test
-    if len(unique_groups) == 2:
-        group1_data = df[df[group_col] == unique_groups[0]]
-        group2_data = df[df[group_col] == unique_groups[1]]
-        result = logrank_test(group1_data[duration_col], group2_data[duration_col],
-                              event_observed_A=group1_data[event_col],
-                              event_observed_B=group2_data[event_col])
-        p_value = result.p_value
-    elif len(unique_groups) > 2:
-        result = multivariate_logrank_test(df[duration_col], df[group_col], df[event_col])
-        p_value = result.p_value
-    else:
-        p_value = np.nan
-
-    # Generate risk table: number of individuals at risk over time
-    risk_counts = {
-        group: [(df[(df[group_col] == group) & (df[duration_col] >= t)]).shape[0] for t in times]
-        for group in unique_groups
-    }
-
-    risk_table = pd.DataFrame(risk_counts, index=times).T
-    risk_table.insert(0, "Group", risk_table.index)
-
-    return {
-        "survival_curves": survival_curves,
-        "confidence_intervals": confidence_intervals,
-        "risk_table": risk_table,
-        "p_value": p_value,
-        "times": times
-    }

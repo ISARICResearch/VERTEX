@@ -994,53 +994,24 @@ def fig_text(
     return fig, graph_id, graph_label, graph_about
 
 
-############################################
-############################################
-# Formatting: colours
-############################################
-############################################
+def fig_kaplan_meier(
+        df,
+        p_value=None, title=None, xlabel='Time (days)', xlim=None, height=1000,
+        suffix='', filepath='', save_inputs=False,
+        graph_id='forest-plot', graph_label='', graph_about=''):
 
+    df_km = df[0].copy()
+    risk_table = df[1].copy()
+    # survival_curves = results["survival_curves"]
+    # confidence_intervals = results["confidence_intervals"]
+    # risk_table = results["risk_table"]
 
-def hex_to_rgb(hex_color):
-    ''' Convert a hex color to an RGB tuple. '''
-    hex_color = hex_color.lstrip('#')
-    rgb_color = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
-    return rgb_color
+    unique_groups = risk_table.index.tolist()
+    colors = [
+        f"hsl({i * (360 / len(unique_groups))}, 70%, 50%)"
+        for i in range(len(unique_groups))]
 
-
-def hex_to_rgba(hex_color, opacity):
-    hex_color = hex_color.lstrip('#')
-    hlen = len(hex_color)
-    rgba_color = 'rgba(' + ', '.join(
-        str(int(hex_color[i:i+hlen//3], 16))
-        for i in range(0, hlen, hlen//3))
-    rgba_color += f', {opacity})'
-    return rgba_color
-
-
-def rgb_to_rgba(rgb_value, alpha):
-    """
-    Adds the alpha channel to an RGB Value and returns it as an RGBA Value
-    :param rgb_value: Input RGB Value
-    :param alpha: Alpha Value to add in range [0,1]
-    :return: RGBA Value
-    """
-    rgba_color = f"rgba{rgb_value[3:-1]}, {alpha})"
-    return rgba_color
-
-
-## KAPLAN MEIER ##
-def plot_kaplan_meier(results, title=None):
-    survival_curves = results["survival_curves"]
-    confidence_intervals = results["confidence_intervals"]
-    risk_table = results["risk_table"]
-    p_value = results["p_value"]
-    times = results["times"]
-
-    unique_groups = list(survival_curves.keys())
-    colors = [f"hsl({i * (360 / len(unique_groups))}, 70%, 50%)" for i in range(len(unique_groups))]
-
-    # Create the figure with two rows: one for the plot and one for the risk table
+    # Create the figure with two rows: one for the plot and one for risk table
     fig = make_subplots(rows=2, cols=1, shared_xaxes=True,
                         row_heights=[0.7, 0.3],
                         vertical_spacing=0.1,
@@ -1048,17 +1019,17 @@ def plot_kaplan_meier(results, title=None):
                         subplot_titles=[title, "Risk Table"])
 
     for group, color in zip(unique_groups, colors):
-        survival = survival_curves[group]
-        ci_lower, ci_upper = confidence_intervals[group]
-
-        # Add survival curve
-        fig.add_trace(go.Scatter(
-            x=survival.index,
-            y=survival[group],
-            mode='lines',
-            name=str(group),
-            line=dict(color=color)
-        ), row=1, col=1)
+        ci_lower_column = [
+            col for col in df_km.columns
+            if col.startswith(group + '_lower')][0]
+        ci_upper_column = [
+            col for col in df_km.columns
+            if col.startswith(group + '_upper')][0]
+        ci = df_km.set_index('timeline')
+        ci = ci[[col for col in df_km.columns if col.startswith(group + '_')]]
+        ci = ci.dropna()
+        ci_lower = ci[ci_lower_column]
+        ci_upper = ci[ci_upper_column]
 
         # Add confidence interval as shaded area
         fig.add_trace(go.Scatter(
@@ -1066,38 +1037,70 @@ def plot_kaplan_meier(results, title=None):
             y=ci_upper.tolist() + ci_lower[::-1].tolist(),
             fill='toself',
             fillcolor=color.replace("hsl", "hsla").replace(")", ",0.2)"),
-            line=dict(color='rgba(255,255,255,0)'),
+            line=dict(color='rgba(255,255,255,0)', shape='hv'),
             name=f"CI {group}",
             showlegend=False,
             hoverinfo='text',
             text=[f"CI {group}" for _ in range(len(ci_upper) + len(ci_lower))]
         ), row=1, col=1)
 
+    for group, color in zip(unique_groups, colors):
+        survival = df_km.set_index('timeline')[group]
+
+        # Add survival curve
+        fig.add_trace(go.Scatter(
+            x=survival.index,
+            y=survival.values,
+            mode='lines',
+            name=str(group),
+            line=dict(color=color, shape='hv')
+        ), row=1, col=1)
+
     # Add p-value annotation to the plot
-    p_value_text = f'p-value: <0.0001' if p_value < 0.0001 else f'p-value: {p_value:.4f}'
-    fig.add_annotation(text=p_value_text,
-                       x=0.75, y=90, xref='paper', yref='y1',
-                       showarrow=False, font=dict(size=12, color='black'),
-                       bgcolor='white', bordercolor='black', borderwidth=1)
+    if p_value is not None:
+        p_value_text = (
+            'p-value: <0.0001'
+            if p_value < 0.0001 else f'p-value: {p_value:.4f}')
+        fig.add_annotation(
+            text=p_value_text,
+            x=0.95, y=95, xref='paper', yref='y1',
+            showarrow=False, font=dict(size=12, color='black'),
+            bgcolor='white', bordercolor='black', borderwidth=1)
 
     # Add risk table as second row
     fig.add_trace(go.Table(
-        header=dict(values=["Group"] + [str(t) for t in times], fill_color='lightgrey', align='center',
-                    font=dict(size=14), height=35),
-        cells=dict(values=[risk_table[col].tolist() for col in risk_table.columns], fill_color='white', align='center',
-                   font=dict(size=14), height=35)
+        header=dict(
+            values=[str(x) for x in risk_table.columns],
+            fill_color='lightgrey',
+            align='center',
+            font=dict(size=14),
+            height=35),
+        cells=dict(
+            values=[risk_table[col].tolist() for col in risk_table.columns],
+            fill_color='white',
+            align='center',
+            font=dict(size=14),
+            height=35)
     ), row=2, col=1)
 
     # Configure axes and layout
-    fig.update_yaxes(title_text="Survival Probability", range=[0, 100], tickvals=np.arange(0, 110, 10),
-                     ticktext=[f"{i}%" for i in range(0, 110, 10)], row=1, col=1)
-    fig.update_xaxes(title_text="Time (days)", row=2, col=1)
-    fig.update_layout(height=1000, width=850, showlegend=True)
+    fig.update_yaxes(
+        title_text="Survival Probability",
+        range=[0, 100],
+        tickvals=np.arange(0, 110, 10),
+        ticktext=[f"{i}%" for i in range(0, 110, 10)], row=1, col=1)
+    fig.update_xaxes(
+        title_text=xlabel,
+        tickvals=risk_table.columns[1:],
+        row=1, col=1)
+    if xlim is not None:
+        fig.update_xaxes(range=xlim)
+    fig.update_layout(height=height, showlegend=True)
 
-    fig.show()
+    graph_id = get_graph_id(graph_id, suffix)
+    return fig, graph_id, graph_label, graph_about
 
 
-## FIG LINE BAR ##
 def fig_bar_line_chart(
         df,
         title="Combined bar line chart",
@@ -1178,3 +1181,38 @@ def fig_bar_line_chart(
 
     fig = go.Figure(data=[bar_trace, line_trace], layout=layout)
     return fig, graph_id, graph_label, graph_about
+
+
+############################################
+############################################
+# Formatting: colours
+############################################
+############################################
+
+
+def hex_to_rgb(hex_color):
+    ''' Convert a hex color to an RGB tuple. '''
+    hex_color = hex_color.lstrip('#')
+    rgb_color = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+    return rgb_color
+
+
+def hex_to_rgba(hex_color, opacity):
+    hex_color = hex_color.lstrip('#')
+    hlen = len(hex_color)
+    rgba_color = 'rgba(' + ', '.join(
+        str(int(hex_color[i:i+hlen//3], 16))
+        for i in range(0, hlen, hlen//3))
+    rgba_color += f', {opacity})'
+    return rgba_color
+
+
+def rgb_to_rgba(rgb_value, alpha):
+    """
+    Adds the alpha channel to an RGB Value and returns it as an RGBA Value
+    :param rgb_value: Input RGB Value
+    :param alpha: Alpha Value to add in range [0,1]
+    :return: RGBA Value
+    """
+    rgba_color = f"rgba{rgb_value[3:-1]}, {alpha})"
+    return rgba_color

@@ -43,6 +43,8 @@ def create_visuals(
     ####
     # Add custom variables to the dataframe and to the dictionary
 
+    df_model['demog_agegroup'] = df_model['demog_age'].apply(
+        lambda x: '>64' if (x > 64) else ('40-64' if (x > 45) else '0-39'))
     # Small numbers of patients in the dataframe had chronic kidney stages 4
     # and 5, so these were combined into one to help model fit (e.g. all
     # patients who had stage 5 had outcome Death, so the coefficient can't be
@@ -185,27 +187,47 @@ def create_visuals(
         lambda x: '___' + x.split('___')[-1] if '___' in x else '')
     # -----
 
+    p_values = {'*': 0.05, '**': 0.01}
     cox_results_table = ia.regression_summary_table(
         cox_results.copy(), dictionary,
-        p_values={'*': 0.05, '**': 0.01}, result_type='HR'
+        p_values=p_values, result_type='HR'
     )
 
+    table_key = '<br>'.join([
+        f'({k}) p < {str(v)}' for k, v in p_values.items()])
     table_m3 = idw.fig_table(
         cox_results_table,
+        table_key=table_key,
         suffix=suffix, filepath=filepath, save_inputs=save_inputs,
         graph_label='Cox Regression for in-hospital mortality*',
         graph_about='''...'''
     )
 
-    kaplanmeier_text = '''Kaplan-Meier curve should be here, in development'''
-    kaplanmeier_df = pd.DataFrame(
-        kaplanmeier_text, columns=['paragraphs'], index=range(1))
-    kaplanmeier_m3 = idw.fig_text(
-        kaplanmeier_df,
-        suffix=suffix, filepath=filepath, save_inputs=save_inputs,
-        graph_label='Kaplan-Meier curve for in-hospital mortality*',
-        graph_about=kaplanmeier_text
+    columns = predictors + [
+        'demog_agegroup', 'outco_lengthofstay', 'outco_binary_outcome']
+    df_km, df_risktable, p_value = ia.execute_kaplan_meier(
+        df_model[columns],
+        duration_col='outco_lengthofstay',
+        event_col='outco_binary_outcome',
+        group_col='demog_agegroup'
     )
+    kaplanmeier_m3 = idw.fig_kaplan_meier(
+        (df_km, df_risktable), p_value=p_value,
+        title='Kaplan-Meier Plot for in-hospital mortality*',
+        suffix=suffix, filepath=filepath, save_inputs=save_inputs,
+        graph_label='Kaplan-Meier Plot for in-hospital mortality*',
+        graph_about='''...''')
+
+
+    # kaplanmeier_text = '''Kaplan-Meier curve should be here, in development'''
+    # kaplanmeier_df = pd.DataFrame(
+    #     kaplanmeier_text, columns=['paragraphs'], index=range(1))
+    # kaplanmeier_m3 = idw.fig_text(
+    #     kaplanmeier_df,
+    #     suffix=suffix, filepath=filepath, save_inputs=save_inputs,
+    #     graph_label='Kaplan-Meier curve for in-hospital mortality*',
+    #     graph_about=kaplanmeier_text
+    # )
 
     disclaimer_text = '''Disclaimer: the underlying data for these figures is \
 synthetic data. Results may not be clinically relevant or accurate.'''
