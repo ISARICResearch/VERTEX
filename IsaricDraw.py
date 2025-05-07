@@ -208,7 +208,7 @@ def fig_sunburst(
 def fig_cumulative_bar_chart(
         df,
         title='Cumulative Bar by Timepoint', xlabel='x', ylabel='y',
-        base_color_map=None,
+        base_color_map=None, barmode='stack',
         suffix='', filepath='', save_inputs=False,
         graph_id='', graph_label='', graph_about=''):
 
@@ -239,9 +239,14 @@ def fig_cumulative_bar_chart(
         )
 
     # Layout settings with customized x-axis tick format
+    if barmode == 'group':
+        bargap = 0.1
+    else:
+        bargap = 0
     layout = go.Layout(
         title=title,
-        barmode='stack',
+        barmode=barmode,
+        bargap=bargap,
         bargap=0,
         xaxis=dict(
             title=xlabel,
@@ -262,6 +267,66 @@ def fig_cumulative_bar_chart(
 
 
 def fig_stacked_bar_chart(
+        df,
+        title='Bar Chart by Timepoint', xlabel='x', ylabel='y',
+        base_color_map=None, barmode='stack',
+        suffix='', filepath='', save_inputs=False,
+        graph_id='', graph_label='', graph_about=''):
+
+    if save_inputs:
+        inputs = save_inputs_to_file(locals())
+
+    df = df.set_index('index')
+    # Generate dynamic colors if base_color_map is not provided
+    if base_color_map is None:
+        unique_groups = df.columns
+        color_palette = px.colors.qualitative.Plotly
+        base_color_map = {
+            group: color_palette[i % len(color_palette)]
+            for i, group in enumerate(unique_groups)}
+
+    # Create traces for each stack_group with colors from the base_color_map
+    traces = []
+    for stack_group in df.columns:
+        # Assign color from base_color_map
+        color = base_color_map.get(stack_group, '#000')
+        traces.append(
+            go.Bar(
+                x=df.index,
+                y=df[stack_group],
+                name=stack_group,
+                orientation='v',
+                marker=dict(color=color)
+            )
+        )
+
+    # Layout settings with customized x-axis tick format
+    if barmode == 'group':
+        bargap = 0.1
+    else:
+        bargap = 0
+    layout = go.Layout(
+        title=title,
+        barmode=barmode,
+        bargap=bargap,
+        xaxis=dict(
+            title=xlabel,
+            tickformat='%m-%Y',  # Display x-axis in MM-YYYY format
+            tickvals=df.index,  # Optional: only specific dates if needed
+        ),
+        yaxis=dict(title=ylabel),
+        legend=dict(x=1.05, y=1),
+        margin=dict(l=100, r=100, t=100, b=50),
+        paper_bgcolor='white',
+        plot_bgcolor='white',
+        height=340
+    )
+    fig = {'data': traces, 'layout': layout}
+    graph_id = get_graph_id(graph_id, suffix)
+    return fig, graph_id, graph_label, graph_about
+
+
+def fig_bar_chart(
         df,
         title='Bar Chart by Timepoint', xlabel='x', ylabel='y',
         base_color_map=None,
@@ -904,7 +969,7 @@ def fig_flowchart(
 
 def fig_forest_plot(
         df,
-        title='Forest Plot',
+        title='Forest Plot', reorder=True,
         labels=['Variable', 'OddsRatio', 'LowerCI', 'UpperCI'],
         suffix='', filepath='', save_inputs=False,
         graph_id='forest-plot', graph_label='', graph_about=''):
@@ -913,7 +978,10 @@ def fig_forest_plot(
         inputs = save_inputs_to_file(locals())
 
     # Ordering Values -> Descending Order
-    df = df.sort_values(by=labels[1], ascending=True)
+    if reorder:
+        df = df.sort_values(by=labels[1], ascending=True)
+    else:
+        df = df.loc[::-1]
 
     # Error Handling
     if not set(labels).issubset(df.columns):
@@ -996,7 +1064,7 @@ def fig_text(
 
 def fig_kaplan_meier(
         df,
-        p_value=None, title=None, xlabel='Time (days)', xlim=None, height=1000,
+        p_value=None, title=None, xlabel='Time (days)', xlim=None, height=800,
         suffix='', filepath='', save_inputs=False,
         graph_id='forest-plot', graph_label='', graph_about=''):
 
@@ -1125,12 +1193,12 @@ def fig_bar_line_chart(
     # Ensure correct index
     df = df.set_index(index_column)
 
-    # Format x-axis labels to show only the year
-    x_labels = df.index.strftime("%Y")
+    # # Format x-axis labels to show only the year
+    # x_labels = df.index.strftime("%Y")
 
     # Create bar trace
     bar_trace = go.Bar(
-        x=x_labels,
+        x=df.index,
         y=df[bar_column],
         name=bar_column.replace("_", " ").title(),
         marker=dict(color=bar_color),
@@ -1139,7 +1207,7 @@ def fig_bar_line_chart(
 
     # Create line trace
     line_trace = go.Scatter(
-        x=x_labels,
+        x=df.index,
         y=df[line_column],
         mode="lines+markers",
         name=line_column.replace("_", " ").title(),
@@ -1156,8 +1224,8 @@ def fig_bar_line_chart(
         xaxis=dict(
             title=xlabel,
             tickmode="array",
-            tickvals=x_labels,
-            ticktext=x_labels,  # Force display as years
+            tickvals=df.index,
+            ticktext=df.index,  # Force display as years
             tickangle=-30,
             tickfont=dict(size=10)
         ),
