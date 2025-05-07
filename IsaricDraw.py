@@ -247,7 +247,6 @@ def fig_cumulative_bar_chart(
         title=title,
         barmode=barmode,
         bargap=bargap,
-        bargap=0,
         xaxis=dict(
             title=xlabel,
             tickformat='%m-%Y',  # Display x-axis in MM-YYYY format
