@@ -970,6 +970,7 @@ def fig_forest_plot(
         df,
         title='Forest Plot', reorder=True,
         labels=['Variable', 'OddsRatio', 'LowerCI', 'UpperCI'],
+        xlabel='Odds Ratio (95% CI)',
         suffix='', filepath='', save_inputs=False,
         graph_id='forest-plot', graph_label='', graph_about=''):
 
@@ -1015,18 +1016,19 @@ def fig_forest_plot(
 
     # Define layout
     layout = go.Layout(
-     title=title,
-     xaxis=dict(title='Odds Ratio'),
-     yaxis=dict(
-         title='', automargin=True, tickmode='array',
-         tickvals=df[labels[0]].tolist(), ticktext=df[labels[0]].tolist()),
-     shapes=[
-         dict(
-             type='line', x0=1, y0=-0.5, x1=1, y1=len(df[labels[0]])-0.5,
-             line=dict(color='red', width=2)
-         )],  # Line of no effect
-     margin=dict(l=100, r=100, t=100, b=50),
-     height=600
+        title=title,
+        xaxis=dict(title='Odds Ratio (95% CI)'),
+        yaxis=dict(
+            title='', automargin=True, tickmode='array',
+            tickvals=df[labels[0]].tolist(), ticktext=df[labels[0]].tolist()),
+        shapes=[
+            dict(
+                type='line', x0=1, y0=-0.5, x1=1, y1=len(df[labels[0]])-0.5,
+                line=dict(color='red', width=2)
+            )],  # Line of no effect
+        margin=dict(l=100, r=100, t=100, b=50),
+        height=600,
+        showlegend=False
     )
     fig = {'data': traces, 'layout': layout}
     graph_id = get_graph_id(graph_id, suffix)
@@ -1176,9 +1178,12 @@ def fig_bar_line_chart(
         ylabel_right="y right",
         bar_column="Bar column",
         line_column="Line column",
+        lower_column=None,
+        upper_column=None,
         index_column="index",
         bar_color=None,
         line_color=None,
+        height=500,
         suffix='',
         filepath='',
         save_inputs=False,
@@ -1215,6 +1220,20 @@ def fig_bar_line_chart(
         yaxis="y2"
     )
 
+    data = [bar_trace, line_trace]
+
+    if (upper_column is not None) & (lower_column is not None):
+        bounds_trace = go.Scatter(
+            x=df.index.tolist() + df.index[::-1].tolist(),
+            y=df[upper_column].tolist() + df[lower_column][::-1].tolist(),
+            fill='toself',
+            fillcolor='rgba(150,150,150,0.2)',
+            line=dict(color='rgba(255,255,255,0)'),
+            showlegend=False,
+            yaxis="y2"
+        )
+        data = [bar_trace, line_trace, bounds_trace]
+
     # Define layout
     layout = go.Layout(
         title=title,
@@ -1237,16 +1256,18 @@ def fig_bar_line_chart(
             overlaying="y",
             side="right",
             showgrid=False,
-            range=[0, df[line_column].max() * 1.1]
+            range=[
+                min((0, df[lower_column].min() * 1.1)),
+                df[upper_column].max() * 1.1]
         ),
         legend=dict(x=0.85, y=1, bgcolor="rgba(255,255,255,0.5)"),
         margin=dict(l=60, r=60, t=50, b=80),
         paper_bgcolor='white',
         plot_bgcolor='white',
-        height=400
+        height=height,
     )
 
-    fig = go.Figure(data=[bar_trace, line_trace], layout=layout)
+    fig = go.Figure(data=data, layout=layout)
     return fig, graph_id, graph_label, graph_about
 
 
