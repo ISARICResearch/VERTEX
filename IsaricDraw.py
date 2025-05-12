@@ -1221,6 +1221,8 @@ def fig_bar_line_chart(
     )
 
     data = [bar_trace, line_trace]
+    yaxis2_min = 0
+    yaxis2_max = df[line_column].max() * 1.1
 
     if (upper_column is not None) & (lower_column is not None):
         bounds_trace = go.Scatter(
@@ -1233,6 +1235,8 @@ def fig_bar_line_chart(
             yaxis="y2"
         )
         data = [bar_trace, line_trace, bounds_trace]
+        yaxis2_min = min((0, df[lower_column].min() * 1.1))
+        yaxis2_max = df[upper_column].max() * 1.1
 
     # Define layout
     layout = go.Layout(
@@ -1256,9 +1260,7 @@ def fig_bar_line_chart(
             overlaying="y",
             side="right",
             showgrid=False,
-            range=[
-                min((0, df[lower_column].min() * 1.1)),
-                df[upper_column].max() * 1.1]
+            range=[yaxis2_min, ]
         ),
         legend=dict(x=0.85, y=1, bgcolor="rgba(255,255,255,0.5)"),
         margin=dict(l=60, r=60, t=50, b=80),
