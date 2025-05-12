@@ -1260,7 +1260,7 @@ def fig_bar_line_chart(
             overlaying="y",
             side="right",
             showgrid=False,
-            range=[yaxis2_min, ]
+            range=[yaxis2_min, yaxis2_max]
         ),
         legend=dict(x=0.85, y=1, bgcolor="rgba(255,255,255,0.5)"),
         margin=dict(l=60, r=60, t=50, b=80),
