@@ -275,7 +275,8 @@ def create_map(df_countries, map_layout_dict=None):
 
 
 def define_filters_and_controls(
-        sex_options, age_options, country_options, outcome_options):
+        sex_options, age_options, admdate_options,
+        country_options, outcome_options):
     filters = dbc.AccordionItem(
         title='Filters and Controls',
         children=[
@@ -284,6 +285,7 @@ def define_filters_and_controls(
                 id='gender-checkboxes',
                 options=sex_options,
                 value=[option['value'] for option in sex_options],
+                inputStyle={'margin-right': '2px'}
             ),
             html.Div(style={'margin-top': '20px'}),
             html.Label('Age:'),
@@ -296,11 +298,22 @@ def define_filters_and_controls(
                 value=age_options['value']
             ),
             html.Div(style={'margin-top': '20px'}),
+            html.Label('Admission date:'),
+            dcc.RangeSlider(
+                id='admdate-slider',
+                min=admdate_options['min'],
+                max=admdate_options['max'],
+                step=admdate_options['step'],
+                marks=admdate_options['marks'],
+                value=admdate_options['value'],
+            ),
+            html.Div(style={'margin-top': '35px'}),
             html.Label('Outcome:'),
             dcc.Checklist(
                 id='outcome-checkboxes',
                 options=outcome_options,
                 value=[option['value'] for option in outcome_options],
+                inputStyle={'margin-right': '2px'}
             ),
             html.Div(style={'margin-top': '20px'}),
             html.Div([
@@ -312,14 +325,16 @@ def define_filters_and_controls(
                         dcc.Checklist(
                             id='country-selectall',
                             options=[{'label': 'Select all', 'value': 'all'}],
-                            value=['all']
+                            value=['all'],
+                            inputStyle={'margin-right': '2px'}
                         ),
                         dcc.Checklist(
                             id='country-checkboxes',
                             options=country_options,
                             value=[
                                 option['value'] for option in country_options],
-                            style={'overflowY': 'auto', 'maxHeight': '200px'}
+                            style={'overflowY': 'auto', 'maxHeight': '200px'},
+                            inputStyle={'margin-right': '2px'}
                         )
                     ]),
                     id='country-fade',
@@ -542,9 +557,9 @@ def create_modal(visuals, button, filter_options):
 
 
 def define_filters_controls_modal(
-        sex_options, age_options, country_options,
+        sex_options, age_options, admdate_options, country_options,
         outcome_options, add_row=None):
-    row = dbc.Row([
+    filter_rows = [dbc.Row([
         dbc.Col([
             html.H6('Sex at birth:', style={'margin-right': '10px'}),
             html.Div([
@@ -552,6 +567,7 @@ def define_filters_controls_modal(
                     id='gender-checkboxes-modal',
                     options=sex_options,
                     value=[option['value'] for option in sex_options],
+                    inputStyle={'margin-right': '2px'}
                 )
             ])
         ], width=2),
@@ -571,6 +587,21 @@ def define_filters_controls_modal(
             ])
         ], width=3),
         dbc.Col([
+            html.H6('Admission date:', style={'margin-right': '10px'}),
+            html.Div([
+                html.Div([
+                    dcc.RangeSlider(
+                        id='admdate-slider-modal',
+                        min=admdate_options['min'],
+                        max=admdate_options['max'],
+                        step=admdate_options['step'],
+                        marks=admdate_options['marks'],
+                        value=admdate_options['value']
+                    )
+                ], style={'width': '100%'})  # Apply style to this div
+            ])
+        ], width=3),
+        dbc.Col([
             html.H6('Country:', style={'margin-right': '10px'}),
             html.Div([
                 html.Div(
@@ -581,14 +612,16 @@ def define_filters_controls_modal(
                         dcc.Checklist(
                             id='country-selectall-modal',
                             options=[{'label': 'Select all', 'value': 'all'}],
-                            value=['all']
+                            value=['all'],
+                            inputStyle={'margin-right': '2px'}
                         ),
                         dcc.Checklist(
                             id='country-checkboxes-modal',
                             options=country_options,
                             value=[
                                 option['value'] for option in country_options],
-                            style={'overflowY': 'auto', 'maxHeight': '100px'}
+                            style={'overflowY': 'auto', 'maxHeight': '100px'},
+                            inputStyle={'margin-right': '2px'}
                         )
                     ]),
                     id='country-fade-modal',
@@ -596,7 +629,7 @@ def define_filters_controls_modal(
                     appear=False,
                 )
             ]),
-        ], width=5),
+        ], width=2),
         dbc.Col([
             html.H6('Outcome:', style={'margin-right': '10px'}),
             html.Div([
@@ -604,10 +637,11 @@ def define_filters_controls_modal(
                     id='outcome-checkboxes-modal',
                     options=outcome_options,
                     value=[option['value'] for option in outcome_options],
+                    inputStyle={'margin-right': '2px'}
                 )
             ])
         ], width=2)
-    ])
+    ])]
     row_button = dbc.Row([
         dbc.Col([
             dbc.Button(
@@ -618,9 +652,9 @@ def define_filters_controls_modal(
             width={'size': 6, 'offset': 3},
             style={'text-align': 'center'})  # Center the button
     ])
-    row_list = [row, row_button]
+    row_list = filter_rows + [row_button]
     if add_row is not None:
-        row_list = [row, add_row, row_button]
+        row_list = filter_rows + [add_row, row_button]
     filters = dbc.Row([dbc.Col(row_list)])
     return filters
 
@@ -948,7 +982,7 @@ def register_callbacks(
         display_text = ', '.join(selected_labels)
 
         if len(display_text) > 20:  # Adjust character limit as needed
-            output = f'Country: {selected_labels[0]}, '
+            output = f'{selected_labels[0]}, '
             output += f'+{len(selected_labels) - 1} more...'
         else:
             output = f'Country: {display_text}'
@@ -1071,6 +1105,7 @@ def main():
 
     config_defaults = {
         'project_name': None,
+        "data_access_groups": None,
         'map_layout_center_latitude': 6,
         'map_layout_center_longitude': -75,
         'map_layout_zoom': 1.7,
@@ -1095,10 +1130,17 @@ def main():
     get_data_from_api = (api_url is not None) and (api_key is not None)
 
     if get_data_from_api:
-        # get_data_kwargs = {}
         print('Retrieving data from the API')
+        user_assigned_to_dag = getRC.user_assigned_to_dag(api_url, api_key)
+        if user_assigned_to_dag & (config_dict['data_access_groups'] is None):
+            with open('data_access_groups.json') as json_data:
+                all_dags = json.load(json_data)
+                config_dict['data_access_groups'] = all_dags[api_url]
+        get_data_kwargs = {
+            'data_access_groups': config_dict['data_access_groups'],
+            'user_assigned_to_dag': user_assigned_to_dag}
         df_map, df_forms_dict, dictionary, quality_report = (
-            getRC.get_redcap_data(api_url, api_key))  # **get_data_kwargs
+            getRC.get_redcap_data(api_url, api_key, **get_data_kwargs))
 
     if get_data_from_api is False:
         try:
@@ -1137,6 +1179,7 @@ def main():
         'subjid': 'subjid',
         'demog_sex': 'filters_sex',
         'demog_age': 'filters_age',
+        'dates_admdate': 'filters_admdate',
         'country_iso': 'filters_country',
         'outco_binary_outcome': 'filters_outcome'
     }
@@ -1165,6 +1208,31 @@ def main():
     age_options['marks'] = {ii: str(ii) for ii in age_range}
     age_options['value'] = [age_options['min'], age_options['max']]
 
+    admdate_yyyymm = pd.date_range(
+        start=df_map['dates_admdate'].min().strftime('%Y-%m'),
+        end=df_map['dates_admdate'].max().strftime('%Y-%m'),
+        freq='MS')
+    admdate_yyyymm = [x.strftime('%Y-%m') for x in admdate_yyyymm]
+    admdate_options = {
+        'min': 0, 'max': len(admdate_yyyymm) - 1, 'step': 1}
+    admdate_range = range(
+        admdate_options['min'],
+        admdate_options['max'] + 1,
+        admdate_options['step'])
+    admdate_options['marks'] = {
+        ii: {
+            'label': admdate_yyyymm[ii],
+            'style': {
+                'text-align': 'top right',
+                'transform-origin': 'bottom left',
+                'transform': 'rotate(-45deg)',
+                'margin-left': '5px',
+                'margin-top': '20px',
+                'height': '70px',
+                'width': '70px'}
+        } for ii in admdate_range}
+    admdate_options['value'] = [admdate_options['min'], admdate_options['max']]
+
     country_options = [
         {'label': x[1], 'value': x[0]}
         for x in df_countries.sort_values(by='country_iso').values]
@@ -1176,8 +1244,11 @@ def main():
     ]
 
     filter_options = {
-        'sex_options': sex_options, 'age_options': age_options,
-        'country_options': country_options, 'outcome_options': outcome_options}
+        'sex_options': sex_options,
+        'age_options': age_options,
+        'country_options': country_options,
+        'admdate_options': admdate_options,
+        'outcome_options': outcome_options}
 
     app.layout = define_app_layout(
         fig, buttons, filter_options,
