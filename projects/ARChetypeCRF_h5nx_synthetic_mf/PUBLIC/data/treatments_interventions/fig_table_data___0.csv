@@ -1,11 +1,11 @@
 Variable,All,Discharged,Death,Censored
 <b>Totals</b>,1000,539,88,373
 <b><i>TREATMENTS & INTERVENTIONS</i></b>,,,,
-<b>Supplemental oxygen</b> (*), 332 (33.2) | 1000,177 (32.8) | 539,36 (40.9) | 88,119 (31.9) | 373
+<b>Supplemental oxygen</b> (*),332 (33.2) | 1000,177 (32.8) | 539,36 (40.9) | 88,119 (31.9) | 373
 <b><i>INTERVENTIONS</i></b>,,,,
-<b>Any supplemental oxygen?</b> (*), 612 (61.2) | 1000,308 (57.1) | 539,64 (72.7) | 88,240 (64.3) | 373
+<b>Any supplemental oxygen?</b> (*),612 (61.2) | 1000,308 (57.1) | 539,64 (72.7) | 88,240 (64.3) | 373
 <b> Select all types of respiratory support the patient received</b>,,,,
-   ↳ High-flow nasal oxygen, 338 (35.7) |  947,177 (34.6) | 511,36 (44.4) | 81,125 (35.2) | 355
-   ↳ Non-invasive ventilation, 341 (36.0) |  947,165 (32.3) | 511,42 (51.9) | 81,134 (37.7) | 355
-   ↳ Invasive ventilation, 162 (17.1) |  947, 78 (15.3) | 511,14 (17.3) | 81, 70 (19.7) | 355
-   ↳ Unknown,  14 ( 1.5) |  947,  9 ( 1.8) | 511, 0 ( 0.0) | 81,  5 ( 1.4) | 355
+   ↳ High-flow nasal oxygen,338 (35.7) | 947,177 (34.6) | 511,36 (44.4) | 81,125 (35.2) | 355
+   ↳ Non-invasive ventilation,341 (36.0) | 947,165 (32.3) | 511,42 (51.9) | 81,134 (37.7) | 355
+   ↳ Invasive ventilation,162 (17.1) | 947,78 (15.3) | 511,14 (17.3) | 81,70 (19.7) | 355
+   ↳ Unknown,14 (1.5) | 947,9 (1.8) | 511,0 (0.0) | 81,5 (1.4) | 355
