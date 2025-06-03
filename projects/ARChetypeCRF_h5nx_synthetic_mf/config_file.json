@@ -2,6 +2,7 @@
 	"project_name": "H5Nx Synthetic data",
 	"api_url": "https://ncov.medsci.ox.ac.uk/api/",
 	"api_key": "0D855E040CB0A5DEC78BCA9137BB65B3",
+	"data_access_groups": null,
 	"vertex_dataframes_path": "vertex_patient_level_data/",
 	"map_layout_center_latitude": 15,
 	"map_layout_center_longitude": -45,
@@ -10,14 +11,17 @@
 	"public_path": "PUBLIC/",
 	"insight_panels_path": "insight_panels/",
 	"insight_panels": [
-			"enrolment_details",
-			"presentation_demogcomor",
-			"presentation_symptoms",
-			"presentation_labs",
-   	 		"treatments_interventions",
-    		"outcomes_complications",
-			"modelling_riskfactors",
-			"modelling_lengthofstay",
-			"modelling_survivalanalysis"
+		"enrolment_details",
+		"presentation_demogcomor",
+		"presentation_symptoms",
+		"presentation_labs",
+		"treatments_interventions",
+		"outcomes_complications",
+		"modelling_riskfactors",
+		"modelling_lengthofstay",
+		"modelling_survivalanalysis"
+	],
+	"ignore_insight_panels": [
+		"modelling_featureselection"
 	]
 }
