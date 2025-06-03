@@ -77,6 +77,24 @@ def create_visuals(
         graph_label='Descriptive Table*',
         graph_about='Summary of demographics and comorbidities.')
 
+    # Demographics and comorbidities descriptive table
+    split_column = 'demog_sex'
+    split_column_order = ['Female', 'Male']
+    # split_column = 'outco_binary_outcome'
+    # split_column_order = ['Discharged', 'Death', 'Censored']
+    df_table = ia.get_descriptive_data(
+        df_map.loc[df_map['demog_sex'].isin(['Female', 'Male'])], dictionary,
+        by_column=split_column,
+        include_sections=['demog', 'comor'], exclude_negatives=False)
+    table, table_key = ia.descriptive_comparison_table(
+        df_table, dictionary, by_column=split_column,
+        column_reorder=split_column_order)
+    fig_table_c = idw.fig_table(
+        table, table_key=table_key,
+        suffix=suffix, filepath=filepath, save_inputs=save_inputs,
+        graph_label='Descriptive Comparison Table*',
+        graph_about='Summary of demographics and comorbidities.')
+
     # Comorbodities frequency and upset charts
     section = 'comor'
     section_name = 'Comorbidities on presentation'
@@ -119,5 +137,5 @@ synthetic data. Results may not be clinically relevant or accurate.'''
     )
 
     return (
-        pyramid_chart, fig_table,
+        pyramid_chart, fig_table, fig_table_c,
         freq_chart_comor, upset_plot_comor, disclaimer)

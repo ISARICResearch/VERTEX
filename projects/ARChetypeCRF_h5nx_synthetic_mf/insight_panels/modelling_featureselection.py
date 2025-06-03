@@ -28,22 +28,28 @@ def create_visuals(
         required_variables=['outco_binary_outcome'],
         include_sections=['demog', 'comor', 'labs', 'vital'],
         include_subjid=True)
+
     df_feat = df_map.loc[(
             df_map['outco_binary_outcome'].isin(['Death', 'Discharged'])),
         variable_list].copy()
-
     df_feat['outco_binary_outcome'] = (
         df_feat['outco_binary_outcome'] == 'Death').astype(int)
 
-    y = df_feat['outco_binary_outcome']
-    subjids = df_feat['subjid']
-    df_feat.drop(columns=['subjid', 'outco_binary_outcome'], inplace=True)
+    # y = df_feat['outco_binary_outcome']
+    # subjids = df_feat['subjid']
+    # df_feat.drop(columns=['subjid', 'outco_binary_outcome'], inplace=True)
 
     # Prep anlaysis
-    df_feat = ia.impute_miss_val(df_feat, missing_threshold=0.5)
-    df_feat = ia.rmv_low_var(df_feat, mad_threshold=0.05, freq_threshold=0.05)
-    df_feat = ia.rmv_high_corr(df_feat, correlation_threshold=0.7)
-    df_feat['outco_binary_outcome'] = y
+    df_feat = ia.impute_miss_val(
+        df_feat, dictionary, outcome_column='outcome_binary_outcome',
+        missing_threshold=0.5, verbose=True)
+    df_feat = ia.rmv_low_var(
+        df_feat, dictionary, outcome_column='outcome_binary_outcome',
+        mad_threshold=0.05, freq_threshold=0.05, verbose=True)
+    df_feat = ia.rmv_high_corr(
+        df_feat, dictionary, outcome_column='outcome_binary_outcome',
+        correlation_threshold=0.7, verbose=True)
+    # df_feat['outco_binary_outcome'] = y
     # df_feat['subjid'] = subjids
 
     # print(df3.columns)
@@ -58,19 +64,22 @@ def create_visuals(
     # df_map['outco_binary_outcome'] = df_map['outco_binary_outcome'].map({0.0: 'Discharge', 1.0: 'Death', np.nan: 'Censored'})
     # df3['outcome'] = df3['outcome'].map({0.0: 'Discharge', 1.0: 'Death'})
 
+    # Exclude subjid
+    df_feat = df_feat.drop(columns=['subjid'])
     all_results = ia.lasso_var_sel_binary(
-        df_feat, outcome_col='outco_binary_outcome',
-        random_state=42,
+        df_feat, outcome_column='outco_binary_outcome',
+        random_state=42, verbose=True,
         threshold=0.05, metric='roc_auc')
 
     mapping_dict = dict(zip(
         dictionary['field_name'], ia.format_variables(dictionary)))
 
-    df_features = all_results[0]
-    df_features = df_features.rename(columns={'Feature': 'Variable'})
+    df_features = all_results[0].rename(columns={'Feature': 'Variable'})
     df_features['Variable'] = df_features['Variable'].replace(mapping_dict)
-    df_features['Coefficient'] = df_features['Coefficient'].apply(
-        lambda x: f'{x:.3f}')
+    df_features['Coefficient'] = (
+        df_features['Coefficient'].apply(lambda x: f'{x:.3f}'))
+    df_features.rename(
+        columns={'Coefficient': 'Feature Importance'}, inplace=True)
 
     scores_df_display = all_results[1].copy()
     scores_df_display = scores_df_display.map(lambda x: f'{x:.3f}')
@@ -81,12 +90,6 @@ def create_visuals(
         for idx in scores_df_display.index]
     scores_df_display = scores_df_display.reset_index()
     scores_df_display = scores_df_display.rename(columns={'index': ''})
-
-    df_main_display = all_results[2].copy()
-    df_main_display.columns = [str(col) for col in df_main_display.columns]
-    df_main_display.index = [str(idx) for idx in df_main_display.index]
-    df_main_display['Main Features'] = (
-        df_main_display['Main Features'].replace(mapping_dict))
 
     feature_selection_table = idw.fig_table(
         df_features,
@@ -99,14 +102,7 @@ def create_visuals(
         scores_df_display,
         suffix=suffix, filepath=filepath, save_inputs=save_inputs,
         graph_id='scores',
-        graph_label='Parameter Scores Table*',
-        graph_about='''...''')
-
-    main_fields_table = idw.fig_table(
-        df_main_display,
-        suffix=suffix, filepath=filepath, save_inputs=save_inputs,
-        graph_id='fields',
-        graph_label='Main Fields Table*',
+        graph_label='Hyperarameter Scores Table*',
         graph_about='''...''')
 
     disclaimer_text = '''Disclaimer: the underlying data for these figures is \
@@ -121,5 +117,4 @@ synthetic data. Results may not be clinically relevant or accurate.'''
     )
 
     return (
-        feature_selection_table, parameter_scores_table,
-        main_fields_table, disclaimer)
+        feature_selection_table, parameter_scores_table, disclaimer)

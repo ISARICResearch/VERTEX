@@ -195,11 +195,11 @@ def create_visuals(
             var for var in logr_results['Variable'].values
             if var not in valid_predictors_outcome],
     }
-    p_values = {'*': 0.05, '**': 0.01}
+    pvalue_significance = {'*': 0.05, '**': 0.01}
     logr_results_table = ia.regression_summary_table(
         logr_results.copy(), dictionary,
         highlight_predictors=highlight_predictors,
-        p_values=p_values
+        pvalue_significance=pvalue_significance
     )
 
     table_key = {
@@ -211,7 +211,7 @@ analysis'''
     }
     table_key = (
         '<br>'.join([
-            f'({k}) p < {str(v)}' for k, v in p_values.items()]) +
+            f'({k}) p < {str(v)}' for k, v in pvalue_significance.items()]) +
         '<br>'.join([
             v for k, v in table_key.items()
             if len(highlight_predictors[k]) > 0]))

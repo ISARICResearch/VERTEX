@@ -26,17 +26,21 @@ def create_visuals(
     df_map['outco_lengthofstay'] = (
         df_map['outco_date'] - df_map['dates_admdate']).dt.days
 
+    max_lengthofstay = 15
+    df_map['outco_lengthofstay'] = (
+        df_map['outco_lengthofstay'].fillna(max_lengthofstay))
+    ind = (df_map['outco_lengthofstay'] > max_lengthofstay)
+    df_map.loc[ind, 'outco_lengthofstay'] = max_lengthofstay
+    df_map.loc[ind, 'outco_binary_outcome'] = 'Censored'
+
     df_model = ia.get_modelling_data(
         df_map, dictionary,
         outcome_columns=['outco_binary_outcome', 'outco_lengthofstay'],
         include_sections=[
             'demog', 'comor', 'adsym', 'vacci', 'vital', 'sympt', 'labs'])
 
-    # df_model = df_map.loc[(
-    #     (df_model['outco_binary_outcome'].isin(['Death', 'Discharged'])) &
-    #     (df_model['demog_age'] > 18))].copy()
-    df_model = df_model.loc[(
-        df_model['outco_binary_outcome'].isin(['Death', 'Discharged']))]
+    # df_model = df_model.loc[(
+    #     df_model['outco_binary_outcome'].isin(['Death', 'Discharged']))]
     df_model['outco_binary_outcome'] = (
         df_model['outco_binary_outcome'] == 'Death').astype(int)
 
@@ -187,14 +191,14 @@ def create_visuals(
         lambda x: '___' + x.split('___')[-1] if '___' in x else '')
     # -----
 
-    p_values = {'*': 0.05, '**': 0.01}
+    pvalue_significance = {'*': 0.05, '**': 0.01}
     cox_results_table = ia.regression_summary_table(
         cox_results.copy(), dictionary,
-        p_values=p_values, result_type='HR'
+        pvalue_significance=pvalue_significance, result_type='HR'
     )
 
     table_key = '<br>'.join([
-        f'({k}) p < {str(v)}' for k, v in p_values.items()])
+        f'({k}) p < {str(v)}' for k, v in pvalue_significance.items()])
     table_m3 = idw.fig_table(
         cox_results_table,
         table_key=table_key,
@@ -205,6 +209,7 @@ def create_visuals(
 
     columns = predictors + [
         'demog_agegroup', 'outco_lengthofstay', 'outco_binary_outcome']
+
     df_km, df_risktable, p_value = ia.execute_kaplan_meier(
         df_model[columns],
         duration_col='outco_lengthofstay',

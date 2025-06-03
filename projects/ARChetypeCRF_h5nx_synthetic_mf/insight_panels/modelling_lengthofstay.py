@@ -154,14 +154,14 @@ def create_visuals(
         lambda x: '___' + x.split('___')[-1] if '___' in x else '')
     # -----
 
-    p_values = {'*': 0.05, '**': 0.01}
+    pvalue_significance = {'*': 0.05, '**': 0.01}
     linr_results_table = ia.regression_summary_table(
         linr_results.copy(), dictionary,
-        p_values=p_values, result_type='Coefficient'
+        pvalue_significance=pvalue_significance, result_type='Coefficient'
     )
 
     table_key = '<br>'.join([
-        f'({k}) p < {str(v)}' for k, v in p_values.items()])
+        f'({k}) p < {str(v)}' for k, v in pvalue_significance.items()])
     table_m2 = idw.fig_table(
         linr_results_table,
         table_key=table_key,
