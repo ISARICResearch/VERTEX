@@ -9,6 +9,7 @@ import statsmodels.api as sm
 import statsmodels.formula.api as smf
 from lifelines import CoxPHFitter
 from scipy.stats import norm
+from scipy.stats import mannwhitneyu, chi2_contingency, fisher_exact
 # from scipy.stats import fisher_exact
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.metrics import confusion_matrix
@@ -242,6 +243,32 @@ def convert_onehot_to_categorical(
 #     return data
 
 
+def from_timeA_to_timeB(
+        data, dictionary, timeA_column, timeB_column,
+        timediff_column, timediff_label, time_unit='days'):
+    if time_unit == 'days':
+        data[timediff_column] = (
+            data[timeB_column] - data[timeA_column]).dt.days
+    elif time_unit == 'months':
+        data[timediff_column] = (
+            (data[timeB_column].dt.year - data[timeA_column].dt.year)*12 +
+            (data[timeB_column].dt.month - data[timeA_column].dt.month))
+    elif time_unit == 'months':
+        data[timediff_column] = (
+            data[timeB_column].dt.year - data[timeA_column].dt.year)
+    time_dict = {
+        'field_name': timediff_column,
+        'form_name': dictionary.loc[(
+            dictionary['field_name'] == timeB_column), 'field_name'].values[0],
+        'field_type': 'numeric',
+        'field_label': timediff_label,
+        'parent': dictionary.loc[(
+            dictionary['field_name'] == timeB_column), 'parent'].values[0],
+    }
+    dictionary = extend_dictionary(dictionary, time_dict, data)
+    return data, dictionary
+
+
 ############################################
 ############################################
 # Descriptive table
@@ -298,6 +325,54 @@ def n_percent_str(series, add_spaces=False, dp=1, mfw=4, min_n=1):
         denom = int(series.notna().sum())
         output_str = f'{str(count)} ({'%.*f' % (dp, percent)}) | {str(denom)}'
     return output_str
+
+
+def get_chi2_pvalue(x, y, x_cat=[True, False], y_cat=[True, False]):
+    try:
+        print(x.name)
+        contingency = pd.crosstab(
+            pd.Categorical(x.loc[x.notna()], categories=x_cat),
+            pd.Categorical(y.loc[x.notna()], categories=y_cat),
+            margins=False, dropna=False)
+        pvalue = chi2_contingency(contingency).pvalue
+    except ValueError:
+        pvalue = np.nan
+    return pvalue
+
+
+def get_fisher_exact_pvalue(x, y, x_cat=[True, False], y_cat=[True, False]):
+    try:
+        contingency = pd.crosstab(
+            pd.Categorical(x.loc[x.notna()], categories=x_cat),
+            pd.Categorical(y.loc[x.notna()], categories=y_cat),
+            margins=False, dropna=False)
+        result = fisher_exact(contingency)
+        if np.isinf(result.statistic) or np.isnan(result.statistic):
+            pvalue = np.nan
+        else:
+            pvalue = result.pvalue
+    except ValueError:
+        pvalue = np.nan
+    return pvalue
+
+
+def format_pvalue(
+        pvalue, dp=3, min_val=0.001, significance={'*': 0.05, '**': 0.01}):
+    if pvalue < min_val:
+        pvalue_str = f'<{min_val}'
+    elif np.isnan(pvalue):
+        pvalue_str = ''
+    else:
+        pvalue_str = '%.*f' % (dp, pvalue)
+    for key in significance:
+        level = significance[key]
+        min_threshold = max(
+            [v for k, v in significance.items() if (k != key)] + [0])
+        if (min_threshold > level):
+            min_threshold = 0
+        if (pvalue < level) & (pvalue > (min_threshold - 1e-8)):
+            pvalue_str = pvalue_str + f' ({key})'
+    return pvalue_str
 
 
 def get_descriptive_data(
@@ -415,6 +490,92 @@ def descriptive_table(
     return table, table_key
 
 
+def descriptive_comparison_table(
+        data, dictionary, by_column=None,
+        include_totals=True, column_reorder=None,
+        sep='___', pvalue_significance={'*': 0.05, '**': 0.01}):
+    '''
+    Descriptive table for binary (including onehot-encoded categorical) and
+    numerical variables in data. The descriptive table will have seperate
+    columns for each category that exists for the variable 'by_column', if
+    this is provided.
+    '''
+    df = data.copy()
+
+    numeric_ind = (dictionary['field_type'] == 'numeric')
+    numeric_columns = dictionary.loc[numeric_ind, 'field_name'].tolist()
+    numeric_columns = [col for col in numeric_columns if col in df.columns]
+    binary_ind = (dictionary['field_type'] == 'binary')
+    binary_columns = dictionary.loc[binary_ind, 'field_name'].tolist()
+    binary_columns = [col for col in binary_columns if col in df.columns]
+
+    # Add columns for section headers and categorical questions
+    index = numeric_columns + binary_columns
+    index += dictionary.loc[(
+        dictionary['field_name'].isin(index)), 'parent'].tolist()
+    table_dictionary = dictionary.loc[(dictionary['field_name'].isin(index))]
+    index = table_dictionary['field_name'].tolist()
+
+    table_columns = ['Variable', 'All']
+    if by_column is not None:
+        add_columns = list(df[by_column].unique())
+        if column_reorder is not None:
+            table_columns += [
+                col for col in column_reorder if col in add_columns]
+            table_columns += [
+                col for col in add_columns if col not in column_reorder]
+        else:
+            table_columns += add_columns
+    table_columns += ['p-value']
+    table = pd.DataFrame('', index=index, columns=table_columns)
+
+    table['Variable'] = format_descriptive_table_variables(
+        table_dictionary, sep=sep, binary_symbol='†').tolist()
+
+    mfw = int(np.log10(df.shape[0])) + 1  # Min field width, for formatting
+    table.loc[numeric_columns, 'All'] = df[numeric_columns].apply(
+        median_iqr_str, mfw=mfw)
+    table.loc[binary_columns, 'All'] = df[binary_columns].apply(
+        n_percent_str, mfw=mfw)
+
+    totals = pd.DataFrame(columns=table_columns, index=['totals'])
+    totals['Variable'] = '<b>Totals</b>'
+    totals['All'] = df.shape[0]
+
+    if by_column is not None:
+        by_column_values = df[by_column].unique()
+        for value in by_column_values:
+            ind = (df[by_column] == value)
+            mfw = int(np.log10(ind.sum())) + 1  # Min field width, for format
+            table.loc[numeric_columns, value] = (
+                df.loc[ind, numeric_columns].apply(median_iqr_str, mfw=mfw))
+            table.loc[binary_columns, value] = (
+                df.loc[ind, binary_columns].apply(n_percent_str, mfw=mfw))
+            totals[value] = ind.sum()
+        if len(by_column_values) == 2:
+            y = (df[by_column] == by_column_values[0])
+            pvalues = pd.Series(index=table.index)
+            pvalues.loc[numeric_columns] = df[numeric_columns].apply(
+                lambda x: mannwhitneyu(x, y, nan_policy='omit').pvalue,
+                axis=0)
+            pvalues.loc[binary_columns] = df[binary_columns].apply(
+                lambda x:
+                    get_fisher_exact_pvalue(x, y),
+                axis=0)
+            table['p-value'] = pvalues.apply(
+                format_pvalue, significance=pvalue_significance)
+
+    table = table.reset_index(drop=True)
+    if include_totals:
+        table = pd.concat([totals, table], axis=0).reset_index(drop=True)
+    table_key = '''<b>KEY</b><br>(†) Count (%) | N, p-value using Chi-squared
+test,    (+) Median (IQR) | N, p-value using Mann-Whitney test<br>'''
+    table_key += ',    '.join([
+        f'({k}) p < {str(v)}'
+        for k, v in pvalue_significance.items() if (pvalues < v).any()])
+    return table, table_key
+
+
 ############################################
 ############################################
 # Formatting
@@ -429,7 +590,8 @@ def trim_field_label(x, max_len=40):
 
 
 def format_descriptive_table_variables(
-        dictionary, max_len=100, add_key=True, sep='___'):
+        dictionary, max_len=100, add_key=True,
+        sep='___', binary_symbol='*', numeric_symbol='+'):
     name = dictionary['field_name'].apply(
         lambda x: '   ↳ ' if sep in x else '<b>')
     name += dictionary['field_type'].map({'section': '<i>'}).fillna('')
@@ -441,9 +603,9 @@ def format_descriptive_table_variables(
         lambda x: '' if sep in x else '</b>')
     if add_key is True:
         field_type = dictionary['field_type'].map({
-            'categorical': ' (*)',
-            'binary': ' (*)',
-            'numeric': ' (+)'}).fillna('')
+            'categorical': f' ({binary_symbol})',
+            'binary': f' ({binary_symbol})',
+            'numeric': f' ({numeric_symbol})'}).fillna('')
         name += field_type*(dictionary['field_name'].str.contains(sep) == 0)
     return name
 
@@ -889,7 +1051,7 @@ def remove_single_binary_outcome_predictors(
 
 def regression_summary_table(
         table, dictionary,
-        highlight_predictors=None, p_values=None,
+        highlight_predictors=None, pvalue_significance=None,
         result_type='OddsRatio', sep='___'):
     variables = table['Variable'].tolist()
     new_variables = variables + dictionary.loc[(
@@ -924,21 +1086,25 @@ def regression_summary_table(
                 ' (' + '%.2f' % x[f'LowerCI ({reg_type})'] +
                 ', ' + '%.2f' % x[f'UpperCI ({reg_type})'] + ')', axis=1)
 
-        if p_values is not None:
-            significance = pd.Series('', index=table.index)
-            for key in p_values:
-                min_threshold = max(
-                    v for k, v in p_values.items() if (k != key))
-                if (min_threshold > p_values[key]):
-                    min_threshold = 0
-                ind = (
-                    (table[f'p-value ({reg_type})'] < p_values[key]) &
-                    (table[f'p-value ({reg_type})'] > (min_threshold - 1e-8)))
-                significance.loc[ind] = f' ({key})'
+        table[f'p-value ({reg_type})'] = table[f'p-value ({reg_type})'].apply(
+                format_pvalue, significance=pvalue_significance)
 
-            table[f'p-value ({reg_type})'] = (
-                table[f'p-value ({reg_type})'].apply(
-                    lambda x: '%.3f' % x) + significance)
+        # if pvalue_significance is not None:
+        #     significance = pd.Series('', index=table.index)
+        #     for key in pvalue_significance:
+        #         level = pvalue_significance[key]
+        #         min_threshold = max(
+        #             v for k, v in pvalue_significance.items() if (k != key))
+        #         if (min_threshold > level):
+        #             min_threshold = 0
+        #         ind = (
+        #             (table[f'p-value ({reg_type})'] < level) &
+        #             (table[f'p-value ({reg_type})'] > (min_threshold - 1e-8)))
+        #         significance.loc[ind] = f' ({key})'
+        #
+        #     table[f'p-value ({reg_type})'] = (
+        #         table[f'p-value ({reg_type})'].apply(
+        #             lambda x: '%.3f' % x) + significance)
 
         table = table.drop(
             columns=[f'LowerCI ({reg_type})', f'UpperCI ({reg_type})'])
@@ -1425,13 +1591,15 @@ def execute_kaplan_meier(
 
 ############################################
 ############################################
-# SOME RAPS
-# (basic imputation, variance check, correlation check and feature selection)
+# FEATURE SELECTION
+# (includes basic imputation, variance check, correlation check)
 ############################################
 ############################################
 
 
-def impute_miss_val(df, missing_threshold=0.7, verbose=False):
+def impute_miss_val(
+        df, dictionary, outcome_column='outco_binary_outcome',
+        missing_threshold=0.7, verbose=False):
     '''
     Imputes missing values or drops columns based on missing value proportion
     and median
@@ -1439,34 +1607,59 @@ def impute_miss_val(df, missing_threshold=0.7, verbose=False):
      Returns:
     - df: DataFrame with missing values imputed or columns dropped
     '''
+    keep_columns = ['subjid', outcome_column]
+
+    numeric_ind = (dictionary['field_type'] == 'numeric')
+    numeric_columns = dictionary.loc[numeric_ind, 'field_name'].tolist()
+    numeric_columns = [col for col in numeric_columns if col in df.columns]
+
+    binary_ind = (dictionary['field_type'] == 'binary')
+    binary_columns = dictionary.loc[binary_ind, 'field_name'].tolist()
+    binary_columns = [col for col in binary_columns if col in df.columns]
+
+    categorical_ind = dictionary['field_type'].isin(['binary'])
+    categorical_columns = dictionary.loc[
+        categorical_ind, 'field_name'].tolist()
+    categorical_columns = [
+        col for col in categorical_columns if col in df.columns]
+
     # Calculate the proportion of missing values in each column
     missing_proportions = df.isnull().mean()
 
     # Identify columns to drop
-    cols_to_drop = missing_proportions[(
-        missing_proportions > missing_threshold)].index
-    df = df.drop(columns=cols_to_drop)
+    columns_to_drop = missing_proportions[(
+        missing_proportions > missing_threshold)].index.tolist()
+    columns_to_drop = [
+        col for col in columns_to_drop if col not in keep_columns]
+    df = df.drop(columns=columns_to_drop)
 
+    impute_columns = [col for col in df.columns if col not in keep_columns]
     # Impute missing values in remaining columns
-    for col in df.columns:
-        if df[col].isnull().any():
-            if pd.api.types.is_numeric_dtype(df[col]):
-                # Numeric column: impute with median
-                median_value = df[col].median()
-                if pd.isnull(median_value):
-                    # If median cannot be computed, drop the column
-                    df = df.drop(columns=[col])
-                else:
-                    df[col] = df[col].fillna(median_value)
-            else:
-                # Categorical column: impute with mode
-                mode_series = df[col].mode()
-                if not mode_series.empty:
-                    mode_value = mode_series[0]
-                    df[col] = df[col].fillna(mode_value)
-                else:
-                    # If mode cannot be computed, drop the column
-                    df = df.drop(columns=[col])
+    for col in impute_columns:
+        if col in numeric_columns:
+            df[col] = df[col].fillna(df[col].median())
+        if col in (binary_columns + categorical_columns):
+            df[col] = df[col].fillna(df[col].mode().values[0])
+
+    # for col in impute_columns:
+    #     if df[col].isnull().any():
+    #         if pd.api.types.is_numeric_dtype(df[col]):
+    #             # Numeric column: impute with median
+    #             median_value = df[col].median()
+    #             if pd.isnull(median_value):
+    #                 # If median cannot be computed, drop the column
+    #                 df = df.drop(columns=[col])
+    #             else:
+    #                 df[col] = df[col].fillna(median_value)
+    #         else:
+    #             # Categorical column: impute with mode
+    #             mode_series = df[col].mode()
+    #             if not mode_series.empty:
+    #                 mode_value = mode_series[0]
+    #                 df[col] = df[col].fillna(mode_value)
+    #             else:
+    #                 # If mode cannot be computed, drop the column
+    #                 df = df.drop(columns=[col])
 
     if verbose:
         print('\nSummary after Imputation')
@@ -1474,137 +1667,198 @@ def impute_miss_val(df, missing_threshold=0.7, verbose=False):
     return df
 
 
-def rmv_low_var(df, mad_threshold=0.1, freq_threshold=0.05, verbose=False):
+def rmv_low_var(
+        df, dictionary, mad_threshold=0.1, freq_threshold=0.05,
+        outcome_column='outco_binary_outcome', verbose=False):
     '''
     Removes numerical variables with Median Absolute Deviation (MAD) below a
     threshold.
     Excludes binary columns from MAD calculation.
-    Removes  binary columns with very low frequencies
+    Removes binary columns with very low frequencies
+
     Returns:
     - df: pandas DataFrame with low MAD columns removed
     '''
+    keep_columns = ['subjid', outcome_column]
+
+    numeric_ind = (dictionary['field_type'] == 'numeric')
+    numeric_columns = dictionary.loc[numeric_ind, 'field_name'].tolist()
+    numeric_columns = [col for col in numeric_columns if col in df.columns]
+    binary_ind = (dictionary['field_type'] == 'binary')
+    binary_columns = dictionary.loc[binary_ind, 'field_name'].tolist()
+    binary_columns = [col for col in binary_columns if col in df.columns]
 
     # Remove single-valued columns first
-    single_value_cols = df.columns[df.nunique() == 1]
-    df = df.drop(columns=single_value_cols)
+    single_value_columns = df.columns[df.nunique() == 1]
+    single_value_columns = [
+        col for col in single_value_columns if col not in keep_columns]
+    df = df.drop(columns=single_value_columns)
 
     # Select numeric columns
-    numeric_cols = df.select_dtypes(include=[np.number]).columns
+    # numeric_columns = df.select_dtypes(include=[np.number]).columns
 
     # Select numeric columns and identify binary columns
-    numeric_cols = df.select_dtypes(include=[np.number]).columns
-    binary_cols = df.columns[df.nunique() == 2]
-    non_binary_cols = numeric_cols.difference(binary_cols)
-
-    if verbose:
-        print('\nMAD Analysis Summary:')
-        print(f'Single value columns removed: {len(single_value_cols)}')
-        print(f'Total binary columns: {len(binary_cols)}')
-        print(f'Total numeric columns: {len(numeric_cols)}')
-        print(f'Non binary numeric columns: {len(non_binary_cols)}')
-        print(f'''Numeric Binary columns excluded from MAD: \
-{len(numeric_cols) - len(non_binary_cols)}''')
+    # numeric_cols = df.select_dtypes(include=[np.number]).columns
+    # binary_cols = df.columns[df.nunique() == 2]
+    # non_binary_cols = numeric_cols.difference(binary_cols)
 
     # Calculate low frequency binary numeric column
     # Handle binary columns - convert to numeric first
-    if len(binary_cols) > 0:
-        X_bin = df[binary_cols].apply(lambda x: pd.factorize(x)[0])
-        binary_counts = X_bin.mean(axis=0)
-        binary_counts = binary_counts.apply(lambda x: min((x, 1 - x)))
-        keep_cols = [
-            col for col in binary_cols
-            if (binary_counts[col] >= freq_threshold)]
-        # binary_counts = X_bin.apply(pd.value_counts, normalize=True)
-        # keep_cols = [
-        #     col for col in binary_cols if
-        #     (binary_counts[col].min() >= freq_threshold)]
-        X_bin = df[keep_cols]  # Keep original values for these columns
-    else:
-        X_bin = pd.DataFrame()  # Empty DataFrame if no binary columns
+    binary_counts = df[binary_columns].mean(axis=0)
+    binary_counts = binary_counts.apply(lambda x: min((x, 1 - x)))
+    exclude_binary_columns = [
+        col for col in binary_columns
+        if (binary_counts[col] < freq_threshold)]
+    # if len(binary_columns) > 0:
+    #     # X_bin = df[binary_columns].apply(lambda x: pd.factorize(x)[0])
+    #     binary_counts = df[binary_columns].mean(axis=0)
+    #     binary_counts = binary_counts.apply(lambda x: min((x, 1 - x)))
+    #     keep_columns = [
+    #         col for col in binary_columns
+    #         if (binary_counts[col] >= freq_threshold)]
+    #     # binary_counts = X_bin.apply(pd.value_counts, normalize=True)
+    #     # keep_cols = [
+    #     #     col for col in binary_cols if
+    #     #     (binary_counts[col].min() >= freq_threshold)]
+    #     X_bin = df[keep_columns]  # Keep original values for these columns
+    # else:
+    #     X_bin = pd.DataFrame()  # Empty DataFrame if no binary columns
 
-    # Normalise the numeric columns by max
-    df_tmp = df
-    for col in non_binary_cols:
-        df[col] = (df_tmp[col] / np.max(np.abs(df_tmp[col])))
+    mad_series = df[numeric_columns].apply(
+        lambda x: x / x.abs().max(), axis=0).apply(
+        lambda x: np.median(np.abs(x - np.median(x))))
+    exclude_numeric_columns = [
+        col for col in numeric_columns if (mad_series[col] < mad_threshold)]
 
-    # Calculate MAD for each non-binary numeric column
-    mad_values = {}
-    for col in non_binary_cols:
-        mad = np.median(np.abs(df[col] - np.median(df[col])))
-        mad_values[col] = mad
-
-    # Create a Series from the MAD values
-    mad_series = pd.Series(mad_values)
+    # # Normalise the numeric columns by max
+    # df_tmp = df
+    # for col in numeric_columns:
+    #     df[col] = (df_tmp[col] / np.max(np.abs(df_tmp[col])))
+    #
+    # # Calculate MAD for each non-binary numeric column
+    # mad_values = {}
+    # for col in numeric_columns:
+    #     mad = np.median(np.abs(df[col] - np.median(df[col])))
+    #     mad_values[col] = mad
+    #
+    # # Create a Series from the MAD values
+    # mad_series = pd.Series(mad_values)
 
     # Identify columns to keep:
     # 1. Non-numeric columns
     # 2. Binary numeric columns
     # 3. Non-binary numeric columns with MAD above threshold
     # Start with all CAT columns
-    cols_to_keep = set(df.columns) - set(non_binary_cols) - set(binary_cols)
-    # Add high MAD columns
-    cols_to_keep.update(mad_series[mad_series >= mad_threshold].index)
+    exclude_columns = exclude_binary_columns + exclude_numeric_columns
+    keep_columns = [col for col in df.columns if col not in exclude_columns]
+    df = df[keep_columns]
 
-    # Keep only the identified columns
-    X_comb = pd.concat([df[list(cols_to_keep)], X_bin], axis=1)
-    df = X_comb
+    # cols_to_keep = set(df.columns) - set(non_binary_cols) - set(binary_cols)
+    # # Add high MAD columns
+    # cols_to_keep.update(mad_series[mad_series >= mad_threshold].index)
+    #
+    # # Keep only the identified columns
+    # X_comb = pd.concat([df[list(cols_to_keep)], X_bin], axis=1)
+    # df = X_comb
 
     if verbose:
+        print('\nMAD Analysis Summary:')
+        print(f'Single value columns removed: {len(single_value_columns)}')
+        print(f'Total binary columns: {len(binary_columns)}')
+        print(f'Total numeric columns: {len(numeric_columns)}')
+        # print(f'Non binary numeric columns: {len(non_binary_cols)}')
+#         print(f'''Numeric Binary columns excluded from MAD: \
+# {len(numeric_columns) - len(non_binary_columns)}''')
         # Print summary for debugging
-        print('High Frequency Binary columns kept:', X_bin.shape)
+        print(f'''High Frequency Binary columns kept: \
+{len(binary_columns) - len(exclude_binary_columns)}''')
         print(f'''Columns removed due to low MAD: \
-{len(non_binary_cols) - len(mad_series[(mad_series >= mad_threshold)])}''')
+{len(numeric_columns) - len(exclude_numeric_columns)}''')
     return df
 
 
-def rmv_high_corr(df, correlation_threshold=0.5, verbose=False):
+def rmv_high_corr(
+        df, dictionary, outcome_column='outco_binary_outcome',
+        correlation_threshold=0.5, verbose=False):
+    '''
+    Removes variables if there is high multicollinearity, arbitrarily selecting
+    one variable to remove if the correlation between two variables is above
+    a threshold.
+
+    Returns:
+    - df: pandas DataFrame with high correlation variables removed
+    '''
+    keep_columns = ['subjid', outcome_column]
+
+    numeric_ind = (dictionary['field_type'] == 'numeric')
+    numeric_columns = dictionary.loc[numeric_ind, 'field_name'].tolist()
+    numeric_columns = [col for col in numeric_columns if col in df.columns]
+    binary_ind = (dictionary['field_type'] == 'binary')
+    binary_columns = dictionary.loc[binary_ind, 'field_name'].tolist()
+    binary_columns = [col for col in binary_columns if col in df.columns]
+
     # Step 1: Select numeric columns only
-    numeric_cols = df.select_dtypes(include=[np.number]).columns
-    df_numeric = df[numeric_cols]  # DataFrame with only numeric columns
+    # numeric_cols = df.select_dtypes(include=[np.number]).columns
+    df_numeric = df[numeric_columns]  # DataFrame with only numeric columns
 
     # Step 2: Calculate the correlation matrix
     corr_matrix = df_numeric.corr().abs()
 
-    # Step 3: Identify highly correlated columns with a double loop
-    to_drop = set()  # Use a set to avoid duplicates
-    num_cols = corr_matrix.shape[0]
+    # Step 3: Identify highly correlated columns
+    corr_pairs = corr_matrix.where(
+        np.triu(np.ones(corr_matrix.shape), 1).astype(bool)).where(
+        lambda x: x > correlation_threshold).stack().reset_index()
 
-    for i in range(num_cols):
-        for j in range(i + 1, num_cols):  # Only look at the upper triangle
-            if corr_matrix.iloc[i, j] > correlation_threshold:
-                # Identify the columns with high correlation
-                # col1 = corr_matrix.columns[i]  # ??
-                col2 = corr_matrix.columns[j]
+    # Step 4: Drop highly correlated columns (arbitrarily drop second column)
+    exclude_columns = corr_pairs['level_1'].unique().tolist()
+    exclude_columns = [
+        col for col in exclude_columns if col not in keep_columns]
 
-                # Add one of the columns to `to_drop`
-                to_drop.add(col2)  # Arbitrarily drop the second column
+    # # Step 3: Identify highly correlated columns with a double loop
+    # to_drop = set()  # Use a set to avoid duplicates
+    # num_cols = corr_matrix.shape[0]
+    #
+    # for i in range(num_cols):
+    #     for j in range(i + 1, num_cols):  # Only look at the upper triangle
+    #         if corr_matrix.iloc[i, j] > correlation_threshold:
+    #             # Identify the columns with high correlation
+    #             # col1 = corr_matrix.columns[i]  # ??
+    #             col2 = corr_matrix.columns[j]
+    #
+    #             # Add one of the columns to `to_drop`
+    #             to_drop.add(col2)  # Arbitrarily drop the second column
+    #
+    # # Step 4: Drop highly correlated columns
+    # exclude_columns = [col for col in list(to_drop) if col not in keep_columns]
+    df = df.drop(columns=exclude_columns)
 
-    # Step 4: Drop highly correlated columns
     if verbose:
         print('\nCORR Summary')
-        print(f'Columns removed due to high correlation: {len(to_drop)}')
-    df = df.drop(columns=list(to_drop))
-
+        print(f'Columns removed due to high correlation: \
+{len(exclude_columns)}')
     return df
 
 
 def lasso_var_sel_binary(
         df,
-        outcome_col='mapped_outcome', metric='balanced_accuracy',
+        outcome_column='mapped_outcome', metric='balanced_accuracy',
         threshold=1e-3,
+        gridsearch_params={
+            'l1_ratios': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
+            'Cs': [1e-3, 3.16e-3, 1e-2, 3.16e-2, 1e-1, 3.16e-1, 1, 3.16, 10]},
         random_state=42, verbose=False, sep='___'):
     '''
     Prepare data and select features using binary logistic regression with
     elastic net penalty.
     Specifically designed for binary outcomes only.
     '''
-    if outcome_col not in df.columns:
-        error_str = f'Outcome column {outcome_col} not found in DataFrame'
+    if outcome_column not in df.columns:
+        error_str = f'Outcome column {outcome_column} not found in DataFrame'
         raise ValueError(error_str)
 
     # Separate predictors and outcome
-    y = df[outcome_col].copy()
-    X_ini = df.drop(columns=[outcome_col])
+    y = df[outcome_column].copy()
+    X_ini = df.drop(columns=[outcome_column])
     if verbose:
         print(f"\nInitial shape of X: {X_ini.shape}")
 
@@ -1919,29 +2173,39 @@ def get_parameter_ranking(logistic, n_top=10, threshold=1e-3):
     for l1_ratio_idx, l1_ratio in enumerate(l1_ratios):
         for C_idx, C in enumerate(Cs):
             # Get mean score across folds for this parameter combination
-            score = np.mean(
-                logistic.scores_[first_class][:, C_idx, l1_ratio_idx])
-
+            score = (
+                logistic.scores_[first_class][:, C_idx, l1_ratio_idx].mean())
+            fold_ind = (
+                logistic.scores_[first_class][:, C_idx, l1_ratio_idx].argmax())
             # Get coefficients for this parameter combination
-            coef_path = logistic.coefs_paths_[first_class][
-                :, C_idx, l1_ratio_idx, :]
+            coef0 = logistic.coefs_paths_[first_class][
+                0, C_idx, l1_ratio_idx, :]
+            coef1 = logistic.coefs_paths_[first_class][
+                1, C_idx, l1_ratio_idx, :]
+            coef2 = logistic.coefs_paths_[first_class][
+                2, C_idx, l1_ratio_idx, :]
 
-            # Average across folds  # Why is this the mean?
-            mean_coef = np.mean(coef_path, axis=0)
+            # # Average across folds  # Why is this the mean?
+            # mean_coef = np.mean(coef_path, axis=0)
 
             # Count non-zero coefficients
-            n_features = np.sum(np.abs(mean_coef) > threshold)
+            n_features0 = np.sum(np.abs(coef0) > threshold)
+            n_features1 = np.sum(np.abs(coef1) > threshold)
+            n_features2 = np.sum(np.abs(coef2) > threshold)
 
             # Append to our list
             param_scores.append({
                 'l1_ratio': l1_ratio,
                 'C': C,
                 'score': score,
-                'n_features': n_features
+                'n_features0': n_features0,
+                'n_features1': n_features1,
+                'n_features2': n_features2
             })
 
     # Convert to DataFrame and sort
     params_df = pd.DataFrame(param_scores)
-    params_df = params_df.sort_values('score', ascending=False).head(n_top)
+    params_df = params_df.sort_values(
+        'score', ascending=False).drop_duplicates('n_features0').head(n_top)
 
     return params_df
