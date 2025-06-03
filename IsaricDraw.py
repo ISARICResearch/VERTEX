@@ -1,5 +1,6 @@
 import os
 import sys
+
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -118,7 +119,8 @@ def fig_timelines(
     # Assign colors by group_col
     unique_groups = df[group_col].unique()
     color_map = {
-        group: px.colors.qualitative.Plotly[i % len(px.colors.qualitative.Plotly)]
+        group:
+            px.colors.qualitative.Plotly[i % len(px.colors.qualitative.Plotly)]
         for i, group in enumerate(unique_groups)
     }
 
@@ -207,7 +209,7 @@ def fig_sunburst(
 def fig_cumulative_bar_chart(
         df,
         title='Cumulative Bar by Timepoint', xlabel='x', ylabel='y',
-        base_color_map=None,
+        base_color_map=None, barmode='stack',
         suffix='', filepath='', save_inputs=False,
         graph_id='', graph_label='', graph_about=''):
 
@@ -238,10 +240,14 @@ def fig_cumulative_bar_chart(
         )
 
     # Layout settings with customized x-axis tick format
+    if barmode == 'group':
+        bargap = 0.1
+    else:
+        bargap = 0
     layout = go.Layout(
         title=title,
-        barmode='stack',
-        bargap=0,
+        barmode=barmode,
+        bargap=bargap,
         xaxis=dict(
             title=xlabel,
             tickformat='%m-%Y',  # Display x-axis in MM-YYYY format
@@ -263,8 +269,8 @@ def fig_cumulative_bar_chart(
 def fig_stacked_bar_chart(
         df,
         title='Bar Chart by Timepoint', xlabel='x', ylabel='y',
-        base_color_map=None,
-        suffix='', filepath='', save_inputs=False,
+        base_color_map=None, barmode='stack', xaxis_tickformat='%m-%Y',
+        suffix='', filepath='', save_inputs=False, height=340,
         graph_id='', graph_label='', graph_about=''):
 
     if save_inputs:
@@ -295,13 +301,17 @@ def fig_stacked_bar_chart(
         )
 
     # Layout settings with customized x-axis tick format
+    if barmode == 'group':
+        bargap = 0.1
+    else:
+        bargap = 0
     layout = go.Layout(
         title=title,
-        barmode='stack',
-        bargap=0,
+        barmode=barmode,
+        bargap=bargap,
         xaxis=dict(
             title=xlabel,
-            tickformat='%m-%Y',  # Display x-axis in MM-YYYY format
+            tickformat=xaxis_tickformat,  # Display x-axis in MM-YYYY format
             tickvals=df.index,  # Optional: only specific dates if needed
         ),
         yaxis=dict(title=ylabel),
@@ -309,11 +319,67 @@ def fig_stacked_bar_chart(
         margin=dict(l=100, r=100, t=100, b=50),
         paper_bgcolor='white',
         plot_bgcolor='white',
-        height=340
+        height=height,
     )
     fig = {'data': traces, 'layout': layout}
     graph_id = get_graph_id(graph_id, suffix)
     return fig, graph_id, graph_label, graph_about
+
+
+# def fig_bar_chart(
+#         df,
+#         title='Bar Chart by Timepoint', xlabel='x', ylabel='y',
+#         base_color_map=None,
+#         suffix='', filepath='', save_inputs=False,
+#         graph_id='', graph_label='', graph_about=''):
+#
+#     if save_inputs:
+#         inputs = save_inputs_to_file(locals())
+#
+#     df = df.set_index('index')
+#     # Generate dynamic colors if base_color_map is not provided
+#     if base_color_map is None:
+#         unique_groups = df.columns
+#         color_palette = px.colors.qualitative.Plotly
+#         base_color_map = {
+#             group: color_palette[i % len(color_palette)]
+#             for i, group in enumerate(unique_groups)}
+#
+#     # Create traces for each stack_group with colors from the base_color_map
+#     traces = []
+#     for stack_group in df.columns:
+#         # Assign color from base_color_map
+#         color = base_color_map.get(stack_group, '#000')
+#         traces.append(
+#             go.Bar(
+#                 x=df.index,
+#                 y=df[stack_group],
+#                 name=stack_group,
+#                 orientation='v',
+#                 marker=dict(color=color)
+#             )
+#         )
+#
+#     # Layout settings with customized x-axis tick format
+#     layout = go.Layout(
+#         title=title,
+#         barmode='stack',
+#         bargap=0,
+#         xaxis=dict(
+#             title=xlabel,
+#             tickformat='%m-%Y',  # Display x-axis in MM-YYYY format
+#             tickvals=df.index,  # Optional: only specific dates if needed
+#         ),
+#         yaxis=dict(title=ylabel),
+#         legend=dict(x=1.05, y=1),
+#         margin=dict(l=100, r=100, t=100, b=50),
+#         paper_bgcolor='white',
+#         plot_bgcolor='white',
+#         height=340
+#     )
+#     fig = {'data': traces, 'layout': layout}
+#     graph_id = get_graph_id(graph_id, suffix)
+#     return fig, graph_id, graph_label, graph_about
 
 
 def fig_upset(
@@ -705,10 +771,14 @@ def fig_dual_stack_pyramid(
         raise ValueError(error_str)
     if df.empty:
         raise ValueError('The DataFrame is empty.')
-    if len(df['side'].unique()) != 2:  # TODO
-        fig = {}
-    left_side_label = df['side'].unique()[0]
-    right_side_label = df['side'].unique()[1]
+    # if len(df['side'].unique()) != 2:  # TODO
+    #     fig = {}
+    left_side_label = ''
+    right_side_label = ''
+    if (df['left_side'] == 1).any():
+        left_side_label = df.loc[(df['left_side'] == 1), 'side'].values[0]
+    if (df['left_side'] == 0).any():
+        right_side_label = df.loc[(df['left_side'] == 0), 'side'].values[0]
 
     # Dynamic Color Mapping
     if (base_color_map is not None) and (not isinstance(base_color_map, dict)):
@@ -738,9 +808,12 @@ def fig_dual_stack_pyramid(
                 continue
             # Get color from the color_map using both side and stack_group
             color = color_map.get((side, stack_group))
+            # x_val = (
+            #     -subset['value'] if (side == df['side'].unique()[0])
+            #     else subset['value'])
             x_val = (
-                -subset['value'] if (side == df['side'].unique()[0])
-                else subset['value'])
+                -subset['value']
+                if subset['left_side'].any() else subset['value'])
             traces.append(
                 go.Bar(
                     y=subset['y_axis'],
@@ -840,7 +913,7 @@ def fig_dual_stack_pyramid(
 def fig_flowchart(
         df,
         suffix='', filepath='', save_inputs=False,
-        graph_id='sankey', graph_label='', graph_about=''):
+        graph_id='', graph_label='', graph_about=''):
 
     if save_inputs:
         inputs = save_inputs_to_file(locals())
@@ -896,16 +969,20 @@ def fig_flowchart(
 
 def fig_forest_plot(
         df,
-        title='Forest Plot',
+        title='Forest Plot', reorder=True,
         labels=['Variable', 'OddsRatio', 'LowerCI', 'UpperCI'],
+        xlabel='Odds Ratio (95% CI)',
         suffix='', filepath='', save_inputs=False,
-        graph_id='forest-plot', graph_label='', graph_about=''):
+        graph_id='', graph_label='', graph_about=''):
 
     if save_inputs:
         inputs = save_inputs_to_file(locals())
 
     # Ordering Values -> Descending Order
-    df = df.sort_values(by=labels[1], ascending=True)
+    if reorder:
+        df = df.sort_values(by=labels[1], ascending=True)
+    else:
+        df = df.loc[::-1]
 
     # Error Handling
     if not set(labels).issubset(df.columns):
@@ -940,18 +1017,19 @@ def fig_forest_plot(
 
     # Define layout
     layout = go.Layout(
-     title=title,
-     xaxis=dict(title='Odds Ratio'),
-     yaxis=dict(
-         title='', automargin=True, tickmode='array',
-         tickvals=df[labels[0]].tolist(), ticktext=df[labels[0]].tolist()),
-     shapes=[
-         dict(
-             type='line', x0=1, y0=-0.5, x1=1, y1=len(df[labels[0]])-0.5,
-             line=dict(color='red', width=2)
-         )],  # Line of no effect
-     margin=dict(l=100, r=100, t=100, b=50),
-     height=600
+        title=title,
+        xaxis=dict(title='Odds Ratio (95% CI)'),
+        yaxis=dict(
+            title='', automargin=True, tickmode='array',
+            tickvals=df[labels[0]].tolist(), ticktext=df[labels[0]].tolist()),
+        shapes=[
+            dict(
+                type='line', x0=1, y0=-0.5, x1=1, y1=len(df[labels[0]])-0.5,
+                line=dict(color='red', width=2)
+            )],  # Line of no effect
+        margin=dict(l=100, r=100, t=100, b=50),
+        height=600,
+        showlegend=False
     )
     fig = {'data': traces, 'layout': layout}
     graph_id = get_graph_id(graph_id, suffix)
@@ -963,7 +1041,7 @@ def fig_text(
         title='Forest Plot',
         labels=['Variable', 'OddsRatio', 'LowerCI', 'UpperCI'],
         suffix='', filepath='', save_inputs=False,
-        graph_id='forest-plot', graph_label='', graph_about=''):
+        graph_id='', graph_label='', graph_about=''):
 
     if save_inputs:
         inputs = save_inputs_to_file(locals())
@@ -983,6 +1061,293 @@ def fig_text(
     )
 
     graph_id = get_graph_id(graph_id, suffix)
+    return fig, graph_id, graph_label, graph_about
+
+
+def fig_kaplan_meier(
+        df,
+        p_value=None, title=None, xlabel='Time (days)', xlim=None, height=800,
+        suffix='', filepath='', save_inputs=False,
+        graph_id='', graph_label='', graph_about=''):
+
+    if save_inputs:
+        inputs = save_inputs_to_file(locals())
+
+    df_km = df[0].copy()
+    risk_table = df[1].copy()
+
+    unique_groups = risk_table['Group'].tolist()
+    colors = [
+        f"hsl({i * (360 / len(unique_groups))}, 70%, 50%)"
+        for i in range(len(unique_groups))]
+
+    # Create the figure with two rows: one for the plot and one for risk table
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True,
+                        row_heights=[0.7, 0.3],
+                        vertical_spacing=0.1,
+                        specs=[[{"type": "xy"}], [{"type": "table"}]],
+                        subplot_titles=[title, "Risk Table"])
+
+    for group, color in zip(unique_groups, colors):
+        ci_lower_column = [
+            col for col in df_km.columns
+            if col.startswith(group + '_lower')][0]
+        ci_upper_column = [
+            col for col in df_km.columns
+            if col.startswith(group + '_upper')][0]
+        ci = df_km.set_index('timeline')
+        ci = ci[[col for col in df_km.columns if col.startswith(group + '_')]]
+        ci = ci.dropna()
+        ci_lower = ci[ci_lower_column]
+        ci_upper = ci[ci_upper_column]
+
+        # Add confidence interval as shaded area
+        fig.add_trace(go.Scatter(
+            x=ci_upper.index.tolist() + ci_lower.index[::-1].tolist(),
+            y=ci_upper.tolist() + ci_lower[::-1].tolist(),
+            fill='toself',
+            fillcolor=color.replace("hsl", "hsla").replace(")", ",0.2)"),
+            line=dict(color='rgba(255,255,255,0)', shape='hv'),
+            name=f"CI {group}",
+            showlegend=False,
+            hoverinfo='text',
+            text=[f"CI {group}" for _ in range(len(ci_upper) + len(ci_lower))]
+        ), row=1, col=1)
+
+    for group, color in zip(unique_groups, colors):
+        survival = df_km.set_index('timeline')[group]
+
+        # Add survival curve
+        fig.add_trace(go.Scatter(
+            x=survival.index,
+            y=survival.values,
+            mode='lines',
+            name=str(group),
+            line=dict(color=color, shape='hv')
+        ), row=1, col=1)
+
+    # Add p-value annotation to the plot
+    if p_value is not None:
+        p_value_text = (
+            'p-value: <0.0001'
+            if p_value < 0.0001 else f'p-value: {p_value:.4f}')
+        fig.add_annotation(
+            text=p_value_text,
+            x=0.95, y=95, xref='paper', yref='y1',
+            showarrow=False, font=dict(size=12, color='black'),
+            bgcolor='white', bordercolor='black', borderwidth=1)
+
+    # Add risk table as second row
+    fig.add_trace(go.Table(
+        header=dict(
+            values=[str(x) for x in risk_table.columns],
+            fill_color='lightgrey',
+            align='center',
+            font=dict(size=14),
+            height=35),
+        cells=dict(
+            values=[risk_table[col].tolist() for col in risk_table.columns],
+            fill_color='white',
+            align='center',
+            font=dict(size=14),
+            height=35)
+    ), row=2, col=1)
+
+    # Configure axes and layout
+    fig.update_yaxes(
+        title_text="Survival Probability",
+        range=[0, 100],
+        tickvals=np.arange(0, 110, 10),
+        ticktext=[f"{i}%" for i in range(0, 110, 10)], row=1, col=1)
+    fig.update_xaxes(
+        title_text=xlabel,
+        tickvals=risk_table.columns[1:],
+        row=1, col=1)
+    if xlim is not None:
+        fig.update_xaxes(range=xlim)
+    fig.update_layout(height=height, showlegend=True)
+
+    graph_id = get_graph_id(graph_id, suffix)
+    return fig, graph_id, graph_label, graph_about
+
+
+def fig_line_chart(
+        df,
+        title='Line chart',
+        xlabel='x',
+        ylabel='y left',
+        line_column='Line column',
+        lower_column=None,
+        upper_column=None,
+        index_column='index',
+        line_color=None,
+        height=340,
+        suffix='',
+        filepath='',
+        save_inputs=False,
+        graph_id='',
+        graph_label='',
+        graph_about=''):
+
+    if save_inputs:
+        inputs = save_inputs_to_file(locals())
+
+    # Ensure correct index
+    df = df.set_index(index_column)
+
+    # Create line trace
+    line_trace = go.Scatter(
+        x=df.index,
+        y=df[line_column],
+        mode='lines+markers',
+        name=line_column.replace('_', ' ').title(),
+        marker=dict(color=line_color),
+        line=dict(color=line_color, width=2, dash='solid'),
+    )
+
+    data = [line_trace]
+    yaxis_min = 0
+    yaxis_max = df[line_column].max() * 1.1
+
+    if (upper_column is not None) & (lower_column is not None):
+        bounds_trace = go.Scatter(
+            x=df.index.tolist() + df.index[::-1].tolist(),
+            y=df[upper_column].tolist() + df[lower_column][::-1].tolist(),
+            fill='toself',
+            fillcolor='rgba(150,150,150,0.2)',
+            line=dict(color='rgba(255,255,255,0)'),
+            showlegend=False,
+        )
+        data = [line_trace, bounds_trace]
+        yaxis_min = min((0, df[lower_column].min() * 1.1))
+        yaxis_max = df[upper_column].max() * 1.1
+
+    # Define layout
+    layout = go.Layout(
+        title=title,
+        xaxis=dict(
+            title=xlabel,
+            tickmode='array',
+            tickvals=df.index,
+            ticktext=df.index,  # Force display as years
+            tickangle=-30,
+            tickfont=dict(size=10)
+        ),
+        yaxis=dict(
+            title=ylabel,
+            range=[yaxis_min, yaxis_max]
+        ),
+        legend=dict(x=0.85, y=1, bgcolor='rgba(255,255,255,0.5)'),
+        margin=dict(l=60, r=60, t=50, b=80),
+        paper_bgcolor='white',
+        plot_bgcolor='white',
+        height=height,
+    )
+
+    fig = go.Figure(data=data, layout=layout)
+    return fig, graph_id, graph_label, graph_about
+
+
+def fig_bar_line_chart(
+        df,
+        title="Combined bar line chart",
+        xlabel="x",
+        ylabel_left="y left",
+        ylabel_right="y right",
+        bar_column="Bar column",
+        line_column="Line column",
+        lower_column=None,
+        upper_column=None,
+        index_column="index",
+        bar_color=None,
+        line_color=None,
+        height=500,
+        suffix='',
+        filepath='',
+        save_inputs=False,
+        graph_id='',
+        graph_label='',
+        graph_about=''):
+
+    if save_inputs:
+        inputs = save_inputs_to_file(locals())
+
+    # Ensure correct index
+    df = df.set_index(index_column)
+
+    # # Format x-axis labels to show only the year
+    # x_labels = df.index.strftime("%Y")
+
+    # Create bar trace
+    bar_trace = go.Bar(
+        x=df.index,
+        y=df[bar_column],
+        name=bar_column.replace("_", " ").title(),
+        marker=dict(color=bar_color),
+        yaxis="y"
+    )
+
+    # Create line trace
+    line_trace = go.Scatter(
+        x=df.index,
+        y=df[line_column],
+        mode="lines+markers",
+        name=line_column.replace("_", " ").title(),
+        marker=dict(color=line_color),
+        line=dict(color=line_color, width=2, dash="solid"),
+        yaxis="y2"
+    )
+
+    data = [bar_trace, line_trace]
+    yaxis2_min = 0
+    yaxis2_max = df[line_column].max() * 1.1
+
+    if (upper_column is not None) & (lower_column is not None):
+        bounds_trace = go.Scatter(
+            x=df.index.tolist() + df.index[::-1].tolist(),
+            y=df[upper_column].tolist() + df[lower_column][::-1].tolist(),
+            fill='toself',
+            fillcolor='rgba(150,150,150,0.2)',
+            line=dict(color='rgba(255,255,255,0)'),
+            showlegend=False,
+            yaxis="y2"
+        )
+        data = [bar_trace, line_trace, bounds_trace]
+        yaxis2_min = min((0, df[lower_column].min() * 1.1))
+        yaxis2_max = df[upper_column].max() * 1.1
+
+    # Define layout
+    layout = go.Layout(
+        title=title,
+        barmode='stack',
+        bargap=0.3,
+        xaxis=dict(
+            title=xlabel,
+            tickmode="array",
+            tickvals=df.index,
+            ticktext=df.index,  # Force display as years
+            tickangle=-30,
+            tickfont=dict(size=10)
+        ),
+        yaxis=dict(
+            title=ylabel_left,
+            range=[0, df[bar_column].max() * 1.1]
+        ),
+        yaxis2=dict(
+            title=ylabel_right,
+            overlaying="y",
+            side="right",
+            showgrid=False,
+            range=[yaxis2_min, yaxis2_max]
+        ),
+        legend=dict(x=0.85, y=1, bgcolor="rgba(255,255,255,0.5)"),
+        margin=dict(l=60, r=60, t=50, b=80),
+        paper_bgcolor='white',
+        plot_bgcolor='white',
+        height=height,
+    )
+
+    fig = go.Figure(data=data, layout=layout)
     return fig, graph_id, graph_label, graph_about
 
 

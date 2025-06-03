@@ -2,32 +2,93 @@ import requests
 import pandas as pd
 import numpy as np
 import io
-
+import os
 
 ############################################
 # Functions that call to the API
 ############################################
 
 
-def get_records(redcap_url, redcap_api_key):
-    '''Fetch records from the REDCap API'''
+def user_assigned_to_dag(redcap_url, redcap_api_key):
     conex = {
         'token': redcap_api_key,
-        'content': 'record',
-        'action': 'export',
+        'content': 'dag',
         'format': 'csv',
-        'type': 'flat',
-        'csvDelimiter': '',
-        'rawOrLabel': 'label',
-        'rawOrLabelHeaders': 'raw',
-        'exportCheckboxLabel': 'false',
-        'exportSurveyFields': 'false',
-        'exportDataAccessGroups': 'true',
         'returnFormat': 'json'
     }
     response = requests.post(redcap_url, data=conex)
-    print('HTTP Status: ' + str(response.status_code))
-    df = pd.read_csv(io.StringIO(response.text), keep_default_na=False)
+    output = (response.status_code == 403)
+    return output
+
+
+def get_records(
+        redcap_url, redcap_api_key,
+        data_access_groups=None, user_assigned_to_dag=False):
+    '''Fetch records from the REDCap API'''
+    if (data_access_groups is None) or (user_assigned_to_dag is False):
+        conex = {
+            'token': redcap_api_key,
+            'content': 'record',
+            'action': 'export',
+            'format': 'csv',
+            'type': 'flat',
+            'csvDelimiter': '',
+            'rawOrLabel': 'label',
+            'rawOrLabelHeaders': 'raw',
+            'exportCheckboxLabel': 'false',
+            'exportSurveyFields': 'false',
+            'exportDataAccessGroups': 'true',
+            'returnFormat': 'json'
+        }
+        response = requests.post(redcap_url, data=conex)
+        print('HTTP Status: ' + str(response.status_code))
+        df = pd.read_csv(io.StringIO(response.text), keep_default_na=False)
+        if data_access_groups is not None:
+            ind = df['redcap_data_access_group'].isin(data_access_groups)
+            df = df.loc[ind].reset_index(drop=True)
+    else:
+        df_list = []
+        for dag in data_access_groups:
+            unique_group = dag.replace('-', '').replace(' ', '_').lower()[:18]
+            conex = {
+                'token': redcap_api_key,
+                'content': 'dag',
+                'action': 'switch',
+                'dag': unique_group,
+                'returnFormat': 'json'
+            }
+            response = requests.post(redcap_url, data=conex)
+            conex = {
+                'token': redcap_api_key,
+                'content': 'record',
+                'action': 'export',
+                'format': 'csv',
+                'type': 'flat',
+                'csvDelimiter': '',
+                'rawOrLabel': 'label',
+                'rawOrLabelHeaders': 'raw',
+                'exportCheckboxLabel': 'false',
+                'exportSurveyFields': 'false',
+                'exportDataAccessGroups': 'false',
+                'returnFormat': 'json'
+            }
+            try:
+                response = requests.post(redcap_url, data=conex)
+                df_new = pd.read_csv(
+                    io.StringIO(response.text), keep_default_na=False)
+                df_new['redcap_data_access_group'] = dag
+                df_list.append(df_new)
+                print(f'Data access group ID: {dag}, HTTP Status: \
+{response.status_code}')
+            except pd.errors.EmptyDataError:
+                print(f'Data access group ID: {dag}, HTTP Status: \
+{response.status_code}. Warning: Could not retrieve data from unique group \
+name: {unique_group}')
+                continue
+        if len(df_list) > 0:
+            df = pd.concat(df_list, axis=0)
+        else:
+            df = None
     return df
 
 
@@ -66,7 +127,6 @@ def get_form_event(redcap_url, redcap_api_key):
     conex = {
         'token': redcap_api_key,
         'content': 'instrument',
-        # 'format': 'json',
         'format': 'csv',
         'returnFormat': 'json'
     }
@@ -243,7 +303,7 @@ def add_onehot_variables(data, dictionary, sep='___'):
     ind = ind.loc[ind].index
     sections = pd.DataFrame('', columns=new_dictionary.columns, index=ind)
     sections['field_label'] = new_dictionary.loc[ind, 'section_header'].apply(
-        lambda x: x.split(':')[0])
+        lambda x: x.split(': ')[0])
     sections['field_type'] = 'section'
     sections['form_name'] = new_dictionary.loc[ind, 'form_name']
     sections['field_name'] = new_dictionary.loc[ind, 'field_name'].apply(
@@ -380,6 +440,8 @@ def combine_unlisted_variables(df, dictionary, sep='___'):
         # item_ind = item_ind.loc[item_ind].index.min()
         new_dictionary['parent'] = column
         new_dictionary['form_name'] = dictionary.loc[ind, 'form_name']
+        new_dictionary['branching_logic'] = (
+            dictionary.loc[ind, 'branching_logic'])
         new_dictionary_list.append(new_dictionary)
     dictionary = pd.concat([dictionary] + new_dictionary_list, axis=0)
     dictionary = dictionary.sort_index().reset_index(drop=True)
@@ -474,7 +536,8 @@ def homogenise_variables(df, dictionary):
     pd.DataFrame: DataFrame with all specified values converted to the
     desired units.
     '''
-    conversion_table = pd.read_csv('assets/conversion_table.csv')
+    conversion_table = pd.read_csv(
+        os.path.join('assets', 'conversion_table.csv'))
     for index, row in conversion_table.iterrows():
         from_unit = row['from_unit']
         to_unit = row['to_unit']
@@ -586,8 +649,15 @@ def initial_data_processing(data, dictionary, missing_data_codes):
     remove_variables = [
         x for x in remove_columns.map(lambda x: x.split('___')[0])
         if x not in data.columns.map(lambda x: x.split('___')[0])]
+    new_dictionary['section_header'] = (
+        new_dictionary['section_header'].replace('', np.nan))
+    new_dictionary['section_header'] = new_dictionary['section_header'].ffill()
     new_dictionary = new_dictionary.loc[(
         new_dictionary['field_name'].isin(remove_variables) == 0)]
+    new_dictionary['section_header'] = new_dictionary['section_header'].mask(
+        new_dictionary['section_header'].duplicated())
+    new_dictionary['section_header'] = (
+        new_dictionary['section_header'].fillna(''))
     new_dictionary = new_dictionary.reset_index(drop=True)
     new_dictionary = add_answer_dict(new_dictionary)
 
@@ -602,7 +672,8 @@ def initial_data_processing(data, dictionary, missing_data_codes):
     new_dictionary = convert_dictionary_field_type(new_dictionary)
 
     columns = [
-        'field_name', 'form_name', 'field_type', 'field_label', 'parent']
+        'field_name', 'form_name', 'field_type',
+        'field_label', 'parent', 'branching_logic']
     new_dictionary = new_dictionary[columns]
 
     # Convert Yes(Checked)/No(Unchecked)/Unknown to True/False/NaN
@@ -693,6 +764,7 @@ def get_df_map(data, dictionary):
     outcome_dict['field_type'] = ['categorical'] + ['binary']*len(outcomes)
     outcome_dict['field_label'] = ['Outcome (binary)'] + outcomes
     outcome_dict['parent'] = ['outco'] + ['outco_binary_outcome']*len(outcomes)
+    outcome_dict['branching_logic'] = ''
     dictionary = pd.concat([
         dictionary, pd.DataFrame.from_dict(outcome_dict)], axis=0)
     dictionary = dictionary.reset_index(drop=True)
@@ -713,9 +785,15 @@ def get_df_forms(data, dictionary):
     return df_forms_dict
 
 
-def get_redcap_data(redcap_url, redcap_api_key, country_mapping=None):
+def get_redcap_data(
+        redcap_url, redcap_api_key,
+        data_access_groups=None, user_assigned_to_dag=False,
+        country_mapping=None):
     '''Get data from REDCap API and transform into analysis-ready dataframes'''
-    data = get_records(redcap_url, redcap_api_key)
+    data = get_records(
+        redcap_url, redcap_api_key,
+        data_access_groups=data_access_groups,
+        user_assigned_to_dag=user_assigned_to_dag)
     dictionary = get_data_dictionary(redcap_url, redcap_api_key)
     missing_data_codes = get_missing_data_codes(redcap_url, redcap_api_key)
 
@@ -762,6 +840,7 @@ def get_redcap_data(redcap_url, redcap_api_key, country_mapping=None):
     country_dict['field_type'] += ['binary']*len(countries)
     country_dict['field_label'] = ['COUNTRY', 'Country ISO Code'] + countries
     country_dict['parent'] = ['', 'country'] + ['country_iso']*len(countries)
+    country_dict['branching_logic'] = ''
 
     new_dictionary = pd.concat([
         new_dictionary, pd.DataFrame.from_dict(country_dict)], axis=0)

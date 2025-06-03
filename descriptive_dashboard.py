@@ -16,6 +16,7 @@ import os
 import shutil
 import importlib.util
 import webbrowser
+import requests
 # import dash_auth
 # import flask_caching as fc
 
@@ -134,15 +135,34 @@ the dashboard.''')
 ############################################
 
 
-def merge_data_with_countries(df_map):
+def merge_data_with_countries(df_map, add_capital_location=False):
     '''Add country variable to df_map and merge with country metadata.'''
     contries_path = 'assets/countries.csv'
     countries = pd.read_csv(contries_path, encoding='latin-1')
+
+    geojson = os.path.join(
+        'https://raw.githubusercontent.com/',
+        'martynafford/natural-earth-geojson/master/',
+        '50m/cultural/ne_50m_populated_places_simple.json')
+    capitals = json.loads(requests.get(geojson).text)
+    features = ['adm0_a3', 'latitude', 'longitude', 'featurecla']
+    capitals = [{
+        k: x['properties'][k] for k in features} for x in capitals['features']]
+    capitals = pd.DataFrame.from_dict(capitals)
+    capitals = capitals.sort_values(by=['adm0_a3', 'featurecla'])
+    capitals = capitals.drop_duplicates(['adm0_a3']).reset_index(drop=True)
+    capitals.drop(columns=['featurecla'], inplace=True)
+    capitals.rename(columns={'adm0_a3': 'Code'}, inplace=True)
+
+    countries = pd.merge(countries, capitals, how='left', on='Code')
+
     countries.rename(columns={
         'Code': 'country_iso',
         'Country': 'country_name',
         'Region': 'country_region',
-        'Income group': 'country_income'}, inplace=True)
+        'Income group': 'country_income',
+        'latitude': 'country_capital_lat',
+        'longitude': 'country_capital_lon'}, inplace=True)
     df_map = pd.merge(df_map, countries, on='country_iso', how='left')
     return df_map
 
@@ -241,8 +261,9 @@ def create_map(df_countries, map_layout_dict=None):
         marker_opacity=0.5,
         marker_line_width=0.3,
         colorbar={
-            'bgcolor': 'rgba(0,0,0,0)', 'thickness': 20, 'ticklen': 1,
-            'x': 1, 'xref': 'paper', 'xanchor': 'left'},
+            'bgcolor': 'rgba(255,255,255,1)',
+            'thickness': 20, 'ticklen': 5,
+            'x': 1, 'xref': 'paper', 'xanchor': 'right', 'xpad': 5},
     ))
     fig.update_layout(map_layout_dict)
     # fig.update_layout({'width': 10.5})
@@ -254,60 +275,245 @@ def create_map(df_countries, map_layout_dict=None):
 ############################################
 
 
+# def define_filters_and_controls(
+#         sex_options=None, age_options=None, admdate_options=None,
+#         country_options=None, outcome_options=None):
+#     filters_children = []
+#     if sex_options is not None:
+#         filters_children.append([
+#             html.Label('Sex at birth:'),
+#             dcc.Checklist(
+#                 id='sex-checkboxes',
+#                 options=sex_options,
+#                 value=[option['value'] for option in sex_options],
+#                 inputStyle={'margin-right': '2px'}
+#             ),
+#             html.Div(style={'margin-top': '20px'})
+#         ])
+#     if age_options is not None:
+#         filters_children.append([
+#             html.Label('Age:'),
+#             dcc.RangeSlider(
+#                 id='age-slider',
+#                 min=age_options['min'],
+#                 max=age_options['max'],
+#                 step=age_options['step'],
+#                 marks=age_options['marks'],
+#                 value=age_options['value']
+#             ),
+#             html.Div(style={'margin-top': '20px'})
+#         ])
+#     if admdate_options is not None:
+#         filters_children.append([
+#             html.Label('Admission date:'),
+#             dcc.RangeSlider(
+#                 id='admdate-slider',
+#                 min=admdate_options['min'],
+#                 max=admdate_options['max'],
+#                 step=admdate_options['step'],
+#                 marks=admdate_options['marks'],
+#                 value=admdate_options['value'],
+#             ),
+#             html.Div(style={'margin-top': '35px'})
+#         ])
+#     if disease_options is not None:
+#         filters_children.append(html.Div([
+#             html.Div(
+#                 id='country-display', children='Disease:',
+#                 style={'cursor': 'pointer'}),
+#             dbc.Fade(
+#                 html.Div([
+#                     dcc.Checklist(
+#                         id='country-selectall',
+#                         options=[{'label': 'Select all', 'value': 'all'}],
+#                         value=['all'],
+#                         inputStyle={'margin-right': '2px'}
+#                     ),
+#                     dcc.Checklist(
+#                         id='country-checkboxes',
+#                         options=country_options,
+#                         value=[
+#                             option['value'] for option in country_options],
+#                         style={'overflowY': 'auto', 'maxHeight': '200px'},
+#                         inputStyle={'margin-right': '2px'}
+#                     )
+#                 ]),
+#                 id='country-fade',
+#                 is_in=False,
+#                 appear=False,
+#             )
+#         ]))
+#
+#     filters = dbc.AccordionItem(
+#         title='Filters and Controls',
+#         children=[
+#
+#             html.Label('Outcome:'),
+#             dcc.Checklist(
+#                 id='outcome-checkboxes',
+#                 options=outcome_options,
+#                 value=[option['value'] for option in outcome_options],
+#                 inputStyle={'margin-right': '2px'}
+#             ),
+#             html.Div(style={'margin-top': '20px'}),
+#             html.Div([
+#                 html.Div(
+#                     id='country-display', children='Country:',
+#                     style={'cursor': 'pointer'}),
+#                 dbc.Fade(
+#                     html.Div([
+#                         dcc.Checklist(
+#                             id='country-selectall',
+#                             options=[{'label': 'Select all', 'value': 'all'}],
+#                             value=['all'],
+#                             inputStyle={'margin-right': '2px'}
+#                         ),
+#                         dcc.Checklist(
+#                             id='country-checkboxes',
+#                             options=country_options,
+#                             value=[
+#                                 option['value'] for option in country_options],
+#                             style={'overflowY': 'auto', 'maxHeight': '200px'},
+#                             inputStyle={'margin-right': '2px'}
+#                         )
+#                     ]),
+#                     id='country-fade',
+#                     is_in=False,
+#                     appear=False,
+#                 )
+#             ]),
+#         ], style={'overflowY': 'auto', 'maxHeight': '60vh'},
+#     )
+#     return filters
+
+
 def define_filters_and_controls(
-        sex_options, age_options, country_options, outcome_options):
+        sex_options, age_options, country_options,
+        admdate_options,  # disease_options,
+        outcome_options):
     filters = dbc.AccordionItem(
         title='Filters and Controls',
         children=[
-            html.Label('Sex at birth:'),
+            html.Label(html.B('Sex at birth:')),
+            html.Div(style={'margin-top': '5px'}),
             dcc.Checklist(
-                id='gender-checkboxes',
+                id='sex-checkboxes',
                 options=sex_options,
                 value=[option['value'] for option in sex_options],
+                inputStyle={'margin-right': '2px', 'margin-left': '10px'},
+                style={'margin-left': '-10px'},
+                inline=True
             ),
-            html.Div(style={'margin-top': '20px'}),
-            html.Label('Age:'),
+            html.Div(style={'margin-top': '10px'}),
+            html.Label(html.B('Age:')),
+            html.Div(style={'margin-top': '5px'}),
             dcc.RangeSlider(
                 id='age-slider',
                 min=age_options['min'],
                 max=age_options['max'],
                 step=age_options['step'],
                 marks=age_options['marks'],
-                value=age_options['value']
+                value=age_options['value'],
+                pushable=10,
             ),
-            html.Div(style={'margin-top': '20px'}),
-            html.Label('Outcome:'),
-            dcc.Checklist(
-                id='outcome-checkboxes',
-                options=outcome_options,
-                value=[option['value'] for option in outcome_options],
-            ),
-            html.Div(style={'margin-top': '20px'}),
+            html.Div(style={'margin-top': '10px'}),
             html.Div([
                 html.Div(
-                    id='country-display', children='Country:',
+                    id='country-display',
+                    children=html.Div([
+                        html.B('Country:'),
+                        # ' (scroll down for all)'
+                    ]),
                     style={'cursor': 'pointer'}),
                 dbc.Fade(
                     html.Div([
                         dcc.Checklist(
                             id='country-selectall',
-                            options=[{'label': 'Select all', 'value': 'all'}],
-                            value=['all']
+                            options=[{
+                                'label': 'Select all',
+                                'value': 'all'
+                            }],
+                            value=['all'],
+                            inputStyle={'margin-right': '2px'}
                         ),
                         dcc.Checklist(
                             id='country-checkboxes',
                             options=country_options,
                             value=[
                                 option['value'] for option in country_options],
-                            style={'overflowY': 'auto', 'maxHeight': '200px'}
+                            style={
+                                'overflowY': 'auto',
+                                'maxHeight': '70px'
+                            },
+                            inputStyle={'margin-right': '2px'}
                         )
                     ]),
                     id='country-fade',
-                    is_in=False,
-                    appear=False,
+                    is_in=True,
+                    appear=True,
                 )
             ]),
-        ], style={'overflowY': 'auto', 'maxHeight': '60vh'},
+            html.Div(style={'margin-top': '15px'}),
+            html.Label(html.B('Admission date:')),
+            html.Div(style={'margin-top': '5px'}),
+            dcc.RangeSlider(
+                id='admdate-slider',
+                min=admdate_options['min'],
+                max=admdate_options['max'],
+                step=admdate_options['step'],
+                marks=admdate_options['marks'],
+                value=admdate_options['value'],
+                pushable=1,
+            ),
+            html.Div(style={'margin-top': '35px'}),
+            # html.Div([
+            #     html.Div(
+            #         id='disease-display',
+            #         children=html.Div([
+            #             html.B('Disease:'),
+            #             ' (scroll down for all)'
+            #         ]),
+            #         style={'cursor': 'pointer'}),
+            #     dbc.Fade(
+            #         html.Div([
+            #             dcc.Checklist(
+            #                 id='disease-selectall',
+            #                 options=[{
+            #                     'label': 'Select all',
+            #                     'value': 'all'
+            #                 }],
+            #                 value=['all'],
+            #                 inputStyle={'margin-right': '2px'}
+            #             ),
+            #             dcc.Checklist(
+            #                 id='disease-checkboxes',
+            #                 options=disease_options,
+            #                 value=[
+            #                     option['value'] for option in disease_options],
+            #                 style={
+            #                     'overflowY': 'auto',
+            #                     'maxHeight': '70px'
+            #                 },
+            #                 inputStyle={'margin-right': '2px'}
+            #             )
+            #         ]),
+            #         id='disease-fade',
+            #         is_in=True,
+            #         appear=True,
+            #     )
+            # ]),
+            # html.Div(style={'margin-top': '10px'}),
+            html.Label(html.B('Outcome:')),
+            html.Div(style={'margin-top': '5px'}),
+            dcc.Checklist(
+                id='outcome-checkboxes',
+                options=outcome_options,
+                value=[option['value'] for option in outcome_options],
+                inputStyle={'margin-right': '2px', 'margin-left': '10px'},
+                style={'margin-left': '-10px'},
+                inline=True
+            )
+        ], style={'overflowY': 'auto', 'maxHeight': '75vh'},
     )
     return filters
 
@@ -355,7 +561,7 @@ def define_menu(buttons, filter_options, project_name=None):
     menu = html.Div(
         menu,
         style={
-            'width': '300px', 'position': 'fixed', 'bottom': 0, 'left': 0,
+            'width': '350px', 'position': 'fixed', 'bottom': 0, 'left': 0,
             'z-index': 1000, 'background-color': 'rgba(255, 255, 255, 0.8)',
             'padding': '10px'})
     return menu
@@ -409,7 +615,7 @@ def define_app_layout(
                 style=logo_style) for logo in funders_logo_list],
             style={
                 'position': 'absolute', 'bottom': 0,
-                'width': 'calc(100% - 300px)', 'margin-left': '300px',
+                'width': 'calc(100% - 350px)', 'margin-left': '350px',
                 'background-color': '#FFFFFF',
                 'z-index': 0, }),
     ])
@@ -523,15 +729,18 @@ def create_modal(visuals, button, filter_options):
 
 def define_filters_controls_modal(
         sex_options, age_options, country_options,
-        outcome_options, add_row=None):
-    row = dbc.Row([
+        admdate_options,  # disease_options,
+        outcome_options,
+        add_row=None):
+    filter_rows = [dbc.Row([
         dbc.Col([
             html.H6('Sex at birth:', style={'margin-right': '10px'}),
             html.Div([
                 dcc.Checklist(
-                    id='gender-checkboxes-modal',
+                    id='sex-checkboxes-modal',
                     options=sex_options,
                     value=[option['value'] for option in sex_options],
+                    inputStyle={'margin-right': '2px'}
                 )
             ])
         ], width=2),
@@ -551,6 +760,21 @@ def define_filters_controls_modal(
             ])
         ], width=3),
         dbc.Col([
+            html.H6('Admission date:', style={'margin-right': '10px'}),
+            html.Div([
+                html.Div([
+                    dcc.RangeSlider(
+                        id='admdate-slider-modal',
+                        min=admdate_options['min'],
+                        max=admdate_options['max'],
+                        step=admdate_options['step'],
+                        marks=admdate_options['marks'],
+                        value=admdate_options['value']
+                    )
+                ], style={'width': '100%'})  # Apply style to this div
+            ])
+        ], width=3),
+        dbc.Col([
             html.H6('Country:', style={'margin-right': '10px'}),
             html.Div([
                 html.Div(
@@ -560,23 +784,60 @@ def define_filters_controls_modal(
                     html.Div([
                         dcc.Checklist(
                             id='country-selectall-modal',
-                            options=[{'label': 'Select all', 'value': 'all'}],
-                            value=['all']
+                            options=[{
+                                'label': 'Select all',
+                                'value': 'all'
+                            }],
+                            value=['all'],
+                            inputStyle={'margin-right': '2px'}
                         ),
                         dcc.Checklist(
                             id='country-checkboxes-modal',
                             options=country_options,
                             value=[
                                 option['value'] for option in country_options],
-                            style={'overflowY': 'auto', 'maxHeight': '100px'}
+                            style={'overflowY': 'auto', 'maxHeight': '100px'},
+                            inputStyle={'margin-right': '2px'}
                         )
                     ]),
                     id='country-fade-modal',
-                    is_in=False,
-                    appear=False,
+                    is_in=True,
+                    appear=True,
                 )
             ]),
-        ], width=5),
+        ], width=2),
+        # dbc.Col([
+        #     html.H6('Disease:', style={'margin-right': '10px'}),
+        #     html.Div([
+        #         html.Div(
+        #             id='disease-display-modal',
+        #             children='Disease:', style={'cursor': 'pointer'}),
+        #         dbc.Fade(
+        #             html.Div([
+        #                 dcc.Checklist(
+        #                     id='disease-selectall-modal',
+        #                     options=[{
+        #                         'label': 'Select all',
+        #                         'value': 'all'
+        #                     }],
+        #                     value=['all'],
+        #                     inputStyle={'margin-right': '2px'}
+        #                 ),
+        #                 dcc.Checklist(
+        #                     id='disease-checkboxes-modal',
+        #                     options=disease_options,
+        #                     value=[
+        #                         option['value'] for option in disease_options],
+        #                     style={'overflowY': 'auto', 'maxHeight': '100px'},
+        #                     inputStyle={'margin-right': '2px'}
+        #                 )
+        #             ]),
+        #             id='disease-fade-modal',
+        #             is_in=True,
+        #             appear=True,
+        #         )
+        #     ]),
+        # ], width=2),
         dbc.Col([
             html.H6('Outcome:', style={'margin-right': '10px'}),
             html.Div([
@@ -584,10 +845,11 @@ def define_filters_controls_modal(
                     id='outcome-checkboxes-modal',
                     options=outcome_options,
                     value=[option['value'] for option in outcome_options],
+                    inputStyle={'margin-right': '2px'}
                 )
             ])
         ], width=2)
-    ])
+    ])]
     row_button = dbc.Row([
         dbc.Col([
             dbc.Button(
@@ -598,9 +860,9 @@ def define_filters_controls_modal(
             width={'size': 6, 'offset': 3},
             style={'text-align': 'center'})  # Center the button
     ])
-    row_list = [row, row_button]
+    row_list = filter_rows + [row_button]
     if add_row is not None:
-        row_list = [row, add_row, row_button]
+        row_list = filter_rows + [add_row, row_button]
     filters = dbc.Row([dbc.Col(row_list)])
     return filters
 
@@ -699,32 +961,54 @@ def register_callbacks(
     @app.callback(
         Output('world-map', 'figure'),
         [
-            Input('gender-checkboxes', 'value'),
+            Input('sex-checkboxes', 'value'),
             Input('age-slider', 'value'),
-            Input('outcome-checkboxes', 'value'),
-            Input('country-checkboxes', 'value')
+            Input('country-checkboxes', 'value'),
+            Input('admdate-slider', 'value'),
+            Input('admdate-slider', 'marks'),
+            # Input('disease-checkboxes', 'value'),
+            Input('outcome-checkboxes', 'value')
         ],
         [State('map-layout', 'data')],
         prevent_initial_call=True
     )
-    def update_map(genders, age_range, outcomes, countries, map_layout_dict):
+    def update_map(
+            sex_value, age_value, country_value,
+            admdate_value, admdate_marks,  # disease_value,
+            outcome_value,
+            map_layout_dict):
         df_map['filters_age'] = df_map['filters_age'].astype(float)
+        admdate_min = pd.to_datetime(
+            admdate_marks[str(admdate_value[0])]['label'])
+        admdate_max = pd.to_datetime(
+            admdate_marks[str(admdate_value[1])]['label'])
         df_map_filtered = df_map[(
-            (df_map['filters_sex'].isin(genders)) &
-            ((
-                df_map['filters_age'] >= age_range[0]) |
-                df_map['filters_age'].isna()) &
-            ((
-                df_map['filters_age'] <= age_range[1]) |
-                df_map['filters_age'].isna()) &
-            (df_map['filters_outcome'].isin(outcomes)) &
-            (df_map['filters_country'].isin(countries)))]
+            (df_map['filters_sex'].isin(sex_value)) &
+            (
+                (df_map['filters_age'] >= age_value[0]) |
+                (df_map['filters_age'].isna())
+            ) &
+            (
+                (df_map['filters_age'] <= age_value[1]) |
+                (df_map['filters_age'].isna())
+            ) &
+            (
+                (df_map['filters_admdate'] >= admdate_min) |
+                (df_map['filters_admdate'].isna())
+            ) &
+            (
+                (df_map['filters_admdate'] <= admdate_max) |
+                (df_map['filters_admdate'].isna())
+            ) &
+            # (df_map['filters_disease'].isin(disease_value)) &
+            (df_map['filters_outcome'].isin(outcome_value)) &
+            (df_map['filters_country'].isin(country_value))
+        )]
         if df_map_filtered.empty:
             geojson = os.path.join(
                 'https://raw.githubusercontent.com/',
                 'martynafford/natural-earth-geojson/master/',
                 '50m/cultural/ne_50m_admin_0_map_units.json')
-            #
             # geojson = os.path.join(
             #     'https://raw.githubusercontent.com/',
             #     'johan/world.geo.json/master/countries.geo.json')
@@ -741,86 +1025,238 @@ def register_callbacks(
         return fig
 
     @app.callback(
-        [Output('country-checkboxes', 'value'),
-         Output('country-selectall', 'options'),
-         Output('country-selectall', 'value')],
-        [Input('country-selectall', 'value'),
-         Input('country-checkboxes', 'value')],
+        [
+            Output('country-selectall', 'value'),
+            Output('country-selectall', 'options'),
+            Output('country-checkboxes', 'value')
+        ],
+        [
+            Input('country-selectall', 'value'),
+            Input('country-checkboxes', 'value')
+        ],
         [State('country-checkboxes', 'options')]
     )
     def update_country_selection(
-            select_all_value, selected_countries, all_countries_options):
+            selectall_value, country_value, country_options):
         ctx = dash.callback_context
 
         if not ctx.triggered:
             # Initial load, no input has triggered the callback yet
             output = [
-                selected_countries,
-                [{'label': 'Unselect all', 'value': 'all'}], ['all']]
+                ['all'],
+                [{'label': 'Unselect all', 'value': 'all'}],
+                country_value
+            ]
 
         trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
         if trigger_id == 'country-selectall':
-            if 'all' in select_all_value:
+            if 'all' in selectall_value:
                 # 'Select all' (now 'Unselect all') is checked
                 output = [
-                    [option['value'] for option in all_countries_options],
-                    [{'label': 'Unselect all', 'value': 'all'}], ['all']]
+                    ['all'],
+                    [{'label': 'Unselect all', 'value': 'all'}],
+                    [option['value'] for option in country_options],
+                ]
             else:
                 # 'Unselect all' is unchecked
                 output = [[], [{'label': 'Select all', 'value': 'all'}], []]
         elif trigger_id == 'country-checkboxes':
-            if len(selected_countries) == len(all_countries_options):
+            if len(country_value) == len(country_options):
                 # All countries are selected manually
                 output = [
-                    selected_countries,
-                    [{'label': 'Unselect all', 'value': 'all'}], ['all']]
+                    ['all'],
+                    [{'label': 'Unselect all', 'value': 'all'}],
+                    country_value
+                ]
             else:
                 # Some countries are deselected
                 output = [
-                    selected_countries,
-                    [{'label': 'Select all', 'value': 'all'}], []]
+                    [],
+                    [{'label': 'Select all', 'value': 'all'}],
+                    country_value
+                ]
         else:
             output = [
-                selected_countries,
-                [{'label': 'Select all', 'value': 'all'}], select_all_value]
+                selectall_value,
+                [{'label': 'Select all', 'value': 'all'}],
+                country_value
+            ]
         return output
+
+    # @app.callback(
+    #     [
+    #         Output('disease-selectall', 'value'),
+    #         Output('disease-selectall', 'options'),
+    #         Output('disease-checkboxes', 'value'),
+    #     ],
+    #     [
+    #         Input('disease-selectall', 'value'),
+    #         Input('disease-checkboxes', 'value')
+    #     ],
+    #     [State('disease-checkboxes', 'options')]
+    # )
+    # def update_disease_selection(
+    #         selectall_value, disease_value, disease_options):
+    #     ctx = dash.callback_context
+    #
+    #     if not ctx.triggered:
+    #         # Initial load, no input has triggered the callback yet
+    #         output = [
+    #             ['all'],
+    #             [{'label': 'Unselect all', 'value': 'all'}],
+    #             disease_value
+    #         ]
+    #
+    #     trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    #
+    #     if trigger_id == 'disease-selectall':
+    #         if 'all' in selectall_value:
+    #             # 'Select all' (now 'Unselect all') is checked
+    #             output = [
+    #                 ['all'],
+    #                 [{'label': 'Unselect all', 'value': 'all'}],
+    #                 [option['value'] for option in disease_options]
+    #             ]
+    #         else:
+    #             # 'Unselect all' is unchecked
+    #             output = [[], [{'label': 'Select all', 'value': 'all'}], []]
+    #     elif trigger_id == 'disease-checkboxes':
+    #         if len(disease_value) == len(disease_options):
+    #             # All countries are selected manually
+    #             output = [
+    #                 ['all'],
+    #                 [{'label': 'Unselect all', 'value': 'all'}],
+    #                 disease_value
+    #             ]
+    #         else:
+    #             # Some countries are deselected
+    #             output = [
+    #                 [],
+    #                 [{'label': 'Select all', 'value': 'all'}],
+    #                 disease_value
+    #             ]
+    #     else:
+    #         output = [
+    #             selectall_value,
+    #             [{'label': 'Select all', 'value': 'all'}],
+    #             disease_value
+    #         ]
+    #     return output
 
     @app.callback(
         Output('country-fade', 'is_in'),
         [Input('country-display', 'n_clicks')],
         [State('country-fade', 'is_in')]
     )
-    def toggle_fade(n_clicks, is_in):
+    def toggle_country_fade(n_clicks, is_in):
         if n_clicks:
             return not is_in
         return is_in
+
+    # @app.callback(
+    #     Output('disease-fade', 'is_in'),
+    #     [Input('disease-display', 'n_clicks')],
+    #     [State('disease-fade', 'is_in')]
+    # )
+    # def toggle_disease_fade(n_clicks, is_in):
+    #     if n_clicks:
+    #         return not is_in
+    #     return is_in
 
     @app.callback(
         Output('country-display', 'children'),
         [Input('country-checkboxes', 'value')],
         [State('country-checkboxes', 'options')]
     )
-    def update_country_display(selected_values, all_options):
-        if not selected_values:
-            return 'Country:'
-
-        # Create a dictionary to map values to labels
-        value_label_map = {
-            option['value']: option['label'] for option in all_options}
-
-        # Build the display string
-        selected_labels = [
-            value_label_map[val] for val in selected_values
-            if val in value_label_map]
-        display_text = ', '.join(selected_labels)
-
-        if len(display_text) > 20:  # Adjust character limit as needed
-            output = f'Country: {selected_labels[0]}, '
-            output += f'+{len(selected_labels) - 1} more...'
+    def update_country_display(country_value, country_options):
+        if not country_value:
+            output = html.Div([
+                html.B('Country:'),
+                # ' (scroll down for all)',
+                html.Br(),
+                'None selected'
+            ])
         else:
-            output = f'Country: {display_text}'
+            # Create a dictionary to map values to labels
+            value_label_map = {
+                option['value']: option['label'] for option in country_options}
+
+            # Build the display string
+            selected_labels = [
+                value_label_map[val] for val in country_value
+                if val in value_label_map]
+            display_text = ', '.join(selected_labels)
+
+            if len(display_text) > 35:  # Adjust character limit as needed
+                if len(selected_labels) == 1:
+                    output = html.Div([
+                        html.B('Country:'),
+                        # ' (scroll down for all)',
+                        html.Br(),
+                        f'{selected_labels[0]}'])
+                else:
+                    output = html.Div([
+                        html.B('Country:'),
+                        # ' (scroll down for all)',
+                        html.Br(),
+                        f'{selected_labels[0]}, ',
+                        f'+{len(selected_labels) - 1} more...'])
+            else:
+                output = html.Div([
+                    html.B('Country:'),
+                    # ' (scroll down for all)',
+                    html.Br(),
+                    f'{display_text}'
+                ])
         return output
+
+    # @app.callback(
+    #     Output('disease-display', 'children'),
+    #     [Input('disease-checkboxes', 'value')],
+    #     [State('disease-checkboxes', 'options')]
+    # )
+    # def update_disease_display(disease_value, disease_options):
+    #     if not disease_value:
+    #         output = html.Div([
+    #             html.B('Disease:'),
+    #             # ' (scroll down for all)',
+    #             html.Br(),
+    #             'None selected'
+    #         ])
+    #     else:
+    #         # Create a dictionary to map values to labels
+    #         value_label_map = {
+    #             option['value']: option['label'] for option in disease_options}
+    #
+    #         # Build the display string
+    #         selected_labels = [
+    #             value_label_map[val] for val in disease_value
+    #             if val in value_label_map]
+    #         display_text = ', '.join(selected_labels)
+    #
+    #         if len(display_text) > 35:  # Adjust character limit as needed
+    #             if len(selected_labels) == 1:
+    #                 output = html.Div([
+    #                     html.B('Disease:'),
+    #                     # ' (scroll down for all)',
+    #                     html.Br(),
+    #                     f'{selected_labels[0]}'])
+    #             else:
+    #                 output = html.Div([
+    #                     html.B('Disease:'),
+    #                     ' (scroll down for all)',
+    #                     html.Br(),
+    #                     f'{selected_labels[0]}, ',
+    #                     f'+{len(selected_labels) - 1} more...'])
+    #         else:
+    #             output = html.Div([
+    #                 html.B('Disease:'),
+    #                 # ' (scroll down for all)',
+    #                 html.Br(),
+    #                 f'{display_text}'
+    #             ])
+    #     return output
 
     @app.callback(
         [
@@ -853,118 +1289,252 @@ def register_callbacks(
         return output
 
     @app.callback(
-        [Output('country-checkboxes-modal', 'value'),
-         Output('country-selectall-modal', 'options'),
-         Output('country-selectall-modal', 'value')],
-        [Input('country-selectall-modal', 'value'),
-         Input('country-checkboxes-modal', 'value')],
+        [
+            Output('country-selectall-modal', 'value'),
+            Output('country-selectall-modal', 'options'),
+            Output('country-checkboxes-modal', 'value')
+        ],
+        [
+            Input('country-selectall-modal', 'value'),
+            Input('country-checkboxes-modal', 'value')
+        ],
         [State('country-checkboxes-modal', 'options')]
     )
     def update_country_selection_modal(
-            select_all_value, selected_countries, all_countries_options):
+            selectall_value, country_value, country_options):
         ctx = dash.callback_context
         if not ctx.triggered:
             # Initial load, no input has triggered the callback yet
             output = [
-                selected_countries,
-                [{'label': 'Unselect all', 'value': 'all'}], ['all']]
+                ['all'],
+                [{'label': 'Unselect all', 'value': 'all'}],
+                country_value
+            ]
 
         trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
         #
         if trigger_id == 'country-selectall-modal':
-            if 'all' in select_all_value:
+            if 'all' in selectall_value:
                 # 'Select all' (now 'Unselect all') is checked
                 output = [
-                    [option['value'] for option in all_countries_options],
-                    [{'label': 'Unselect all', 'value': 'all'}], ['all']]
+                    ['all'],
+                    [{'label': 'Unselect all', 'value': 'all'}],
+                    [option['value'] for option in country_options]
+                ]
             else:
                 # 'Unselect all' is unchecked
                 output = [[], [{'label': 'Select all', 'value': 'all'}], []]
         elif trigger_id == 'country-checkboxes-modal':
-            if len(selected_countries) == len(all_countries_options):
+            if len(country_value) == len(country_options):
                 # All countries are selected manually
                 output = [
-                    selected_countries,
-                    [{'label': 'Unselect all', 'value': 'all'}], ['all']]
+                    ['all'],
+                    [{'label': 'Unselect all', 'value': 'all'}],
+                    country_value
+                ]
             else:
                 # Some countries are deselected
                 output = [
-                    selected_countries,
-                    [{'label': 'Select all', 'value': 'all'}], []]
+                    [],
+                    [{'label': 'Select all', 'value': 'all'}],
+                    country_value
+                ]
         else:
             output = [
-                selected_countries,
-                [{'label': 'Select all', 'value': 'all'}], select_all_value]
+                selectall_value,
+                [{'label': 'Select all', 'value': 'all'}],
+                country_value
+            ]
         return output
+
+    # @app.callback(
+    #     [
+    #         Output('disease-selectall-modal', 'value'),
+    #         Output('disease-selectall-modal', 'options'),
+    #         Output('disease-checkboxes-modal', 'value')
+    #     ],
+    #     [
+    #         Input('disease-selectall-modal', 'value'),
+    #         Input('disease-checkboxes-modal', 'value')
+    #     ],
+    #     [State('disease-checkboxes-modal', 'options')]
+    # )
+    # def update_disease_selection_modal(
+    #         selectall_value, disease_value, disease_options):
+    #     ctx = dash.callback_context
+    #     if not ctx.triggered:
+    #         # Initial load, no input has triggered the callback yet
+    #         output = [
+    #             ['all'],
+    #             [{'label': 'Unselect all', 'value': 'all'}],
+    #             disease_value
+    #         ]
+    #
+    #     trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    #     #
+    #     if trigger_id == 'disease-selectall-modal':
+    #         if 'all' in selectall_value:
+    #             # 'Select all' (now 'Unselect all') is checked
+    #             output = [
+    #                 ['all'],
+    #                 [{'label': 'Unselect all', 'value': 'all'}],
+    #                 [option['value'] for option in disease_options]
+    #             ]
+    #         else:
+    #             # 'Unselect all' is unchecked
+    #             output = [[], [{'label': 'Select all', 'value': 'all'}], []]
+    #     elif trigger_id == 'disease-checkboxes-modal':
+    #         if len(disease_value) == len(disease_options):
+    #             # All countries are selected manually
+    #             output = [
+    #                 ['all'],
+    #                 [{'label': 'Unselect all', 'value': 'all'}],
+    #                 disease_value
+    #             ]
+    #         else:
+    #             # Some countries are deselected
+    #             output = [
+    #                 [],
+    #                 [{'label': 'Select all', 'value': 'all'}],
+    #                 disease_value
+    #             ]
+    #     else:
+    #         output = [
+    #             selectall_value,
+    #             [{'label': 'Select all', 'value': 'all'}],
+    #             disease_value
+    #         ]
+    #     return output
 
     @app.callback(
         Output('country-fade-modal', 'is_in'),
         [Input('country-display-modal', 'n_clicks')],
         [State('country-fade-modal', 'is_in')]
     )
-    def toggle_fade_modal(n_clicks, is_in):
+    def toggle_country_fade_modal(n_clicks, is_in):
         state = is_in
         if n_clicks:
             state = not is_in
         return state
+
+    # @app.callback(
+    #     Output('disease-fade-modal', 'is_in'),
+    #     [Input('disease-display-modal', 'n_clicks')],
+    #     [State('disease-fade-modal', 'is_in')]
+    # )
+    # def toggle_disease_fade_modal(n_clicks, is_in):
+    #     state = is_in
+    #     if n_clicks:
+    #         state = not is_in
+    #     return state
 
     @app.callback(
         Output('country-display-modal', 'children'),
         [Input('country-checkboxes-modal', 'value')],
         [State('country-checkboxes-modal', 'options')]
     )
-    def update_country_display_modal(selected_values, all_options):
-        if not selected_values:
+    def update_country_display_modal(country_value, country_options):
+        if not country_value:
             return 'Country:'
 
         # Create a dictionary to map values to labels
         value_label_map = {
-            option['value']: option['label'] for option in all_options}
+            option['value']: option['label'] for option in country_options}
 
         # Build the display string
         selected_labels = [
-            value_label_map[val] for val in selected_values
+            value_label_map[val] for val in country_value
             if val in value_label_map]
         display_text = ', '.join(selected_labels)
 
         if len(display_text) > 20:  # Adjust character limit as needed
-            output = f'Country: {selected_labels[0]}, '
+            output = f'{selected_labels[0]}, '
             output += f'+{len(selected_labels) - 1} more...'
         else:
             output = f'Country: {display_text}'
         return output
 
+    # @app.callback(
+    #     Output('disease-display-modal', 'children'),
+    #     [Input('disease-checkboxes-modal', 'value')],
+    #     [State('disease-checkboxes-modal', 'options')]
+    # )
+    # def update_disease_display_modal(disease_value, disease_options):
+    #     if not disease_value:
+    #         return 'Disease:'
+    #
+    #     # Create a dictionary to map values to labels
+    #     value_label_map = {
+    #         option['value']: option['label'] for option in disease_options}
+    #
+    #     # Build the display string
+    #     selected_labels = [
+    #         value_label_map[val] for val in disease_value
+    #         if val in value_label_map]
+    #     display_text = ', '.join(selected_labels)
+    #
+    #     if len(display_text) > 20:  # Adjust character limit as needed
+    #         output = f'{selected_labels[0]}, '
+    #         output += f'+{len(selected_labels) - 1} more...'
+    #     else:
+    #         output = f'Disease: {display_text}'
+    #     return output
+
     @app.callback(
         [
             Output('modal', 'children', allow_duplicate=True),
-            Output('gender-checkboxes-modal', 'value', allow_duplicate=True),
+            Output('sex-checkboxes-modal', 'value', allow_duplicate=True),
             Output('age-slider-modal', 'value', allow_duplicate=True),
-            Output('outcome-checkboxes-modal', 'value', allow_duplicate=True),
-            Output('country-checkboxes-modal', 'value', allow_duplicate=True)
+            Output('country-checkboxes-modal', 'value', allow_duplicate=True),
+            Output('admdate-slider-modal', 'value', allow_duplicate=True),
+            # Output('disease-checkboxes-modal', 'value', allow_duplicate=True),
+            Output('outcome-checkboxes-modal', 'value', allow_duplicate=True)
         ],
         [Input('submit-button-modal', 'n_clicks')],
         [
             State('button', 'data'),
-            State('gender-checkboxes-modal', 'value'),
+            State('sex-checkboxes-modal', 'value'),
             State('age-slider-modal', 'value'),
-            State('outcome-checkboxes-modal', 'value'),
-            State('country-checkboxes-modal', 'value')
+            State('country-checkboxes-modal', 'value'),
+            State('admdate-slider-modal', 'value'),
+            State('admdate-slider-modal', 'marks'),
+            # State('disease-checkboxes-modal', 'value'),
+            State('outcome-checkboxes-modal', 'value')
         ],
         prevent_initial_call=True
     )
     def update_figures(
-            click, button, genders, age_range, outcomes, countries):
+            click, button,
+            sex_value, age_value, country_value,
+            admdate_value, admdate_marks,  # disease_value,
+            outcome_value):
         df_map['filters_age'] = df_map['filters_age'].astype(float)
+        admdate_min = pd.to_datetime(
+            admdate_marks[str(admdate_value[0])]['label'])
+        admdate_max = pd.to_datetime(
+            admdate_marks[str(admdate_value[1])]['label'])
         df_map_filtered = df_map[(
-            (df_map['filters_sex'].isin(genders)) &
-            ((
-                df_map['filters_age'] >= age_range[0]) |
-                df_map['filters_age'].isna()) &
-            ((
-                df_map['filters_age'] <= age_range[1]) |
-                df_map['filters_age'].isna()) &
-            (df_map['filters_outcome'].isin(outcomes)) &
-            (df_map['filters_country'].isin(countries)))]
+            (df_map['filters_sex'].isin(sex_value)) &
+            (
+                (df_map['filters_age'] >= age_value[0]) |
+                (df_map['filters_age'].isna())
+            ) &
+            (
+                (df_map['filters_age'] <= age_value[1]) |
+                (df_map['filters_age'].isna())
+            ) &
+            (
+                (df_map['filters_admdate'] >= admdate_min) |
+                (df_map['filters_admdate'].isna())
+            ) &
+            (
+                (df_map['filters_admdate'] <= admdate_max) |
+                (df_map['filters_admdate'].isna())
+            ) &
+            # (df_map['filters_disease'].isin(disease_value)) &
+            (df_map['filters_outcome'].isin(outcome_value)) &
+            (df_map['filters_country'].isin(country_value))
+        )]
         df_map_filtered = df_map_filtered.reset_index(drop=True)
 
         df_forms_filtered = df_forms_dict.copy()
@@ -973,15 +1543,27 @@ def register_callbacks(
             df_filtered['filters_age'] = (
                 df_filtered['filters_age'].astype(float))
             df_filtered = df_filtered[(
-                (df_filtered['filters_sex'].isin(genders)) &
-                ((
-                    df_filtered['filters_age'] >= age_range[0]) |
-                    df_filtered['filters_age'].isna()) &
-                ((
-                    df_filtered['filters_age'] <= age_range[1]) |
-                    df_filtered['filters_age'].isna()) &
-                (df_filtered['filters_outcome'].isin(outcomes)) &
-                (df_filtered['filters_country'].isin(countries)))]
+                (df_filtered['filters_sex'].isin(sex_value)) &
+                (
+                    (df_filtered['filters_age'] >= age_value[0]) |
+                    (df_filtered['filters_age'].isna())
+                ) &
+                (
+                    (df_filtered['filters_age'] <= age_value[1]) |
+                    (df_filtered['filters_age'].isna())
+                ) &
+                (
+                    (df_filtered['filters_admdate'] >= admdate_min) |
+                    (df_filtered['filters_admdate'].isna())
+                ) &
+                (
+                    (df_filtered['filters_admdate'] <= admdate_max) |
+                    (df_filtered['filters_admdate'].isna())
+                ) &
+                # (df_filtered['filters_disease'].isin(disease_value)) &
+                (df_filtered['filters_outcome'].isin(outcome_value)) &
+                (df_filtered['filters_country'].isin(country_value))
+            )]
             df_forms_filtered[key] = df_filtered.reset_index(drop=True)
 
         suffix = button['suffix']
@@ -999,7 +1581,10 @@ def register_callbacks(
                 filepath=filepath, suffix=suffix,
                 save_inputs=save_inputs)
             modal = create_modal(visuals, button, filter_options)
-        output = modal, genders, age_range, outcomes, countries
+        output = (
+            modal, sex_value, age_value, country_value,
+            admdate_value,  # disease_value,
+            outcome_value)
         return output
 
     # @dash.callback(
@@ -1051,6 +1636,7 @@ def main():
 
     config_defaults = {
         'project_name': None,
+        "data_access_groups": None,
         'map_layout_center_latitude': 6,
         'map_layout_center_longitude': -75,
         'map_layout_zoom': 1.7,
@@ -1075,10 +1661,17 @@ def main():
     get_data_from_api = (api_url is not None) and (api_key is not None)
 
     if get_data_from_api:
-        # get_data_kwargs = {}
         print('Retrieving data from the API')
+        user_assigned_to_dag = getRC.user_assigned_to_dag(api_url, api_key)
+        # if user_assigned_to_dag & (config_dict['data_access_groups'] is None):
+        #     with open('data_access_groups.json') as json_data:
+        #         all_dags = json.load(json_data)
+        #         config_dict['data_access_groups'] = all_dags[api_url]
+        get_data_kwargs = {
+            'data_access_groups': config_dict['data_access_groups'],
+            'user_assigned_to_dag': user_assigned_to_dag}
         df_map, df_forms_dict, dictionary, quality_report = (
-            getRC.get_redcap_data(api_url, api_key))  # **get_data_kwargs
+            getRC.get_redcap_data(api_url, api_key, **get_data_kwargs))
 
     if get_data_from_api is False:
         try:
@@ -1117,6 +1710,7 @@ def main():
         'subjid': 'subjid',
         'demog_sex': 'filters_sex',
         'demog_age': 'filters_age',
+        'dates_admdate': 'filters_admdate',
         'country_iso': 'filters_country',
         'outco_binary_outcome': 'filters_outcome'
     }
@@ -1138,12 +1732,72 @@ def main():
         {'label': 'Female', 'value': 'Female'},
         {'label': 'Other / Unknown', 'value': 'Other / Unknown'}]
 
+    # disease_options = [
+    #     {'label': 'COVID-19 (SARS-CoV-2)', 'value': 'COVID-19 (SARS-CoV-2)'},
+    #     {'label': 'Dengue', 'value': 'Dengue'},
+    #     {
+    #         'label': 'Ebola virus disease (EVD)',
+    #         'value': 'Ebola virus disease (EVD)'},
+    #     {'label': 'Influenza A H5N1', 'value': 'Influenza A H5N1'},
+    #     {
+    #         'label': 'Marburg virus disease (MVD)',
+    #         'value': 'Marburg virus disease (MVD)'},
+    #     {
+    #         'label': 'Middle East respiratory syndrome (MERS)',
+    #         'value': 'Middle East respiratory syndrome (MERS)'},
+    #     {'label': 'Mpox', 'value': 'Mpox'},
+    #     {'label': 'Nipah', 'value': 'Nipah'},
+    #     {'label': 'Oropouche', 'value': 'Oropouche'},
+    #     {
+    #         'label': 'Severe acute respiratory syndrome (SARS-not COVID-19)',
+    #         'value': 'Severe acute respiratory syndrome (SARS-not COVID-19)'}
+    # ]
+
     max_age = max((100, df_map['demog_age'].max()))
     age_options = {'min': 0, 'max': max_age, 'step': 10}
     age_range = range(
         age_options['min'], age_options['max'] + 1, age_options['step'])
-    age_options['marks'] = {ii: str(ii) for ii in age_range}
+    age_options['marks'] = {
+        ii: {
+            'label': str(ii),
+            'style': {
+                'text-align': 'right',
+                'transform-origin': 'bottom left',
+                'transform': 'rotate(-45deg)',
+                'margin-left': '-5px',
+                'margin-top': '25px',
+                'height': '70px',
+                'width': '70px'}
+        }
+        for ii in age_range
+    }
     age_options['value'] = [age_options['min'], age_options['max']]
+
+    admdate_yyyymm = pd.date_range(
+        start=df_map['dates_admdate'].min().strftime('%Y-%m'),
+        end=df_map['dates_admdate'].max().strftime('%Y-%m'),
+        freq='MS')
+    admdate_yyyymm = [x.strftime('%Y-%m') for x in admdate_yyyymm]
+    admdate_options = {
+        'min': 0, 'max': len(admdate_yyyymm) - 1, 'step': 1}
+    admdate_range = range(
+        admdate_options['min'],
+        admdate_options['max'] + 1,
+        admdate_options['step'])
+    admdate_options['marks'] = {
+        ii: {
+            'label': admdate_yyyymm[ii],
+            'style': {
+                'text-align': 'right',
+                'transform-origin': 'bottom left',
+                'transform': 'rotate(-45deg)',
+                'margin-left': '-5px',
+                'margin-top': '25px',
+                'height': '70px',
+                'width': '70px'}
+        } for ii in admdate_range
+    }
+    admdate_options['value'] = [admdate_options['min'], admdate_options['max']]
 
     country_options = [
         {'label': x[1], 'value': x[0]}
@@ -1156,8 +1810,12 @@ def main():
     ]
 
     filter_options = {
-        'sex_options': sex_options, 'age_options': age_options,
-        'country_options': country_options, 'outcome_options': outcome_options}
+        'sex_options': sex_options,
+        'age_options': age_options,
+        'country_options': country_options,
+        'admdate_options': admdate_options,
+        # 'disease_options': disease_options,
+        'outcome_options': outcome_options}
 
     app.layout = define_app_layout(
         fig, buttons, filter_options,
@@ -1180,6 +1838,9 @@ def main():
     if config_dict['save_public_outputs']:
         public_path = os.path.join(
             init_project_path, config_dict['public_path'])
+        if os.path.exists(public_path):
+            print(f'Folder "{public_path}" already exists, removing this')
+            shutil.rmtree(public_path)
         print(f'Saving files for public dashboard to "{public_path}"')
         os.makedirs(
             os.path.dirname(os.path.join(public_path, '')), exist_ok=True)

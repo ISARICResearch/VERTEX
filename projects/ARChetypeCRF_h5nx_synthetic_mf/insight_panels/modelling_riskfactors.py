@@ -195,10 +195,11 @@ def create_visuals(
             var for var in logr_results['Variable'].values
             if var not in valid_predictors_outcome],
     }
+    pvalue_significance = {'*': 0.05, '**': 0.01}
     logr_results_table = ia.regression_summary_table(
         logr_results.copy(), dictionary,
         highlight_predictors=highlight_predictors,
-        p_values={'*': 0.05, '**': 0.01}
+        pvalue_significance=pvalue_significance
     )
 
     table_key = {
@@ -208,8 +209,12 @@ elimination), either remove this variable or a highly correlated variable''',
 only one of the outcomes), the variable should be removed from this \
 analysis'''
     }
-    table_key = '<br>'.join([
-        v for k, v in table_key.items() if len(highlight_predictors[k]) > 0])
+    table_key = (
+        '<br>'.join([
+            f'({k}) p < {str(v)}' for k, v in pvalue_significance.items()]) +
+        '<br>'.join([
+            v for k, v in table_key.items()
+            if len(highlight_predictors[k]) > 0]))
     table_m1 = idw.fig_table(
         logr_results_table,
         table_key=table_key,
@@ -235,7 +240,7 @@ analysis'''
 
     # ----- Should we have model checking of assumptions within the RAP?
     # -----
-    
+
     disclaimer_text = '''Disclaimer: the underlying data for these figures is \
 synthetic data. Results may not be clinically relevant or accurate.'''
     disclaimer_df = pd.DataFrame(

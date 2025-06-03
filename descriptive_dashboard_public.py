@@ -9,6 +9,7 @@ import plotly.graph_objs as go
 import sys
 import IsaricDraw as idw
 import os
+import webbrowser
 
 ############################################
 # ARGUMENTS
@@ -261,9 +262,11 @@ def get_visuals(path, buttons):
     visuals = {}
     for ii in range(len(buttons)):
         suffix = buttons[ii]['suffix']
+        graph_ids = tuple(x.split('/')[-1] for x in buttons[ii]['graph_ids'])
         metadata_files = os.listdir(os.path.join(path, suffix))
         metadata_files = [
-            file for file in metadata_files if file.endswith('.txt')]
+            file for file in metadata_files
+            if file.endswith('.txt') & file.startswith(graph_ids)]
         for file in metadata_files:
             new_file_path = os.path.join(path, suffix, file)
             with open(new_file_path, 'r', encoding='latin-1') as f:
@@ -517,9 +520,13 @@ def main():
 
     register_callbacks(app, buttons)
 
-    app.run_server(debug=True)
-    return
+    return app
 
 
 if __name__ == '__main__':
-    main()
+    app = main()
+    webbrowser.open('http://127.0.0.1:8050', new=2, autoraise=True)
+    app.run_server(debug=True, use_reloader=False)
+else:
+    app = main()
+    server = app.server

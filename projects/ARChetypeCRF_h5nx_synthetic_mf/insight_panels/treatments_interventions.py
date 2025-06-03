@@ -30,7 +30,7 @@ def create_visuals(
     split_column_order = ['Discharged', 'Death', 'Censored']
     df_table = ia.get_descriptive_data(
         df_map, dictionary, by_column=split_column,
-        include_sections=['inter', 'treat'])
+        include_sections=['inter', 'treat', 'medi'])
     table, table_key = ia.descriptive_table(
         df_table, dictionary, by_column=split_column,
         column_reorder=split_column_order)

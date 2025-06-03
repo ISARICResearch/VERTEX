@@ -1,27 +1,28 @@
-import pandas as pd
-import numpy as np
 import warnings
-from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.model_selection import StratifiedKFold
-# from scipy.stats import fisher_exact
-from sklearn.metrics import accuracy_score, classification_report
-from sklearn.metrics import confusion_matrix
-# from sklearn.metrics import balanced_accuracy_score, make_scorer
-# from typing import List, Union
+import numpy as np
+import pandas as pd
 # from bertopic import BERTopic
 # from bertopic.representation import KeyBERTInspired, MaximalMarginalRelevance
 # from bertopic._utils import select_topic_representation
 # from umap import UMAP
-# from sklearn.preprocessing import MinMaxScaler
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
-from statsmodels.stats.outliers_influence import variance_inflation_factor
 from lifelines import CoxPHFitter
 from scipy.stats import norm
+from scipy.stats import mannwhitneyu, chi2_contingency, fisher_exact
+# from scipy.stats import fisher_exact
+from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import confusion_matrix
+# from sklearn.metrics import roc_auc_score, roc_curve
+from sklearn.model_selection import StratifiedKFold
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+# from sklearn.preprocessing import MinMaxScaler
 from statsmodels.genmod.bayes_mixed_glm import BinomialBayesMixedGLM
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+from lifelines import KaplanMeierFitter
+from lifelines.statistics import logrank_test, multivariate_logrank_test
 # from sklearn.impute import KNNImputer
-# from sklearn.linear_model import LogisticRegression
-# from sklearn.metrics import roc_auc_score, roc_curve, accuracy_score
+from sklearn.linear_model import LogisticRegressionCV
 # from sklearn.preprocessing import LabelEncoder, StandardScaler
 # from sklearn.model_selection import train_test_split, GridSearchCV
 # from sklearn.linear_model import LogisticRegression
@@ -42,7 +43,7 @@ def extend_dictionary(dictionary, new_variable_dict, data, sep='___'):
     Args:
         dictionary (pd.DataFrame):
             VERTEX dictionary containing columns 'field_name', 'form_name',
-            'field_type', 'field_label', 'parent'.
+            'field_type', 'field_label', 'parent', 'branching_logic'.
         new_variable_dict (dict):
             A dict with the same keys as the dictionary columns, the values for
             each item can be a string or a list.
@@ -99,6 +100,8 @@ def extend_dictionary(dictionary, new_variable_dict, data, sep='___'):
         add_options['field_name'] = [
             variable + sep + str(y) for y in options]
         add_options['form_name'] = new_dictionary.loc[ind, 'form_name']
+        add_options['branching_logic'] = (
+            new_dictionary.loc[ind, 'branching_logic'])
         add_options['field_type'] = 'binary'
         add_options['field_label'] = options
         add_options['parent'] = variable
@@ -168,7 +171,7 @@ def convert_categorical_to_onehot(
                 drop_column_ind = dictionary.apply(
                     lambda x: (
                         (x['parent'] == categorical_column) &
-                        (x['field_name'].split('___')[0] == categorical_column)
+                        (x['field_name'].split(sep)[0] == categorical_column)
                     ), axis=1)
                 df = df.drop(columns=[
                     dictionary.loc[drop_column_ind, 'field_name'].values[0]])
@@ -240,6 +243,32 @@ def convert_onehot_to_categorical(
 #     return data
 
 
+def from_timeA_to_timeB(
+        data, dictionary, timeA_column, timeB_column,
+        timediff_column, timediff_label, time_unit='days'):
+    if time_unit == 'days':
+        data[timediff_column] = (
+            data[timeB_column] - data[timeA_column]).dt.days
+    elif time_unit == 'months':
+        data[timediff_column] = (
+            (data[timeB_column].dt.year - data[timeA_column].dt.year)*12 +
+            (data[timeB_column].dt.month - data[timeA_column].dt.month))
+    elif time_unit == 'months':
+        data[timediff_column] = (
+            data[timeB_column].dt.year - data[timeA_column].dt.year)
+    time_dict = {
+        'field_name': timediff_column,
+        'form_name': dictionary.loc[(
+            dictionary['field_name'] == timeB_column), 'field_name'].values[0],
+        'field_type': 'numeric',
+        'field_label': timediff_label,
+        'parent': dictionary.loc[(
+            dictionary['field_name'] == timeB_column), 'parent'].values[0],
+    }
+    dictionary = extend_dictionary(dictionary, time_dict, data)
+    return data, dictionary
+
+
 ############################################
 ############################################
 # Descriptive table
@@ -247,41 +276,103 @@ def convert_onehot_to_categorical(
 ############################################
 
 
-def median_iqr_str(series, dp=1, mfw=4, min_n=3):
+def median_iqr_str(series, add_spaces=False, dp=1, mfw=4, min_n=3):
     if series.notna().sum() < min_n:
         output_str = 'N/A'
-    else:
+    elif add_spaces:
         mfw_f = int(np.log10(max((series.quantile(0.75), 1)))) + 2 + dp
         output_str = '%*.*f' % (mfw_f, dp, series.median()) + ' ('
         output_str += '%*.*f' % (mfw_f, dp, series.quantile(0.25)) + '-'
         output_str += '%*.*f' % (mfw_f, dp, series.quantile(0.75)) + ') | '
         output_str += '%*g' % (mfw, int(series.notna().sum()))
+    else:
+        output_str = '%.*f' % (dp, series.median()) + ' ('
+        output_str += '%.*f' % (dp, series.quantile(0.25)) + '-'
+        output_str += '%.*f' % (dp, series.quantile(0.75)) + ') | '
+        output_str += str(int(series.notna().sum()))
     return output_str
 
 
-def mean_std_str(series, dp=1, mfw=4, min_n=3):
+def mean_std_str(series, add_spaces=False, dp=1, mfw=4, min_n=3):
     if series.notna().sum() < min_n:
         output_str = 'N/A'
-    else:
+    elif add_spaces:
         mfw_f = int(max((np.log10(series.mean(), 1)))) + 2 + dp
         output_str = '%*.*f' % (mfw_f, dp, series.mean()) + ' ('
         output_str += '%*.*f' % (mfw_f, dp, series.std()) + ') | '
         output_str += '%*g' % (mfw, int(series.notna().sum()))
+    else:
+        output_str = '%.*f' % (dp, series.mean()) + ' ('
+        output_str += '%.*f' % (dp, series.std()) + ') | '
+        output_str += str(int(series.notna().sum()))
     return output_str
 
 
-def n_percent_str(series, dp=1, mfw=4, min_n=1):
+def n_percent_str(series, add_spaces=False, dp=1, mfw=4, min_n=1):
     if series.notna().sum() < min_n:
         output_str = 'N/A'
-    else:
+    elif add_spaces:
         output_str = '%*g' % (mfw, int(series.sum())) + ' ('
         percent = 100*series.mean()
         if percent == 100:
-            output_str += '100.) | '
+            output_str += '100.0) | '
         else:
-            output_str += '%4.*f' % (dp, percent) + ') | '
+            output_str += '%5.*f' % (dp, percent) + ') | '
         output_str += '%*g' % (mfw, int(series.notna().sum()))
+    else:
+        count = int(series.sum())
+        percent = 100*series.mean()
+        denom = int(series.notna().sum())
+        output_str = f'{str(count)} ({'%.*f' % (dp, percent)}) | {str(denom)}'
     return output_str
+
+
+def get_chi2_pvalue(x, y, x_cat=[True, False], y_cat=[True, False]):
+    try:
+        print(x.name)
+        contingency = pd.crosstab(
+            pd.Categorical(x.loc[x.notna()], categories=x_cat),
+            pd.Categorical(y.loc[x.notna()], categories=y_cat),
+            margins=False, dropna=False)
+        pvalue = chi2_contingency(contingency).pvalue
+    except ValueError:
+        pvalue = np.nan
+    return pvalue
+
+
+def get_fisher_exact_pvalue(x, y, x_cat=[True, False], y_cat=[True, False]):
+    try:
+        contingency = pd.crosstab(
+            pd.Categorical(x.loc[x.notna()], categories=x_cat),
+            pd.Categorical(y.loc[x.notna()], categories=y_cat),
+            margins=False, dropna=False)
+        result = fisher_exact(contingency)
+        if np.isinf(result.statistic) or np.isnan(result.statistic):
+            pvalue = np.nan
+        else:
+            pvalue = result.pvalue
+    except ValueError:
+        pvalue = np.nan
+    return pvalue
+
+
+def format_pvalue(
+        pvalue, dp=3, min_val=0.001, significance={'*': 0.05, '**': 0.01}):
+    if pvalue < min_val:
+        pvalue_str = f'<{min_val}'
+    elif np.isnan(pvalue):
+        pvalue_str = ''
+    else:
+        pvalue_str = '%.*f' % (dp, pvalue)
+    for key in significance:
+        level = significance[key]
+        min_threshold = max(
+            [v for k, v in significance.items() if (k != key)] + [0])
+        if (min_threshold > level):
+            min_threshold = 0
+        if (pvalue < level) & (pvalue > (min_threshold - 1e-8)):
+            pvalue_str = pvalue_str + f' ({key})'
+    return pvalue_str
 
 
 def get_descriptive_data(
@@ -290,7 +381,7 @@ def get_descriptive_data(
         exclude_suffix=[
             '_units', 'addi', 'otherl2', 'item', '_oth',
             '_unlisted', 'otherl3'],
-        include_subjid=False, exclude_negatives=True):
+        include_subjid=False, exclude_negatives=True, sep='___'):
     df = data.copy()
 
     include_columns = get_variables_by_section_and_type(
@@ -306,16 +397,16 @@ def get_descriptive_data(
     columns = dictionary.loc[categorical_ind, 'field_name'].tolist()
     columns = [col for col in columns if col != by_column]
     df = convert_categorical_to_onehot(
-        df, dictionary, categorical_columns=columns)
+        df, dictionary, categorical_columns=columns, sep=sep)
 
     if (by_column is not None) & (by_column not in df.columns):
         df = convert_onehot_to_categorical(
-            df, dictionary, categorical_columns=[by_column])
+            df, dictionary, categorical_columns=[by_column], sep=sep)
 
     negative_values = ('no', 'never smoked')
     negative_columns = [
         col for col in df.columns
-        if col.split('___')[-1].lower() in negative_values]
+        if col.split(sep)[-1].lower() in negative_values]
     if exclude_negatives:
         df.drop(columns=negative_columns, inplace=True)
 
@@ -328,7 +419,7 @@ def get_descriptive_data(
 def descriptive_table(
         data, dictionary, by_column=None,
         include_totals=True, column_reorder=None,
-        include_raw_variable_name=False):
+        include_raw_variable_name=False, sep='___'):
     '''
     Descriptive table for binary (including onehot-encoded categorical) and
     numerical variables in data. The descriptive table will have seperate
@@ -367,7 +458,7 @@ def descriptive_table(
     table['Raw variable name'] = [
         var if var in df.columns else '' for var in index]
     table['Variable'] = format_descriptive_table_variables(
-        table_dictionary).tolist()
+        table_dictionary, sep=sep).tolist()
 
     mfw = int(np.log10(df.shape[0])) + 1  # Min field width, for formatting
     table.loc[numeric_columns, 'All'] = df[numeric_columns].apply(
@@ -399,6 +490,92 @@ def descriptive_table(
     return table, table_key
 
 
+def descriptive_comparison_table(
+        data, dictionary, by_column=None,
+        include_totals=True, column_reorder=None,
+        sep='___', pvalue_significance={'*': 0.05, '**': 0.01}):
+    '''
+    Descriptive table for binary (including onehot-encoded categorical) and
+    numerical variables in data. The descriptive table will have seperate
+    columns for each category that exists for the variable 'by_column', if
+    this is provided.
+    '''
+    df = data.copy()
+
+    numeric_ind = (dictionary['field_type'] == 'numeric')
+    numeric_columns = dictionary.loc[numeric_ind, 'field_name'].tolist()
+    numeric_columns = [col for col in numeric_columns if col in df.columns]
+    binary_ind = (dictionary['field_type'] == 'binary')
+    binary_columns = dictionary.loc[binary_ind, 'field_name'].tolist()
+    binary_columns = [col for col in binary_columns if col in df.columns]
+
+    # Add columns for section headers and categorical questions
+    index = numeric_columns + binary_columns
+    index += dictionary.loc[(
+        dictionary['field_name'].isin(index)), 'parent'].tolist()
+    table_dictionary = dictionary.loc[(dictionary['field_name'].isin(index))]
+    index = table_dictionary['field_name'].tolist()
+
+    table_columns = ['Variable', 'All']
+    if by_column is not None:
+        add_columns = list(df[by_column].unique())
+        if column_reorder is not None:
+            table_columns += [
+                col for col in column_reorder if col in add_columns]
+            table_columns += [
+                col for col in add_columns if col not in column_reorder]
+        else:
+            table_columns += add_columns
+    table_columns += ['p-value']
+    table = pd.DataFrame('', index=index, columns=table_columns)
+
+    table['Variable'] = format_descriptive_table_variables(
+        table_dictionary, sep=sep, binary_symbol='†').tolist()
+
+    mfw = int(np.log10(df.shape[0])) + 1  # Min field width, for formatting
+    table.loc[numeric_columns, 'All'] = df[numeric_columns].apply(
+        median_iqr_str, mfw=mfw)
+    table.loc[binary_columns, 'All'] = df[binary_columns].apply(
+        n_percent_str, mfw=mfw)
+
+    totals = pd.DataFrame(columns=table_columns, index=['totals'])
+    totals['Variable'] = '<b>Totals</b>'
+    totals['All'] = df.shape[0]
+
+    if by_column is not None:
+        by_column_values = df[by_column].unique()
+        for value in by_column_values:
+            ind = (df[by_column] == value)
+            mfw = int(np.log10(ind.sum())) + 1  # Min field width, for format
+            table.loc[numeric_columns, value] = (
+                df.loc[ind, numeric_columns].apply(median_iqr_str, mfw=mfw))
+            table.loc[binary_columns, value] = (
+                df.loc[ind, binary_columns].apply(n_percent_str, mfw=mfw))
+            totals[value] = ind.sum()
+        if len(by_column_values) == 2:
+            y = (df[by_column] == by_column_values[0])
+            pvalues = pd.Series(index=table.index)
+            pvalues.loc[numeric_columns] = df[numeric_columns].apply(
+                lambda x: mannwhitneyu(x, y, nan_policy='omit').pvalue,
+                axis=0)
+            pvalues.loc[binary_columns] = df[binary_columns].apply(
+                lambda x:
+                    get_fisher_exact_pvalue(x, y),
+                axis=0)
+            table['p-value'] = pvalues.apply(
+                format_pvalue, significance=pvalue_significance)
+
+    table = table.reset_index(drop=True)
+    if include_totals:
+        table = pd.concat([totals, table], axis=0).reset_index(drop=True)
+    table_key = '''<b>KEY</b><br>(†) Count (%) | N, p-value using Chi-squared
+test,    (+) Median (IQR) | N, p-value using Mann-Whitney test<br>'''
+    table_key += ',    '.join([
+        f'({k}) p < {str(v)}'
+        for k, v in pvalue_significance.items() if (pvalues < v).any()])
+    return table, table_key
+
+
 ############################################
 ############################################
 # Formatting
@@ -412,26 +589,28 @@ def trim_field_label(x, max_len=40):
     return x
 
 
-def format_descriptive_table_variables(dictionary, max_len=100, add_key=True):
+def format_descriptive_table_variables(
+        dictionary, max_len=100, add_key=True,
+        sep='___', binary_symbol='*', numeric_symbol='+'):
     name = dictionary['field_name'].apply(
-        lambda x: '   ↳ ' if '___' in x else '<b>')
+        lambda x: '   ↳ ' if sep in x else '<b>')
     name += dictionary['field_type'].map({'section': '<i>'}).fillna('')
     name += dictionary['field_label'].apply(
         lambda x: x.split(':')[-1] if x.startswith('If') else x).apply(
         trim_field_label, max_len=max_len)
     name += dictionary['field_type'].map({'section': '</i>'}).fillna('')
     name += dictionary['field_name'].apply(
-        lambda x: '' if '___' in x else '</b>')
+        lambda x: '' if sep in x else '</b>')
     if add_key is True:
         field_type = dictionary['field_type'].map({
-            'categorical': ' (*)',
-            'binary': ' (*)',
-            'numeric': ' (+)'}).fillna('')
-        name += field_type*(dictionary['field_name'].str.contains('___') == 0)
+            'categorical': f' ({binary_symbol})',
+            'binary': f' ({binary_symbol})',
+            'numeric': f' ({numeric_symbol})'}).fillna('')
+        name += field_type*(dictionary['field_name'].str.contains(sep) == 0)
     return name
 
 
-def format_variables(dictionary, max_len=40):
+def format_variables(dictionary, max_len=40, sep='___'):
     parent_label = dictionary['parent'].apply(
         lambda x: dictionary.loc[(
             dictionary['field_name'] == x).idxmax(), 'field_label'])
@@ -439,7 +618,7 @@ def format_variables(dictionary, max_len=40):
     name = dictionary['field_label'].apply(
         lambda x: x.split(':')[-1] if x.startswith('If') else x).apply(
         trim_field_label, max_len=max_len)
-    answer_ind = dictionary['field_name'].str.contains('___')
+    answer_ind = dictionary['field_name'].str.contains(sep)
     name = (
         ('<b>' + parent_name + '</b>, ' + name)*answer_ind +
         ('<b>' + name + '</b>')*(answer_ind == 0))
@@ -453,7 +632,7 @@ def format_variables(dictionary, max_len=40):
 ############################################
 
 
-def get_counts(df, dictionary, max_n_variables=10):
+def get_counts(df, dictionary, max_n_variables=10, sep='___'):
     counts = df.apply(lambda x: x.sum()).T.reset_index()
 
     counts.columns = ['variable', 'count']
@@ -462,8 +641,8 @@ def get_counts(df, dictionary, max_n_variables=10):
     if counts.shape[0] > max_n_variables:
         counts = counts.head(max_n_variables)
 
-    short_format = format_variables(dictionary, max_len=40)
-    long_format = format_variables(dictionary, max_len=1000)
+    short_format = format_variables(dictionary, max_len=40, sep=sep)
+    long_format = format_variables(dictionary, max_len=1000, sep=sep)
     format_dict = dict(zip(dictionary['field_name'], long_format))
     short_format_dict = dict(zip(dictionary['field_name'], short_format))
     counts['label'] = counts['variable'].map(format_dict)
@@ -471,8 +650,27 @@ def get_counts(df, dictionary, max_n_variables=10):
     return counts
 
 
-def get_proportions(df, dictionary, max_n_variables=10):
-    proportions = df.apply(
+def get_proportions(
+        df, dictionary, max_n_variables=10,
+        ignore_branching_logic=False, branching_logic='', sep='___'):
+    if ignore_branching_logic:
+        columns = [col for col in df.columns]
+    else:
+        dictionary_subset = dictionary.loc[(
+            dictionary['branching_logic'] == branching_logic)]
+        columns = [
+            col for col in df.columns
+            if col in dictionary_subset['field_name'].values]
+        if (len(columns) == 0):
+            branching_logic = dictionary.loc[
+                dictionary['field_name'].isin(df.columns), 'branching_logic']
+            branching_logic = branching_logic.values[0]
+            dictionary_subset = dictionary.loc[(
+                dictionary['branching_logic'] == branching_logic)]
+            columns = [
+                col for col in df.columns
+                if col in dictionary_subset['field_name'].values]
+    proportions = df[columns].apply(
         lambda x: (x.sum() / x.count(), x.sum())).T.reset_index()
 
     proportions.columns = ['variable', 'proportion', 'count']
@@ -485,8 +683,8 @@ def get_proportions(df, dictionary, max_n_variables=10):
     proportions = proportions.sort_values(
         by=['proportion'], ascending=False).reset_index(drop=True)
 
-    short_format = format_variables(dictionary, max_len=40)
-    long_format = format_variables(dictionary, max_len=1000)
+    short_format = format_variables(dictionary, max_len=40, sep=sep)
+    long_format = format_variables(dictionary, max_len=1000, sep=sep)
     format_dict = dict(zip(dictionary['field_name'], long_format))
     short_format_dict = dict(zip(dictionary['field_name'], short_format))
     proportions['label'] = proportions['variable'].map(format_dict)
@@ -497,10 +695,10 @@ def get_proportions(df, dictionary, max_n_variables=10):
 def get_upset_counts_intersections(
         df, dictionary,
         proportions=None,  # Deprecated
-        variables=None, n_variables=5):
+        variables=None, n_variables=5, sep='___'):
     # Convert variables and column names into their formatted names
-    long_format = format_variables(dictionary, max_len=1000)
-    short_format = format_variables(dictionary, max_len=40)
+    long_format = format_variables(dictionary, max_len=1000, sep=sep)
+    short_format = format_variables(dictionary, max_len=40, sep=sep)
     format_dict = dict(zip(dictionary['field_name'], long_format))
     short_format_dict = dict(zip(dictionary['field_name'], short_format))
 
@@ -719,7 +917,7 @@ def get_modelling_data(
             '_units', 'addi', 'otherl2', 'item', '_oth',
             '_unlisted', 'otherl3'],
         include_subjid=False, exclude_negatives=True,
-        fillna=True, drop_first=False):
+        fillna=True, drop_first=False, sep='___'):
     df = data.copy()
 
     if isinstance(outcome_columns, str):
@@ -740,7 +938,8 @@ def get_modelling_data(
     columns = dictionary.loc[categorical_ind, 'field_name'].tolist()
     columns = [col for col in columns if col not in tuple(outcome_columns)]
     df = convert_categorical_to_onehot(
-        df, dictionary, categorical_columns=columns, drop_first=drop_first)
+        df, dictionary, categorical_columns=columns,
+        drop_first=drop_first, sep=sep)
 
     binary_ind = (dictionary['field_type'] == 'binary')
     columns = dictionary.loc[binary_ind, 'field_name'].tolist()
@@ -752,7 +951,7 @@ def get_modelling_data(
     negative_values = ('no', 'never smoked')
     negative_columns = [
         col for col in df.columns
-        if col.split('___')[-1].lower() in negative_values]
+        if col.split(sep)[-1].lower() in negative_values]
     if exclude_negatives:
         df.drop(columns=negative_columns, inplace=True)
     return df
@@ -852,7 +1051,8 @@ def remove_single_binary_outcome_predictors(
 
 def regression_summary_table(
         table, dictionary,
-        highlight_predictors=None, p_values=None, result_type='OddsRatio'):
+        highlight_predictors=None, pvalue_significance=None,
+        result_type='OddsRatio', sep='___'):
     variables = table['Variable'].tolist()
     new_variables = variables + dictionary.loc[(
             (dictionary['field_name'].isin(variables)) &
@@ -886,21 +1086,25 @@ def regression_summary_table(
                 ' (' + '%.2f' % x[f'LowerCI ({reg_type})'] +
                 ', ' + '%.2f' % x[f'UpperCI ({reg_type})'] + ')', axis=1)
 
-        if p_values is not None:
-            significance = pd.Series('', index=table.index)
-            for key in p_values:
-                min_threshold = max(
-                    v for k, v in p_values.items() if (k != key))
-                if (min_threshold > p_values[key]):
-                    min_threshold = 0
-                ind = (
-                    (table[f'p-value ({reg_type})'] < p_values[key]) &
-                    (table[f'p-value ({reg_type})'] > (min_threshold - 1e-8)))
-                significance.loc[ind] = f' ({key})'
+        table[f'p-value ({reg_type})'] = table[f'p-value ({reg_type})'].apply(
+                format_pvalue, significance=pvalue_significance)
 
-            table[f'p-value ({reg_type})'] = (
-                table[f'p-value ({reg_type})'].apply(
-                    lambda x: '%.3f' % x) + significance)
+        # if pvalue_significance is not None:
+        #     significance = pd.Series('', index=table.index)
+        #     for key in pvalue_significance:
+        #         level = pvalue_significance[key]
+        #         min_threshold = max(
+        #             v for k, v in pvalue_significance.items() if (k != key))
+        #         if (min_threshold > level):
+        #             min_threshold = 0
+        #         ind = (
+        #             (table[f'p-value ({reg_type})'] < level) &
+        #             (table[f'p-value ({reg_type})'] > (min_threshold - 1e-8)))
+        #         significance.loc[ind] = f' ({key})'
+        #
+        #     table[f'p-value ({reg_type})'] = (
+        #         table[f'p-value ({reg_type})'].apply(
+        #             lambda x: '%.3f' % x) + significance)
 
         table = table.drop(
             columns=[f'LowerCI ({reg_type})', f'UpperCI ({reg_type})'])
@@ -921,8 +1125,8 @@ def regression_summary_table(
         add_key = add_key.apply(lambda x: x if x == '' else f' ({x})')
 
     formatted_labels_v1 = format_descriptive_table_variables(
-        dictionary, add_key=False)
-    formatted_labels_v2 = format_variables(dictionary)
+        dictionary, add_key=False, sep=sep)
+    formatted_labels_v2 = format_variables(dictionary, sep=sep)
     v1_ind = (dictionary['parent'].isin(variables))
     v2_ind = (dictionary['parent'].isin(variables) == 0)
     mapping_dict = {
@@ -1323,172 +1527,340 @@ def execute_cox_model(df, duration_col, event_col, predictors, labels=None):
     return summary_df
 
 
+def execute_kaplan_meier(
+        df, duration_col, event_col, group_col, alpha=0.05, n_times=5):
+    # Remove rows with missing values in relevant columns
+    df = df.dropna(subset=[duration_col, event_col, group_col])
+    kmf = KaplanMeierFitter()
+
+    unique_groups = df[group_col].sort_values().unique()
+    # survival_curves = {}
+    # confidence_intervals = {}
+    df_km = pd.DataFrame(columns=['timeline'])
+    max_time = (df[duration_col].max() // n_times) * (n_times + 1)
+    times = np.arange(0, max_time, n_times)
+
+    # Compute survival curves and confidence intervals for each group
+    for group in unique_groups:
+        group_data = df[df[group_col] == group]
+        kmf.fit(
+            group_data[duration_col],
+            event_observed=group_data[event_col],
+            label=str(group),
+            alpha=alpha)
+        ci_lower = kmf.confidence_interval_[f'{group}_lower_{1 - alpha}'] * 100
+        ci_upper = kmf.confidence_interval_[f'{group}_upper_{1 - alpha}'] * 100
+        survival_curve = pd.concat(
+            [kmf.survival_function_ * 100, ci_lower, ci_upper], axis=1)
+        survival_curve = survival_curve.drop_duplicates().reset_index().rename(
+            columns={'index': 'timeline'})
+        df_km = pd.merge(
+            df_km, survival_curve, on='timeline', how='outer').bfill()
+        # survival_curves[group] =
+        # confidence_intervals[group] = (ci_lower, ci_upper)
+
+    # Perform log-rank test
+    if len(unique_groups) == 2:
+        group1_data = df[df[group_col] == unique_groups[0]]
+        group2_data = df[df[group_col] == unique_groups[1]]
+        result = logrank_test(
+            group1_data[duration_col], group2_data[duration_col],
+            event_observed_A=group1_data[event_col],
+            event_observed_B=group2_data[event_col])
+        p_value = result.p_value
+    elif len(unique_groups) > 2:
+        result = multivariate_logrank_test(
+            df[duration_col], df[group_col], df[event_col])
+        p_value = result.p_value
+    else:
+        p_value = np.nan
+
+    # Generate risk table: number of individuals at risk over time
+    risk_counts = {
+        group: [(
+            (df[group_col] == group) & (df[duration_col] >= t)).sum()
+            for t in times]
+        for group in unique_groups
+    }
+
+    risk_table = pd.DataFrame(risk_counts, index=times).T
+    risk_table.insert(0, "Group", risk_table.index)
+
+    return df_km, risk_table, p_value
+
 
 ############################################
 ############################################
-# SOME RAPS
-# (basic imputation, variance check, correlation check and feature selection)
+# FEATURE SELECTION
+# (includes basic imputation, variance check, correlation check)
 ############################################
 ############################################
 
 
-def impute_miss_val(df, missing_threshold=0.7):
-    """
-    Imputes missing values or drops columns based on missing value proportion and median
+def impute_miss_val(
+        df, dictionary, outcome_column='outco_binary_outcome',
+        missing_threshold=0.7, verbose=False):
+    '''
+    Imputes missing values or drops columns based on missing value proportion
+    and median
 
      Returns:
     - df: DataFrame with missing values imputed or columns dropped
-    """
+    '''
+    keep_columns = ['subjid', outcome_column]
+
+    numeric_ind = (dictionary['field_type'] == 'numeric')
+    numeric_columns = dictionary.loc[numeric_ind, 'field_name'].tolist()
+    numeric_columns = [col for col in numeric_columns if col in df.columns]
+
+    binary_ind = (dictionary['field_type'] == 'binary')
+    binary_columns = dictionary.loc[binary_ind, 'field_name'].tolist()
+    binary_columns = [col for col in binary_columns if col in df.columns]
+
+    categorical_ind = dictionary['field_type'].isin(['binary'])
+    categorical_columns = dictionary.loc[
+        categorical_ind, 'field_name'].tolist()
+    categorical_columns = [
+        col for col in categorical_columns if col in df.columns]
+
     # Calculate the proportion of missing values in each column
     missing_proportions = df.isnull().mean()
 
     # Identify columns to drop
-    cols_to_drop = missing_proportions[missing_proportions > missing_threshold].index
-    df = df.drop(columns=cols_to_drop)
+    columns_to_drop = missing_proportions[(
+        missing_proportions > missing_threshold)].index.tolist()
+    columns_to_drop = [
+        col for col in columns_to_drop if col not in keep_columns]
+    df = df.drop(columns=columns_to_drop)
 
+    impute_columns = [col for col in df.columns if col not in keep_columns]
     # Impute missing values in remaining columns
-    for col in df.columns:
-        if df[col].isnull().any():
-            if pd.api.types.is_numeric_dtype(df[col]):
-                # Numeric column: impute with median
-                median_value = df[col].median()
-                if pd.isnull(median_value):
-                    # If median cannot be computed, drop the column
-                    df = df.drop(columns=[col])
-                else:
-                   df[col] = df[col].fillna(median_value)
-            else:
-                # Categorical column: impute with mode
-                mode_series = df[col].mode()
-                if not mode_series.empty:
-                    mode_value = mode_series[0]
-                    df[col] = df[col].fillna(mode_value)
-                else:
-                    # If mode cannot be computed, drop the column
-                    df = df.drop(columns=[col])
-    print("\nSummary after Imputation")
-    print("Size of remaining data:", df.shape)
+    for col in impute_columns:
+        if col in numeric_columns:
+            df[col] = df[col].fillna(df[col].median())
+        if col in (binary_columns + categorical_columns):
+            df[col] = df[col].fillna(df[col].mode().values[0])
+
+    # for col in impute_columns:
+    #     if df[col].isnull().any():
+    #         if pd.api.types.is_numeric_dtype(df[col]):
+    #             # Numeric column: impute with median
+    #             median_value = df[col].median()
+    #             if pd.isnull(median_value):
+    #                 # If median cannot be computed, drop the column
+    #                 df = df.drop(columns=[col])
+    #             else:
+    #                 df[col] = df[col].fillna(median_value)
+    #         else:
+    #             # Categorical column: impute with mode
+    #             mode_series = df[col].mode()
+    #             if not mode_series.empty:
+    #                 mode_value = mode_series[0]
+    #                 df[col] = df[col].fillna(mode_value)
+    #             else:
+    #                 # If mode cannot be computed, drop the column
+    #                 df = df.drop(columns=[col])
+
+    if verbose:
+        print('\nSummary after Imputation')
+        print('Size of remaining data:', df.shape)
     return df
 
-def rmv_low_var(df, mad_threshold=0.1, freq_threshold=0.05):
-    """
-    Removes numerical variables with Median Absolute Deviation (MAD) below a threshold.
+
+def rmv_low_var(
+        df, dictionary, mad_threshold=0.1, freq_threshold=0.05,
+        outcome_column='outco_binary_outcome', verbose=False):
+    '''
+    Removes numerical variables with Median Absolute Deviation (MAD) below a
+    threshold.
     Excludes binary columns from MAD calculation.
-    Removes  binary columns with very low frequencies
+    Removes binary columns with very low frequencies
+
     Returns:
     - df: pandas DataFrame with low MAD columns removed
-    """
+    '''
+    keep_columns = ['subjid', outcome_column]
+
+    numeric_ind = (dictionary['field_type'] == 'numeric')
+    numeric_columns = dictionary.loc[numeric_ind, 'field_name'].tolist()
+    numeric_columns = [col for col in numeric_columns if col in df.columns]
+    binary_ind = (dictionary['field_type'] == 'binary')
+    binary_columns = dictionary.loc[binary_ind, 'field_name'].tolist()
+    binary_columns = [col for col in binary_columns if col in df.columns]
 
     # Remove single-valued columns first
-    single_value_cols = df.columns[df.nunique() == 1]
-    df = df.drop(columns=single_value_cols)
+    single_value_columns = df.columns[df.nunique() == 1]
+    single_value_columns = [
+        col for col in single_value_columns if col not in keep_columns]
+    df = df.drop(columns=single_value_columns)
 
     # Select numeric columns
-    numeric_cols = df.select_dtypes(include=[np.number]).columns
+    # numeric_columns = df.select_dtypes(include=[np.number]).columns
 
-   # Select numeric columns and identify binary columns
-    numeric_cols = df.select_dtypes(include=[np.number]).columns
-    binary_cols = df.columns[df.nunique() == 2]
-    non_binary_cols = numeric_cols.difference(binary_cols)
-
-    print(f"\nMAD Analysis Summary:")
-    print(f"Single value columns removed: {len(single_value_cols)}")
-    print(f"Total binary columns: {len(binary_cols)}")
-    print(f"Total numeric columns: {len(numeric_cols)}")
-    print(f"Non binary numeric columns: {len(non_binary_cols)}")
-    print(f"Numeric Binary columns excluded from MAD: {len(numeric_cols) - len(non_binary_cols)}")
+    # Select numeric columns and identify binary columns
+    # numeric_cols = df.select_dtypes(include=[np.number]).columns
+    # binary_cols = df.columns[df.nunique() == 2]
+    # non_binary_cols = numeric_cols.difference(binary_cols)
 
     # Calculate low frequency binary numeric column
     # Handle binary columns - convert to numeric first
-    if len(binary_cols) > 0:
-        X_bin = df[binary_cols].apply(lambda x: pd.factorize(x)[0])
-        binary_counts = X_bin.apply(pd.value_counts, normalize=True)
-        keep_cols = [col for col in binary_cols if
-                    binary_counts[col].min() >= freq_threshold]
-        X_bin = df[keep_cols]  # Keep original values for these columns
-    else:
-        X_bin = pd.DataFrame()  # Empty DataFrame if no binary columns
+    binary_counts = df[binary_columns].mean(axis=0)
+    binary_counts = binary_counts.apply(lambda x: min((x, 1 - x)))
+    exclude_binary_columns = [
+        col for col in binary_columns
+        if (binary_counts[col] < freq_threshold)]
+    # if len(binary_columns) > 0:
+    #     # X_bin = df[binary_columns].apply(lambda x: pd.factorize(x)[0])
+    #     binary_counts = df[binary_columns].mean(axis=0)
+    #     binary_counts = binary_counts.apply(lambda x: min((x, 1 - x)))
+    #     keep_columns = [
+    #         col for col in binary_columns
+    #         if (binary_counts[col] >= freq_threshold)]
+    #     # binary_counts = X_bin.apply(pd.value_counts, normalize=True)
+    #     # keep_cols = [
+    #     #     col for col in binary_cols if
+    #     #     (binary_counts[col].min() >= freq_threshold)]
+    #     X_bin = df[keep_columns]  # Keep original values for these columns
+    # else:
+    #     X_bin = pd.DataFrame()  # Empty DataFrame if no binary columns
 
-    # Normalise the numeric columns by max
-    df_tmp = df
-    for col in non_binary_cols:
-        df[col] = df_tmp[col]/np.max(np.abs(df_tmp[col]))
+    mad_series = df[numeric_columns].apply(
+        lambda x: x / x.abs().max(), axis=0).apply(
+        lambda x: np.median(np.abs(x - np.median(x))))
+    exclude_numeric_columns = [
+        col for col in numeric_columns if (mad_series[col] < mad_threshold)]
 
-    # Calculate MAD for each non-binary numeric column
-    mad_values = {}
-    for col in non_binary_cols:
-        mad = np.median(np.abs(df[col] - np.median(df[col])))
-        mad_values[col] = mad
-
-    # Create a Series from the MAD values
-    mad_series = pd.Series(mad_values)
-    #print(mad_series)
+    # # Normalise the numeric columns by max
+    # df_tmp = df
+    # for col in numeric_columns:
+    #     df[col] = (df_tmp[col] / np.max(np.abs(df_tmp[col])))
+    #
+    # # Calculate MAD for each non-binary numeric column
+    # mad_values = {}
+    # for col in numeric_columns:
+    #     mad = np.median(np.abs(df[col] - np.median(df[col])))
+    #     mad_values[col] = mad
+    #
+    # # Create a Series from the MAD values
+    # mad_series = pd.Series(mad_values)
 
     # Identify columns to keep:
     # 1. Non-numeric columns
     # 2. Binary numeric columns
     # 3. Non-binary numeric columns with MAD above threshold
-    cols_to_keep = set(df.columns) - set(non_binary_cols)-set(binary_cols)  # Start with all CAT columns
-    cols_to_keep.update(mad_series[mad_series >= mad_threshold].index)  # Add high MAD columns
+    # Start with all CAT columns
+    exclude_columns = exclude_binary_columns + exclude_numeric_columns
+    keep_columns = [col for col in df.columns if col not in exclude_columns]
+    df = df[keep_columns]
 
-    # Keep only the identified columns
-    X_comb = pd.concat([df[list(cols_to_keep)], X_bin], axis=1)
-    df = X_comb
+    # cols_to_keep = set(df.columns) - set(non_binary_cols) - set(binary_cols)
+    # # Add high MAD columns
+    # cols_to_keep.update(mad_series[mad_series >= mad_threshold].index)
+    #
+    # # Keep only the identified columns
+    # X_comb = pd.concat([df[list(cols_to_keep)], X_bin], axis=1)
+    # df = X_comb
 
-    # Print summary for debugging
-
-    print("High Frequency Binary columns kept:", X_bin.shape)
-    print(f"Columns removed due to low MAD: {len(non_binary_cols) - len(mad_series[mad_series >= mad_threshold])}")
-
-
+    if verbose:
+        print('\nMAD Analysis Summary:')
+        print(f'Single value columns removed: {len(single_value_columns)}')
+        print(f'Total binary columns: {len(binary_columns)}')
+        print(f'Total numeric columns: {len(numeric_columns)}')
+        # print(f'Non binary numeric columns: {len(non_binary_cols)}')
+#         print(f'''Numeric Binary columns excluded from MAD: \
+# {len(numeric_columns) - len(non_binary_columns)}''')
+        # Print summary for debugging
+        print(f'''High Frequency Binary columns kept: \
+{len(binary_columns) - len(exclude_binary_columns)}''')
+        print(f'''Columns removed due to low MAD: \
+{len(numeric_columns) - len(exclude_numeric_columns)}''')
     return df
 
 
-def rmv_high_corr(df, correlation_threshold=0.5):
+def rmv_high_corr(
+        df, dictionary, outcome_column='outco_binary_outcome',
+        correlation_threshold=0.5, verbose=False):
+    '''
+    Removes variables if there is high multicollinearity, arbitrarily selecting
+    one variable to remove if the correlation between two variables is above
+    a threshold.
+
+    Returns:
+    - df: pandas DataFrame with high correlation variables removed
+    '''
+    keep_columns = ['subjid', outcome_column]
+
+    numeric_ind = (dictionary['field_type'] == 'numeric')
+    numeric_columns = dictionary.loc[numeric_ind, 'field_name'].tolist()
+    numeric_columns = [col for col in numeric_columns if col in df.columns]
+    binary_ind = (dictionary['field_type'] == 'binary')
+    binary_columns = dictionary.loc[binary_ind, 'field_name'].tolist()
+    binary_columns = [col for col in binary_columns if col in df.columns]
+
     # Step 1: Select numeric columns only
-    numeric_cols = df.select_dtypes(include=[np.number]).columns
-    df_numeric = df[numeric_cols]  # DataFrame with only numeric columns
+    # numeric_cols = df.select_dtypes(include=[np.number]).columns
+    df_numeric = df[numeric_columns]  # DataFrame with only numeric columns
 
     # Step 2: Calculate the correlation matrix
     corr_matrix = df_numeric.corr().abs()
 
-    # Step 3: Identify highly correlated columns with a double loop
-    to_drop = set()  # Use a set to avoid duplicates
-    num_cols = corr_matrix.shape[0]
+    # Step 3: Identify highly correlated columns
+    corr_pairs = corr_matrix.where(
+        np.triu(np.ones(corr_matrix.shape), 1).astype(bool)).where(
+        lambda x: x > correlation_threshold).stack().reset_index()
 
-    for i in range(num_cols):
-        for j in range(i + 1, num_cols):  # Only look at the upper triangle
-            if corr_matrix.iloc[i, j] > correlation_threshold:
-                # Identify the columns with high correlation
-                col1 = corr_matrix.columns[i]
-                col2 = corr_matrix.columns[j]
+    # Step 4: Drop highly correlated columns (arbitrarily drop second column)
+    exclude_columns = corr_pairs['level_1'].unique().tolist()
+    exclude_columns = [
+        col for col in exclude_columns if col not in keep_columns]
 
-                # Add one of the columns to `to_drop`
-                to_drop.add(col2)  # Arbitrarily drop the second column
+    # # Step 3: Identify highly correlated columns with a double loop
+    # to_drop = set()  # Use a set to avoid duplicates
+    # num_cols = corr_matrix.shape[0]
+    #
+    # for i in range(num_cols):
+    #     for j in range(i + 1, num_cols):  # Only look at the upper triangle
+    #         if corr_matrix.iloc[i, j] > correlation_threshold:
+    #             # Identify the columns with high correlation
+    #             # col1 = corr_matrix.columns[i]  # ??
+    #             col2 = corr_matrix.columns[j]
+    #
+    #             # Add one of the columns to `to_drop`
+    #             to_drop.add(col2)  # Arbitrarily drop the second column
+    #
+    # # Step 4: Drop highly correlated columns
+    # exclude_columns = [col for col in list(to_drop) if col not in keep_columns]
+    df = df.drop(columns=exclude_columns)
 
-    # Step 4: Drop highly correlated columns
-
-    print("\nCORR Summary")
-    print(f"Columns removed due to high correlation: {len(to_drop)}")
-    df = df.drop(columns=list(to_drop))
-
+    if verbose:
+        print('\nCORR Summary')
+        print(f'Columns removed due to high correlation: \
+{len(exclude_columns)}')
     return df
 
 
-
-def lasso_var_sel_binary(df, outcome_col='mapped_outcome', random_state=42):
-    """
-    Prepare data and select features using binary logistic regression with elastic net penalty.
+def lasso_var_sel_binary(
+        df,
+        outcome_column='mapped_outcome', metric='balanced_accuracy',
+        threshold=1e-3,
+        gridsearch_params={
+            'l1_ratios': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
+            'Cs': [1e-3, 3.16e-3, 1e-2, 3.16e-2, 1e-1, 3.16e-1, 1, 3.16, 10]},
+        random_state=42, verbose=False, sep='___'):
+    '''
+    Prepare data and select features using binary logistic regression with
+    elastic net penalty.
     Specifically designed for binary outcomes only.
-    """
-    if outcome_col not in df.columns:
-        raise ValueError(f"Outcome column '{outcome_col}' not found in DataFrame")
-
+    '''
+    if outcome_column not in df.columns:
+        error_str = f'Outcome column {outcome_column} not found in DataFrame'
+        raise ValueError(error_str)
 
     # Separate predictors and outcome
-    y = df[outcome_col].copy()
-    X_ini = df.drop(columns=[outcome_col])
-    print(f"\nInitial shape of X: {X_ini.shape}")
+    y = df[outcome_column].copy()
+    X_ini = df.drop(columns=[outcome_column])
+    if verbose:
+        print(f"\nInitial shape of X: {X_ini.shape}")
 
     # Encode the binary outcome
     label_encoder = LabelEncoder()
@@ -1497,23 +1869,30 @@ def lasso_var_sel_binary(df, outcome_col='mapped_outcome', random_state=42):
     # Verify that we have a binary outcome
     n_classes = len(np.unique(y))
     if n_classes != 2:
-        raise ValueError("This function is designed for binary classification only. More than two classes found.")
+        error_str = '''This function is designed for binary classification \
+only. More than two classes found.'''
+        raise ValueError(error_str)
 
     # Standardize features
     scaler = StandardScaler()
     numeric_cols = X_ini.select_dtypes(include=[np.number]).columns
-    print("Column dtypes:", X_ini.dtypes)
-    print("Numeric columns found:", len(numeric_cols))
+    if verbose:
+        print('Column dtypes:', X_ini.dtypes)
+        print('Numeric columns found:', len(numeric_cols))
 
     X = X_ini.copy()
     if len(numeric_cols) > 0:
         X[numeric_cols] = scaler.fit_transform(X_ini[numeric_cols])
     else:
-        print("No numeric columns to standardize")
+        if verbose:
+            print('No numeric columns to standardize')
     X = pd.DataFrame(X, columns=X_ini.columns)
 
-    print("\nOutcome classes:", dict(zip(label_encoder.classes_, range(len(label_encoder.classes_)))))
-    print(f"\nInitial shape of X: {X.shape}")
+    if verbose:
+        outcome_classes = dict(zip(
+            label_encoder.classes_, range(len(label_encoder.classes_))))
+        print('\nOutcome classes:', outcome_classes)
+        print(f'\nInitial shape of X: {X.shape}')
     # Encode categorical predictors
     categorical_cols = X.select_dtypes(include=['object', 'category']).columns
     binary_cats = [col for col in categorical_cols if X[col].nunique() == 2]
@@ -1524,55 +1903,58 @@ def lasso_var_sel_binary(df, outcome_col='mapped_outcome', random_state=42):
         X[col] = le.fit_transform(X[col])
 
     # Use dummies only for multi-category
-    X = pd.get_dummies(X, columns=multi_cats, prefix_sep='*_*')
-    print(f"\nshape of X after one-hot: {X.shape}")
-    X.to_csv('ISARIC_mpox2rmv_1hot.csv', index=True)
+    X = pd.get_dummies(X, columns=multi_cats, prefix_sep=sep)
+    if verbose:
+        print(f'\nshape of X after one-hot: {X.shape}')
 
     if X.shape[1] > 0:
-        print("First actual predictor column:", X.columns[0])
+        if verbose:
+            print('First actual predictor column:', X.columns[0])
     else:
-        raise ValueError("No predictor columns left after dropping outcome (and ID if applicable).")
-
-
+        error_str = '''No predictor columns left after dropping outcome (and \
+ID if applicable).'''
+        raise ValueError(error_str)
 
     # Fit binary logistic regression with elastic net
-    # For binary classification, multi_class defaults to 'ovr', which yields a single set of coefficients.
-    l1_vec = [0.1, 0.2, 0.3, 0.7, 0.8, 0.9]
-    C_vec = np.logspace(-4, 4, 40)
+    # For binary classification, multi_class defaults to 'ovr', which yields a
+    # single set of coefficients.
+    l1_vec = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+    C_vec = np.logspace(-3, 1, 9)
     logistic = LogisticRegressionCV(
         penalty='elasticnet',
-        l1_ratios= l1_vec,
+        l1_ratios=l1_vec,
         solver='saga',
-        cv=StratifiedKFold(n_splits=3, shuffle=True, random_state=random_state),
+        cv=StratifiedKFold(
+            n_splits=3, shuffle=True, random_state=random_state),
         random_state=random_state,
         max_iter=5000,
         class_weight='balanced',
-        Cs= C_vec,
+        Cs=C_vec,
         tol=1e-4,
-        scoring='balanced_accuracy'
+        scoring=metric
     )
-
 
     # Below is the original way we started
     logistic.fit(X, y)
 
-    print("Original l1_ratios specified:", l1_vec)
-    print("Model's l1_ratios attribute:", logistic.l1_ratios)
-    print("Shape of logistic.scores_[1]:", logistic.scores_[1].shape)
-    print("\nFirst 10 scores for each row:")
-    for i in [0,1]:  # explicitly loop through both rows
-        print(f"\nRow {i} (supposed to be l1_ratio = {l1_vec[i]}):")
-        print(logistic.scores_[1][0, :10, i])
+    if verbose:
+        print('Original l1_ratios specified:', l1_vec)
+        print('Model\'s l1_ratios attribute:', logistic.l1_ratios)
+        print('Shape of logistic.scores_[1]:', logistic.scores_[1].shape)
+        print('\nFirst 10 scores for each row:')
+        for i in [0, 1]:  # explicitly loop through both rows
+            print(f'\nRow {i} (supposed to be l1_ratio = {l1_vec[i]}):')
+            print(logistic.scores_[1][0, :10, i])
 
-
-    scores_dt = np.mean(logistic.scores_[1],axis=0)
-    print("Mean scores for varying l1_ratio and Cs")
-    print(scores_dt)  # print matrix for this fold
+    scores_dt = np.mean(logistic.scores_[1], axis=0)
+    if verbose:
+        print('Mean scores for varying l1_ratio and Cs')
+        print(scores_dt)  # print matrix for this fold
 
     scores_df = pd.DataFrame(
-    scores_dt,  # Transpose to get l1_ratios as rows
-    index=C_vec,
-    columns=l1_vec
+        scores_dt,  # Transpose to get l1_ratios as rows
+        index=C_vec,
+        columns=l1_vec
     )
 
     # Label the axes
@@ -1587,15 +1969,13 @@ def lasso_var_sel_binary(df, outcome_col='mapped_outcome', random_state=42):
     feature_importance = np.abs(coef_df.iloc[0, :])
 
     # Select features with non-zero importance
-    selected_features = feature_importance[feature_importance > 0.0].index.tolist()
+    selected_features = feature_importance[(
+        feature_importance > 0.0)].index.tolist()
 
     # Predictions
     y_pred = logistic.predict(X)
 
     # Performance metrics
-    print("\nPerformance Metrics:")
-    print("-------------------")
-
     # Find the best C and corresponding CV score
     best_c = logistic.C_[0]
     c_index = np.where(logistic.Cs_ == best_c)[0][0]
@@ -1604,62 +1984,69 @@ def lasso_var_sel_binary(df, outcome_col='mapped_outcome', random_state=42):
         all_class_scores.extend(logistic.scores_[cl][:, c_index])
     best_cv_score = np.mean(all_class_scores)
 
-    print(f"Best C value: {best_c}")
-    print("\nConfusion Matrix:")
     conf_matrix = confusion_matrix(y, y_pred)
-    print(conf_matrix)
-    print("\nClassification Report:")
-
     target_names = [str(c) for c in label_encoder.classes_]
-    print(classification_report(y, y_pred, target_names=target_names))
-    print(f"Best CV score: {best_cv_score}")
-
-    # l1_ratio_ returns the best ratio found for each class. For binary, there should be one:
-    print(f"Best l1_ratio: {logistic.l1_ratio_[0]}")
-
-    print(f"\nSelected {len(selected_features)} features")
-
-    # Print feature importance for selected features
-    print("\nFeature importance for selected features:")
-    for feat in sorted(selected_features, key=lambda x: feature_importance[x], reverse=True):
-        print(f"{feat}: {feature_importance[feat]:.4f}")
-
     X_selected = X[selected_features]
-    print(f"Final shape of selected features: {X_selected.shape}")
+    if verbose:
+        print('\nPerformance Metrics:')
+        print('-------------------')
+        print(f'Best C value: {best_c}')
+        print('\nConfusion Matrix:')
+        print(conf_matrix)
+        print('\nClassification Report:')
+        print(classification_report(y, y_pred, target_names=target_names))
+        print(f'Best CV score: {best_cv_score}')
+        # l1_ratio_ returns the best ratio found for each class. For binary,
+        # there should be one:
+        print(f'Best l1_ratio: {logistic.l1_ratio_[0]}')
+        print(f'\nSelected {len(selected_features)} features')
+        # Print feature importance for selected features
+        print('\nFeature importance for selected features:')
+        sorted_features = sorted(
+            selected_features,
+            key=lambda x: feature_importance[x], reverse=True)
+        for feat in sorted_features:
+            print(f'{feat}: {feature_importance[feat]:.4f}')
+        print(f'Final shape of selected features: {X_selected.shape}')
 
     # Store metrics in a dictionary
+    report = classification_report(
+        y, y_pred, target_names=label_encoder.classes_, output_dict=True)
     metrics = {
         'confusion_matrix': conf_matrix,
-        'classification_report': classification_report(y, y_pred, target_names=label_encoder.classes_, output_dict=True),
+        'classification_report': report,
         'accuracy': accuracy_score(y, y_pred),
         'cv_scores': all_class_scores
     }
 
     original_features = {}
     for feature in selected_features:
-      if '*_*' in feature:
-        orig_name = feature.split('*_*')[0]
-        coef = abs(feature_importance[feature])
-        original_features[orig_name] = max(original_features.get(orig_name, 0), coef)
-      else:
-        original_features[feature] = abs(feature_importance[feature])
+        if sep in feature:
+            orig_name = feature.split(sep)[0]
+            coef = abs(feature_importance[feature])
+            original_features[orig_name] = max(
+                original_features.get(orig_name, 0), coef)
+        else:
+            original_features[feature] = abs(feature_importance[feature])
 
     # Create grouped results showing all categories
-    grp_results= create_grouped_results(selected_features, feature_importance)
+    grp_results = create_grouped_results(selected_features, feature_importance)
     results_df = grp_results[0]
     sorted_fields = grp_results[1]
     categorical_fields = grp_results[2]
 
-    # Print the grouped results
-    print("\nSelected features grouped by main field:")
-    print(results_df)
+    if verbose:
+        # Print the grouped results
+        print('\nSelected features grouped by main field:')
+        print(results_df)
 
-    # Save to CSV
-    results_df.to_csv('feature_coefficients_grouped.csv', index=False)
+    # # Save to CSV
+    # results_df.to_csv('feature_coefficients_grouped.csv', index=False)
 
-    # Note: We may still want to keep the original X_selected DataFrame for further analysis
+    # Note: We may still want to keep the original X_selected DataFrame for
+    # further analysis
     X_selected = X[selected_features]
-    #print(f"Final shape of selected features: {X_selected.shape}")
+    # print(f"Final shape of selected features: {X_selected.shape}")
 
     # After running create_grouped_results, extract main fields
     main_fields = []
@@ -1671,28 +2058,31 @@ def lasso_var_sel_binary(df, outcome_col='mapped_outcome', random_state=42):
 
     # Convert main_fields list to a single-column DataFrame
     main_fields_df = pd.DataFrame({'Main Features': main_fields})
-    print(main_fields_df)
+    top_params = get_parameter_ranking(logistic, n_top=20, threshold=threshold)
 
-    top_params = get_parameter_ranking(logistic, n_top=20)
-    print("\nTop parameter combinations:")
-    print(top_params)
+    if verbose:
+        print(main_fields_df)
+        print('\nTop parameter combinations:')
+        print(top_params)
 
-    return results_df, scores_df, main_fields_df, top_params, X_selected, y, selected_features, coef_df, label_encoder, feature_importance, metrics
+    return (
+        results_df, scores_df, main_fields_df, top_params, X_selected, y,
+        selected_features, coef_df, label_encoder, feature_importance, metrics)
 
-    # Group features by main field and sort by importance
-def create_grouped_results(selected_features, feature_importance):
-    """
+
+def create_grouped_results(selected_features, feature_importance, sep='___'):
+    '''
     Create a DataFrame with all categories listed under their main fields,
     with main fields sorted by their maximum coefficient magnitude.
-    """
+    '''
     # Step 1: Identify one-hot encoded and regular features
     categorical_fields = set()
     regular_features = []
 
     for feature in selected_features:
-        if '*_*' in feature:
+        if sep in feature:
             # One-hot encoded feature
-            categorical_fields.add(feature.split('*_*')[0])
+            categorical_fields.add(feature.split(sep)[0])
         else:
             # Regular feature
             regular_features.append(feature)
@@ -1705,8 +2095,8 @@ def create_grouped_results(selected_features, feature_importance):
         field_groups[field] = []
         # Find all categories for this field
         for feature in selected_features:
-            if feature.startswith(field + '*_*'):
-                category = feature.split('*_*')[1]
+            if feature.startswith(field + sep):
+                category = feature.split(sep)[1]
                 coef = feature_importance[feature]
                 field_groups[field].append({
                     'Feature': category,
@@ -1730,7 +2120,8 @@ def create_grouped_results(selected_features, feature_importance):
         field_max_coef[field] = max(cat['AbsCoef'] for cat in categories)
 
     #  Sort fields by their max coefficient
-    sorted_fields = sorted(field_groups.keys(), key=lambda f: field_max_coef[f], reverse=True)
+    sorted_fields = sorted(
+        field_groups.keys(), key=lambda f: field_max_coef[f], reverse=True)
 
     # Create the final DataFrame with the desired structure
     results = []
@@ -1740,14 +2131,16 @@ def create_grouped_results(selected_features, feature_importance):
             # For categorical fields, add header row with no coefficient
             results.append({
                 'Feature': field,
-                'Coefficient': "..."
+                'Coefficient': '...'
             })
 
             # Add all categories
-            categories = sorted(field_groups[field], key=lambda x: x['AbsCoef'], reverse=True)
+            categories = sorted(
+                field_groups[field], key=lambda x: x['AbsCoef'], reverse=True)
             for cat in categories:
                 results.append({
-                    'Feature': f"  {cat['Feature']}",  # Indent for visual grouping
+                    # Indent for visual grouping
+                    'Feature': f'  {cat['Feature']}',
                     'Coefficient': cat['Coefficient']
                 })
         else:
@@ -1759,14 +2152,12 @@ def create_grouped_results(selected_features, feature_importance):
 
     return pd.DataFrame(results), sorted_fields, categorical_fields
 
-def get_parameter_ranking(logistic, n_top=10):
-    """
+
+def get_parameter_ranking(logistic, n_top=10, threshold=1e-3):
+    '''
     Create a ranking of parameter combinations using stored scores
     and coefficient paths.
-    """
-    import pandas as pd
-    import numpy as np
-
+    '''
     # Create empty list to store parameter information
     param_scores = []
 
@@ -1774,34 +2165,47 @@ def get_parameter_ranking(logistic, n_top=10):
     l1_ratios = logistic.l1_ratios_
     Cs = logistic.Cs_
 
-    # Get first class key (for binary classification, there's only one set of scores)
+    # Get first class key (for binary classification,
+    # there's only one set of scores)
     first_class = list(logistic.scores_.keys())[0]
 
     # Loop through all parameter combinations
     for l1_ratio_idx, l1_ratio in enumerate(l1_ratios):
         for C_idx, C in enumerate(Cs):
             # Get mean score across folds for this parameter combination
-            score = np.mean(logistic.scores_[first_class][:, C_idx, l1_ratio_idx])
-
+            score = (
+                logistic.scores_[first_class][:, C_idx, l1_ratio_idx].mean())
+            fold_ind = (
+                logistic.scores_[first_class][:, C_idx, l1_ratio_idx].argmax())
             # Get coefficients for this parameter combination
-            coef_path = logistic.coefs_paths_[first_class][:, C_idx, l1_ratio_idx, :]
+            coef0 = logistic.coefs_paths_[first_class][
+                0, C_idx, l1_ratio_idx, :]
+            coef1 = logistic.coefs_paths_[first_class][
+                1, C_idx, l1_ratio_idx, :]
+            coef2 = logistic.coefs_paths_[first_class][
+                2, C_idx, l1_ratio_idx, :]
 
-            # Average across folds
-            mean_coef = np.mean(coef_path, axis=0)
+            # # Average across folds  # Why is this the mean?
+            # mean_coef = np.mean(coef_path, axis=0)
 
             # Count non-zero coefficients
-            n_features = np.sum(np.abs(mean_coef) > 1e-3)
+            n_features0 = np.sum(np.abs(coef0) > threshold)
+            n_features1 = np.sum(np.abs(coef1) > threshold)
+            n_features2 = np.sum(np.abs(coef2) > threshold)
 
             # Append to our list
             param_scores.append({
                 'l1_ratio': l1_ratio,
                 'C': C,
                 'score': score,
-                'n_features': n_features
+                'n_features0': n_features0,
+                'n_features1': n_features1,
+                'n_features2': n_features2
             })
 
     # Convert to DataFrame and sort
     params_df = pd.DataFrame(param_scores)
-    params_df = params_df.sort_values('score', ascending=False).head(n_top)
+    params_df = params_df.sort_values(
+        'score', ascending=False).drop_duplicates('n_features0').head(n_top)
 
     return params_df
