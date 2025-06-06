@@ -320,10 +320,10 @@ def n_percent_str(series, add_spaces=False, dp=1, mfw=4, min_n=1):
             output_str += '%5.*f' % (dp, percent) + ') | '
         output_str += '%*g' % (mfw, int(series.notna().sum()))
     else:
-        count = str(int(series.sum()))
-        percent = '%.*f' % (dp, 100*series.mean())
-        denom = str(int(series.notna().sum()))
-        output_str = f'{count} ({percent}) | {denom}'
+        count = int(series.sum())
+        percent = 100*series.mean()
+        denom = int(series.notna().sum())
+        output_str = f'{str(count)} ({'%.*f' % (dp, percent)}) | {str(denom)}'
     return output_str
 
 
@@ -2140,7 +2140,7 @@ def create_grouped_results(selected_features, feature_importance, sep='___'):
             for cat in categories:
                 results.append({
                     # Indent for visual grouping
-                    'Feature': '  ' + cat['Feature'],
+                    'Feature': f'  {cat['Feature']}',
                     'Coefficient': cat['Coefficient']
                 })
         else:
