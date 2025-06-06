@@ -1773,9 +1773,11 @@ def main():
     }
     age_options['value'] = [age_options['min'], age_options['max']]
 
+    end_date = (df_map['dates_admdate'].max() + pd.DateOffset(months=1))
+    end_date = end_date.strftime('%Y-%m')
     admdate_yyyymm = pd.date_range(
         start=df_map['dates_admdate'].min().strftime('%Y-%m'),
-        end=df_map['dates_admdate'].max().strftime('%Y-%m'),
+        end=end_date,
         freq='MS')
     admdate_yyyymm = [x.strftime('%Y-%m') for x in admdate_yyyymm]
     admdate_options = {
@@ -1865,9 +1867,9 @@ def main():
             os.makedirs(os.path.dirname(assets_path), exist_ok=True)
             shutil.copytree('assets', assets_path, dirs_exist_ok=True)
         metadata_file = os.path.join(
-            public_path, 'data/dashboard_metadata.txt')
-        with open(metadata_file, 'w') as metadata:
-            metadata.write(repr(buttons))
+            public_path, 'data/dashboard_metadata.json')
+        with open(metadata_file, 'w') as file:
+            json.dump(buttons, file, indent=4)
         data_file = os.path.join(public_path, 'data/dashboard_data.csv')
         df_countries.to_csv(data_file, index=False)
         config_json_file = os.path.join(
@@ -1877,7 +1879,7 @@ def main():
                 'project_name', 'map_layout_center_latitude',
                 'map_layout_center_longitude', 'map_layout_zoom']
             save_config_dict = {k: config_dict[k] for k in save_config_keys}
-            json.dump(save_config_dict, file)
+            json.dump(save_config_dict, file, indent=4)
     return app
 
 
