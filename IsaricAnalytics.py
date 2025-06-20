@@ -128,8 +128,11 @@ def get_variables_by_section_and_type(
     Get all variables in the dataframe from specified sections and types,
     plus any required variables.
     '''
-    include_ind = dictionary['field_name'].apply(
-        lambda x: x.startswith(tuple(x + '_' for x in include_sections)))
+    if 'section' in dictionary.columns: # TODO: this should always be True in future
+        include_ind = dictionary['section'].isin(include_sections)
+    else:
+        include_ind = dictionary['field_name'].apply(
+            lambda x: x.startswith(tuple(x + '_' for x in include_sections)))
     include_ind &= dictionary['field_type'].isin(include_types)
     # include_ind &= (dictionary['field_name'].apply(
     #     lambda x: x.endswith(tuple('___' + x for x in exclude_suffix))) == 0)
