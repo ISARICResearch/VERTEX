@@ -1678,26 +1678,79 @@ def main():
             vertex_dataframes_path = os.path.join(
                 init_project_path, config_dict['vertex_dataframes_path'])
             vertex_dataframes = os.listdir(vertex_dataframes_path)
-            df_map = pd.read_csv(
-                os.path.join(vertex_dataframes_path, 'df_map.csv'))
             dictionary = pd.read_csv(
-                os.path.join(vertex_dataframes_path, 'vertex_dictionary.csv'))
-            # dictionary = dictionary.fillna('')
-            if 'quality_report.json' in vertex_dataframes:
-                quality_report_file = os.path.join(
-                    vertex_dataframes_path, 'quality_report.json')
-                with open(quality_report_file, 'r') as json_data:
-                    quality_report = json.load(json_data)
-            else:
-                quality_report = {}
+                os.path.join(vertex_dataframes_path, 'vertex_dictionary.csv'),
+                dtype={'field_label': 'str'},
+                keep_default_na=False)
+            str_ind = dictionary['field_type'].isin(
+                ['freetext', 'categorical'])
+            str_columns = dictionary.loc[str_ind, 'field_name'].tolist()
+            non_str_columns = dictionary.loc[(
+                str_ind == 0), 'field_name'].tolist()
+            # num_ind = dictionary['field_type'].isin(['numeric'])
+            # num_columns = dictionary.loc[num_ind, 'field_name'].tolist()
+            dtype_dict = {
+                **{x: 'str' for x in str_columns},
+                # **{x: 'float' for x in num_columns}
+            }
+            # pandas tries to infer NaN values, sometimes this causes issues
+            # solution is to ignore str columns, otherwise there are errors if
+            # e.g. 'None' is an answer option
+            pandas_default_na_values = [
+                '',
+                ' ',
+                '#N/A',
+                '#N/A N/A',
+                '#NA',
+                '-1.#IND',
+                '-1.#QNAN',
+                '-NaN',
+                '-nan',
+                '1.#IND',
+                '1.#QNAN',
+                '<NA>',
+                'N/A',
+                'NA',
+                'NULL',
+                'NaN',
+                'None',
+                'n/a',
+                'nan',
+                'null'
+            ]
+            na_values = {
+                **{x: pandas_default_na_values for x in non_str_columns},
+                **{x: '' for x in str_columns}
+            }
+            df_map = pd.read_csv(
+                os.path.join(vertex_dataframes_path, 'df_map.csv'),
+                dtype=dtype_dict,
+                keep_default_na=False,
+                na_values=na_values
+            )
+            # Fix dates
+            date_variables = dictionary.loc[(
+                dictionary['field_type'] == 'date'), 'field_name'].tolist()
+            df_map[date_variables] = df_map[date_variables].apply(
+                lambda x: x.apply(lambda y: pd.to_datetime(y)))
+            quality_report = {}
             exclude_files = ('df_map.csv', 'vertex_dictionary.csv')
             vertex_dataframes = [
                 file for file in vertex_dataframes
                 if file.endswith('.csv') and (file not in exclude_files)]
-            df_forms_dict = {
-                k.split('.csv')[0]: pd.read_csv(
-                    os.path.join(vertex_dataframes_path, k))
-                for k in vertex_dataframes}
+            df_forms_dict = {}
+            for file in vertex_dataframes:
+                df_form = pd.read_csv(
+                    os.path.join(vertex_dataframes_path, file),
+                    dtype=dtype_dict,
+                    keep_default_na=False,
+                    na_values=na_values
+                )
+                if 'subjid' in df_form.columns:
+                    key = file.split('.csv')[0]
+                    df_forms_dict[key] = df_form
+                else:
+                    print(f'{file} does not include subjid, ignoring this.')
         except Exception:
             print('Could not load the VERTEX dataframes.')
             raise
@@ -1773,9 +1826,11 @@ def main():
     }
     age_options['value'] = [age_options['min'], age_options['max']]
 
+    end_date = (df_map['filters_date'].max() + pd.DateOffset(months=1))
+    end_date = end_date.strftime('%Y-%m')
     admdate_yyyymm = pd.date_range(
-        start=df_map['dates_admdate'].min().strftime('%Y-%m'),
-        end=df_map['dates_admdate'].max().strftime('%Y-%m'),
+        start=df_map['filters_date'].min().strftime('%Y-%m'),
+        end=end_date,
         freq='MS')
     admdate_yyyymm = [x.strftime('%Y-%m') for x in admdate_yyyymm]
     admdate_options = {
