@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import os
 import sys
 import json
@@ -89,7 +90,7 @@ def fig_placeholder(
     ))
 
     fig.update_layout(
-        title=title,
+        title={'text': title, 'x': 0.5, 'xanchor': 'center'},
         xaxis_title=xlabel,
         yaxis_title=ylabel,
         yaxis_range=[10, 15],
@@ -129,7 +130,7 @@ def fig_pie(
     fig = px.pie(df, values=values, names=names, title=title)
 
     fig.update_layout(
-        title=title,
+        title={'text': title, 'x': 0.5, 'xanchor': 'center'},
         xaxis_title=xlabel,
         yaxis_title=ylabel,
         yaxis_range=[10, 15],  # ??
@@ -226,7 +227,7 @@ def fig_timelines(
         ))
 
     fig.update_layout(
-        title=title,
+        title={'text': title, 'x': 0.5, 'xanchor': 'center'},
         xaxis_title='Date',
         yaxis={'title': label_col, 'tickfont': {'size': 10}},
         margin={'l': 250, 'r': 20, 't': 40, 'b': 40},
@@ -275,7 +276,7 @@ def fig_sunburst(
     )
 
     fig.update_layout(
-        title=title,
+        title={'text': title, 'x': 0.5, 'xanchor': 'center'},
         title_x=0.5,
         height=height,
         minreducedwidth=500,
@@ -297,7 +298,7 @@ def fig_cumulative_bar_chart(
         barmode='stack',
         xaxis_tickformat='%m-%Y',
         base_color_map=None,
-        height=340,
+        height=430,
         suffix='',
         filepath='',
         save_inputs=False,
@@ -344,7 +345,7 @@ def fig_cumulative_bar_chart(
         bargap = 0
 
     layout = go.Layout(
-        title=title,
+        title={'text': title, 'x': 0.5, 'xanchor': 'center'},
         barmode=barmode,
         bargap=bargap,
         xaxis={
@@ -361,7 +362,7 @@ def fig_cumulative_bar_chart(
         minreducedwidth=500,
     )
 
-    fig = go.Figure(data=traces, layout=layout)
+    fig = {'data': traces, 'layout': layout}
 
     # ----
     # Every figure must end with this, and return the same outputs
@@ -379,7 +380,7 @@ def fig_stacked_bar_chart(
         barmode='stack',
         xaxis_tickformat='%m-%Y',
         base_color_map=None,
-        height=340,
+        height=430,
         suffix='',
         filepath='',
         save_inputs=False,
@@ -425,7 +426,7 @@ def fig_stacked_bar_chart(
         bargap = 0
 
     layout = go.Layout(
-        title=title,
+        title={'text': title, 'x': 0.5, 'xanchor': 'center'},
         barmode=barmode,
         bargap=bargap,
         xaxis={
@@ -441,7 +442,12 @@ def fig_stacked_bar_chart(
         height=height,
         minreducedwidth=500,
     )
-    fig = go.Figure(data=traces, layout=layout)
+    fig = {'data': traces, 'layout': layout}
+
+    # fig = go.Figure()
+    # for trace in traces:
+    #     fig.add_trace(trace)
+    # fig.update_layout(layout)
 
     # ----
     # Every figure must end with this, and return the same outputs
@@ -601,7 +607,6 @@ def fig_upset(
 
     # Set the overall layout properties
     fig.update_layout(
-        # title=title,
         title={'text': title, 'x': 0.5, 'xanchor': 'center'},
         # showlegend=False,
         legend={
@@ -989,7 +994,7 @@ def fig_dual_stack_pyramid(
         -int(max_value), -int(max_value/2), 0,
         int(max_value/2), int(max_value)]
     layout = go.Layout(
-        title=title,
+        title={'text': title, 'x': 0.5, 'xanchor': 'center'},
         barmode='relative',
         xaxis={
             'title': xlabel,
@@ -1030,8 +1035,7 @@ def fig_dual_stack_pyramid(
             }
         ],
         shapes=[
-            # Line at x=0 for reference
-            {
+            {  # Line at x=0 for reference
                 'type': 'line',
                 'x0': 0,
                 'y0': 0,  # Start point of the line (from the bottom)
@@ -1196,7 +1200,7 @@ def fig_forest_plot(
 
     # Define layout
     layout = go.Layout(
-        title=title,
+        title={'text': title, 'x': 0.5, 'xanchor': 'center'},
         xaxis={'title': xlabel},
         yaxis={
             'title': ylabel,
@@ -1273,6 +1277,8 @@ def fig_kaplan_meier(
         title='Kaplan-Meier Plot',
         xlabel='Time (days)',
         ylabel='Survival Probability',
+        index_column='index',
+        base_color_map=None,
         xlim=None,
         p_value=None,
         height=800,
@@ -1289,19 +1295,21 @@ def fig_kaplan_meier(
     df_km = data[0].copy()
     risk_table = data[1].copy()
 
-    unique_groups = risk_table['Group'].tolist()
-    colors = [
-        f'hsl({i * (360 / len(unique_groups))}, 70%, 50%)'
-        for i in range(len(unique_groups))]
+    if base_color_map is None:
+        unique_groups = risk_table['Group'].tolist()
+        colors = [
+            f'hsl({i * (360 / len(unique_groups))}, 70%, 50%)'
+            for i in range(len(unique_groups))]
+    else:
+        colors = list(base_color_map.values())
 
     # Create the figure with two rows: one for the plot and one for risk table
     fig = make_subplots(
         rows=2, cols=1,
-        shared_xaxes=True,
+        # shared_xaxes=True,
         row_heights=[0.7, 0.3],
         vertical_spacing=0.1,
-        specs=[[{'type': 'xy'}], [{'type': 'table'}]],
-        subplot_titles=[title, 'Risk Table'])
+        subplot_titles=[title, ''])
 
     for group, color in zip(unique_groups, colors):
         ci_lower_column = [
@@ -1323,7 +1331,8 @@ def fig_kaplan_meier(
             x=ci_x,
             y=ci_y,
             fill='toself',
-            fillcolor=color.replace('hsl', 'hsla').replace(')', ',0.2)'),
+            fillcolor=color.replace('hsl', 'hsla').replace(
+                'rgb', 'rgba').replace(')', ',0.2)'),
             line={'color': 'rgba(255,255,255,0)', 'shape': 'hv'},
             name=f'CI {group}',
             showlegend=False,
@@ -1346,8 +1355,8 @@ def fig_kaplan_meier(
     # Add p-value annotation to the plot
     if p_value is not None:
         p_value_text = (
-            'p-value: <0.0001'
-            if p_value < 0.0001 else f'p-value: {p_value:.4f}')
+            'p-value: <0.001'
+            if p_value < 0.001 else f'p-value: {p_value:.3f}')
         fig.add_annotation(
             text=p_value_text,
             x=0.95,
@@ -1361,39 +1370,97 @@ def fig_kaplan_meier(
             borderwidth=1
         )
 
+    # df_risktable = pd.DataFrame(columns=['x', 'y', 'text'])
+    # df_risktable['x'] = risk_table.drop(
+    #     columns=index_column).columns.repeat(risk_table.shape[0]).astype(int)
+    # df_risktable['y'] = np.tile(
+    #     np.arange(risk_table.shape[0])[::-1], risk_table.shape[1] - 1)
+    # df_risktable['text'] = risk_table.drop(
+    #     columns=index_column).values.T.ravel()
+
     # Add risk table as second row
-    fig.add_trace(go.Table(
-        header={
-            'values': [str(x) for x in risk_table.columns],
-            'fill_color': 'lightgrey',
-            'align': 'center',
-            'font': {'size': 14},
-            'height': 3
-        },
-        cells={
-            'values': [risk_table[col].tolist() for col in risk_table.columns],
-            'fill_color': 'white',
-            'align': 'center',
-            'font': {'size': 14},
-            'height': 35
-        }
-    ), row=2, col=1)
+    for ii in range(risk_table.shape[0]):
+        yval = np.arange(risk_table.shape[0])[::-1][ii]
+        fig.add_trace(go.Scatter(
+            x=risk_table.drop(columns=index_column).columns.astype(float),
+            y=np.repeat(yval, risk_table.shape[1] - 1),
+            mode='text',
+            text=risk_table.drop(columns=index_column).loc[ii],
+            textposition='middle center',
+            textfont={'color': colors[ii]},
+            showlegend=False,
+        ), row=2, col=1)
 
     # Configure axes and layout
     fig.update_yaxes(
         title_text=ylabel,
-        range=[0, 100],
-        tickvals=np.arange(0, 110, 10),
-        ticktext=[f'{i}%' for i in range(0, 110, 10)],
+        range=[-1, 101],
+        # tickvals=np.arange(0, 110, 10),
+        # ticktext=[f'{i}%' for i in range(0, 110, 10)],
         row=1, col=1)
     fig.update_xaxes(
         title_text=xlabel,
         tickvals=risk_table.columns[1:],
         row=1, col=1)
     if xlim is not None:
-        fig.update_xaxes(range=xlim)
+        xlim[0] = min((xlim[0], xlim[0] - (xlim[1] - xlim[0]) * 0.02))
+    else:
+        xlim = [df_km['timeline'].min(), df_km['timeline'].max()]
+        xlim[0] = min((xlim[0], xlim[0] - (xlim[1] - xlim[0]) * 0.02))
 
-    fig.update_layout(height=height, showlegend=True, minreducedwidth=500)
+    fig.add_trace(go.Scatter(
+        x=[xlim[0], xlim[0]],
+        y=[-0.5, risk_table.shape[0] - 0.5],
+        mode='lines',
+        line={'color': 'black', 'width': 1},
+        showlegend=False,
+    ), row=2, col=1)
+    fig.add_trace(go.Scatter(
+        x=[xlim[0], xlim[1]],
+        y=[risk_table.shape[0] - 0.5, risk_table.shape[0] - 0.5],
+        mode='lines',
+        line={'color': 'black', 'width': 1},
+        showlegend=False,
+    ), row=2, col=1)
+
+    fig.update_xaxes(range=xlim, row=1, col=1)
+    fig.update_xaxes(
+        visible=False,
+        showgrid=False,
+        range=xlim,
+        row=2, col=1)
+    fig.update_yaxes(
+        range=[-0.5, risk_table.shape[0] - 0.5],
+        showgrid=False,
+        title_text='Number at risk',
+        tickvals=np.arange(risk_table.shape[0])[::-1],
+        ticktext=risk_table[index_column],
+        row=2, col=1)
+
+    fig.update_layout(
+        shapes=[
+            dict(
+                type='rect',
+                xref='x domain',
+                yref='y domain',
+                x0=0,
+                y0=0,
+                x1=1,
+                y1=1,
+                fillcolor='grey',
+                opacity=0.1,
+                layer='below',
+                line_width=0.5,
+            )
+        ]
+    )
+
+    fig.update_layout(
+        height=height,
+        plot_bgcolor='rgba(0, 0, 0, 0)',
+        showlegend=True,
+        minreducedwidth=500,
+    )
 
     # ----
     # Every figure must end with this, and return the same outputs
@@ -1459,7 +1526,7 @@ def fig_line_chart(
 
     # Define layout
     layout = go.Layout(
-        title=title,
+        title={'text': title, 'x': 0.5, 'xanchor': 'center'},
         xaxis={
             'title': xlabel,
             'tickmode': 'array',
@@ -1563,7 +1630,7 @@ def fig_bar_line_chart(
 
     # Define layout
     layout = go.Layout(
-        title=title,
+        title={'text': title, 'x': 0.5, 'xanchor': 'center'},
         barmode='stack',
         bargap=0.3,
         xaxis={
@@ -1593,6 +1660,146 @@ def fig_bar_line_chart(
         minreducedwidth=500,
     )
     fig = go.Figure(data=data, layout=layout)
+
+    # ----
+    # Every figure must end with this, and return the same outputs
+    graph_id = get_full_graph_id(graph_id, suffix)
+    # ----
+    return fig, graph_id, graph_label, graph_about
+
+
+def fig_sankey(
+        data,
+        height=500,
+        suffix='',
+        filepath='',
+        save_inputs=False,
+        graph_id='sankey',
+        graph_label='',
+        graph_about=''):
+    # ----
+    # Every figure must start with this
+    if save_inputs:
+        inputs = save_inputs_to_file(locals())
+    # ----
+
+    node = data[0].copy()
+    link = data[1].copy()
+    annotations = data[2].copy()
+
+    node_metadata = {
+        'hovertemplate': '%{customdata}',
+        'pad': 15,
+        'thickness': 20,
+        'line': {'color': 'black', 'width': 1.2}
+    }
+    link_metadata = {
+        'hovertemplate': '%{source.customdata} to %{target.customdata}',
+        'line': {'color': 'rgba(0,0,0,0.3)', 'width': 0.3},
+    }
+
+    fig = go.Figure(
+        data=[go.Sankey(
+            arrangement='snap',
+            valueformat='.0f',
+            node={**node.to_dict(orient='list'), **node_metadata},
+            link={**link.to_dict(orient='list'), **link_metadata},
+        )],
+        layout=go.Layout(
+            annotations=annotations.to_dict(orient='records'),
+            height=height,
+            minreducedwidth=500,
+        ),
+    )
+
+    # ----
+    # Every figure must end with this, and return the same outputs
+    graph_id = get_full_graph_id(graph_id, suffix)
+    # ----
+    return fig, graph_id, graph_label, graph_about
+
+
+def fig_heatmap_subplots(
+        data,
+        title='',
+        subplot_titles=None,
+        ylabel='',
+        xlabel='',
+        colorbar_label='',
+        index_column='index',
+        zmin=None,
+        zmax=None,
+        base_color_map=None,
+        height=750,
+        suffix='',
+        filepath='',
+        save_inputs=False,
+        graph_id='heatmap_subplots',
+        graph_label='',
+        graph_about=''):
+    # ----
+    # Every figure must start with this
+    if save_inputs:
+        inputs = save_inputs_to_file(locals())
+    # ----
+
+    # Create subplots for the heatmaps
+    fig = make_subplots(
+        rows=len(data), cols=1,
+        subplot_titles=subplot_titles,
+        vertical_spacing=0.1,
+        y_title=ylabel,
+    )
+
+    if zmin is None:
+        zmin = min(data[ii].min(axis=(0, 1)) for ii in range(len(data)))
+    if zmax is None:
+        zmax = max(data[ii].max(axis=(0, 1)) for ii in range(len(data)))
+    if base_color_map is None:
+        base_color_map = 'viridis'
+
+    for ii in range(len(data)):
+        df = data[ii].set_index(index_column)
+        fig.add_trace(
+            go.Heatmap(
+                z=df.loc[::-1].values,
+                x=df.loc[::-1].columns,
+                y=df.loc[::-1].index,
+                zmin=zmin,
+                zmax=zmax,
+                colorscale=base_color_map,
+                colorbar=(
+                    {'title': colorbar_label}
+                    if ii == 0 else None),
+                showscale=(True if ii == 0 else False)
+            ),
+            row=(ii + 1), col=1
+        )
+
+    # Update layout
+    fig.update_layout(
+        height=height,
+        title_text=title,
+        title_x=0.5,
+        title_xref='paper',
+        showlegend=False,
+        # margin={'l': 150}
+    )
+    for ii in range(1, len(data)):
+        fig.update_xaxes(showticklabels=False, row=ii, col=1)
+
+    fig.update_xaxes(
+        showticklabels=True,
+        tickangle=0,
+        title=xlabel,
+        row=len(data) + 1,
+        col=1,
+    )
+
+    # fig.update_annotations(
+    #     selector=dict(text=ylabel),
+    #     xshift=-100
+    # )
 
     # ----
     # Every figure must end with this, and return the same outputs
