@@ -16,4 +16,6 @@ COPY . .
 EXPOSE 8050
 
 # Command to run the app using Gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8050", "descriptive_dashboard:server"]
+# reload for dev work, mount the application code to the container
+
+CMD ["gunicorn", "--reload", "--bind", "0.0.0.0:8050", "descriptive_dashboard:server"]

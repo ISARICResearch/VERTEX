@@ -3,6 +3,11 @@ import json
 from dash import dcc, html, callback_context
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State, ALL
+from dash.exceptions import PreventUpdate
+from flask_login import LoginManager, login_user, logout_user, current_user
+
+from flask_security import SQLAlchemyUserDatastore, Security
+from flask_security.utils import login_user, verify_and_update_password, hash_password
 import numpy as np
 import pandas as pd
 import plotly.graph_objs as go
@@ -17,8 +22,49 @@ import shutil
 import importlib.util
 import webbrowser
 import requests
-# import dash_auth
-# import flask_caching as fc
+import secrets
+from sqlalchemy import create_engine, Table, Column, String, MetaData, select, \
+    TIMESTAMP, Boolean, Text, UUID
+from sqlalchemy.orm import Session
+import uuid
+import boto3
+from urllib.parse import quote_plus
+from werkzeug.security import generate_password_hash, check_password_hash
+from models import User, Project
+from config_loader import get_config
+from layout.modals import login_modal, register_modal
+
+# Settings
+secret_name = "rds!db-472cc9c8-1f3e-4547-b84d-9b0742de8b9a"
+region_name = "eu-west-2"
+
+# Create a Secrets Manager client
+session = boto3.session.Session()
+client = session.client(service_name='secretsmanager', region_name=region_name)
+
+# Get secret value
+response = client.get_secret_value(SecretId=secret_name)
+secret = json.loads(response["SecretString"])
+
+# Extract credentials
+username = secret["username"]
+password = quote_plus(secret["password"])  # URL-encode password
+host = "isaric-user-db.cf4o0aos4r0d.eu-west-2.rds.amazonaws.com"
+port = 5432
+database = "postgres"
+
+# Build SQLAlchemy connection string
+DATABASE_URL = f"postgresql+psycopg2://{username}:{password}@{host}:{port}/{database}?sslmode=require"
+engine = create_engine(DATABASE_URL)
+metadata = MetaData()
+
+# Flask login
+
+from flask_security import SQLAlchemyUserDatastore
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy() # we will bind these to the app later
+security = Security() 
 
 
 ############################################
@@ -29,18 +75,6 @@ import requests
 # init_project_path = 'projects/ARChetypeCRF_dengue_synthetic/'
 # init_project_path = 'projects/ARChetypeCRF_h5nx_synthetic/'
 init_project_path = 'projects/ARChetypeCRF_h5nx_synthetic_mf/'
-
-# def get_project_path():
-#     with open('vertex_projects_path.txt', 'r') as f:
-#         text = f.read()
-#         path_dict = {
-#             x.split('=')[0].strip(): eval(x.split('=')[1].strip())
-#             for x in text.split('\n') if len(x) > 0
-#         }
-#         projects_path = os.path.join(path_dict['vertex_projects_path'], '')
-#         init_project_path = os.path.join(
-#             projects_path, 'projects', path_dict['init_project_name'], '')
-#     return projects_path, init_project_path
 
 
 ############################################
@@ -54,64 +88,6 @@ def import_from_path(module_name, filepath):
     sys.modules[module_name] = module
     spec.loader.exec_module(module)
     return module
-
-
-############################################
-# CONFIG
-############################################
-
-
-def get_config(init_project_path, config_defaults):
-    config_file = os.path.join(init_project_path, 'config_file.json')
-    try:
-        with open(config_file, 'r') as json_data:
-            config_dict = json.load(json_data)
-        _ = config_dict['api_key']
-        _ = config_dict['api_url']
-    except Exception:
-        error_message = f'''config_file.json is required in \
-{init_project_path}. This file must contain both "api_key" and "api_url".'''
-        print(error_message)
-        raise SystemExit
-    # The default for the list of insight panels is all that exist in the
-    # relevant folder (which may or not be specified in config)
-    if 'insight_panels_path' not in config_dict.keys():
-        rel_insight_panels_path = config_defaults['insight_panels_path']
-        config_dict['insight_panels_path'] = rel_insight_panels_path
-    # Get a list of python files in the repository (excluding e.g. __init__.py)
-    insight_panels_path = os.path.join(
-        init_project_path, config_dict['insight_panels_path'])
-    for (_, _, filenames) in os.walk(insight_panels_path):
-        insight_panels = [
-            file.split('.py')[0] for file in filenames
-            if file.endswith('.py') and not file.startswith('_')]
-        break
-    config_defaults['insight_panels'] = insight_panels
-    # Add default items where the config file doesn't include these
-    config_defaults = {
-        k: v
-        for k, v in config_defaults.items() if k not in config_dict.keys()}
-    config_dict = {**config_dict, **config_defaults}
-    if any([x not in insight_panels for x in config_dict['insight_panels']]):
-        print('The following insight panels in config_file.json do not exist:')
-        missing_insight_panels = [
-            x for x in config_dict['insight_panels']
-            if x not in insight_panels]
-        print('\n'.join(missing_insight_panels))
-        print('These are ignored and will not appear in the dashboard.')
-        config_dict['insight_panels'] = [
-            x for x in config_dict['insight_panels'] if x in insight_panels]
-    if any([x not in config_dict['insight_panels'] for x in insight_panels]):
-        print('''The following insight panel files are not listed in \
-config_file.json:''')
-        missing_insight_panels = [
-            x for x in insight_panels
-            if x not in config_dict['insight_panels']]
-        print('\n'.join(missing_insight_panels))
-        print('''These will not appear in the dashboard. Please add them \
-to the list "insight_panels" in config_file.json to include them in \
-the dashboard.''')
-    return config_dict
 
 
 ############################################
@@ -238,12 +214,7 @@ def create_map(df_countries, map_layout_dict=None):
         'https://raw.githubusercontent.com/',
         'martynafford/natural-earth-geojson/master/',
         '50m/cultural/ne_50m_admin_0_countries.json')
-    # geojson = os.path.join(
-    #     'https://raw.githubusercontent.com/',
-    #     'datasets/geo-countries/blob/main/data/countries.geojson')
-    # geojson = os.path.join(
-    #     'https://raw.githubusercontent.com/',
-    #     'johan/world.geo.json/master/countries.geo.json')
+
 
     map_colorscale = get_map_colorscale(df_countries)
 
@@ -274,117 +245,6 @@ def create_map(df_countries, map_layout_dict=None):
 # APP LAYOUT
 ############################################
 
-
-# def define_filters_and_controls(
-#         sex_options=None, age_options=None, admdate_options=None,
-#         country_options=None, outcome_options=None):
-#     filters_children = []
-#     if sex_options is not None:
-#         filters_children.append([
-#             html.Label('Sex at birth:'),
-#             dcc.Checklist(
-#                 id='sex-checkboxes',
-#                 options=sex_options,
-#                 value=[option['value'] for option in sex_options],
-#                 inputStyle={'margin-right': '2px'}
-#             ),
-#             html.Div(style={'margin-top': '20px'})
-#         ])
-#     if age_options is not None:
-#         filters_children.append([
-#             html.Label('Age:'),
-#             dcc.RangeSlider(
-#                 id='age-slider',
-#                 min=age_options['min'],
-#                 max=age_options['max'],
-#                 step=age_options['step'],
-#                 marks=age_options['marks'],
-#                 value=age_options['value']
-#             ),
-#             html.Div(style={'margin-top': '20px'})
-#         ])
-#     if admdate_options is not None:
-#         filters_children.append([
-#             html.Label('Admission date:'),
-#             dcc.RangeSlider(
-#                 id='admdate-slider',
-#                 min=admdate_options['min'],
-#                 max=admdate_options['max'],
-#                 step=admdate_options['step'],
-#                 marks=admdate_options['marks'],
-#                 value=admdate_options['value'],
-#             ),
-#             html.Div(style={'margin-top': '35px'})
-#         ])
-#     if disease_options is not None:
-#         filters_children.append(html.Div([
-#             html.Div(
-#                 id='country-display', children='Disease:',
-#                 style={'cursor': 'pointer'}),
-#             dbc.Fade(
-#                 html.Div([
-#                     dcc.Checklist(
-#                         id='country-selectall',
-#                         options=[{'label': 'Select all', 'value': 'all'}],
-#                         value=['all'],
-#                         inputStyle={'margin-right': '2px'}
-#                     ),
-#                     dcc.Checklist(
-#                         id='country-checkboxes',
-#                         options=country_options,
-#                         value=[
-#                             option['value'] for option in country_options],
-#                         style={'overflowY': 'auto', 'maxHeight': '200px'},
-#                         inputStyle={'margin-right': '2px'}
-#                     )
-#                 ]),
-#                 id='country-fade',
-#                 is_in=False,
-#                 appear=False,
-#             )
-#         ]))
-#
-#     filters = dbc.AccordionItem(
-#         title='Filters and Controls',
-#         children=[
-#
-#             html.Label('Outcome:'),
-#             dcc.Checklist(
-#                 id='outcome-checkboxes',
-#                 options=outcome_options,
-#                 value=[option['value'] for option in outcome_options],
-#                 inputStyle={'margin-right': '2px'}
-#             ),
-#             html.Div(style={'margin-top': '20px'}),
-#             html.Div([
-#                 html.Div(
-#                     id='country-display', children='Country:',
-#                     style={'cursor': 'pointer'}),
-#                 dbc.Fade(
-#                     html.Div([
-#                         dcc.Checklist(
-#                             id='country-selectall',
-#                             options=[{'label': 'Select all', 'value': 'all'}],
-#                             value=['all'],
-#                             inputStyle={'margin-right': '2px'}
-#                         ),
-#                         dcc.Checklist(
-#                             id='country-checkboxes',
-#                             options=country_options,
-#                             value=[
-#                                 option['value'] for option in country_options],
-#                             style={'overflowY': 'auto', 'maxHeight': '200px'},
-#                             inputStyle={'margin-right': '2px'}
-#                         )
-#                     ]),
-#                     id='country-fade',
-#                     is_in=False,
-#                     appear=False,
-#                 )
-#             ]),
-#         ], style={'overflowY': 'auto', 'maxHeight': '60vh'},
-#     )
-#     return filters
 
 
 def define_filters_and_controls(
@@ -466,43 +326,6 @@ def define_filters_and_controls(
                 pushable=1,
             ),
             html.Div(style={'margin-top': '35px'}),
-            # html.Div([
-            #     html.Div(
-            #         id='disease-display',
-            #         children=html.Div([
-            #             html.B('Disease:'),
-            #             ' (scroll down for all)'
-            #         ]),
-            #         style={'cursor': 'pointer'}),
-            #     dbc.Fade(
-            #         html.Div([
-            #             dcc.Checklist(
-            #                 id='disease-selectall',
-            #                 options=[{
-            #                     'label': 'Select all',
-            #                     'value': 'all'
-            #                 }],
-            #                 value=['all'],
-            #                 inputStyle={'margin-right': '2px'}
-            #             ),
-            #             dcc.Checklist(
-            #                 id='disease-checkboxes',
-            #                 options=disease_options,
-            #                 value=[
-            #                     option['value'] for option in disease_options],
-            #                 style={
-            #                     'overflowY': 'auto',
-            #                     'maxHeight': '70px'
-            #                 },
-            #                 inputStyle={'margin-right': '2px'}
-            #             )
-            #         ]),
-            #         id='disease-fade',
-            #         is_in=True,
-            #         appear=True,
-            #     )
-            # ]),
-            # html.Div(style={'margin-top': '10px'}),
             html.Label(html.B('Outcome:')),
             html.Div(style={'margin-top': '5px'}),
             dcc.Checklist(
@@ -582,15 +405,19 @@ def define_app_layout(
     logo_style = {'height': '5vh', 'margin': '2px 10px'}
 
     app_layout = html.Div([
+        dcc.Store(id='login-state', storage_type='session', data=False),
         dcc.Store(id='button', data={'item': '', 'label': '', 'suffix': ''}),
         dcc.Store(id='map-layout', data=map_layout_dict),
-        # dcc.Store(id='button', data=buttons),
         dcc.Graph(
             id='world-map', figure=fig,
             style={'height': '92vh', 'margin': '0px'}),
         html.Div([
                 html.H1(title, id='title'),
-                html.P(subtitle)
+                html.P(subtitle),
+                # Add a hidden button here so it always exists in the layout
+                dbc.Button("Login", id="open-login", color="primary", size="sm", style={"display": "none"}),
+                dbc.Button("Logout", id="logout-button", style={"display": "none"}),
+                html.Div(id="auth-button-container"),
             ],
             style={
                 'position': 'absolute',
@@ -618,6 +445,9 @@ def define_app_layout(
                 'width': 'calc(100% - 350px)', 'margin-left': '350px',
                 'background-color': '#FFFFFF',
                 'z-index': 0, }),
+
+            login_modal,
+            register_modal,
     ])
     return app_layout
 
@@ -806,38 +636,6 @@ def define_filters_controls_modal(
                 )
             ]),
         ], width=2),
-        # dbc.Col([
-        #     html.H6('Disease:', style={'margin-right': '10px'}),
-        #     html.Div([
-        #         html.Div(
-        #             id='disease-display-modal',
-        #             children='Disease:', style={'cursor': 'pointer'}),
-        #         dbc.Fade(
-        #             html.Div([
-        #                 dcc.Checklist(
-        #                     id='disease-selectall-modal',
-        #                     options=[{
-        #                         'label': 'Select all',
-        #                         'value': 'all'
-        #                     }],
-        #                     value=['all'],
-        #                     inputStyle={'margin-right': '2px'}
-        #                 ),
-        #                 dcc.Checklist(
-        #                     id='disease-checkboxes-modal',
-        #                     options=disease_options,
-        #                     value=[
-        #                         option['value'] for option in disease_options],
-        #                     style={'overflowY': 'auto', 'maxHeight': '100px'},
-        #                     inputStyle={'margin-right': '2px'}
-        #                 )
-        #             ]),
-        #             id='disease-fade-modal',
-        #             is_in=True,
-        #             appear=True,
-        #         )
-        #     ]),
-        # ], width=2),
         dbc.Col([
             html.H6('Outcome:', style={'margin-right': '10px'}),
             html.Div([
@@ -912,39 +710,6 @@ def define_footer_modal(instructions, about):
             hide_arrow=False,
             # style={'zIndex':1}
         ),
-        # dbc.Popover(
-        #     [
-        #         dbc.PopoverHeader('Download', style={'fontWeight': 'bold'}),
-        #         dbc.PopoverBody([
-        #             html.Div('Raw data'),
-        #             dbc.Button(
-        #                 '.csv',
-        #                 outline=True, color='secondary',
-        #                 className='mr-1', id=f'csv_download_{suffix}',
-        #                 style={}, size='sm'),
-        #             html.Div('Chart', style={'marginTop': 5}),
-        #             dbc.Button(
-        #                 '.png',
-        #                 outline=True, color='secondary',
-        #                 className='mr-1', id=f'png_download_{suffix}',
-        #                 style={}, size='sm'),
-        #             html.Div(
-        #                 'Advanced',
-        #                 style={'marginTop': 5, 'display': 'none'}),
-        #             dbc.Button(
-        #                 'Downloads Area',
-        #                 outline=True, color='secondary',
-        #                 className='mr-1', id='btn-popover-line-download-land',
-        #                 style={'display': 'none'}, size='sm'),
-        #             ]),
-        #     ],
-        #     id=f'modal_download_popover_menu_{suffix}',
-        #     target=f'modal_download_popover_{suffix}',
-        #     # style={'maxHeight': '300px', 'overflowY': 'auto'},
-        #     trigger='legacy',
-        #     placement='top',
-        #     hide_arrow=False,
-        # ),
     ])
     return footer
 
@@ -958,6 +723,7 @@ def register_callbacks(
         app, insight_panels, df_map,
         df_forms_dict, dictionary, quality_report, filter_options,
         filepath, save_inputs):
+
     @app.callback(
         Output('world-map', 'figure'),
         [
@@ -1084,66 +850,6 @@ def register_callbacks(
             ]
         return output
 
-    # @app.callback(
-    #     [
-    #         Output('disease-selectall', 'value'),
-    #         Output('disease-selectall', 'options'),
-    #         Output('disease-checkboxes', 'value'),
-    #     ],
-    #     [
-    #         Input('disease-selectall', 'value'),
-    #         Input('disease-checkboxes', 'value')
-    #     ],
-    #     [State('disease-checkboxes', 'options')]
-    # )
-    # def update_disease_selection(
-    #         selectall_value, disease_value, disease_options):
-    #     ctx = dash.callback_context
-    #
-    #     if not ctx.triggered:
-    #         # Initial load, no input has triggered the callback yet
-    #         output = [
-    #             ['all'],
-    #             [{'label': 'Unselect all', 'value': 'all'}],
-    #             disease_value
-    #         ]
-    #
-    #     trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
-    #
-    #     if trigger_id == 'disease-selectall':
-    #         if 'all' in selectall_value:
-    #             # 'Select all' (now 'Unselect all') is checked
-    #             output = [
-    #                 ['all'],
-    #                 [{'label': 'Unselect all', 'value': 'all'}],
-    #                 [option['value'] for option in disease_options]
-    #             ]
-    #         else:
-    #             # 'Unselect all' is unchecked
-    #             output = [[], [{'label': 'Select all', 'value': 'all'}], []]
-    #     elif trigger_id == 'disease-checkboxes':
-    #         if len(disease_value) == len(disease_options):
-    #             # All countries are selected manually
-    #             output = [
-    #                 ['all'],
-    #                 [{'label': 'Unselect all', 'value': 'all'}],
-    #                 disease_value
-    #             ]
-    #         else:
-    #             # Some countries are deselected
-    #             output = [
-    #                 [],
-    #                 [{'label': 'Select all', 'value': 'all'}],
-    #                 disease_value
-    #             ]
-    #     else:
-    #         output = [
-    #             selectall_value,
-    #             [{'label': 'Select all', 'value': 'all'}],
-    #             disease_value
-    #         ]
-    #     return output
-
     @app.callback(
         Output('country-fade', 'is_in'),
         [Input('country-display', 'n_clicks')],
@@ -1153,16 +859,6 @@ def register_callbacks(
         if n_clicks:
             return not is_in
         return is_in
-
-    # @app.callback(
-    #     Output('disease-fade', 'is_in'),
-    #     [Input('disease-display', 'n_clicks')],
-    #     [State('disease-fade', 'is_in')]
-    # )
-    # def toggle_disease_fade(n_clicks, is_in):
-    #     if n_clicks:
-    #         return not is_in
-    #     return is_in
 
     @app.callback(
         Output('country-display', 'children'),
@@ -1210,53 +906,6 @@ def register_callbacks(
                     f'{display_text}'
                 ])
         return output
-
-    # @app.callback(
-    #     Output('disease-display', 'children'),
-    #     [Input('disease-checkboxes', 'value')],
-    #     [State('disease-checkboxes', 'options')]
-    # )
-    # def update_disease_display(disease_value, disease_options):
-    #     if not disease_value:
-    #         output = html.Div([
-    #             html.B('Disease:'),
-    #             # ' (scroll down for all)',
-    #             html.Br(),
-    #             'None selected'
-    #         ])
-    #     else:
-    #         # Create a dictionary to map values to labels
-    #         value_label_map = {
-    #             option['value']: option['label'] for option in disease_options}
-    #
-    #         # Build the display string
-    #         selected_labels = [
-    #             value_label_map[val] for val in disease_value
-    #             if val in value_label_map]
-    #         display_text = ', '.join(selected_labels)
-    #
-    #         if len(display_text) > 35:  # Adjust character limit as needed
-    #             if len(selected_labels) == 1:
-    #                 output = html.Div([
-    #                     html.B('Disease:'),
-    #                     # ' (scroll down for all)',
-    #                     html.Br(),
-    #                     f'{selected_labels[0]}'])
-    #             else:
-    #                 output = html.Div([
-    #                     html.B('Disease:'),
-    #                     ' (scroll down for all)',
-    #                     html.Br(),
-    #                     f'{selected_labels[0]}, ',
-    #                     f'+{len(selected_labels) - 1} more...'])
-    #         else:
-    #             output = html.Div([
-    #                 html.B('Disease:'),
-    #                 # ' (scroll down for all)',
-    #                 html.Br(),
-    #                 f'{display_text}'
-    #             ])
-    #     return output
 
     @app.callback(
         [
@@ -1347,65 +996,6 @@ def register_callbacks(
             ]
         return output
 
-    # @app.callback(
-    #     [
-    #         Output('disease-selectall-modal', 'value'),
-    #         Output('disease-selectall-modal', 'options'),
-    #         Output('disease-checkboxes-modal', 'value')
-    #     ],
-    #     [
-    #         Input('disease-selectall-modal', 'value'),
-    #         Input('disease-checkboxes-modal', 'value')
-    #     ],
-    #     [State('disease-checkboxes-modal', 'options')]
-    # )
-    # def update_disease_selection_modal(
-    #         selectall_value, disease_value, disease_options):
-    #     ctx = dash.callback_context
-    #     if not ctx.triggered:
-    #         # Initial load, no input has triggered the callback yet
-    #         output = [
-    #             ['all'],
-    #             [{'label': 'Unselect all', 'value': 'all'}],
-    #             disease_value
-    #         ]
-    #
-    #     trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
-    #     #
-    #     if trigger_id == 'disease-selectall-modal':
-    #         if 'all' in selectall_value:
-    #             # 'Select all' (now 'Unselect all') is checked
-    #             output = [
-    #                 ['all'],
-    #                 [{'label': 'Unselect all', 'value': 'all'}],
-    #                 [option['value'] for option in disease_options]
-    #             ]
-    #         else:
-    #             # 'Unselect all' is unchecked
-    #             output = [[], [{'label': 'Select all', 'value': 'all'}], []]
-    #     elif trigger_id == 'disease-checkboxes-modal':
-    #         if len(disease_value) == len(disease_options):
-    #             # All countries are selected manually
-    #             output = [
-    #                 ['all'],
-    #                 [{'label': 'Unselect all', 'value': 'all'}],
-    #                 disease_value
-    #             ]
-    #         else:
-    #             # Some countries are deselected
-    #             output = [
-    #                 [],
-    #                 [{'label': 'Select all', 'value': 'all'}],
-    #                 disease_value
-    #             ]
-    #     else:
-    #         output = [
-    #             selectall_value,
-    #             [{'label': 'Select all', 'value': 'all'}],
-    #             disease_value
-    #         ]
-    #     return output
-
     @app.callback(
         Output('country-fade-modal', 'is_in'),
         [Input('country-display-modal', 'n_clicks')],
@@ -1417,16 +1007,123 @@ def register_callbacks(
             state = not is_in
         return state
 
-    # @app.callback(
-    #     Output('disease-fade-modal', 'is_in'),
-    #     [Input('disease-display-modal', 'n_clicks')],
-    #     [State('disease-fade-modal', 'is_in')]
-    # )
-    # def toggle_disease_fade_modal(n_clicks, is_in):
-    #     state = is_in
-    #     if n_clicks:
-    #         state = not is_in
-    #     return state
+    @app.callback(
+        Output("auth-button-container", "children"),
+        Input("login-state", "data")
+    )
+    def render_auth_button(is_logged_in):
+        return html.Div([
+            dbc.Button(
+                "Login",
+                id="open-login",
+                color="primary",
+                size="md",
+                style={"display": "inline-block" if not is_logged_in else "none"}
+            ),
+            dbc.Button(
+                "Logout",
+                id="logout-button",
+                color="danger",
+                size="md",
+                style={"display": "inline-block" if is_logged_in else "none"}
+            )
+        ])
+            
+    @app.callback(
+        Output("login-state", "data"),
+        Output("login-modal", "is_open"),
+        Output("login-output", "children"),
+        Input("open-login", "n_clicks"),
+        Input("login-submit", "n_clicks"),
+        Input("logout-button", "n_clicks"),
+        State("login-modal", "is_open"),
+        State("username", "value"),
+        State("password", "value"),
+        prevent_initial_call=True
+    )
+    def handle_login_logout(open_clicks, submit_clicks, logout_clicks, is_open, username, password):
+        ctx = callback_context
+
+        if not ctx.triggered:
+            raise PreventUpdate
+
+        if (open_clicks == 0 or open_clicks is None) and (logout_clicks == 0 or logout_clicks is None):
+            return dash.no_update, False, ""
+
+        trigger = ctx.triggered[0]["prop_id"].split(".")[0]
+
+        if trigger == "open-login":
+            return dash.no_update, True, ""
+
+        if trigger == "logout-button":
+            logout_user()
+            return False, dash.no_update, ""
+
+        if trigger == "login-submit":
+            if not username or not password:
+                return False, True, "Please enter both username and password."
+
+            with Session(engine) as session:
+                user = session.query(User).filter_by(email=username.strip().lower()).first()
+                print(user)
+                if user and verify_and_update_password(password, user):
+                    login_user(user)
+                    return True, False, ""
+                else:
+                    print(f"[DEBUG] Invalid login attempt for user: {username}")
+                    return False, True, "Invalid username or password."
+                    
+
+        return dash.no_update, is_open, ""
+
+    @app.callback(
+        Output("register-modal", "is_open"),
+        Input("open-register", "n_clicks"),
+        Input("register-submit", "n_clicks"),
+        State("register-modal", "is_open"),
+        prevent_initial_call=True
+    )
+    def toggle_register_modal(open_clicks, submit_clicks, is_open):
+        print(f"[DEBUG] toggle_register_modal: open_clicks = {open_clicks}, submit_clicks = {submit_clicks}, is_open = {is_open}")
+        if open_clicks is None or open_clicks == 0:
+            return False
+        ctx = callback_context
+        if not ctx.triggered:
+            raise PreventUpdate
+
+        trigger = ctx.triggered[0]["prop_id"].split(".")[0]
+        if trigger == "open-register":
+            return True
+        elif trigger == "register-submit":
+            return False
+        return is_open
+
+    @app.callback(
+        Output("register-output", "children"),
+        Input("register-submit", "n_clicks"),
+        State("register-email", "value"),
+        State("register-password", "value"),
+        prevent_initial_call=True
+    )
+    def register_user(n_clicks, email, password):
+        if not email or not password:
+            return "Please enter both email and password"
+
+        with Session(engine) as session:
+            existing = session.query(User).filter_by(email=email.lower()).first()
+            if existing:
+                return "User already exists"
+
+            new_user = User(
+                id = uuid.uuid4(),
+                email=email.lower(),
+                password=hash_password(password),
+                fs_uniquifier=secrets.token_urlsafe(32),
+                is_admin = False,
+            )
+            session.add(new_user)
+            session.commit()
+            return "Registration successful. You can now log in."
 
     @app.callback(
         Output('country-display-modal', 'children'),
@@ -1453,32 +1150,6 @@ def register_callbacks(
         else:
             output = f'Country: {display_text}'
         return output
-
-    # @app.callback(
-    #     Output('disease-display-modal', 'children'),
-    #     [Input('disease-checkboxes-modal', 'value')],
-    #     [State('disease-checkboxes-modal', 'options')]
-    # )
-    # def update_disease_display_modal(disease_value, disease_options):
-    #     if not disease_value:
-    #         return 'Disease:'
-    #
-    #     # Create a dictionary to map values to labels
-    #     value_label_map = {
-    #         option['value']: option['label'] for option in disease_options}
-    #
-    #     # Build the display string
-    #     selected_labels = [
-    #         value_label_map[val] for val in disease_value
-    #         if val in value_label_map]
-    #     display_text = ', '.join(selected_labels)
-    #
-    #     if len(display_text) > 20:  # Adjust character limit as needed
-    #         output = f'{selected_labels[0]}, '
-    #         output += f'+{len(selected_labels) - 1} more...'
-    #     else:
-    #         output = f'Disease: {display_text}'
-    #     return output
 
     @app.callback(
         [
@@ -1587,21 +1258,10 @@ def register_callbacks(
             outcome_value)
         return output
 
-    # @dash.callback(
-    #     Output('line-graph-modal-title', 'children'),
-    #     [Input('main_data', 'data'),
-    #      Input('dictionary', 'data')]
-    # )
-    # def get_data_for_modal(stored_main_data, stored_dictionary):
-    #     if stored_main_data is None:
-    #         raise dash.exceptions.PreventUpdate  # Prevent if no data
-    #     # Convert JSON data back to a DataFrame
-    #     main_data = pd.DataFrame(stored_main_data)
-    #     dictionary = pd.DataFrame(stored_dictionary)
-    #     return main_data, dictionary
-
     # End of callbacks
     return
+
+
 
 
 ############################################
@@ -1616,23 +1276,30 @@ def main():
         __name__,
         external_stylesheets=[dbc.themes.BOOTSTRAP],
         suppress_callback_exceptions=True)
+    
+    app.server.config.update({
+        "SQLALCHEMY_DATABASE_URI": DATABASE_URL,
+        "SECRET_KEY": "mouse_trap_robot_fast_cheese_coffee_gross_back_spain",
+        "SECURITY_PASSWORD_HASH": "bcrypt",
+        "SECURITY_PASSWORD_SALT": "host_place_china_horse_past_arena_brand_sugar",
+        "SECURITY_USER_IDENTITY_ATTRIBUTES": [
+            {"email": {"mapper": "email", "case_insensitive": True}}
+        ]
+    })
+    
+    app.layout = html.Div([
+        dcc.Location(id='url', refresh=False),
+        dcc.Store(id='login-state', storage_type='session', data=False),
+        html.Div(id='page-content'),
+        html.Div(id="login-output", style={"display": "none"}),
+    ])
 
-    # cache = fc.Cache(
-    #     app.server,
-    #     config={
-    #         'CACHE_TYPE': 'SimpleCache',  # Use in-memory cache
-    #         'CACHE_DEFAULT_TIMEOUT': 300,  # Cache timeout in seconds (5 min)
-    #     }
-    # )
+    db.init_app(app.server)  # now bind db to app
+    with app.server.app_context():
+        global user_datastore
+        user_datastore = SQLAlchemyUserDatastore(db, User, None)
+        security.init_app(app.server, user_datastore)
 
-    # try:
-    #     print('Password required')
-    #     p_info = os.environ['p_info']
-    #     u_info = os.environ['u_info']
-    #     VALID_USERNAME_PASSWORD_PAIRS = {u_info: p_info}
-    #     auth = dash_auth.BasicAuth(app, VALID_USERNAME_PASSWORD_PAIRS)
-    # except Exception:
-    #     print('Password not required')
 
     config_defaults = {
         'project_name': None,
@@ -1785,27 +1452,6 @@ def main():
         {'label': 'Female', 'value': 'Female'},
         {'label': 'Other / Unknown', 'value': 'Other / Unknown'}]
 
-    # disease_options = [
-    #     {'label': 'COVID-19 (SARS-CoV-2)', 'value': 'COVID-19 (SARS-CoV-2)'},
-    #     {'label': 'Dengue', 'value': 'Dengue'},
-    #     {
-    #         'label': 'Ebola virus disease (EVD)',
-    #         'value': 'Ebola virus disease (EVD)'},
-    #     {'label': 'Influenza A H5N1', 'value': 'Influenza A H5N1'},
-    #     {
-    #         'label': 'Marburg virus disease (MVD)',
-    #         'value': 'Marburg virus disease (MVD)'},
-    #     {
-    #         'label': 'Middle East respiratory syndrome (MERS)',
-    #         'value': 'Middle East respiratory syndrome (MERS)'},
-    #     {'label': 'Mpox', 'value': 'Mpox'},
-    #     {'label': 'Nipah', 'value': 'Nipah'},
-    #     {'label': 'Oropouche', 'value': 'Oropouche'},
-    #     {
-    #         'label': 'Severe acute respiratory syndrome (SARS-not COVID-19)',
-    #         'value': 'Severe acute respiratory syndrome (SARS-not COVID-19)'}
-    # ]
-
     max_age = max((100, df_map['demog_age'].max()))
     age_options = {'min': 0, 'max': max_age, 'step': 10}
     age_range = range(
@@ -1934,7 +1580,6 @@ def main():
             save_config_dict = {k: config_dict[k] for k in save_config_keys}
             json.dump(save_config_dict, file)
     return app
-
 
 if __name__ == '__main__':
     app = main()
