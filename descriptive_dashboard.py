@@ -1,6 +1,6 @@
 import dash
 import json
-from dash import dcc, html, callback_context
+from dash import dcc, html, callback_context, no_update
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State, ALL
 from dash.exceptions import PreventUpdate
@@ -1077,53 +1077,48 @@ def register_callbacks(
         return dash.no_update, is_open, ""
 
     @app.callback(
+        Output("register-output", "children"),
         Output("register-modal", "is_open"),
         Input("open-register", "n_clicks"),
         Input("register-submit", "n_clicks"),
         State("register-modal", "is_open"),
-        prevent_initial_call=True
-    )
-    def toggle_register_modal(open_clicks, submit_clicks, is_open):
-        print(f"[DEBUG] toggle_register_modal: open_clicks = {open_clicks}, submit_clicks = {submit_clicks}, is_open = {is_open}")
-        if open_clicks is None or open_clicks == 0:
-            return False
-        ctx = callback_context
-        if not ctx.triggered:
-            raise PreventUpdate
-
-        trigger = ctx.triggered[0]["prop_id"].split(".")[0]
-        if trigger == "open-register":
-            return True
-        elif trigger == "register-submit":
-            return False
-        return is_open
-
-    @app.callback(
-        Output("register-output", "children"),
-        Input("register-submit", "n_clicks"),
         State("register-email", "value"),
         State("register-password", "value"),
+        State("register-confirm-password", "value"),
         prevent_initial_call=True
     )
-    def register_user(n_clicks, email, password):
-        if not email or not password:
-            return "Please enter both email and password"
+    def handle_register(open_clicks, submit_clicks, is_open, email, password, confirm_password):
+        ctx = callback_context
+        triggered = ctx.triggered_id
 
-        with Session(engine) as session:
-            existing = session.query(User).filter_by(email=email.lower()).first()
-            if existing:
-                return "User already exists"
+        if triggered == "open-register":
+            return no_update, True  # Open the modal
 
-            new_user = User(
-                id = uuid.uuid4(),
-                email=email.lower(),
-                password=hash_password(password),
-                fs_uniquifier=secrets.token_urlsafe(32),
-                is_admin = False,
-            )
-            session.add(new_user)
-            session.commit()
-            return "Registration successful. You can now log in."
+        elif triggered == "register-submit":
+            if not email or not password or not confirm_password:
+                return "Please fill in all fields", True
+
+            if password != confirm_password:
+                return "Passwords do not match", True
+
+            with Session(engine) as session:
+                existing = session.query(User).filter_by(email=email.lower()).first()
+                if existing:
+                    return "User already exists", True
+
+                new_user = User(
+                    id=uuid.uuid4(),
+                    email=email.lower(),
+                    password=hash_password(password),
+                    fs_uniquifier=secrets.token_urlsafe(32),
+                    is_admin=False,
+                )
+                session.add(new_user)
+                session.commit()
+                return "", False  # Close modal on success
+
+        return no_update, is_open
+
 
     @app.callback(
         Output('country-display-modal', 'children'),
