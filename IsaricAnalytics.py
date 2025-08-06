@@ -155,7 +155,8 @@ def convert_categorical_to_onehot(
         col for col in df.columns if col in categorical_columns]
 
     df.loc[:, categorical_columns] = (
-        df[categorical_columns].fillna(missing_val))
+        df[categorical_columns].fillna(missing_val)).apply(lambda x: x.apply(
+            lambda y: y.lower().replace(' ', '_').replace('-', '_')))
     df = pd.get_dummies(
         df, columns=categorical_columns, prefix_sep=sep)
 
@@ -256,7 +257,7 @@ def from_timeA_to_timeB(
         data[timediff_column] = (
             (data[timeB_column].dt.year - data[timeA_column].dt.year)*12 +
             (data[timeB_column].dt.month - data[timeA_column].dt.month))
-    elif time_unit == 'months':
+    elif time_unit == 'years':
         data[timediff_column] = (
             data[timeB_column].dt.year - data[timeA_column].dt.year)
     time_dict = {
@@ -323,10 +324,10 @@ def n_percent_str(series, add_spaces=False, dp=1, mfw=4, min_n=1):
             output_str += '%5.*f' % (dp, percent) + ') | '
         output_str += '%*g' % (mfw, int(series.notna().sum()))
     else:
-        count = str(int(series.sum()))
-        percent = '%.*f' % (dp, 100*series.mean())
-        denom = str(int(series.notna().sum()))
-        output_str = f'{count} ({percent}) | {denom}'
+        count = int(series.sum())
+        percent = 100*series.mean()
+        denom = int(series.notna().sum())
+        output_str = f'{str(count)} ({'%.*f' % (dp, percent)}) | {str(denom)}'
     return output_str
 
 
@@ -607,6 +608,7 @@ def format_descriptive_table_variables(
     if add_key is True:
         field_type = dictionary['field_type'].map({
             'categorical': f' ({binary_symbol})',
+            'checkbox': f' ({binary_symbol})',
             'binary': f' ({binary_symbol})',
             'numeric': f' ({numeric_symbol})'}).fillna('')
         name += field_type*(dictionary['field_name'].str.contains(sep) == 0)
@@ -2143,7 +2145,7 @@ def create_grouped_results(selected_features, feature_importance, sep='___'):
             for cat in categories:
                 results.append({
                     # Indent for visual grouping
-                    'Feature': '  ' + cat['Feature'],
+                    'Feature': f'  {cat['Feature']}',
                     'Coefficient': cat['Coefficient']
                 })
         else:
