@@ -128,9 +128,8 @@ def get_variables_by_section_and_type(
     Get all variables in the dataframe from specified sections and types,
     plus any required variables.
     '''
-    # include_ind = dictionary['field_name'].apply(
-    #     lambda x: x.startswith(tuple(x + '_' for x in include_sections)))
-    include_ind = dictionary['section'].isin(include_sections)
+    include_ind = dictionary['field_name'].apply(
+        lambda x: x.startswith(tuple(x + '_' for x in include_sections)))
     include_ind &= dictionary['field_type'].isin(include_types)
     # include_ind &= (dictionary['field_name'].apply(
     #     lambda x: x.endswith(tuple('___' + x for x in exclude_suffix))) == 0)
@@ -153,8 +152,7 @@ def convert_categorical_to_onehot(
         col for col in df.columns if col in categorical_columns]
 
     df.loc[:, categorical_columns] = (
-        df[categorical_columns].fillna(missing_val)).apply(lambda x: x.apply(
-            lambda y: y.lower().replace(' ', '_').replace('-', '_')))
+        df[categorical_columns].fillna(missing_val))
     df = pd.get_dummies(
         df, columns=categorical_columns, prefix_sep=sep)
 
@@ -255,7 +253,7 @@ def from_timeA_to_timeB(
         data[timediff_column] = (
             (data[timeB_column].dt.year - data[timeA_column].dt.year)*12 +
             (data[timeB_column].dt.month - data[timeA_column].dt.month))
-    elif time_unit == 'years':
+    elif time_unit == 'months':
         data[timediff_column] = (
             data[timeB_column].dt.year - data[timeA_column].dt.year)
     time_dict = {
@@ -606,7 +604,6 @@ def format_descriptive_table_variables(
     if add_key is True:
         field_type = dictionary['field_type'].map({
             'categorical': f' ({binary_symbol})',
-            'checkbox': f' ({binary_symbol})',
             'binary': f' ({binary_symbol})',
             'numeric': f' ({numeric_symbol})'}).fillna('')
         name += field_type*(dictionary['field_name'].str.contains(sep) == 0)
