@@ -1,24 +1,20 @@
+#!/usr/bin/env python3
 import dash
 import json
-from dash import dcc, html, callback_context
-import dash_bootstrap_components as dbc
-from dash.dependencies import Input, Output, State, ALL
 import numpy as np
 import pandas as pd
+from dash import dcc, html
+import dash_bootstrap_components as dbc
+from dash.dependencies import Input, Output, State, ALL
 import plotly.graph_objs as go
 import sys
-# import IsaricDraw as idw
-# import redcap_config as rc_config
-import getREDCapData as getRC
-# from insight_panels import *
-# from insight_panels.__init__ import __all__ as ip_list
 import os
 import shutil
 import importlib.util
 import webbrowser
 import requests
-# import dash_auth
-# import flask_caching as fc
+
+import getREDCapData as getRC
 
 
 ############################################
@@ -26,21 +22,11 @@ import requests
 ############################################
 
 # init_project_path = 'projects/ARChetypeCRF_mpox_synthetic/'
-# init_project_path = 'projects/ARChetypeCRF_dengue_synthetic/'
+init_project_path = 'projects/ARChetypeCRF_dengue_synthetic/'
 # init_project_path = 'projects/ARChetypeCRF_h5nx_synthetic/'
-init_project_path = 'projects/ARChetypeCRF_h5nx_synthetic_mf/'
+# init_project_path = 'projects/ARChetypeCRF_h5nx_synthetic_mf/'
 
-# def get_project_path():
-#     with open('vertex_projects_path.txt', 'r') as f:
-#         text = f.read()
-#         path_dict = {
-#             x.split('=')[0].strip(): eval(x.split('=')[1].strip())
-#             for x in text.split('\n') if len(x) > 0
-#         }
-#         projects_path = os.path.join(path_dict['vertex_projects_path'], '')
-#         init_project_path = os.path.join(
-#             projects_path, 'projects', path_dict['init_project_name'], '')
-#     return projects_path, init_project_path
+# init_project_path = '../VERTEX_projects/mpox_rwanda/'
 
 
 ############################################
@@ -238,14 +224,8 @@ def create_map(df_countries, map_layout_dict=None):
         'https://raw.githubusercontent.com/',
         'martynafford/natural-earth-geojson/master/',
         '50m/cultural/ne_50m_admin_0_countries.json')
-    # geojson = os.path.join(
-    #     'https://raw.githubusercontent.com/',
-    #     'datasets/geo-countries/blob/main/data/countries.geojson')
-    # geojson = os.path.join(
-    #     'https://raw.githubusercontent.com/',
-    #     'johan/world.geo.json/master/countries.geo.json')
 
-    map_colorscale = get_map_colorscale(df_countries)
+    # map_colorscale = get_map_colorscale(df_countries)
 
     fig = go.Figure(go.Choroplethmap(
         geojson=geojson,
@@ -253,7 +233,7 @@ def create_map(df_countries, map_layout_dict=None):
         locations=df_countries['country_iso'],
         z=df_countries['country_count'],
         text=df_countries['country_name'],
-        colorscale=map_colorscale,
+        # colorscale=map_colorscale,
         showscale=True,
         zmin=1,
         zmax=df_countries['country_count'].max(),
@@ -262,11 +242,15 @@ def create_map(df_countries, map_layout_dict=None):
         marker_line_width=0.3,
         colorbar={
             'bgcolor': 'rgba(255,255,255,1)',
-            'thickness': 20, 'ticklen': 5,
-            'x': 1, 'xref': 'paper', 'xanchor': 'right', 'xpad': 5},
+            'thickness': 20,
+            'ticklen': 5,
+            'x': 1,
+            'xref': 'paper',
+            'xanchor': 'right',
+            'xpad': 5
+        },
     ))
     fig.update_layout(map_layout_dict)
-    # fig.update_layout({'width': 10.5})
     return fig
 
 
@@ -1270,7 +1254,7 @@ def register_callbacks(
         prevent_initial_call=True
     )
     def toggle_modal(n, is_open):
-        ctx = callback_context
+        ctx = dash.callback_context
         if not ctx.triggered:
             empty_button = {'item': '', 'label': '', 'suffix': ''}
             output = is_open, [], False, empty_button
@@ -1663,14 +1647,12 @@ def main():
     if get_data_from_api:
         print('Retrieving data from the API')
         user_assigned_to_dag = getRC.user_assigned_to_dag(api_url, api_key)
-        # if user_assigned_to_dag & (config_dict['data_access_groups'] is None):
-        #     with open('data_access_groups.json') as json_data:
-        #         all_dags = json.load(json_data)
-        #         config_dict['data_access_groups'] = all_dags[api_url]
         get_data_kwargs = {
             'data_access_groups': config_dict['data_access_groups'],
-            'user_assigned_to_dag': user_assigned_to_dag}
-        df_map, df_forms_dict, dictionary, quality_report = (
+            'user_assigned_to_dag': user_assigned_to_dag,
+            'convert_column_names': True
+        }
+        df_map, dictionary, df_forms_dict = (
             getRC.get_redcap_data(api_url, api_key, **get_data_kwargs))
 
     if get_data_from_api is False:
@@ -1678,29 +1660,88 @@ def main():
             vertex_dataframes_path = os.path.join(
                 init_project_path, config_dict['vertex_dataframes_path'])
             vertex_dataframes = os.listdir(vertex_dataframes_path)
-            df_map = pd.read_csv(
-                os.path.join(vertex_dataframes_path, 'df_map.csv'))
             dictionary = pd.read_csv(
-                os.path.join(vertex_dataframes_path, 'vertex_dictionary.csv'))
-            # dictionary = dictionary.fillna('')
-            if 'quality_report.json' in vertex_dataframes:
-                quality_report_file = os.path.join(
-                    vertex_dataframes_path, 'quality_report.json')
-                with open(quality_report_file, 'r') as json_data:
-                    quality_report = json.load(json_data)
-            else:
-                quality_report = {}
+                os.path.join(vertex_dataframes_path, 'vertex_dictionary.csv'),
+                dtype={'field_label': 'str'},
+                keep_default_na=False)
+            str_ind = dictionary['field_type'].isin(
+                ['freetext', 'categorical'])
+            str_columns = dictionary.loc[str_ind, 'field_name'].tolist()
+            non_str_columns = dictionary.loc[(
+                str_ind == 0), 'field_name'].tolist()
+            # num_ind = dictionary['field_type'].isin(['numeric'])
+            # num_columns = dictionary.loc[num_ind, 'field_name'].tolist()
+            dtype_dict = {
+                **{x: 'str' for x in str_columns},
+                # **{x: 'float' for x in num_columns}
+            }
+            # pandas tries to infer NaN values, sometimes this causes issues
+            # solution is to ignore str columns, otherwise there are errors if
+            # e.g. 'None' is an answer option
+            pandas_default_na_values = [
+                '',
+                ' ',
+                '#N/A',
+                '#N/A N/A',
+                '#NA',
+                '-1.#IND',
+                '-1.#QNAN',
+                '-NaN',
+                '-nan',
+                '1.#IND',
+                '1.#QNAN',
+                '<NA>',
+                'N/A',
+                'NA',
+                'NULL',
+                'NaN',
+                'None',
+                'n/a',
+                'nan',
+                'null'
+            ]
+            na_values = {
+                **{x: pandas_default_na_values for x in non_str_columns},
+                **{x: '' for x in str_columns}
+            }
+            df_map = pd.read_csv(
+                os.path.join(vertex_dataframes_path, 'df_map.csv'),
+                dtype=dtype_dict,
+                keep_default_na=False,
+                na_values=na_values
+            )
+            # Fix dates
+            date_variables = dictionary.loc[(
+                dictionary['field_type'] == 'date'), 'field_name'].tolist()
+            df_map[date_variables] = df_map[date_variables].apply(
+                lambda x: x.apply(lambda y: pd.to_datetime(y)))
+            quality_report = {}
             exclude_files = ('df_map.csv', 'vertex_dictionary.csv')
             vertex_dataframes = [
                 file for file in vertex_dataframes
                 if file.endswith('.csv') and (file not in exclude_files)]
-            df_forms_dict = {
-                k.split('.csv')[0]: pd.read_csv(
-                    os.path.join(vertex_dataframes_path, k))
-                for k in vertex_dataframes}
+            df_forms_dict = {}
+            for file in vertex_dataframes:
+                df_form = pd.read_csv(
+                    os.path.join(vertex_dataframes_path, file),
+                    dtype=dtype_dict,
+                    keep_default_na=False,
+                    na_values=na_values
+                )
+                if 'subjid' in df_form.columns:
+                    key = file.split('.csv')[0]
+                    df_forms_dict[key] = df_form
+                else:
+                    print(f'{file} does not include subjid, ignoring this.')
         except Exception:
             print('Could not load the VERTEX dataframes.')
             raise
+
+    df_map['filters_country'] = df_map['country_iso'].copy()
+    df_map['filters_sex'] = df_map['demog_sex'].copy()
+    df_map['filters_date'] = df_map['dates_admdate'].copy()
+    df_map['filters_outcome'] = df_map['outco_binary_outcome'].copy()
+    df_map['filters_age'] = df_map['demog_age'].copy()
 
     df_map_with_countries = merge_data_with_countries(df_map)
     df_countries = get_countries(df_map_with_countries)
@@ -1753,7 +1794,7 @@ def main():
     #         'value': 'Severe acute respiratory syndrome (SARS-not COVID-19)'}
     # ]
 
-    max_age = max((100, df_map['demog_age'].max()))
+    max_age = max((100, df_map['filters_age'].max()))
     age_options = {'min': 0, 'max': max_age, 'step': 10}
     age_range = range(
         age_options['min'], age_options['max'] + 1, age_options['step'])
@@ -1773,9 +1814,11 @@ def main():
     }
     age_options['value'] = [age_options['min'], age_options['max']]
 
+    end_date = (df_map['filters_date'].max() + pd.DateOffset(months=1))
+    end_date = end_date.strftime('%Y-%m')
     admdate_yyyymm = pd.date_range(
-        start=df_map['dates_admdate'].min().strftime('%Y-%m'),
-        end=df_map['dates_admdate'].max().strftime('%Y-%m'),
+        start=df_map['filters_date'].min().strftime('%Y-%m'),
+        end=end_date,
         freq='MS')
     admdate_yyyymm = [x.strftime('%Y-%m') for x in admdate_yyyymm]
     admdate_options = {
@@ -1865,9 +1908,9 @@ def main():
             os.makedirs(os.path.dirname(assets_path), exist_ok=True)
             shutil.copytree('assets', assets_path, dirs_exist_ok=True)
         metadata_file = os.path.join(
-            public_path, 'data/dashboard_metadata.txt')
-        with open(metadata_file, 'w') as metadata:
-            metadata.write(repr(buttons))
+            public_path, 'data/dashboard_metadata.json')
+        with open(metadata_file, 'w') as file:
+            json.dump(buttons, file, indent=4)
         data_file = os.path.join(public_path, 'data/dashboard_data.csv')
         df_countries.to_csv(data_file, index=False)
         config_json_file = os.path.join(
@@ -1877,7 +1920,7 @@ def main():
                 'project_name', 'map_layout_center_latitude',
                 'map_layout_center_longitude', 'map_layout_zoom']
             save_config_dict = {k: config_dict[k] for k in save_config_keys}
-            json.dump(save_config_dict, file)
+            json.dump(save_config_dict, file, indent=4)
     return app
 
 

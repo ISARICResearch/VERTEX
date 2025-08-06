@@ -266,11 +266,11 @@ def get_visuals(path, buttons):
         metadata_files = os.listdir(os.path.join(path, suffix))
         metadata_files = [
             file for file in metadata_files
-            if file.endswith('.txt') & file.startswith(graph_ids)]
+            if file.endswith('.json') & file.startswith(graph_ids)]
         for file in metadata_files:
             new_file_path = os.path.join(path, suffix, file)
-            with open(new_file_path, 'r', encoding='latin-1') as f:
-                new_file = eval(f.read())
+            with open(new_file_path, 'r') as file:
+                new_file = json.load(file)
             fig_id = new_file['fig_id']
             data = tuple(
                 pd.read_csv(os.path.join(path, name))
@@ -492,9 +492,11 @@ def main():
 
     config_dict = get_config(filepath, config_defaults)
 
-    metadata_file = os.path.join(filepath, 'data', 'dashboard_metadata.txt')
-    with open(metadata_file, 'r') as f:
-        metadata = eval(f.read())
+    metadata_file = os.path.join(filepath, 'data', 'dashboard_metadata.json')
+    with open(metadata_file, 'r') as file:
+        metadata = json.load(file)
+    # with open(metadata_file, 'r') as f:
+    #     metadata = eval(f.read())
     buttons = get_visuals(os.path.join(filepath, 'data/', ''), metadata)
 
     data_file = os.path.join(filepath, 'data', 'dashboard_data.csv')
