@@ -55,7 +55,7 @@ def create_visuals(
     pyramid_chart = idw.fig_dual_stack_pyramid(
         df_pyramid,
         title='Population age pyramid*',
-        base_color_map=color_map, ylabel='Age group',
+        base_color_map=color_map, yaxis_label='Age group',
         suffix=suffix, filepath=filepath, save_inputs=save_inputs,
         graph_label='Demographics: Population Pyramid*',
         graph_about=about)
