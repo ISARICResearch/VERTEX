@@ -1814,10 +1814,10 @@ def main():
     }
     age_options['value'] = [age_options['min'], age_options['max']]
 
-    end_date = (df_map['filters_date'].max() + pd.DateOffset(months=1))
+    end_date = (df_map['dates_admdate'].max() + pd.DateOffset(months=1))
     end_date = end_date.strftime('%Y-%m')
     admdate_yyyymm = pd.date_range(
-        start=df_map['filters_date'].min().strftime('%Y-%m'),
+        start=df_map['dates_admdate'].min().strftime('%Y-%m'),
         end=end_date,
         freq='MS')
     admdate_yyyymm = [x.strftime('%Y-%m') for x in admdate_yyyymm]
