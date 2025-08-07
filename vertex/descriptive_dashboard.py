@@ -12,11 +12,8 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objs as go
 import sys
-# import IsaricDraw as idw
-# import redcap_config as rc_config
-import getREDCapData as getRC
-# from insight_panels import *
-# from insight_panels.__init__ import __all__ as ip_list
+
+
 import os
 import shutil
 import importlib.util
@@ -30,9 +27,11 @@ import uuid
 import boto3
 from urllib.parse import quote_plus
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import User, Project
-from config_loader import get_config
-from layout.modals import login_modal, register_modal
+
+from vertex.models import User, Project
+import vertex.getREDCapData as getRC
+from vertex.loader import get_config, load_vertex_data, config_defaults
+from vertex.layout.modals import login_modal, register_modal
 
 # Settings
 secret_name = "rds!db-472cc9c8-1f3e-4547-b84d-9b0742de8b9a"
@@ -373,14 +372,25 @@ def define_menu(buttons, filter_options, project_name=None):
     #         'z-index': 1000, 'background-color': 'rgba(255, 255, 255, 0.8)',
     #         'padding': '10px'})
     menu = [dbc.ModalBody([dbc.Accordion(menu_items, start_collapsed=True)])]
-    if project_name is not None:
-        menu_header = [dbc.ModalHeader(html.H1(
-            project_name,
-            style={
-                'fontSize': '2vmin', 'fontWeight': 'bold',
-                'text-align': 'center', 'padding': '5px', 'width': '300px'}
-        ), close_button=False)]
-        menu = menu_header + menu
+    
+    menu_header = [dbc.ModalHeader(
+        html.Div([
+            html.Label("Project:", style={'margin-right': '10px'}),
+            dcc.Dropdown(
+                id="project-selector",
+                options=[
+                    {"label": "ARChetypeCRF_mpox_synthetic", "value": "projects/ARChetypeCRF_mpox_synthetic/"},
+                    {"label": "ARChetypeCRF_dengue_synthetic", "value": "projects/ARChetypeCRF_dengue_synthetic/"},
+                    {"label": "ARChetypeCRF_h5nx_synthetic", "value": "projects/ARChetypeCRF_h5nx_synthetic/"},
+                    {"label": "ARChetypeCRF_h5nx_synthetic_mf", "value": "projects/ARChetypeCRF_h5nx_synthetic_mf/"},
+                ],
+                placeholder="Select a project...",
+                value="projects/ARChetypeCRF_h5nx_synthetic_mf/",  # default
+                style={"minWidth": "300px"}
+                    )
+        ]))
+    ]
+    menu = menu_header + menu
     menu = html.Div(
         menu,
         style={
@@ -392,6 +402,7 @@ def define_menu(buttons, filter_options, project_name=None):
 
 def define_app_layout(
         fig, buttons, filter_options, map_layout_dict, project_name=None):
+    
     title = 'VERTEX - Visual Evidence & Research Tool for EXploration'
     subtitle = 'Visual Evidence, Vital Answers'
 
@@ -405,6 +416,7 @@ def define_app_layout(
     logo_style = {'height': '5vh', 'margin': '2px 10px'}
 
     app_layout = html.Div([
+        dcc.Store(id="selected-project-path", data="projects/ARChetypeCRF_h5nx_synthetic_mf/"),
         dcc.Store(id='login-state', storage_type='session', data=False),
         dcc.Store(id='button', data={'item': '', 'label': '', 'suffix': ''}),
         dcc.Store(id='map-layout', data=map_layout_dict),
@@ -723,7 +735,113 @@ def register_callbacks(
         app, insight_panels, df_map,
         df_forms_dict, dictionary, quality_report, filter_options,
         filepath, save_inputs):
+    
+    ## Load the project based on project path
+    @app.callback(
+        Output("page-content", "children"),
+        Input("selected-project-path", "data"),
+        prevent_initial_call=True
+    )
+    def load_project_layout(project_path):
+        if not project_path:
+            raise PreventUpdate
+ 
+        config_dict = get_config(project_path, config_defaults)
+        insight_panels_path = os.path.join(project_path, config_dict['insight_panels_path'])
+        insight_panels, buttons = get_insight_panels(config_dict, insight_panels_path)
 
+        # Load data (from CSV or API)
+        # You can move this into a helper function to avoid duplicating logic
+        df_map, df_forms_dict, dictionary, quality_report = load_vertex_data(project_path, config_dict)
+
+        df_map_with_countries = merge_data_with_countries(df_map)
+        df_countries = get_countries(df_map_with_countries)
+
+        filter_columns_dict = {
+            'subjid': 'subjid',
+            'demog_sex': 'filters_sex',
+            'demog_age': 'filters_age',
+            'dates_admdate': 'filters_admdate',
+            'country_iso': 'filters_country',
+            'outco_binary_outcome': 'filters_outcome'
+        }
+
+        df_filters = df_map_with_countries[filter_columns_dict.keys()].rename(columns=filter_columns_dict)
+        df_map = pd.merge(df_map_with_countries, df_filters, on='subjid', how='left')
+        df_forms_dict = {
+            form: pd.merge(df_form, df_filters, on='subjid', how='left')
+            for form, df_form in df_forms_dict.items()
+        }
+
+        # Generate layout
+        map_layout_dict = dict(
+            map_style='carto-positron',
+            map_zoom=config_dict['map_layout_zoom'],
+            map_center={
+                'lat': config_dict['map_layout_center_latitude'],
+                'lon': config_dict['map_layout_center_longitude']},
+            margin={'r': 0, 't': 0, 'l': 0, 'b': 0},
+        )
+        fig = create_map(df_countries, map_layout_dict)
+
+        sex_options = [{'label': 'Male', 'value': 'Male'}, {'label': 'Female', 'value': 'Female'}, {'label': 'Other / Unknown', 'value': 'Other / Unknown'}]
+        max_age = max((100, df_map['demog_age'].max()))
+        age_options = {
+            'min': 0,
+            'max': max_age,
+            'step': 10,
+            'marks': {i: {'label': str(i)} for i in range(0, max_age + 1, 10)},
+            'value': [0, max_age]
+        }
+
+        admdate_yyyymm = pd.date_range(start=df_map['dates_admdate'].min(), end=df_map['dates_admdate'].max(), freq='MS')
+        admdate_options = {
+            'min': 0,
+            'max': len(admdate_yyyymm) - 1,
+            'step': 1,
+            'marks': {i: {'label': d.strftime('%Y-%m')} for i, d in enumerate(admdate_yyyymm)},
+            'value': [0, len(admdate_yyyymm) - 1]
+        }
+
+        country_options = [{'label': r['country_name'], 'value': r['country_iso']} for _, r in df_countries.iterrows()]
+        outcome_options = [{'label': v, 'value': v} for v in df_map['filters_outcome'].dropna().unique()]
+
+        filter_options = {
+            'sex_options': sex_options,
+            'age_options': age_options,
+            'admdate_options': admdate_options,
+            'country_options': country_options,
+            'outcome_options': outcome_options,
+        }
+
+        layout = define_app_layout(fig, buttons, filter_options, map_layout_dict, config_dict['project_name'])
+
+        # Optionally re-register any callbacks if necessary
+        register_callbacks(app, insight_panels, df_map, df_forms_dict, dictionary, quality_report, filter_options, project_path, config_dict['save_filtered_public_outputs'])
+
+        return layout
+
+
+    ## Change the current project
+    @app.callback(
+        Output("selected-project-path", "data"),
+        Input("project-selector", "value"),
+        prevent_initial_call=True
+    )
+    def set_project_path(selected_value):
+        print(f"Selected project path: {selected_value}")
+        if not selected_value:
+            raise PreventUpdate
+        return selected_value
+    
+    @app.callback(
+        Output("page-content", "children"),
+        Input("selected-project-path", "data")
+    )
+    def load_project_layout(project_path):
+        layout, insight_panels = build_dashboard(project_path)
+        return layout
+    
     @app.callback(
         Output('world-map', 'figure'),
         [
@@ -1294,21 +1412,6 @@ def main():
         global user_datastore
         user_datastore = SQLAlchemyUserDatastore(db, User, None)
         security.init_app(app.server, user_datastore)
-
-
-    config_defaults = {
-        'project_name': None,
-        "data_access_groups": None,
-        'map_layout_center_latitude': 6,
-        'map_layout_center_longitude': -75,
-        'map_layout_zoom': 1.7,
-        'save_public_outputs': False,
-        'save_base_files_to_public_path': False,
-        'public_path': 'PUBLIC/',
-        'save_filtered_public_outputs': False,
-        'insight_panels_path': 'insight_panels/',
-        'insight_panels': [],
-    }
 
     # projects_path, init_project_path = get_project_path()
     config_dict = get_config(init_project_path, config_defaults)

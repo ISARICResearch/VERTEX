@@ -1,8 +1,8 @@
 import dash
 import dash_bootstrap_components as dbc
 import getREDCapData as getRC
-import IsaricAnalytics as ia
-import IsaricDraw as idw
+import vertex.IsaricAnalytics as ia
+import vertex.IsaricDraw as idw
 import numpy as np
 import pandas as pd
 import pycountry

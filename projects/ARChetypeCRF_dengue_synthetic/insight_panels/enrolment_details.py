@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-import IsaricDraw as idw
-import IsaricAnalytics as ia
+import vertex.IsaricDraw as idw
+import vertex.IsaricAnalytics as ia
 
 
 def define_button():
