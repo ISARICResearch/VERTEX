@@ -25,7 +25,7 @@ filepath = './'
 def get_config(path, config_defaults):
     try:
         with open(os.path.join(
-                path, 'public_config_file.json'), 'r') as json_data:
+                path, 'config_file.json'), 'r') as json_data:
             config_dict = json.load(json_data)
     except Exception:
         print(f'config_file.json not in {path}, using defaults.')
@@ -97,7 +97,7 @@ def create_map(df_countries, map_layout_dict=None):
 
     map_colorscale = get_map_colorscale(df_countries)
 
-    fig = go.Figure(go.Choroplethmapbox(
+    fig = go.Figure(go.Choroplethmap(
         geojson=geojson,
         locations=df_countries['country_iso'],
         z=df_countries['country_count'],
@@ -247,18 +247,6 @@ def generate_html_text(text):
 
 
 def get_visuals(path, buttons):
-    # visuals = {}
-    # for file in os.listdir(path):
-    #     if file.endswith('.txt') & (file.startswith('dashboard') is False):
-    #         new_file = eval(open(os.path.join(path, file), 'r').read())
-    #         fig_id = new_file['fig_id']
-    #         data = tuple(
-    #             pd.read_csv(path + name) for name in new_file['fig_data'])
-    #         data = data[0] if (len(data) == 1) else data
-    #         fig_fun = eval('idw.' + new_file['fig_name'])
-    #         new_file['fig_arguments']['save_inputs'] = False
-    #         visuals[fig_id] = fig_fun(data, **new_file['fig_arguments'])
-
     visuals = {}
     for ii in range(len(buttons)):
         suffix = buttons[ii]['suffix']
@@ -324,11 +312,6 @@ def create_modal(visuals, button):
         ),
         dbc.ModalBody([
             dbc.Accordion([
-                # dbc.AccordionItem(
-                #     title='Filters and Controls',
-                #     children=[
-                #         define_filters_controls_modal(**filter_options)
-                #     ]),
                 dbc.AccordionItem(
                     title='Insights', children=insight_children)
                 ], active_item='item-0')
@@ -353,11 +336,6 @@ def define_footer_modal(instructions, about):
                 'Instructions',
                 id='modal_instruction_popover',
                 size='sm', style={'margin-right': '5px'}),
-            # dbc.Button(
-            #     'Download',
-            #     id=f'modal_download_popover_{suffix}',
-            #     size='sm', style={'margin-right': '5px'}),
-            # dbc.Button('Close', id='modal_patChar_close_popover',  size='sm')
         ], className='ml-auto'),
         dbc.Popover(
             [
@@ -366,60 +344,21 @@ def define_footer_modal(instructions, about):
                     style={'fontWeight': 'bold'}),
                 dbc.PopoverBody(instructions)
             ],
-            # id='modal-line-instructions-popover',
-            # is_open=False,
             target='modal_instruction_popover',
             trigger='hover',
             placement='top',
             hide_arrow=False,
-            # style={'zIndex':1}
         ),
         dbc.Popover(
             [
                 dbc.PopoverHeader('About', style={'fontWeight': 'bold'}),
                 dbc.PopoverBody(about),
             ],
-            # id='modal-line-guide-popover',
-            # is_open=False,
             target='modal_about_popover',
             trigger='hover',
             placement='top',
             hide_arrow=False,
-            # style={'zIndex':1}
         ),
-        # dbc.Popover(
-        #     [
-        #         dbc.PopoverHeader('Download', style={'fontWeight': 'bold'}),
-        #         dbc.PopoverBody([
-        #             html.Div('Raw data'),
-        #             dbc.Button(
-        #                 '.csv',
-        #                 outline=True, color='secondary',
-        #                 className='mr-1', id=f'csv_download_{suffix}',
-        #                 style={}, size='sm'),
-        #             html.Div('Chart', style={'marginTop': 5}),
-        #             dbc.Button(
-        #                 '.png',
-        #                 outline=True, color='secondary',
-        #                 className='mr-1', id=f'png_download_{suffix}',
-        #                 style={}, size='sm'),
-        #             html.Div(
-        #                 'Advanced',
-        #                 style={'marginTop': 5, 'display': 'none'}),
-        #             dbc.Button(
-        #                 'Downloads Area',
-        #                 outline=True, color='secondary',
-        #                 className='mr-1', id='btn-popover-line-download-land',
-        #                 style={'display': 'none'}, size='sm'),
-        #             ]),
-        #     ],
-        #     id=f'modal_download_popover_menu_{suffix}',
-        #     target=f'modal_download_popover_{suffix}',
-        #     # style={'maxHeight': '300px', 'overflowY': 'auto'},
-        #     trigger='legacy',
-        #     placement='top',
-        #     hide_arrow=False,
-        # ),
     ])
     return footer
 
@@ -472,16 +411,10 @@ def register_callbacks(
 
 
 def main():
-    # app.run_server(debug=True, host='0.0.0.0', port='8080')
     app = dash.Dash(
         __name__,
         external_stylesheets=[dbc.themes.BOOTSTRAP],
         suppress_callback_exceptions=True)
-
-    # p_info = os.environ['p_info']
-    # u_info = os.environ['u_info']
-    # VALID_USERNAME_PASSWORD_PAIRS = {u_info: p_info}
-    # auth = dash_auth.BasicAuth(app, VALID_USERNAME_PASSWORD_PAIRS)
 
     config_defaults = {
         'project_name': None,
@@ -492,30 +425,22 @@ def main():
 
     config_dict = get_config(filepath, config_defaults)
 
-    metadata_file = os.path.join(filepath, 'data', 'dashboard_metadata.json')
+    metadata_file = os.path.join(filepath, 'dashboard_metadata.json')
     with open(metadata_file, 'r') as file:
         metadata = json.load(file)
-    # with open(metadata_file, 'r') as f:
-    #     metadata = eval(f.read())
-    buttons = get_visuals(os.path.join(filepath, 'data/', ''), metadata)
+    buttons = get_visuals(filepath, metadata['insight_panels'])
 
-    data_file = os.path.join(filepath, 'data', 'dashboard_data.csv')
+    data_file = os.path.join(filepath, 'dashboard_data.csv')
     df_countries = pd.read_csv(data_file)
-    mapbox_style = ['open-street-map', 'carto-positron']
     map_layout_dict = dict(
-        mapbox_style=mapbox_style[1],
-        mapbox_zoom=config_dict['map_layout_zoom'],
-        mapbox_center={
+        map_style='carto-positron',  # alternative is 'open-street-map'
+        map_zoom=config_dict['map_layout_zoom'],
+        map_center={
             'lat': config_dict['map_layout_center_latitude'],
             'lon': config_dict['map_layout_center_longitude']},
         margin={'r': 0, 't': 0, 'l': 0, 'b': 0},
     )
     fig = create_map(df_countries, map_layout_dict)
-    # geojson = 'https://raw.githubusercontent.com/johan/world.geo.json/'
-    # geojson = geojson + 'master/countries.geo.json'
-    # fig = go.Figure(
-    #     go.Choroplethmapbox(geojson=geojson),
-    #     layout=map_layout_dict)
 
     app.layout = define_app_layout(
         fig, buttons, map_layout_dict, config_dict['project_name'])
