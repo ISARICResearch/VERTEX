@@ -24,7 +24,7 @@ def create_visuals(
     '''
 
     df_map['outco_lengthofstay'] = (
-        df_map['outco_date'] - df_map['dates_admdate']).dt.days
+        df_map['outco_date'] - df_map['pres_date']).dt.days
 
     new_variable_dict = {
         'field_name': 'outco_lengthofstay',
@@ -59,7 +59,7 @@ def create_visuals(
         include_types=['binary', 'categorical'], include_subjid=False)
     proportions = ia.get_proportions(df_upset, dictionary)
     counts_intersections = ia.get_upset_counts_intersections(
-        df_upset, dictionary, proportions=proportions)
+        df_upset, dictionary)
 
     about = f'Frequency of the ten most common {section_name.lower()}'
     freq_chart_compl = idw.fig_frequency_chart(

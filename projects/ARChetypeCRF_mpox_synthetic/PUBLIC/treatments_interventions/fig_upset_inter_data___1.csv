@@ -1,0 +1,18 @@
+index,label,count
+"('inter_surg',)","('<b>Any surgical intervention performed in relation to the infection with pathogen of interest?</b>',)",168
+"('inter_suppleo2', 'inter_surg', 'inter_facemask', 'inter_prone', 'inter_ecmo')","('<b>Any supplemental oxygen?</b>', '<b>Any surgical intervention performed in relation to the infection with pathogen of interest?</b>', '<b>Face mask</b>', '<b>Prone positioning</b>', '<b>ECLS / ECMO</b>')",108
+"('inter_suppleo2', 'inter_surg', 'inter_facemask', 'inter_prone')","('<b>Any supplemental oxygen?</b>', '<b>Any surgical intervention performed in relation to the infection with pathogen of interest?</b>', '<b>Face mask</b>', '<b>Prone positioning</b>')",77
+"('inter_suppleo2', 'inter_surg', 'inter_facemask', 'inter_ecmo')","('<b>Any supplemental oxygen?</b>', '<b>Any surgical intervention performed in relation to the infection with pathogen of interest?</b>', '<b>Face mask</b>', '<b>ECLS / ECMO</b>')",76
+"('inter_suppleo2', 'inter_facemask', 'inter_prone', 'inter_ecmo')","('<b>Any supplemental oxygen?</b>', '<b>Face mask</b>', '<b>Prone positioning</b>', '<b>ECLS / ECMO</b>')",69
+"('inter_suppleo2', 'inter_facemask', 'inter_prone')","('<b>Any supplemental oxygen?</b>', '<b>Face mask</b>', '<b>Prone positioning</b>')",54
+"('inter_suppleo2', 'inter_facemask', 'inter_ecmo')","('<b>Any supplemental oxygen?</b>', '<b>Face mask</b>', '<b>ECLS / ECMO</b>')",46
+"('inter_suppleo2', 'inter_surg', 'inter_facemask')","('<b>Any supplemental oxygen?</b>', '<b>Any surgical intervention performed in relation to the infection with pathogen of interest?</b>', '<b>Face mask</b>')",44
+"('inter_suppleo2', 'inter_facemask')","('<b>Any supplemental oxygen?</b>', '<b>Face mask</b>')",38
+"('inter_suppleo2', 'inter_surg', 'inter_prone', 'inter_ecmo')","('<b>Any supplemental oxygen?</b>', '<b>Any surgical intervention performed in relation to the infection with pathogen of interest?</b>', '<b>Prone positioning</b>', '<b>ECLS / ECMO</b>')",35
+"('inter_suppleo2', 'inter_surg', 'inter_prone')","('<b>Any supplemental oxygen?</b>', '<b>Any surgical intervention performed in relation to the infection with pathogen of interest?</b>', '<b>Prone positioning</b>')",34
+"('inter_suppleo2', 'inter_prone')","('<b>Any supplemental oxygen?</b>', '<b>Prone positioning</b>')",31
+"('inter_suppleo2', 'inter_prone', 'inter_ecmo')","('<b>Any supplemental oxygen?</b>', '<b>Prone positioning</b>', '<b>ECLS / ECMO</b>')",28
+"('inter_suppleo2', 'inter_surg', 'inter_ecmo')","('<b>Any supplemental oxygen?</b>', '<b>Any surgical intervention performed in relation to the infection with pathogen of interest?</b>', '<b>ECLS / ECMO</b>')",27
+"('inter_suppleo2', 'inter_surg')","('<b>Any supplemental oxygen?</b>', '<b>Any surgical intervention performed in relation to the infection with pathogen of interest?</b>')",20
+"('inter_suppleo2', 'inter_ecmo')","('<b>Any supplemental oxygen?</b>', '<b>ECLS / ECMO</b>')",15
+"('inter_suppleo2',)","('<b>Any supplemental oxygen?</b>',)",6

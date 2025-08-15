@@ -24,7 +24,7 @@ def create_visuals(
     '''
 
     df_map['outco_lengthofstay'] = (
-        df_map['outco_date'] - df_map['dates_admdate']).dt.days
+        df_map['outco_date'] - df_map['pres_date']).dt.days
 
     df_model = ia.get_modelling_data(
         df_map, dictionary,

@@ -55,7 +55,7 @@ def create_visuals(
     pyramid_chart = idw.fig_dual_stack_pyramid(
         df_pyramid,
         title='Population age pyramid*',
-        base_color_map=color_map, yaxis_label='Age group',
+        base_color_map=color_map, ylabel='Age group',
         suffix=suffix, filepath=filepath, save_inputs=save_inputs,
         graph_label='Demographics: Population Pyramid*',
         graph_about=about)
@@ -63,8 +63,6 @@ def create_visuals(
     # Demographics and comorbidities descriptive table
     split_column = 'demog_sex'
     split_column_order = ['Female', 'Male', 'Other / Unknown']
-    # split_column = 'outco_binary_outcome'
-    # split_column_order = ['Discharged', 'Death', 'Censored']
     df_table = ia.get_descriptive_data(
         df_map, dictionary, by_column=split_column,
         include_sections=['demog', 'comor'], exclude_negatives=False)
@@ -74,14 +72,13 @@ def create_visuals(
     fig_table = idw.fig_table(
         table, table_key=table_key,
         suffix=suffix, filepath=filepath, save_inputs=save_inputs,
+        graph_id='fig_table_base',
         graph_label='Descriptive Table*',
         graph_about='Summary of demographics and comorbidities.')
 
     # Demographics and comorbidities descriptive table
     split_column = 'demog_sex'
     split_column_order = ['Female', 'Male']
-    # split_column = 'outco_binary_outcome'
-    # split_column_order = ['Discharged', 'Death', 'Censored']
     df_table = ia.get_descriptive_data(
         df_map.loc[df_map['demog_sex'].isin(['Female', 'Male'])], dictionary,
         by_column=split_column,
@@ -92,6 +89,7 @@ def create_visuals(
     fig_table_c = idw.fig_table(
         table, table_key=table_key,
         suffix=suffix, filepath=filepath, save_inputs=save_inputs,
+        graph_id='fig_table_comparison',
         graph_label='Descriptive Comparison Table*',
         graph_about='Summary of demographics and comorbidities.')
 
@@ -101,12 +99,10 @@ def create_visuals(
     df_upset = ia.get_descriptive_data(
         df_map, dictionary,
         include_sections=[section], include_types=['binary', 'categorical'])
-    # p_columns = [
-    #     col for col in df_upset.columns if 'comor_liverdisease_' in col]
     p_columns = [col for col in df_upset.columns]
     proportions = ia.get_proportions(df_upset[p_columns], dictionary)
     counts_intersections = ia.get_upset_counts_intersections(
-        df_upset, dictionary, proportions=proportions)
+        df_upset, dictionary)
 
     about = f'Frequency of the ten most common {section_name.lower()}'
     freq_chart_comor = idw.fig_frequency_chart(

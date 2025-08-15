@@ -1,0 +1,16 @@
+{
+    "fig_id": "modelling_lengthofstay/fig_text",
+    "fig_name": "fig_text",
+    "fig_arguments": {
+        "height": 430,
+        "suffix": "modelling_lengthofstay",
+        "filepath": "",
+        "save_inputs": false,
+        "graph_id": null,
+        "graph_label": "*DISCLAIMER: SYNTHETIC DATA*",
+        "graph_about": "Disclaimer: the underlying data for these figures is synthetic data. Results may not be clinically relevant or accurate."
+    },
+    "fig_data": [
+        "modelling_lengthofstay/fig_text_data___0.csv"
+    ]
+}

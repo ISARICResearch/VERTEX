@@ -1,0 +1,32 @@
+index,label,count
+"('comor_chrpulmona', 'comor_asplenia', 'comor_chrcardiac', 'comor_aids', 'comor_obesity')","('<b>Chronic pulmonary disease (not asthma)</b>', '<b>Asplenia</b>', '<b>Chronic cardiac disease (not hypertension)</b>', '<b>HIV</b>', '<b>Obesity</b>')",255
+"('comor_chrpulmona', 'comor_asplenia', 'comor_chrcardiac', 'comor_obesity')","('<b>Chronic pulmonary disease (not asthma)</b>', '<b>Asplenia</b>', '<b>Chronic cardiac disease (not hypertension)</b>', '<b>Obesity</b>')",99
+"('comor_chrpulmona', 'comor_asplenia', 'comor_chrcardiac', 'comor_aids')","('<b>Chronic pulmonary disease (not asthma)</b>', '<b>Asplenia</b>', '<b>Chronic cardiac disease (not hypertension)</b>', '<b>HIV</b>')",86
+"('comor_chrpulmona', 'comor_asplenia', 'comor_aids', 'comor_obesity')","('<b>Chronic pulmonary disease (not asthma)</b>', '<b>Asplenia</b>', '<b>HIV</b>', '<b>Obesity</b>')",84
+"('comor_chrpulmona', 'comor_chrcardiac', 'comor_aids', 'comor_obesity')","('<b>Chronic pulmonary disease (not asthma)</b>', '<b>Chronic cardiac disease (not hypertension)</b>', '<b>HIV</b>', '<b>Obesity</b>')",80
+"('comor_asplenia', 'comor_chrcardiac', 'comor_aids', 'comor_obesity')","('<b>Asplenia</b>', '<b>Chronic cardiac disease (not hypertension)</b>', '<b>HIV</b>', '<b>Obesity</b>')",58
+"('comor_chrpulmona', 'comor_chrcardiac', 'comor_aids')","('<b>Chronic pulmonary disease (not asthma)</b>', '<b>Chronic cardiac disease (not hypertension)</b>', '<b>HIV</b>')",36
+"('comor_chrpulmona', 'comor_asplenia', 'comor_chrcardiac')","('<b>Chronic pulmonary disease (not asthma)</b>', '<b>Asplenia</b>', '<b>Chronic cardiac disease (not hypertension)</b>')",33
+"('comor_chrpulmona', 'comor_asplenia', 'comor_aids')","('<b>Chronic pulmonary disease (not asthma)</b>', '<b>Asplenia</b>', '<b>HIV</b>')",29
+"('comor_chrpulmona', 'comor_aids', 'comor_obesity')","('<b>Chronic pulmonary disease (not asthma)</b>', '<b>HIV</b>', '<b>Obesity</b>')",25
+"('comor_chrpulmona', 'comor_chrcardiac', 'comor_obesity')","('<b>Chronic pulmonary disease (not asthma)</b>', '<b>Chronic cardiac disease (not hypertension)</b>', '<b>Obesity</b>')",23
+"('comor_chrpulmona', 'comor_asplenia', 'comor_obesity')","('<b>Chronic pulmonary disease (not asthma)</b>', '<b>Asplenia</b>', '<b>Obesity</b>')",22
+"('comor_asplenia', 'comor_chrcardiac', 'comor_aids')","('<b>Asplenia</b>', '<b>Chronic cardiac disease (not hypertension)</b>', '<b>HIV</b>')",22
+"('comor_asplenia', 'comor_aids', 'comor_obesity')","('<b>Asplenia</b>', '<b>HIV</b>', '<b>Obesity</b>')",20
+"('comor_asplenia', 'comor_chrcardiac', 'comor_obesity')","('<b>Asplenia</b>', '<b>Chronic cardiac disease (not hypertension)</b>', '<b>Obesity</b>')",20
+"('comor_chrpulmona', 'comor_chrcardiac')","('<b>Chronic pulmonary disease (not asthma)</b>', '<b>Chronic cardiac disease (not hypertension)</b>')",13
+"('comor_chrcardiac', 'comor_aids', 'comor_obesity')","('<b>Chronic cardiac disease (not hypertension)</b>', '<b>HIV</b>', '<b>Obesity</b>')",13
+"('comor_chrpulmona', 'comor_aids')","('<b>Chronic pulmonary disease (not asthma)</b>', '<b>HIV</b>')",12
+"('comor_chrpulmona', 'comor_obesity')","('<b>Chronic pulmonary disease (not asthma)</b>', '<b>Obesity</b>')",10
+"('comor_chrcardiac', 'comor_obesity')","('<b>Chronic cardiac disease (not hypertension)</b>', '<b>Obesity</b>')",10
+"('comor_asplenia', 'comor_aids')","('<b>Asplenia</b>', '<b>HIV</b>')",9
+"('comor_asplenia', 'comor_chrcardiac')","('<b>Asplenia</b>', '<b>Chronic cardiac disease (not hypertension)</b>')",8
+"('comor_asplenia', 'comor_obesity')","('<b>Asplenia</b>', '<b>Obesity</b>')",7
+"('comor_chrpulmona', 'comor_asplenia')","('<b>Chronic pulmonary disease (not asthma)</b>', '<b>Asplenia</b>')",6
+"('comor_aids', 'comor_obesity')","('<b>HIV</b>', '<b>Obesity</b>')",5
+"('comor_chrpulmona',)","('<b>Chronic pulmonary disease (not asthma)</b>',)",3
+"('comor_asplenia',)","('<b>Asplenia</b>',)",3
+"('comor_chrcardiac', 'comor_aids')","('<b>Chronic cardiac disease (not hypertension)</b>', '<b>HIV</b>')",3
+"('comor_aids',)","('<b>HIV</b>',)",3
+"('comor_obesity',)","('<b>Obesity</b>',)",2
+"('comor_chrcardiac',)","('<b>Chronic cardiac disease (not hypertension)</b>',)",1

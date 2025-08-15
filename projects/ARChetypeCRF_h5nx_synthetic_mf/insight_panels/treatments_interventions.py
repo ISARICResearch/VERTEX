@@ -48,14 +48,14 @@ def create_visuals(
         include_sections=[section], include_types=['binary', 'categorical'])
     proportions = ia.get_proportions(df_upset, dictionary)
     counts_intersections = ia.get_upset_counts_intersections(
-        df_upset, dictionary, proportions=proportions)
+        df_upset, dictionary)
 
     about = f'Frequency of the ten most common {section_name.lower()}'
     freq_chart_inter = idw.fig_frequency_chart(
         proportions,
         title=f'Frequency of {section_name}*',
         suffix=suffix, filepath=filepath, save_inputs=save_inputs,
-        graph_id=section,
+        graph_id=f'fig_frequency_chart_{section}',
         graph_label=section_name + ': Frequency*',
         graph_about=about)
 
@@ -65,7 +65,7 @@ def create_visuals(
         counts_intersections,
         title=f'Intersection sizes of {section_name.lower()}*',
         suffix=suffix, filepath=filepath, save_inputs=save_inputs,
-        graph_id=section,
+        graph_id=f'fig_upset_{section}',
         graph_label=section_name + ': Intersections*',
         graph_about=about)
 

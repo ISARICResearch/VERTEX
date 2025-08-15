@@ -1,0 +1,11 @@
+variable,proportion,label,short_label
+comor_chrpulmona,0.9902912621359223,<b>Chronic pulmonary disease (not asthma)</b>,<b>Chronic pulmonary disease (not asthma)</b>
+comor_chrcardiac,0.9382716049382716,<b>Chronic cardiac disease (not hypertension)</b>,<b>Chronic cardiac disease (not ...</b>
+comor_asplenia,0.911377245508982,<b>Asplenia</b>,<b>Asplenia</b>
+comor_obesity,0.851335656213705,<b>Obesity</b>,<b>Obesity</b>
+comor_aids,0.7897545357524013,<b>HIV</b>,<b>HIV</b>
+comor_smoking,0.7854821235102926,<b>Ever smoked</b>,<b>Ever smoked</b>
+comor_asthma,0.7538293216630197,<b>Asthma</b>,<b>Asthma</b>
+comor_liverdisease,0.6569832402234637,<b>Liver disease</b>,<b>Liver disease</b>
+comor_diabetes,0.6115702479338843,<b>Diabetes mellitus</b>,<b>Diabetes mellitus</b>
+comor_malnutriti,0.5368663594470046,<b>Malnutrition</b>,<b>Malnutrition</b>

@@ -24,7 +24,7 @@ def create_visuals(
     '''
 
     df_map['outco_lengthofstay'] = (
-        df_map['outco_date'] - df_map['dates_admdate']).dt.days
+        df_map['outco_date'] - df_map['pres_date']).dt.days
 
     max_lengthofstay = 15
     df_map['outco_lengthofstay'] = (
@@ -92,8 +92,7 @@ def create_visuals(
         dictionary_values, columns=dictionary_columns).to_dict(orient='list')
     dictionary = ia.extend_dictionary(dictionary, predictors_dict, df_model)
 
-    # Cox regression for outcome
-
+    # Cox regression for outcome
     predictors = [
         'demog_sex___Male',
         'demog_age',
@@ -217,22 +216,11 @@ def create_visuals(
         group_col='demog_agegroup'
     )
     kaplanmeier_m3 = idw.fig_kaplan_meier(
-        (df_km, df_risktable), p_value=p_value,
+        (df_km, df_risktable), p_value=p_value, index_column='Group',
         title='Kaplan-Meier Plot for in-hospital mortality*',
         suffix=suffix, filepath=filepath, save_inputs=save_inputs,
         graph_label='Kaplan-Meier Plot for in-hospital mortality*',
         graph_about='''...''')
-
-
-    # kaplanmeier_text = '''Kaplan-Meier curve should be here, in development'''
-    # kaplanmeier_df = pd.DataFrame(
-    #     kaplanmeier_text, columns=['paragraphs'], index=range(1))
-    # kaplanmeier_m3 = idw.fig_text(
-    #     kaplanmeier_df,
-    #     suffix=suffix, filepath=filepath, save_inputs=save_inputs,
-    #     graph_label='Kaplan-Meier curve for in-hospital mortality*',
-    #     graph_about=kaplanmeier_text
-    # )
 
     disclaimer_text = '''Disclaimer: the underlying data for these figures is \
 synthetic data. Results may not be clinically relevant or accurate.'''

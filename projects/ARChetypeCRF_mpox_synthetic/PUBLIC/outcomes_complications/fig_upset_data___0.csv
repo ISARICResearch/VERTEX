@@ -1,0 +1,6 @@
+index,count,short_label,label
+compl_bacteraemi,806,<b>Bacteraemia</b>,<b>Bacteraemia</b>
+compl_meningitis,798,<b>Meningitis</b>,<b>Meningitis</b>
+compl_encephalitis,735,<b>Encephalitis</b>,<b>Encephalitis</b>
+compl_cardiarrhy,730,<b>Cardiac arrhythmia</b>,<b>Cardiac arrhythmia</b>
+compl_strokecva,672,<b>Stroke / cerebrovascular accident</b>,<b>Stroke / cerebrovascular accident</b>

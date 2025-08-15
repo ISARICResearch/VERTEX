@@ -13,6 +13,7 @@
 			"enrolment_details",
 			"presentation_demogcomor",
 			"presentation_symptoms",
+			"lesion_assessment",
    	 		"treatments_interventions",
     		"outcomes_complications"
 	]

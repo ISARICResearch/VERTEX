@@ -58,6 +58,10 @@ def get_records(
                 'returnFormat': 'json'
             }
             response = requests.post(redcap_url, data=conex)
+            if response.text != '1':
+                print(f'Data access group ID: {dag}. Warning: Could not \
+switch DAG to unique group name: {unique_group}')
+                continue
             conex = {
                 'token': redcap_api_key,
                 'content': 'record',
