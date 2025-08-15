@@ -1,0 +1,28 @@
+index,label,count
+"('adsym_dyspareunia', 'adsym_itchyeye', 'adsym_vomit', 'adsym_paineyes', 'adsym_rigchill')","('<b>Painful intercourse (dyspareunia)</b>', '<b>Itching of eye(s)</b>', '<b>Vomiting</b>', '<b>Pain in eye(s)</b>', '<b>Chills or rigors</b>')",316
+"('adsym_dyspareunia', 'adsym_itchyeye', 'adsym_vomit', 'adsym_paineyes')","('<b>Painful intercourse (dyspareunia)</b>', '<b>Itching of eye(s)</b>', '<b>Vomiting</b>', '<b>Pain in eye(s)</b>')",129
+"('adsym_dyspareunia', 'adsym_itchyeye', 'adsym_paineyes', 'adsym_rigchill')","('<b>Painful intercourse (dyspareunia)</b>', '<b>Itching of eye(s)</b>', '<b>Pain in eye(s)</b>', '<b>Chills or rigors</b>')",94
+"('adsym_dyspareunia', 'adsym_itchyeye', 'adsym_vomit', 'adsym_rigchill')","('<b>Painful intercourse (dyspareunia)</b>', '<b>Itching of eye(s)</b>', '<b>Vomiting</b>', '<b>Chills or rigors</b>')",91
+"('adsym_dyspareunia', 'adsym_vomit', 'adsym_paineyes', 'adsym_rigchill')","('<b>Painful intercourse (dyspareunia)</b>', '<b>Vomiting</b>', '<b>Pain in eye(s)</b>', '<b>Chills or rigors</b>')",56
+"('adsym_dyspareunia', 'adsym_itchyeye', 'adsym_vomit')","('<b>Painful intercourse (dyspareunia)</b>', '<b>Itching of eye(s)</b>', '<b>Vomiting</b>')",43
+"('adsym_dyspareunia', 'adsym_itchyeye', 'adsym_rigchill')","('<b>Painful intercourse (dyspareunia)</b>', '<b>Itching of eye(s)</b>', '<b>Chills or rigors</b>')",41
+"('adsym_dyspareunia', 'adsym_itchyeye', 'adsym_paineyes')","('<b>Painful intercourse (dyspareunia)</b>', '<b>Itching of eye(s)</b>', '<b>Pain in eye(s)</b>')",37
+"('adsym_itchyeye', 'adsym_vomit', 'adsym_paineyes', 'adsym_rigchill')","('<b>Itching of eye(s)</b>', '<b>Vomiting</b>', '<b>Pain in eye(s)</b>', '<b>Chills or rigors</b>')",37
+"('adsym_dyspareunia', 'adsym_vomit', 'adsym_paineyes')","('<b>Painful intercourse (dyspareunia)</b>', '<b>Vomiting</b>', '<b>Pain in eye(s)</b>')",28
+"('adsym_dyspareunia', 'adsym_vomit', 'adsym_rigchill')","('<b>Painful intercourse (dyspareunia)</b>', '<b>Vomiting</b>', '<b>Chills or rigors</b>')",25
+"('adsym_dyspareunia', 'adsym_paineyes', 'adsym_rigchill')","('<b>Painful intercourse (dyspareunia)</b>', '<b>Pain in eye(s)</b>', '<b>Chills or rigors</b>')",20
+"('adsym_dyspareunia', 'adsym_itchyeye')","('<b>Painful intercourse (dyspareunia)</b>', '<b>Itching of eye(s)</b>')",17
+"('adsym_itchyeye', 'adsym_vomit', 'adsym_rigchill')","('<b>Itching of eye(s)</b>', '<b>Vomiting</b>', '<b>Chills or rigors</b>')",10
+"('adsym_dyspareunia', 'adsym_vomit')","('<b>Painful intercourse (dyspareunia)</b>', '<b>Vomiting</b>')",9
+"('adsym_itchyeye', 'adsym_paineyes', 'adsym_rigchill')","('<b>Itching of eye(s)</b>', '<b>Pain in eye(s)</b>', '<b>Chills or rigors</b>')",9
+"('adsym_itchyeye', 'adsym_vomit', 'adsym_paineyes')","('<b>Itching of eye(s)</b>', '<b>Vomiting</b>', '<b>Pain in eye(s)</b>')",9
+"('adsym_dyspareunia', 'adsym_rigchill')","('<b>Painful intercourse (dyspareunia)</b>', '<b>Chills or rigors</b>')",6
+"('adsym_dyspareunia', 'adsym_paineyes')","('<b>Painful intercourse (dyspareunia)</b>', '<b>Pain in eye(s)</b>')",4
+"('adsym_dyspareunia',)","('<b>Painful intercourse (dyspareunia)</b>',)",4
+"('adsym_itchyeye', 'adsym_vomit')","('<b>Itching of eye(s)</b>', '<b>Vomiting</b>')",4
+"('adsym_vomit', 'adsym_paineyes', 'adsym_rigchill')","('<b>Vomiting</b>', '<b>Pain in eye(s)</b>', '<b>Chills or rigors</b>')",4
+"('adsym_itchyeye', 'adsym_paineyes')","('<b>Itching of eye(s)</b>', '<b>Pain in eye(s)</b>')",2
+"('adsym_itchyeye', 'adsym_rigchill')","('<b>Itching of eye(s)</b>', '<b>Chills or rigors</b>')",2
+"('adsym_vomit', 'adsym_rigchill')","('<b>Vomiting</b>', '<b>Chills or rigors</b>')",1
+"('adsym_paineyes',)","('<b>Pain in eye(s)</b>',)",1
+"('adsym_rigchill',)","('<b>Chills or rigors</b>',)",1

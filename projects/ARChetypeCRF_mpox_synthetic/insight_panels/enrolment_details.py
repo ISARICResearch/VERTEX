@@ -29,9 +29,19 @@ def create_visuals(
 
     fig_patients_bysite = idw.fig_sunburst(
         df_sunburst,
-        title='Enrolment by site (SYNTHETIC DATA)',
+        title='Enrolment by site*',
         path=['filters_country', 'site'], values='subjid',
         suffix=suffix, filepath=filepath, save_inputs=save_inputs,
-        graph_label='Site Enrolment', graph_about='...')
+        graph_label='Site Enrolment*', graph_about='...')
 
-    return (fig_patients_bysite,)
+    disclaimer_text = '''Disclaimer: the underlying data for these figures is \
+synthetic data. Results may not be clinically relevant or accurate.'''
+    disclaimer_df = pd.DataFrame(
+        disclaimer_text, columns=['paragraphs'], index=range(1))
+    disclaimer = idw.fig_text(
+        disclaimer_df,
+        suffix=suffix, filepath=filepath, save_inputs=save_inputs,
+        graph_label='*DISCLAIMER: SYNTHETIC DATA*',
+        graph_about=disclaimer_text)
+
+    return (fig_patients_bysite, disclaimer)

@@ -1,0 +1,23 @@
+{
+    "fig_id": "enrolment_details/fig_sunburst",
+    "fig_name": "fig_sunburst",
+    "fig_arguments": {
+        "title": "Enrolment by site*",
+        "path": [
+            "filters_country",
+            "site"
+        ],
+        "values": "subjid",
+        "base_color_map": null,
+        "height": 430,
+        "suffix": "enrolment_details",
+        "filepath": "",
+        "save_inputs": false,
+        "graph_id": null,
+        "graph_label": "Site Enrolment",
+        "graph_about": "..."
+    },
+    "fig_data": [
+        "enrolment_details/fig_sunburst_data___0.csv"
+    ]
+}

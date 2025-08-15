@@ -94,14 +94,14 @@ def create_visuals(
     feature_selection_table = idw.fig_table(
         df_features,
         suffix=suffix, filepath=filepath, save_inputs=save_inputs,
-        graph_id='features',
+        graph_id='fig_table_features',
         graph_label='Feature Selection Table*',
         graph_about='''...''')
 
     parameter_scores_table = idw.fig_table(
         scores_df_display,
         suffix=suffix, filepath=filepath, save_inputs=save_inputs,
-        graph_id='scores',
+        graph_id='fig_table_scores',
         graph_label='Hyperarameter Scores Table*',
         graph_about='''...''')
 

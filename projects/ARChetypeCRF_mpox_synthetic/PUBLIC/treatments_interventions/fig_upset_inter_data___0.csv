@@ -1,0 +1,6 @@
+index,count,short_label,label
+inter_suppleo2,708,<b>Any supplemental oxygen?</b>,<b>Any supplemental oxygen?</b>
+inter_surg,589,<b>Any surgical intervention performed in ...</b>,<b>Any surgical intervention performed in relation to the infection with pathogen of interest?</b>
+inter_facemask,512,<b>Face mask</b>,<b>Face mask</b>
+inter_prone,436,<b>Prone positioning</b>,<b>Prone positioning</b>
+inter_ecmo,404,<b>ECLS / ECMO</b>,<b>ECLS / ECMO</b>

@@ -1,0 +1,32 @@
+index,label,count
+"('compl_bacteraemi', 'compl_meningitis', 'compl_encephalitis', 'compl_cardiarrhy', 'compl_strokecva')","('<b>Bacteraemia</b>', '<b>Meningitis</b>', '<b>Encephalitis</b>', '<b>Cardiac arrhythmia</b>', '<b>Stroke / cerebrovascular accident</b>')",237
+"('compl_bacteraemi', 'compl_meningitis', 'compl_encephalitis', 'compl_cardiarrhy')","('<b>Bacteraemia</b>', '<b>Meningitis</b>', '<b>Encephalitis</b>', '<b>Cardiac arrhythmia</b>')",116
+"('compl_bacteraemi', 'compl_meningitis', 'compl_encephalitis', 'compl_strokecva')","('<b>Bacteraemia</b>', '<b>Meningitis</b>', '<b>Encephalitis</b>', '<b>Stroke / cerebrovascular accident</b>')",86
+"('compl_bacteraemi', 'compl_meningitis', 'compl_cardiarrhy', 'compl_strokecva')","('<b>Bacteraemia</b>', '<b>Meningitis</b>', '<b>Cardiac arrhythmia</b>', '<b>Stroke / cerebrovascular accident</b>')",83
+"('compl_bacteraemi', 'compl_encephalitis', 'compl_cardiarrhy', 'compl_strokecva')","('<b>Bacteraemia</b>', '<b>Encephalitis</b>', '<b>Cardiac arrhythmia</b>', '<b>Stroke / cerebrovascular accident</b>')",62
+"('compl_meningitis', 'compl_encephalitis', 'compl_cardiarrhy', 'compl_strokecva')","('<b>Meningitis</b>', '<b>Encephalitis</b>', '<b>Cardiac arrhythmia</b>', '<b>Stroke / cerebrovascular accident</b>')",53
+"('compl_bacteraemi', 'compl_meningitis', 'compl_encephalitis')","('<b>Bacteraemia</b>', '<b>Meningitis</b>', '<b>Encephalitis</b>')",41
+"('compl_bacteraemi', 'compl_meningitis', 'compl_cardiarrhy')","('<b>Bacteraemia</b>', '<b>Meningitis</b>', '<b>Cardiac arrhythmia</b>')",39
+"('compl_meningitis', 'compl_encephalitis', 'compl_cardiarrhy')","('<b>Meningitis</b>', '<b>Encephalitis</b>', '<b>Cardiac arrhythmia</b>')",30
+"('compl_bacteraemi', 'compl_meningitis', 'compl_strokecva')","('<b>Bacteraemia</b>', '<b>Meningitis</b>', '<b>Stroke / cerebrovascular accident</b>')",29
+"('compl_bacteraemi', 'compl_encephalitis', 'compl_cardiarrhy')","('<b>Bacteraemia</b>', '<b>Encephalitis</b>', '<b>Cardiac arrhythmia</b>')",28
+"('compl_bacteraemi', 'compl_encephalitis', 'compl_strokecva')","('<b>Bacteraemia</b>', '<b>Encephalitis</b>', '<b>Stroke / cerebrovascular accident</b>')",24
+"('compl_meningitis', 'compl_cardiarrhy', 'compl_strokecva')","('<b>Meningitis</b>', '<b>Cardiac arrhythmia</b>', '<b>Stroke / cerebrovascular accident</b>')",20
+"('compl_bacteraemi', 'compl_cardiarrhy', 'compl_strokecva')","('<b>Bacteraemia</b>', '<b>Cardiac arrhythmia</b>', '<b>Stroke / cerebrovascular accident</b>')",19
+"('compl_meningitis', 'compl_encephalitis', 'compl_strokecva')","('<b>Meningitis</b>', '<b>Encephalitis</b>', '<b>Stroke / cerebrovascular accident</b>')",15
+"('compl_bacteraemi', 'compl_meningitis')","('<b>Bacteraemia</b>', '<b>Meningitis</b>')",13
+"('compl_meningitis', 'compl_encephalitis')","('<b>Meningitis</b>', '<b>Encephalitis</b>')",12
+"('compl_encephalitis', 'compl_cardiarrhy', 'compl_strokecva')","('<b>Encephalitis</b>', '<b>Cardiac arrhythmia</b>', '<b>Stroke / cerebrovascular accident</b>')",12
+"('compl_meningitis', 'compl_cardiarrhy')","('<b>Meningitis</b>', '<b>Cardiac arrhythmia</b>')",11
+"('compl_bacteraemi', 'compl_strokecva')","('<b>Bacteraemia</b>', '<b>Stroke / cerebrovascular accident</b>')",9
+"('compl_meningitis', 'compl_strokecva')","('<b>Meningitis</b>', '<b>Stroke / cerebrovascular accident</b>')",9
+"('compl_bacteraemi', 'compl_cardiarrhy')","('<b>Bacteraemia</b>', '<b>Cardiac arrhythmia</b>')",7
+"('compl_bacteraemi',)","('<b>Bacteraemia</b>',)",7
+"('compl_encephalitis', 'compl_strokecva')","('<b>Encephalitis</b>', '<b>Stroke / cerebrovascular accident</b>')",7
+"('compl_bacteraemi', 'compl_encephalitis')","('<b>Bacteraemia</b>', '<b>Encephalitis</b>')",6
+"('compl_cardiarrhy',)","('<b>Cardiac arrhythmia</b>',)",5
+"('compl_meningitis',)","('<b>Meningitis</b>',)",4
+"('compl_encephalitis', 'compl_cardiarrhy')","('<b>Encephalitis</b>', '<b>Cardiac arrhythmia</b>')",4
+"('compl_cardiarrhy', 'compl_strokecva')","('<b>Cardiac arrhythmia</b>', '<b>Stroke / cerebrovascular accident</b>')",4
+"('compl_strokecva',)","('<b>Stroke / cerebrovascular accident</b>',)",3
+"('compl_encephalitis',)","('<b>Encephalitis</b>',)",2

@@ -1,0 +1,3 @@
+variable,proportion,label,short_label
+inter_isolation,0.9063205417607223,<b>Was the patient isolated at home or in hospital?</b>,<b>Was the patient isolated at home or in ...</b>
+inter_suppleo2,0.0811138014527845,<b>Any supplemental oxygen?</b>,<b>Any supplemental oxygen?</b>

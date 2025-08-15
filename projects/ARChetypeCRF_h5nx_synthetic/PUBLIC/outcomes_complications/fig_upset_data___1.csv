@@ -1,0 +1,32 @@
+index,label,count
+"('compl_pleuraleff', 'compl_cardiacisc', 'compl_thrombemb', 'compl_copneumoni', 'compl_severeliver')","('<b>Pleural effusion</b>', '<b>Cardiac ischaemia</b>', '<b>Thromboembolism</b>', '<b>Cryptogenic organising pneumonia (COP)</b>', '<b>Severe liver disease (new onset)</b>')",252
+"('compl_pleuraleff', 'compl_cardiacisc', 'compl_thrombemb', 'compl_copneumoni')","('<b>Pleural effusion</b>', '<b>Cardiac ischaemia</b>', '<b>Thromboembolism</b>', '<b>Cryptogenic organising pneumonia (COP)</b>')",110
+"('compl_pleuraleff', 'compl_cardiacisc', 'compl_copneumoni', 'compl_severeliver')","('<b>Pleural effusion</b>', '<b>Cardiac ischaemia</b>', '<b>Cryptogenic organising pneumonia (COP)</b>', '<b>Severe liver disease (new onset)</b>')",89
+"('compl_pleuraleff', 'compl_cardiacisc', 'compl_thrombemb', 'compl_severeliver')","('<b>Pleural effusion</b>', '<b>Cardiac ischaemia</b>', '<b>Thromboembolism</b>', '<b>Severe liver disease (new onset)</b>')",81
+"('compl_pleuraleff', 'compl_cardiacisc', 'compl_thrombemb')","('<b>Pleural effusion</b>', '<b>Cardiac ischaemia</b>', '<b>Thromboembolism</b>')",55
+"('compl_pleuraleff', 'compl_thrombemb', 'compl_copneumoni', 'compl_severeliver')","('<b>Pleural effusion</b>', '<b>Thromboembolism</b>', '<b>Cryptogenic organising pneumonia (COP)</b>', '<b>Severe liver disease (new onset)</b>')",55
+"('compl_cardiacisc', 'compl_thrombemb', 'compl_copneumoni', 'compl_severeliver')","('<b>Cardiac ischaemia</b>', '<b>Thromboembolism</b>', '<b>Cryptogenic organising pneumonia (COP)</b>', '<b>Severe liver disease (new onset)</b>')",50
+"('compl_pleuraleff', 'compl_cardiacisc', 'compl_copneumoni')","('<b>Pleural effusion</b>', '<b>Cardiac ischaemia</b>', '<b>Cryptogenic organising pneumonia (COP)</b>')",33
+"('compl_pleuraleff', 'compl_cardiacisc', 'compl_severeliver')","('<b>Pleural effusion</b>', '<b>Cardiac ischaemia</b>', '<b>Severe liver disease (new onset)</b>')",30
+"('compl_pleuraleff', 'compl_thrombemb', 'compl_copneumoni')","('<b>Pleural effusion</b>', '<b>Thromboembolism</b>', '<b>Cryptogenic organising pneumonia (COP)</b>')",27
+"('compl_pleuraleff', 'compl_thrombemb', 'compl_severeliver')","('<b>Pleural effusion</b>', '<b>Thromboembolism</b>', '<b>Severe liver disease (new onset)</b>')",25
+"('compl_pleuraleff', 'compl_copneumoni', 'compl_severeliver')","('<b>Pleural effusion</b>', '<b>Cryptogenic organising pneumonia (COP)</b>', '<b>Severe liver disease (new onset)</b>')",24
+"('compl_cardiacisc', 'compl_thrombemb', 'compl_copneumoni')","('<b>Cardiac ischaemia</b>', '<b>Thromboembolism</b>', '<b>Cryptogenic organising pneumonia (COP)</b>')",24
+"('compl_cardiacisc', 'compl_thrombemb', 'compl_severeliver')","('<b>Cardiac ischaemia</b>', '<b>Thromboembolism</b>', '<b>Severe liver disease (new onset)</b>')",17
+"('compl_pleuraleff', 'compl_cardiacisc')","('<b>Pleural effusion</b>', '<b>Cardiac ischaemia</b>')",13
+"('compl_thrombemb', 'compl_copneumoni', 'compl_severeliver')","('<b>Thromboembolism</b>', '<b>Cryptogenic organising pneumonia (COP)</b>', '<b>Severe liver disease (new onset)</b>')",13
+"('compl_pleuraleff', 'compl_copneumoni')","('<b>Pleural effusion</b>', '<b>Cryptogenic organising pneumonia (COP)</b>')",12
+"('compl_pleuraleff', 'compl_thrombemb')","('<b>Pleural effusion</b>', '<b>Thromboembolism</b>')",11
+"('compl_cardiacisc', 'compl_copneumoni', 'compl_severeliver')","('<b>Cardiac ischaemia</b>', '<b>Cryptogenic organising pneumonia (COP)</b>', '<b>Severe liver disease (new onset)</b>')",11
+"('compl_thrombemb', 'compl_copneumoni')","('<b>Thromboembolism</b>', '<b>Cryptogenic organising pneumonia (COP)</b>')",11
+"('compl_cardiacisc', 'compl_thrombemb')","('<b>Cardiac ischaemia</b>', '<b>Thromboembolism</b>')",10
+"('compl_pleuraleff',)","('<b>Pleural effusion</b>',)",8
+"('compl_thrombemb', 'compl_severeliver')","('<b>Thromboembolism</b>', '<b>Severe liver disease (new onset)</b>')",8
+"('compl_pleuraleff', 'compl_severeliver')","('<b>Pleural effusion</b>', '<b>Severe liver disease (new onset)</b>')",7
+"('compl_copneumoni', 'compl_severeliver')","('<b>Cryptogenic organising pneumonia (COP)</b>', '<b>Severe liver disease (new onset)</b>')",7
+"('compl_cardiacisc', 'compl_copneumoni')","('<b>Cardiac ischaemia</b>', '<b>Cryptogenic organising pneumonia (COP)</b>')",5
+"('compl_copneumoni',)","('<b>Cryptogenic organising pneumonia (COP)</b>',)",4
+"('compl_thrombemb',)","('<b>Thromboembolism</b>',)",3
+"('compl_cardiacisc', 'compl_severeliver')","('<b>Cardiac ischaemia</b>', '<b>Severe liver disease (new onset)</b>')",2
+"('compl_cardiacisc',)","('<b>Cardiac ischaemia</b>',)",2
+"('compl_severeliver',)","('<b>Severe liver disease (new onset)</b>',)",1

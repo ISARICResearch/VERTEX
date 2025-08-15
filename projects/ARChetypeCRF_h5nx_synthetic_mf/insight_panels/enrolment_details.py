@@ -29,11 +29,11 @@ def create_visuals(
     df_sunburst = df_sunburst.sort_values(
         by='filters_country').reset_index(drop=True)
 
-    enrolment_columns = ['subjid', 'filters_country', 'dates_enrolmentdate']
+    enrolment_columns = ['subjid', 'filters_country', 'pres_enrolmentdate']
     df_enrolment = df_map.loc[
-        df_map['dates_enrolmentdate'].notna(), enrolment_columns].copy()
-    groupby_columns = ['filters_country', 'dates_enrolmentdate']
-    column = 'dates_enrolmentdate'
+        df_map['pres_enrolmentdate'].notna(), enrolment_columns].copy()
+    groupby_columns = ['filters_country', 'pres_enrolmentdate']
+    column = 'pres_enrolmentdate'
     df_enrolment[column] = pd.to_datetime(
         df_enrolment[column], errors='coerce')
     df_enrolment[column] = df_enrolment[column].apply(
@@ -42,7 +42,7 @@ def create_visuals(
         groupby_columns).nunique().reset_index()
     df_enrolment.rename(columns={
         'filters_country': 'stack_group',
-        'dates_enrolmentdate': 'timepoint',
+        'pres_enrolmentdate': 'timepoint',
         'subjid': 'value'}, inplace=True)
 
     # Convert 'timepoint' to datetime format and sort
@@ -68,19 +68,22 @@ def create_visuals(
         path=['filters_country', 'site'], values='subjid',
         suffix=suffix, filepath=filepath, save_inputs=save_inputs,
         graph_label='Site Enrolment*', graph_about='...')
-    fig_cumulative = idw.fig_stacked_bar_chart(
+    fig_cumulative = idw.fig_bar_chart(
         df_cumulative,
         title='Cumulative patient enrolment by month and country*',
         xlabel='Month', ylabel='Number of patients',
         suffix=suffix, filepath=filepath, save_inputs=save_inputs,
+        graph_id='fig_bar_chart_cumulative',
         graph_label='Cumulative patient enrolment by country*',
         graph_about='...')
-    fig_enrolment = idw.fig_stacked_bar_chart(
+    fig_enrolment = idw.fig_bar_chart(
         df_enrolment,
         title='Patient enrolment by month and country*',
         xlabel='Month', ylabel='Number of patients',
         suffix=suffix, filepath=filepath, save_inputs=save_inputs,
-        graph_label='Patient enrolment by country*', graph_about='...')
+        graph_id='fig_bar_chart_enrolment',
+        graph_label='Patient enrolment by country*',
+        graph_about='...')
 
     disclaimer_text = '''Disclaimer: the underlying data for these figures is \
 synthetic data. Results may not be clinically relevant or accurate.'''
@@ -90,7 +93,6 @@ synthetic data. Results may not be clinically relevant or accurate.'''
         disclaimer_df,
         suffix=suffix, filepath=filepath, save_inputs=save_inputs,
         graph_label='*DISCLAIMER: SYNTHETIC DATA*',
-        graph_about=disclaimer_text
-    )
+        graph_about=disclaimer_text)
 
     return (fig_enrolment, fig_cumulative, fig_patients_bysite, disclaimer)

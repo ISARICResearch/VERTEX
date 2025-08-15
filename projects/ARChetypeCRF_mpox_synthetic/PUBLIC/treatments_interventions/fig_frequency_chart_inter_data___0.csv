@@ -1,0 +1,4 @@
+variable,proportion,label,short_label
+inter_suppleo2,0.7946127946127947,<b>Any supplemental oxygen?</b>,<b>Any supplemental oxygen?</b>
+inter_surg,0.7182926829268292,<b>Any surgical intervention performed in relation to the infection with pathogen of interest?</b>,<b>Any surgical intervention performed in ...</b>
+inter_other,0.4302477183833116,<b>Other intervention(s) or procedure(s)</b>,<b>Other intervention(s) or procedure(s)</b>

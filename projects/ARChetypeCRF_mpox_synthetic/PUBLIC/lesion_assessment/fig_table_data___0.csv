@@ -1,0 +1,21 @@
+Variable,All,Female,Male,Other / Unknown
+<b>Totals</b>,1000,283,181,536
+<b><i>SKIN & MUCOSA ASSESSMENT</i></b><b><i> (ANY TIME DURING OBSERVATION)</b></i>,,,,
+"<b>Are there any lesions on the head, face or neck?</b> (*)",228 (22.8) | 1000,73 (25.8) | 283,43 (23.8) | 181,112 (20.9) | 536
+<b>Are there any ocular lesions within the orbit?</b> (*),16 (1.6) | 1000,6 (2.1) | 283,2 (1.1) | 181,8 (1.5) | 536
+<b>Are there any lesions on the torso / trunk?</b> (*),119 (11.9) | 1000,46 (16.3) | 283,18 (9.9) | 181,55 (10.3) | 536
+<b>Are there any lesions on the arms and/or hands?</b> (*),191 (19.1) | 1000,57 (20.1) | 283,37 (20.4) | 181,97 (18.1) | 536
+<b>Are there any lesions on the legs and/or feet?</b> (*),190 (19.0) | 1000,63 (22.3) | 283,28 (15.5) | 181,99 (18.5) | 536
+<b>Are there any lesions on the external genitalia?</b> (*),226 (22.6) | 1000,72 (25.4) | 283,43 (23.8) | 181,111 (20.7) | 536
+<b>What part of the body is photographed?</b> (*),,,,
+"   ↳ Head, neck or face",86 (9.9) | 866,27 (11.0) | 245,14 (8.7) | 161,45 (9.8) | 460
+   ↳ Inside of mouth,280 (32.3) | 866,74 (30.2) | 245,57 (35.4) | 161,149 (32.4) | 460
+   ↳ Front torso,332 (38.3) | 866,85 (34.7) | 245,68 (42.2) | 161,179 (38.9) | 460
+   ↳ Back torso,280 (32.3) | 866,88 (35.9) | 245,61 (37.9) | 161,131 (28.5) | 460
+   ↳ Right arm or hand,367 (42.4) | 866,107 (43.7) | 245,60 (37.3) | 161,200 (43.5) | 460
+   ↳ Left arm or hand,255 (29.4) | 866,71 (29.0) | 245,45 (28.0) | 161,139 (30.2) | 460
+   ↳ Peri-anal,50 (5.8) | 866,13 (5.3) | 245,11 (6.8) | 161,26 (5.7) | 460
+   ↳ Pubic region,287 (33.1) | 866,73 (29.8) | 245,55 (34.2) | 161,159 (34.6) | 460
+   ↳ Right leg or foot,281 (32.4) | 866,78 (31.8) | 245,53 (32.9) | 161,150 (32.6) | 460
+   ↳ Left leg or foot,244 (28.2) | 866,72 (29.4) | 245,41 (25.5) | 161,131 (28.5) | 460
+   ↳ Other,137 (15.8) | 866,30 (12.2) | 245,26 (16.1) | 161,81 (17.6) | 460

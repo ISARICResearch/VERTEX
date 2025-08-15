@@ -1,0 +1,7 @@
+variable,proportion,label,short_label
+treat_o2supp,0.9158004158004158,<b>Supplemental oxygen</b>,<b>Supplemental oxygen</b>
+treat_pao2yn___Venous,0.5943396226415094,"<b>PaO2 sample type</b>, Venous","<b>PaO2 sample type</b>, Venous"
+treat_prone,0.510548523206751,<b>Prone positioning</b>,<b>Prone positioning</b>
+treat_pao2yn___Arterial,0.35953878406708595,"<b>PaO2 sample type</b>, Arterial","<b>PaO2 sample type</b>, Arterial"
+treat_pao2yn___Not done,0.3259958071278826,"<b>PaO2 sample type</b>, Not done","<b>PaO2 sample type</b>, Not done"
+treat_pao2yn___Capillary,0.2830188679245283,"<b>PaO2 sample type</b>, Capillary","<b>PaO2 sample type</b>, Capillary"
