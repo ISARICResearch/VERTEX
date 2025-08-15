@@ -18,4 +18,4 @@ COPY . .
 
 EXPOSE 8050
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8050", "vertex.descriptive_dashboard:server"]
+CMD ["gunicorn", "--reload", "--bind", "0.0.0.0:8050", "vertex.descriptive_dashboard:server"]

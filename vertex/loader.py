@@ -1,6 +1,7 @@
 """loader.py"""
 import os
 import json
+import pandas as pd
 
 import vertex.getREDCapData as getRC
 
@@ -70,96 +71,115 @@ def get_config(project_path, config_defaults):
                 the dashboard.''')
     return config_dict
 
-
 def load_vertex_data(project_path, config_dict):
-    api_url = config_dict.get('api_url')
-    api_key = config_dict.get('api_key')
-    get_data_from_api = api_url is not None and api_key is not None
-
+    api_url = config_dict['api_url']
+    api_key = config_dict['api_key']
+    get_data_from_api = (api_url is not None) and (api_key is not None)
+    
     if get_data_from_api:
-        user_assigned_to_dag = getRC.user_assigned_to_dag(api_url, api_key)
-        get_data_kwargs = {
-            'data_access_groups': config_dict['data_access_groups'],
-            'user_assigned_to_dag': user_assigned_to_dag}
-        return getRC.get_redcap_data(api_url, api_key, **get_data_kwargs)
+        df_map, df_forms_dict, dictionary, quality_report = load_vertex_from_api(api_url, api_key, config_dict)
     else:
-        try:
-            vertex_dataframes_path = os.path.join(
-                project_path, config_dict['vertex_dataframes_path'])
-            vertex_dataframes = os.listdir(vertex_dataframes_path)
-            dictionary = pd.read_csv(
-                os.path.join(vertex_dataframes_path, 'vertex_dictionary.csv'),
-                dtype={'field_label': 'str'},
-                keep_default_na=False)
-            str_ind = dictionary['field_type'].isin(
-                ['freetext', 'categorical'])
-            str_columns = dictionary.loc[str_ind, 'field_name'].tolist()
-            non_str_columns = dictionary.loc[(
-                str_ind == 0), 'field_name'].tolist()
-            # num_ind = dictionary['field_type'].isin(['numeric'])
-            # num_columns = dictionary.loc[num_ind, 'field_name'].tolist()
-            dtype_dict = {
-                **{x: 'str' for x in str_columns},
-                # **{x: 'float' for x in num_columns}
-            }
-            # pandas tries to infer NaN values, sometimes this causes issues
-            # solution is to ignore str columns, otherwise there are errors if
-            # e.g. 'None' is an answer option
-            pandas_default_na_values = [
-                '',
-                ' ',
-                '#N/A',
-                '#N/A N/A',
-                '#NA',
-                '-1.#IND',
-                '-1.#QNAN',
-                '-NaN',
-                '-nan',
-                '1.#IND',
-                '1.#QNAN',
-                '<NA>',
-                'N/A',
-                'NA',
-                'NULL',
-                'NaN',
-                'None',
-                'n/a',
-                'nan',
-                'null'
-            ]
-            na_values = {
-                **{x: pandas_default_na_values for x in non_str_columns},
-                **{x: '' for x in str_columns}
-            }
-            df_map = pd.read_csv(
-                os.path.join(vertex_dataframes_path, 'df_map.csv'),
+        print(f'Loading data from {project_path}')
+        df_map, df_forms_dict, dictionary, quality_report = load_vertex_from_files(project_path, config_dict)
+    print("dfm keys", df_map.keys())
+    return df_map, df_forms_dict, dictionary, quality_report
+
+def load_vertex_from_api(api_url, api_key, config_dict):
+    """Load data from the REDCap API."""
+    print('Retrieving data from the API')
+    user_assigned_to_dag = getRC.user_assigned_to_dag(api_url, api_key)
+    get_data_kwargs = {
+        'data_access_groups': config_dict['data_access_groups'],
+        'user_assigned_to_dag': user_assigned_to_dag}
+    df_map, df_forms_dict, dictionary, quality_report = (
+        getRC.get_redcap_data(api_url, api_key, **get_data_kwargs))
+    return df_map, df_forms_dict, dictionary, quality_report
+
+def load_vertex_from_files(project_path, config_dict):
+
+    try:
+        vertex_dataframes_path = os.path.join(
+            project_path, config_dict['vertex_dataframes_path'])
+        vertex_dataframes = os.listdir(vertex_dataframes_path)
+        dictionary = pd.read_csv(
+            os.path.join(vertex_dataframes_path, 'vertex_dictionary.csv'),
+            dtype={'field_label': 'str'},
+            keep_default_na=False)
+        str_ind = dictionary['field_type'].isin(
+            ['freetext', 'categorical'])
+        str_columns = dictionary.loc[str_ind, 'field_name'].tolist()
+        non_str_columns = dictionary.loc[(
+            str_ind == 0), 'field_name'].tolist()
+        # num_ind = dictionary['field_type'].isin(['numeric'])
+        # num_columns = dictionary.loc[num_ind, 'field_name'].tolist()
+        dtype_dict = {
+            **{x: 'str' for x in str_columns},
+            # **{x: 'float' for x in num_columns}
+        }
+        # pandas tries to infer NaN values, sometimes this causes issues
+        # solution is to ignore str columns, otherwise there are errors if
+        # e.g. 'None' is an answer option
+        pandas_default_na_values = [
+            '',
+            ' ',
+            '#N/A',
+            '#N/A N/A',
+            '#NA',
+            '-1.#IND',
+            '-1.#QNAN',
+            '-NaN',
+            '-nan',
+            '1.#IND',
+            '1.#QNAN',
+            '<NA>',
+            'N/A',
+            'NA',
+            'NULL',
+            'NaN',
+            'None',
+            'n/a',
+            'nan',
+            'null'
+        ]
+        na_values = {
+            **{x: pandas_default_na_values for x in non_str_columns},
+            **{x: '' for x in str_columns}
+        }
+        df_map = pd.read_csv(
+            os.path.join(vertex_dataframes_path, 'df_map.csv'),
+            dtype=dtype_dict,
+            keep_default_na=False,
+            na_values=na_values
+        )
+        # Fix dates
+        date_variables = dictionary.loc[(
+            dictionary['field_type'] == 'date'), 'field_name'].tolist()
+        df_map[date_variables] = df_map[date_variables].apply(
+            lambda x: x.apply(lambda y: pd.to_datetime(y)))
+        quality_report = {}
+        exclude_files = ('df_map.csv', 'vertex_dictionary.csv')
+        vertex_dataframes = [
+            file for file in vertex_dataframes
+            if file.endswith('.csv') and (file not in exclude_files)]
+        df_forms_dict = {}
+        for file in vertex_dataframes:
+            df_form = pd.read_csv(
+                os.path.join(vertex_dataframes_path, file),
                 dtype=dtype_dict,
                 keep_default_na=False,
                 na_values=na_values
             )
-            # Fix dates
-            date_variables = dictionary.loc[(
-                dictionary['field_type'] == 'date'), 'field_name'].tolist()
-            df_map[date_variables] = df_map[date_variables].apply(
-                lambda x: x.apply(lambda y: pd.to_datetime(y)))
-            quality_report = {}
-            exclude_files = ('df_map.csv', 'vertex_dictionary.csv')
-            vertex_dataframes = [
-                file for file in vertex_dataframes
-                if file.endswith('.csv') and (file not in exclude_files)]
-            df_forms_dict = {}
-            for file in vertex_dataframes:
-                df_form = pd.read_csv(
-                    os.path.join(vertex_dataframes_path, file),
-                    dtype=dtype_dict,
-                    keep_default_na=False,
-                    na_values=na_values
-                )
-                if 'subjid' in df_form.columns:
-                    key = file.split('.csv')[0]
-                    df_forms_dict[key] = df_form
-                else:
-                    print(f'{file} does not include subjid, ignoring this.')
-        except Exception:
-            print('Could not load the VERTEX dataframes.')
-            raise
+            if 'subjid' in df_form.columns:
+                key = file.split('.csv')[0]
+                df_forms_dict[key] = df_form
+            else:
+                print(f'{file} does not include subjid, ignoring this.')
+        return {
+            'df_map': df_map,
+            'dictionary': dictionary,
+            'df_forms_dict': df_forms_dict,
+            'quality_report': quality_report,
+        }
+    except Exception:
+        print('Could not load the VERTEX dataframes.')
+        raise

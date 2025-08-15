@@ -8,15 +8,12 @@ from flask_login import LoginManager, login_user, logout_user, current_user
 
 from flask_security import SQLAlchemyUserDatastore, Security
 from flask_security.utils import login_user, verify_and_update_password, hash_password
-import numpy as np
 import pandas as pd
-import plotly.graph_objs as go
 import sys
-
-
 import os
 import shutil
 import importlib.util
+
 import webbrowser
 import requests
 import secrets
@@ -26,12 +23,13 @@ from sqlalchemy.orm import Session
 import uuid
 import boto3
 from urllib.parse import quote_plus
-from werkzeug.security import generate_password_hash, check_password_hash
 
 from vertex.models import User, Project
 import vertex.getREDCapData as getRC
 from vertex.loader import get_config, load_vertex_data, config_defaults
 from vertex.layout.modals import login_modal, register_modal
+from vertex.layout.app_layout import define_app_layout
+from vertex.map import create_map, get_countries, get_map_colorscale, interpolate_colors, merge_data_with_countries
 
 # Settings
 secret_name = "rds!db-472cc9c8-1f3e-4547-b84d-9b0742de8b9a"
@@ -105,368 +103,10 @@ def import_from_path(module_name, filepath):
 #     # End of cache function
 #     return
 
-############################################
-# MAP
-############################################
-
-
-def merge_data_with_countries(df_map, add_capital_location=False):
-    '''Add country variable to df_map and merge with country metadata.'''
-    contries_path = 'assets/countries.csv'
-    countries = pd.read_csv(contries_path, encoding='latin-1')
-
-    geojson = os.path.join(
-        'https://raw.githubusercontent.com/',
-        'martynafford/natural-earth-geojson/master/',
-        '50m/cultural/ne_50m_populated_places_simple.json')
-    capitals = json.loads(requests.get(geojson).text)
-    features = ['adm0_a3', 'latitude', 'longitude', 'featurecla']
-    capitals = [{
-        k: x['properties'][k] for k in features} for x in capitals['features']]
-    capitals = pd.DataFrame.from_dict(capitals)
-    capitals = capitals.sort_values(by=['adm0_a3', 'featurecla'])
-    capitals = capitals.drop_duplicates(['adm0_a3']).reset_index(drop=True)
-    capitals.drop(columns=['featurecla'], inplace=True)
-    capitals.rename(columns={'adm0_a3': 'Code'}, inplace=True)
-
-    countries = pd.merge(countries, capitals, how='left', on='Code')
-
-    countries.rename(columns={
-        'Code': 'country_iso',
-        'Country': 'country_name',
-        'Region': 'country_region',
-        'Income group': 'country_income',
-        'latitude': 'country_capital_lat',
-        'longitude': 'country_capital_lon'}, inplace=True)
-    df_map = pd.merge(df_map, countries, on='country_iso', how='left')
-    return df_map
-
-
-def get_countries(df_map):
-    df_countries = df_map[['country_iso', 'country_name', 'subjid']]
-    df_countries = df_countries.groupby(
-        ['country_iso', 'country_name']).count().reset_index()
-    df_countries.rename(columns={'subjid': 'country_count'}, inplace=True)
-    return df_countries
-
-
-def interpolate_colors(colors, n):
-    ''' Interpolate among multiple hex colors.'''
-    # Convert all hex colors to RGB
-    rgbs = [
-        tuple(int(color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
-        for color in colors]
-
-    interpolated_colors = []
-    # Number of transitions is one less than the number of colors
-    transitions = len(colors) - 1
-
-    # Calculate the number of steps for each transition
-    steps_per_transition = n // transitions
-    steps_per_transition = (
-        [steps_per_transition + 1]*(n % transitions) +
-        [steps_per_transition]*(transitions - (n % transitions)))
-
-    # Interpolate between each pair of colors
-    for i in range(transitions):
-        for step in range(steps_per_transition[i]):
-            interpolated_rgb = [
-                int(rgbs[i][j] + (float(step)/steps_per_transition[i])*(
-                    rgbs[i+1][j]-rgbs[i][j]))
-                for j in range(3)]
-            interpolated_colors.append(
-                f'rgb({interpolated_rgb[0]}, ' +
-                f'{interpolated_rgb[1]},' +
-                f'{interpolated_rgb[2]})')
-
-    # Append the last color
-    if len(interpolated_colors) < n:
-        interpolated_colors.append(
-            f'rgb({rgbs[-1][0]}, {rgbs[-1][1]}, {rgbs[-1][2]})')
-
-    if len(rgbs) > n:
-        interpolated_colors = [
-            f'rgb({rgb[0]}, {rgb[1]}, {rgb[2]})' for rgb in rgbs[:n]]
-    return interpolated_colors
-
-
-def get_map_colorscale(
-        df_countries,
-        map_percentile_cutoffs=[10, 20, 30, 40, 50, 60, 70, 80, 90, 99, 100]):
-    cutoffs = np.percentile(
-        df_countries['country_count'], map_percentile_cutoffs)
-    if df_countries['country_count'].count() < len(map_percentile_cutoffs):
-        cutoffs = df_countries['country_count'].sort_values()
-    cutoffs = cutoffs / df_countries['country_count'].max()
-    num_colors = len(cutoffs)
-    cutoffs = np.insert(np.repeat(cutoffs, 2)[:-1], 0, 0)
-    colors = interpolate_colors(
-        ['0000FF', '00EA66', 'A7FA00', 'FFBE00', 'FF7400', 'FF3500'],
-        num_colors)
-    colors = np.repeat(colors, 2)
-    custom_scale = [[x, y] for x, y in zip(cutoffs, colors)]
-    return custom_scale
-
-
-def create_map(df_countries, map_layout_dict=None):
-    geojson = os.path.join(
-        'https://raw.githubusercontent.com/',
-        'martynafford/natural-earth-geojson/master/',
-        '50m/cultural/ne_50m_admin_0_countries.json')
-
-
-    map_colorscale = get_map_colorscale(df_countries)
-
-    fig = go.Figure(go.Choroplethmap(
-        geojson=geojson,
-        featureidkey='properties.ADM0_A3',
-        locations=df_countries['country_iso'],
-        z=df_countries['country_count'],
-        text=df_countries['country_name'],
-        colorscale=map_colorscale,
-        showscale=True,
-        zmin=1,
-        zmax=df_countries['country_count'].max(),
-        marker_line_color='black',
-        marker_opacity=0.5,
-        marker_line_width=0.3,
-        colorbar={
-            'bgcolor': 'rgba(255,255,255,1)',
-            'thickness': 20, 'ticklen': 5,
-            'x': 1, 'xref': 'paper', 'xanchor': 'right', 'xpad': 5},
-    ))
-    fig.update_layout(map_layout_dict)
-    # fig.update_layout({'width': 10.5})
-    return fig
-
 
 ############################################
 # APP LAYOUT
 ############################################
-
-
-
-def define_filters_and_controls(
-        sex_options, age_options, country_options,
-        admdate_options,  # disease_options,
-        outcome_options):
-    filters = dbc.AccordionItem(
-        title='Filters and Controls',
-        children=[
-            html.Label(html.B('Sex at birth:')),
-            html.Div(style={'margin-top': '5px'}),
-            dcc.Checklist(
-                id='sex-checkboxes',
-                options=sex_options,
-                value=[option['value'] for option in sex_options],
-                inputStyle={'margin-right': '2px', 'margin-left': '10px'},
-                style={'margin-left': '-10px'},
-                inline=True
-            ),
-            html.Div(style={'margin-top': '10px'}),
-            html.Label(html.B('Age:')),
-            html.Div(style={'margin-top': '5px'}),
-            dcc.RangeSlider(
-                id='age-slider',
-                min=age_options['min'],
-                max=age_options['max'],
-                step=age_options['step'],
-                marks=age_options['marks'],
-                value=age_options['value'],
-                pushable=10,
-            ),
-            html.Div(style={'margin-top': '10px'}),
-            html.Div([
-                html.Div(
-                    id='country-display',
-                    children=html.Div([
-                        html.B('Country:'),
-                        # ' (scroll down for all)'
-                    ]),
-                    style={'cursor': 'pointer'}),
-                dbc.Fade(
-                    html.Div([
-                        dcc.Checklist(
-                            id='country-selectall',
-                            options=[{
-                                'label': 'Select all',
-                                'value': 'all'
-                            }],
-                            value=['all'],
-                            inputStyle={'margin-right': '2px'}
-                        ),
-                        dcc.Checklist(
-                            id='country-checkboxes',
-                            options=country_options,
-                            value=[
-                                option['value'] for option in country_options],
-                            style={
-                                'overflowY': 'auto',
-                                'maxHeight': '70px'
-                            },
-                            inputStyle={'margin-right': '2px'}
-                        )
-                    ]),
-                    id='country-fade',
-                    is_in=True,
-                    appear=True,
-                )
-            ]),
-            html.Div(style={'margin-top': '15px'}),
-            html.Label(html.B('Admission date:')),
-            html.Div(style={'margin-top': '5px'}),
-            dcc.RangeSlider(
-                id='admdate-slider',
-                min=admdate_options['min'],
-                max=admdate_options['max'],
-                step=admdate_options['step'],
-                marks=admdate_options['marks'],
-                value=admdate_options['value'],
-                pushable=1,
-            ),
-            html.Div(style={'margin-top': '35px'}),
-            html.Label(html.B('Outcome:')),
-            html.Div(style={'margin-top': '5px'}),
-            dcc.Checklist(
-                id='outcome-checkboxes',
-                options=outcome_options,
-                value=[option['value'] for option in outcome_options],
-                inputStyle={'margin-right': '2px', 'margin-left': '10px'},
-                style={'margin-left': '-10px'},
-                inline=True
-            )
-        ], style={'overflowY': 'auto', 'maxHeight': '75vh'},
-    )
-    return filters
-
-
-def define_menu(buttons, filter_options, project_name=None):
-    initial_modal = dbc.Modal(
-        id='modal',
-        children=[dbc.ModalBody('')],  # Placeholder content
-        is_open=False,
-        size='xl'
-    )
-    menu = pd.DataFrame(data=buttons)
-    menu_items = [define_filters_and_controls(**filter_options)]
-    cont = 0
-    for item in menu['item'].unique():
-        if (cont == 0):
-            item_children = [initial_modal]
-        else:
-            item_children = []
-        cont += 1
-        for index, row in menu.loc[(menu['item'] == item)].iterrows():
-            item_children.append(dbc.Button(
-                row['label'],
-                id={'type': 'open-modal', 'index': row['suffix']},
-                className='mb-2', style={'width': '100%'}))
-        menu_items.append(dbc.AccordionItem(
-            title=item,
-            children=item_children))
-    # menu = dbc.Accordion(
-    #     menu_items,
-    #     start_collapsed=True,
-    #     style={
-    #         'width': '300px', 'position': 'fixed', 'bottom': 0, 'left': 0,
-    #         'z-index': 1000, 'background-color': 'rgba(255, 255, 255, 0.8)',
-    #         'padding': '10px'})
-    menu = [dbc.ModalBody([dbc.Accordion(menu_items, start_collapsed=True)])]
-    
-    menu_header = [dbc.ModalHeader(
-        html.Div([
-            html.Label("Project:", style={'margin-right': '10px'}),
-            dcc.Dropdown(
-                id="project-selector",
-                options=[
-                    {"label": "ARChetypeCRF_mpox_synthetic", "value": "projects/ARChetypeCRF_mpox_synthetic/"},
-                    {"label": "ARChetypeCRF_dengue_synthetic", "value": "projects/ARChetypeCRF_dengue_synthetic/"},
-                    {"label": "ARChetypeCRF_h5nx_synthetic", "value": "projects/ARChetypeCRF_h5nx_synthetic/"},
-                    {"label": "ARChetypeCRF_h5nx_synthetic_mf", "value": "projects/ARChetypeCRF_h5nx_synthetic_mf/"},
-                ],
-                placeholder="Select a project...",
-                value="projects/ARChetypeCRF_h5nx_synthetic_mf/",  # default
-                style={"minWidth": "300px"}
-                    )
-        ]))
-    ]
-    menu = menu_header + menu
-    menu = html.Div(
-        menu,
-        style={
-            'width': '350px', 'position': 'fixed', 'bottom': 0, 'left': 0,
-            'z-index': 1000, 'background-color': 'rgba(255, 255, 255, 0.8)',
-            'padding': '10px'})
-    return menu
-
-
-def define_app_layout(
-        fig, buttons, filter_options, map_layout_dict, project_name=None):
-    
-    title = 'VERTEX - Visual Evidence & Research Tool for EXploration'
-    subtitle = 'Visual Evidence, Vital Answers'
-
-    isaric_logo = 'ISARIC_logo.png'
-    partners_logo_list = [
-        'FIOCRUZ_logo.png', 'gh.png', 'puc_rio.png']
-    funders_logo_list = [
-        'wellcome-logo.png', 'billmelinda-logo.png',
-        'uk-international-logo.png', 'FundedbytheEU.png']
-
-    logo_style = {'height': '5vh', 'margin': '2px 10px'}
-
-    app_layout = html.Div([
-        dcc.Store(id="selected-project-path", data="projects/ARChetypeCRF_h5nx_synthetic_mf/"),
-        dcc.Store(id='login-state', storage_type='session', data=False),
-        dcc.Store(id='button', data={'item': '', 'label': '', 'suffix': ''}),
-        dcc.Store(id='map-layout', data=map_layout_dict),
-        dcc.Graph(
-            id='world-map', figure=fig,
-            style={'height': '92vh', 'margin': '0px'}),
-        html.Div([
-                html.H1(title, id='title'),
-                html.P(subtitle),
-                # Add a hidden button here so it always exists in the layout
-                dbc.Button("Login", id="open-login", color="primary", size="sm", style={"display": "none"}),
-                dbc.Button("Logout", id="logout-button", style={"display": "none"}),
-                html.Div(id="auth-button-container"),
-            ],
-            style={
-                'position': 'absolute',
-                'top': 0, 'left': 10,
-                'z-index': 1000}),
-        define_menu(buttons, filter_options, project_name=project_name),
-        html.Div(
-            [
-                html.Img(
-                    src='assets/logos/' + isaric_logo,
-                    className='img-fluid',
-                    style={'height': '7vh', 'margin': '2px 10px'}),
-                html.P('In partnership with: ', style={'display': 'inline'})] +
-            [html.Img(
-                src='assets/logos/' + logo,
-                className='img-fluid',
-                style=logo_style) for logo in partners_logo_list] +
-            [html.P('    With funding from: ', style={'display': 'inline'})] +
-            [html.Img(
-                src='assets/logos/' + logo,
-                className='img-fluid',
-                style=logo_style) for logo in funders_logo_list],
-            style={
-                'position': 'absolute', 'bottom': 0,
-                'width': 'calc(100% - 350px)', 'margin-left': '350px',
-                'background-color': '#FFFFFF',
-                'z-index': 0, }),
-
-            login_modal,
-            register_modal,
-    ])
-    return app_layout
-
-
-############################################
-############################################
-
 
 def generate_html_text(text):
     text_list = text.strip('\n').split('\n')
@@ -736,24 +376,23 @@ def register_callbacks(
         df_forms_dict, dictionary, quality_report, filter_options,
         filepath, save_inputs):
     
-    ## Load the project based on project path
+
     @app.callback(
         Output("page-content", "children"),
         Input("selected-project-path", "data"),
         prevent_initial_call=True
     )
     def load_project_layout(project_path):
+        print(f"Loading project layout for: {project_path}")
         if not project_path:
             raise PreventUpdate
- 
+        
         config_dict = get_config(project_path, config_defaults)
         insight_panels_path = os.path.join(project_path, config_dict['insight_panels_path'])
         insight_panels, buttons = get_insight_panels(config_dict, insight_panels_path)
 
-        # Load data (from CSV or API)
-        # You can move this into a helper function to avoid duplicating logic
-        df_map, df_forms_dict, dictionary, quality_report = load_vertex_data(project_path, config_dict)
 
+        df_map, df_forms_dict, dictionary, quality_report = load_vertex_data(init_project_path, config_dict)
         df_map_with_countries = merge_data_with_countries(df_map)
         df_countries = get_countries(df_map_with_countries)
 
@@ -793,7 +432,7 @@ def register_callbacks(
             'marks': {i: {'label': str(i)} for i in range(0, max_age + 1, 10)},
             'value': [0, max_age]
         }
-
+        print(df_map.keys())
         admdate_yyyymm = pd.date_range(start=df_map['dates_admdate'].min(), end=df_map['dates_admdate'].max(), freq='MS')
         admdate_options = {
             'min': 0,
@@ -816,9 +455,6 @@ def register_callbacks(
 
         layout = define_app_layout(fig, buttons, filter_options, map_layout_dict, config_dict['project_name'])
 
-        # Optionally re-register any callbacks if necessary
-        register_callbacks(app, insight_panels, df_map, df_forms_dict, dictionary, quality_report, filter_options, project_path, config_dict['save_filtered_public_outputs'])
-
         return layout
 
 
@@ -833,14 +469,6 @@ def register_callbacks(
         if not selected_value:
             raise PreventUpdate
         return selected_value
-    
-    @app.callback(
-        Output("page-content", "children"),
-        Input("selected-project-path", "data")
-    )
-    def load_project_layout(project_path):
-        layout, insight_panels = build_dashboard(project_path)
-        return layout
     
     @app.callback(
         Output('world-map', 'figure'),
@@ -1388,7 +1016,10 @@ def main():
     app = dash.Dash(
         __name__,
         external_stylesheets=[dbc.themes.BOOTSTRAP],
-        suppress_callback_exceptions=True)
+        assets_folder=os.path.join(os.path.dirname(__file__), '..', 'assets'),
+        title='Isaric VERTEX',
+        suppress_callback_exceptions=True
+    )
     
     app.server.config.update({
         "SQLALCHEMY_DATABASE_URI": DATABASE_URL,
@@ -1403,6 +1034,7 @@ def main():
     app.layout = html.Div([
         dcc.Location(id='url', refresh=False),
         dcc.Store(id='login-state', storage_type='session', data=False),
+        dcc.Store(id='selected-project-path'),
         html.Div(id='page-content'),
         html.Div(id="login-output", style={"display": "none"}),
     ])
@@ -1421,104 +1053,7 @@ def main():
     insight_panels, buttons = get_insight_panels(
         config_dict, insight_panels_path)
 
-    api_url = config_dict['api_url']
-    api_key = config_dict['api_key']
-    get_data_from_api = (api_url is not None) and (api_key is not None)
-
-    if get_data_from_api:
-        print('Retrieving data from the API')
-        user_assigned_to_dag = getRC.user_assigned_to_dag(api_url, api_key)
-        # if user_assigned_to_dag & (config_dict['data_access_groups'] is None):
-        #     with open('data_access_groups.json') as json_data:
-        #         all_dags = json.load(json_data)
-        #         config_dict['data_access_groups'] = all_dags[api_url]
-        get_data_kwargs = {
-            'data_access_groups': config_dict['data_access_groups'],
-            'user_assigned_to_dag': user_assigned_to_dag}
-        df_map, df_forms_dict, dictionary, quality_report = (
-            getRC.get_redcap_data(api_url, api_key, **get_data_kwargs))
-
-    if get_data_from_api is False:
-        try:
-            vertex_dataframes_path = os.path.join(
-                init_project_path, config_dict['vertex_dataframes_path'])
-            vertex_dataframes = os.listdir(vertex_dataframes_path)
-            dictionary = pd.read_csv(
-                os.path.join(vertex_dataframes_path, 'vertex_dictionary.csv'),
-                dtype={'field_label': 'str'},
-                keep_default_na=False)
-            str_ind = dictionary['field_type'].isin(
-                ['freetext', 'categorical'])
-            str_columns = dictionary.loc[str_ind, 'field_name'].tolist()
-            non_str_columns = dictionary.loc[(
-                str_ind == 0), 'field_name'].tolist()
-            # num_ind = dictionary['field_type'].isin(['numeric'])
-            # num_columns = dictionary.loc[num_ind, 'field_name'].tolist()
-            dtype_dict = {
-                **{x: 'str' for x in str_columns},
-                # **{x: 'float' for x in num_columns}
-            }
-            # pandas tries to infer NaN values, sometimes this causes issues
-            # solution is to ignore str columns, otherwise there are errors if
-            # e.g. 'None' is an answer option
-            pandas_default_na_values = [
-                '',
-                ' ',
-                '#N/A',
-                '#N/A N/A',
-                '#NA',
-                '-1.#IND',
-                '-1.#QNAN',
-                '-NaN',
-                '-nan',
-                '1.#IND',
-                '1.#QNAN',
-                '<NA>',
-                'N/A',
-                'NA',
-                'NULL',
-                'NaN',
-                'None',
-                'n/a',
-                'nan',
-                'null'
-            ]
-            na_values = {
-                **{x: pandas_default_na_values for x in non_str_columns},
-                **{x: '' for x in str_columns}
-            }
-            df_map = pd.read_csv(
-                os.path.join(vertex_dataframes_path, 'df_map.csv'),
-                dtype=dtype_dict,
-                keep_default_na=False,
-                na_values=na_values
-            )
-            # Fix dates
-            date_variables = dictionary.loc[(
-                dictionary['field_type'] == 'date'), 'field_name'].tolist()
-            df_map[date_variables] = df_map[date_variables].apply(
-                lambda x: x.apply(lambda y: pd.to_datetime(y)))
-            quality_report = {}
-            exclude_files = ('df_map.csv', 'vertex_dictionary.csv')
-            vertex_dataframes = [
-                file for file in vertex_dataframes
-                if file.endswith('.csv') and (file not in exclude_files)]
-            df_forms_dict = {}
-            for file in vertex_dataframes:
-                df_form = pd.read_csv(
-                    os.path.join(vertex_dataframes_path, file),
-                    dtype=dtype_dict,
-                    keep_default_na=False,
-                    na_values=na_values
-                )
-                if 'subjid' in df_form.columns:
-                    key = file.split('.csv')[0]
-                    df_forms_dict[key] = df_form
-                else:
-                    print(f'{file} does not include subjid, ignoring this.')
-        except Exception:
-            print('Could not load the VERTEX dataframes.')
-            raise
+    df_map, df_forms_dict, dictionary, quality_report = load_vertex_data(init_project_path, config_dict)
 
     df_map_with_countries = merge_data_with_countries(df_map)
     df_countries = get_countries(df_map_with_countries)
@@ -1616,9 +1151,12 @@ def main():
         # 'disease_options': disease_options,
         'outcome_options': outcome_options}
 
-    app.layout = define_app_layout(
-        fig, buttons, filter_options,
-        map_layout_dict, config_dict['project_name'])
+    app.layout = html.Div([
+        dcc.Store(id='selected-project-path', data=init_project_path),
+        html.Div(id='page-content', children=define_app_layout(
+            fig, buttons, filter_options,
+            map_layout_dict, config_dict['project_name']))
+    ])
 
     df_filters = df_map_with_countries[filter_columns_dict.keys()].rename(
         columns=filter_columns_dict)
@@ -1682,7 +1220,7 @@ def main():
 if __name__ == '__main__':
     app = main()
     webbrowser.open('http://127.0.0.1:8050', new=2, autoraise=True)
-    app.run_server(debug=True, use_reloader=False)
+    app.run_server(debug=True, host='0.0.0.0', port=8050, use_reloader=False)
 else:
     app = main()
     server = app.server
