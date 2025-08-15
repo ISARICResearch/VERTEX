@@ -1588,6 +1588,7 @@ def execute_kaplan_meier(
 
     risk_table = pd.DataFrame(risk_counts, index=times).T
     risk_table.insert(0, "Group", risk_table.index)
+    risk_table.reset_index(drop=True, inplace=True)
 
     return df_km, risk_table, p_value
 
