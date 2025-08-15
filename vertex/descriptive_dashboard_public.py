@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objs as go
 import sys
-import IsaricDraw as idw
+import vertex.IsaricDraw as idw
 import os
 import webbrowser
 
