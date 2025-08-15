@@ -400,7 +400,7 @@ def register_callbacks(
             'subjid': 'subjid',
             'demog_sex': 'filters_sex',
             'demog_age': 'filters_age',
-            'dates_admdate': 'filters_admdate',
+            'pres_date': 'filters_admdate',
             'country_iso': 'filters_country',
             'outco_binary_outcome': 'filters_outcome'
         }
@@ -433,7 +433,7 @@ def register_callbacks(
             'value': [0, max_age]
         }
         print(df_map.keys())
-        admdate_yyyymm = pd.date_range(start=df_map['dates_admdate'].min(), end=df_map['dates_admdate'].max(), freq='MS')
+        admdate_yyyymm = pd.date_range(start=df_map['pres_date'].min(), end=df_map['pres_date'].max(), freq='MS')
         admdate_options = {
             'min': 0,
             'max': len(admdate_yyyymm) - 1,
@@ -1063,14 +1063,14 @@ def main():
         'subjid': 'subjid',
         'demog_sex': 'filters_sex',
         'demog_age': 'filters_age',
-        'dates_admdate': 'filters_admdate',
+        'pres_date': 'filters_admdate',
         'country_iso': 'filters_country',
         'outco_binary_outcome': 'filters_outcome'
     }
 
     map_style = ['open-street-map', 'carto-positron']
     map_layout_dict = dict(
-        map_style=map_style[1],
+        map_style='carto-positron',  # alternative is 'open-street-map'
         map_zoom=config_dict['map_layout_zoom'],
         map_center={
             'lat': config_dict['map_layout_center_latitude'],
@@ -1105,10 +1105,10 @@ def main():
     }
     age_options['value'] = [age_options['min'], age_options['max']]
 
-    end_date = (df_map['dates_admdate'].max() + pd.DateOffset(months=1))
+    end_date = (df_map['pres_date'].max() + pd.DateOffset(months=1))
     end_date = end_date.strftime('%Y-%m')
     admdate_yyyymm = pd.date_range(
-        start=df_map['dates_admdate'].min().strftime('%Y-%m'),
+        start=df_map['pres_date'].min().strftime('%Y-%m'),
         end=end_date,
         freq='MS')
     admdate_yyyymm = [x.strftime('%Y-%m') for x in admdate_yyyymm]
@@ -1181,18 +1181,15 @@ def main():
         print(f'Saving files for public dashboard to "{public_path}"')
         os.makedirs(
             os.path.dirname(os.path.join(public_path, '')), exist_ok=True)
-        os.makedirs(
-            os.path.dirname(os.path.join(public_path, 'data', '')),
-            exist_ok=True)
         for ip in config_dict['insight_panels']:
             os.makedirs(
-                os.path.dirname(os.path.join(public_path, 'data', ip, '')),
+                os.path.dirname(os.path.join(public_path, ip, '')),
                 exist_ok=True)
         buttons = get_visuals(
             buttons, insight_panels,
             df_map=df_map, df_forms_dict=df_forms_dict,
             dictionary=dictionary, quality_report=quality_report,
-            filepath=os.path.join(public_path, 'data', ''))
+            filepath=os.path.join(public_path, ''))
         os.makedirs(os.path.dirname(public_path), exist_ok=True)
         if config_dict['save_base_files_to_public_path']:
             shutil.copy('descriptive_dashboard_public.py', public_path)
@@ -1202,19 +1199,19 @@ def main():
             os.makedirs(os.path.dirname(assets_path), exist_ok=True)
             shutil.copytree('assets', assets_path, dirs_exist_ok=True)
         metadata_file = os.path.join(
-            public_path, 'data/dashboard_metadata.txt')
-        with open(metadata_file, 'w') as metadata:
-            metadata.write(repr(buttons))
-        data_file = os.path.join(public_path, 'data/dashboard_data.csv')
+            public_path, 'dashboard_metadata.json')
+        with open(metadata_file, 'w') as file:
+            json.dump({'insight_panels': buttons}, file, indent=4)
+        data_file = os.path.join(public_path, 'dashboard_data.csv')
         df_countries.to_csv(data_file, index=False)
         config_json_file = os.path.join(
-            public_path, 'public_config_file.json')
+            public_path, 'config_file.json')
         with open(config_json_file, 'w') as file:
             save_config_keys = [
                 'project_name', 'map_layout_center_latitude',
                 'map_layout_center_longitude', 'map_layout_zoom']
             save_config_dict = {k: config_dict[k] for k in save_config_keys}
-            json.dump(save_config_dict, file)
+            json.dump(save_config_dict, file, indent=4)
     return app
 
 if __name__ == '__main__':
