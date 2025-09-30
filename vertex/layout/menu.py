@@ -1,9 +1,9 @@
-import dash_html_components as html
+from dash import html
 from dash import dcc
 import dash_bootstrap_components as dbc
 
 import pandas as pd
-from vertex.layout.filters import define_filters_and_controls
+from vertex.layout.filters import define_filters_controls
 
 def define_menu(buttons, filter_options, project_name=None):
     initial_modal = dbc.Modal(
@@ -13,7 +13,7 @@ def define_menu(buttons, filter_options, project_name=None):
         size='xl'
     )
     menu = pd.DataFrame(data=buttons)
-    menu_items = [define_filters_and_controls(**filter_options)]
+    menu_items = [define_filters_controls(**filter_options)]
     cont = 0
     for item in menu['item'].unique():
         if (cont == 0):

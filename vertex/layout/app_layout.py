@@ -1,4 +1,4 @@
-import dash_html_components as html
+from dash import html
 from dash import dcc
 import dash_bootstrap_components as dbc
 

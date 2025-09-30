@@ -4,18 +4,16 @@ from dash import dcc, html, callback_context, no_update
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State, ALL
 from dash.exceptions import PreventUpdate
+from plotly import graph_objs as go
 from flask_login import LoginManager, login_user, logout_user, current_user
+from flask import session as flask_session
 
 from flask_security import SQLAlchemyUserDatastore, Security
 from flask_security.utils import login_user, verify_and_update_password, hash_password
 import pandas as pd
-import sys
 import os
-import shutil
-import importlib.util
 
 import webbrowser
-import requests
 import secrets
 from sqlalchemy import create_engine, Table, Column, String, MetaData, select, \
     TIMESTAMP, Boolean, Text, UUID
@@ -25,11 +23,12 @@ import boto3
 from urllib.parse import quote_plus
 
 from vertex.models import User, Project
-import vertex.getREDCapData as getRC
-from vertex.loader import get_config, load_vertex_data, config_defaults
+from vertex.loader import get_config, load_vertex_data, config_defaults, save_public_outputs
 from vertex.layout.modals import login_modal, register_modal
 from vertex.layout.app_layout import define_app_layout
-from vertex.map import create_map, get_countries, get_map_colorscale, interpolate_colors, merge_data_with_countries
+from vertex.layout.insight_panels import get_insight_panels
+from vertex.layout.filters import get_filter_options, define_filters_controls
+from vertex.map import create_map, get_countries, merge_data_with_countries, filter_df_map
 
 # Settings
 secret_name = "rds!db-472cc9c8-1f3e-4547-b84d-9b0742de8b9a"
@@ -68,40 +67,25 @@ security = Security()
 # PROJECT PATHS (CHANGE THIS)
 ############################################
 
-# init_project_path = 'projects/ARChetypeCRF_mpox_synthetic/'
+init_project_path = 'projects/ARChetypeCRF_mpox_synthetic/'
 # init_project_path = 'projects/ARChetypeCRF_dengue_synthetic/'
 # init_project_path = 'projects/ARChetypeCRF_h5nx_synthetic/'
-init_project_path = 'projects/ARChetypeCRF_h5nx_synthetic_mf/'
-
-
-############################################
-# IMPORT
-############################################
-
-
-def import_from_path(module_name, filepath):
-    spec = importlib.util.spec_from_file_location(module_name, filepath)
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[module_name] = module
-    spec.loader.exec_module(module)
-    return module
-
+# init_project_path = 'projects/ARChetypeCRF_h5nx_synthetic_mf/'
 
 ############################################
 # CACHE DATA
 ############################################
 
+PROJECT_CACHE = {} 
 
-# def cache_memoize(cache, df_map, dd):
-#     # Define a function to fetch data and cache it
-#     @cache.memoize(timeout=300)  # Cache timeout of 5 minutes
-#     def memoize_data():
-#         return df_map.to_dict('records')
-#     @cache.memoize(timeout=300)  # Cache timeout of 5 minutes
-#     def memoize_dictionary():
-#         return dd.to_dict('records')
-#     # End of cache function
-#     return
+def get_project_data(project_path):
+    return PROJECT_CACHE.get(project_path)
+
+def set_project_data(project_path, data):
+    PROJECT_CACHE[project_path] = data
+
+def clear_project_data(project_path):
+    PROJECT_CACHE.pop(project_path, None)
 
 
 ############################################
@@ -123,35 +107,6 @@ def generate_html_text(text):
         div_list.append(html.Br())
     div = html.Div(div_list[:-1])
     return div
-
-
-############################################
-# Get insight panels
-############################################
-
-def get_insight_panels(config_dict, insight_panels_path):
-    # Import insight panels scripts
-    insight_panels = {
-        x: import_from_path(x, os.path.join(insight_panels_path, x + '.py'))
-        for x in config_dict['insight_panels']}
-    buttons = [
-        {**ip.define_button(), **{'suffix': suffix}}
-        for suffix, ip in insight_panels.items()]
-    return insight_panels, buttons
-
-
-def get_visuals(
-        buttons, insight_panels, df_map, df_forms_dict,
-        dictionary, quality_report, filepath):
-    for ii in range(len(buttons)):
-        suffix = buttons[ii]['suffix']
-        visuals = insight_panels[suffix].create_visuals(
-            df_map=df_map.copy(),
-            df_forms_dict={k: v.copy() for k, v in df_forms_dict.items()},
-            dictionary=dictionary.copy(), quality_report=quality_report,
-            suffix=suffix, filepath=filepath, save_inputs=True)
-        buttons[ii]['graph_ids'] = [id for _, id, _, _ in visuals]
-    return buttons
 
 
 ############################################
@@ -194,7 +149,7 @@ def create_modal(visuals, button, filter_options):
                 dbc.AccordionItem(
                     title='Filters and Controls',
                     children=[
-                        define_filters_controls_modal(**filter_options)
+                        define_filters_controls(**filter_options)
                     ]),
                 dbc.AccordionItem(
                     title='Insights', children=insight_children)
@@ -207,114 +162,6 @@ def create_modal(visuals, button, filter_options):
             generate_html_text(about_str))
     ]
     return modal
-
-
-def define_filters_controls_modal(
-        sex_options, age_options, country_options,
-        admdate_options,  # disease_options,
-        outcome_options,
-        add_row=None):
-    filter_rows = [dbc.Row([
-        dbc.Col([
-            html.H6('Sex at birth:', style={'margin-right': '10px'}),
-            html.Div([
-                dcc.Checklist(
-                    id='sex-checkboxes-modal',
-                    options=sex_options,
-                    value=[option['value'] for option in sex_options],
-                    inputStyle={'margin-right': '2px'}
-                )
-            ])
-        ], width=2),
-        dbc.Col([
-            html.H6('Age:', style={'margin-right': '10px'}),
-            html.Div([
-                html.Div([
-                    dcc.RangeSlider(
-                        id='age-slider-modal',
-                        min=age_options['min'],
-                        max=age_options['max'],
-                        step=age_options['step'],
-                        marks=age_options['marks'],
-                        value=age_options['value']
-                    )
-                ], style={'width': '100%'})  # Apply style to this div
-            ])
-        ], width=3),
-        dbc.Col([
-            html.H6('Admission date:', style={'margin-right': '10px'}),
-            html.Div([
-                html.Div([
-                    dcc.RangeSlider(
-                        id='admdate-slider-modal',
-                        min=admdate_options['min'],
-                        max=admdate_options['max'],
-                        step=admdate_options['step'],
-                        marks=admdate_options['marks'],
-                        value=admdate_options['value']
-                    )
-                ], style={'width': '100%'})  # Apply style to this div
-            ])
-        ], width=3),
-        dbc.Col([
-            html.H6('Country:', style={'margin-right': '10px'}),
-            html.Div([
-                html.Div(
-                    id='country-display-modal',
-                    children='Country:', style={'cursor': 'pointer'}),
-                dbc.Fade(
-                    html.Div([
-                        dcc.Checklist(
-                            id='country-selectall-modal',
-                            options=[{
-                                'label': 'Select all',
-                                'value': 'all'
-                            }],
-                            value=['all'],
-                            inputStyle={'margin-right': '2px'}
-                        ),
-                        dcc.Checklist(
-                            id='country-checkboxes-modal',
-                            options=country_options,
-                            value=[
-                                option['value'] for option in country_options],
-                            style={'overflowY': 'auto', 'maxHeight': '100px'},
-                            inputStyle={'margin-right': '2px'}
-                        )
-                    ]),
-                    id='country-fade-modal',
-                    is_in=True,
-                    appear=True,
-                )
-            ]),
-        ], width=2),
-        dbc.Col([
-            html.H6('Outcome:', style={'margin-right': '10px'}),
-            html.Div([
-                dcc.Checklist(
-                    id='outcome-checkboxes-modal',
-                    options=outcome_options,
-                    value=[option['value'] for option in outcome_options],
-                    inputStyle={'margin-right': '2px'}
-                )
-            ])
-        ], width=2)
-    ])]
-    row_button = dbc.Row([
-        dbc.Col([
-            dbc.Button(
-                'Submit',
-                id='submit-button-modal',
-                color='primary', className='mr-2')
-            ],
-            width={'size': 6, 'offset': 3},
-            style={'text-align': 'center'})  # Center the button
-    ])
-    row_list = filter_rows + [row_button]
-    if add_row is not None:
-        row_list = filter_rows + [add_row, row_button]
-    filters = dbc.Row([dbc.Col(row_list)])
-    return filters
 
 
 def define_footer_modal(instructions, about):
@@ -371,11 +218,7 @@ def define_footer_modal(instructions, about):
 ############################################
 
 
-def register_callbacks(
-        app, insight_panels, df_map,
-        df_forms_dict, dictionary, quality_report, filter_options,
-        filepath, save_inputs):
-    
+def register_callbacks(app):
 
     @app.callback(
         Output("page-content", "children"),
@@ -383,79 +226,7 @@ def register_callbacks(
         prevent_initial_call=True
     )
     def load_project_layout(project_path):
-        print(f"Loading project layout for: {project_path}")
-        if not project_path:
-            raise PreventUpdate
-        
-        config_dict = get_config(project_path, config_defaults)
-        insight_panels_path = os.path.join(project_path, config_dict['insight_panels_path'])
-        insight_panels, buttons = get_insight_panels(config_dict, insight_panels_path)
-
-
-        df_map, df_forms_dict, dictionary, quality_report = load_vertex_data(init_project_path, config_dict)
-        df_map_with_countries = merge_data_with_countries(df_map)
-        df_countries = get_countries(df_map_with_countries)
-
-        filter_columns_dict = {
-            'subjid': 'subjid',
-            'demog_sex': 'filters_sex',
-            'demog_age': 'filters_age',
-            'pres_date': 'filters_admdate',
-            'country_iso': 'filters_country',
-            'outco_binary_outcome': 'filters_outcome'
-        }
-
-        df_filters = df_map_with_countries[filter_columns_dict.keys()].rename(columns=filter_columns_dict)
-        df_map = pd.merge(df_map_with_countries, df_filters, on='subjid', how='left')
-        df_forms_dict = {
-            form: pd.merge(df_form, df_filters, on='subjid', how='left')
-            for form, df_form in df_forms_dict.items()
-        }
-
-        # Generate layout
-        map_layout_dict = dict(
-            map_style='carto-positron',
-            map_zoom=config_dict['map_layout_zoom'],
-            map_center={
-                'lat': config_dict['map_layout_center_latitude'],
-                'lon': config_dict['map_layout_center_longitude']},
-            margin={'r': 0, 't': 0, 'l': 0, 'b': 0},
-        )
-        fig = create_map(df_countries, map_layout_dict)
-
-        sex_options = [{'label': 'Male', 'value': 'Male'}, {'label': 'Female', 'value': 'Female'}, {'label': 'Other / Unknown', 'value': 'Other / Unknown'}]
-        max_age = max((100, df_map['demog_age'].max()))
-        age_options = {
-            'min': 0,
-            'max': max_age,
-            'step': 10,
-            'marks': {i: {'label': str(i)} for i in range(0, max_age + 1, 10)},
-            'value': [0, max_age]
-        }
-        print(df_map.keys())
-        admdate_yyyymm = pd.date_range(start=df_map['pres_date'].min(), end=df_map['pres_date'].max(), freq='MS')
-        admdate_options = {
-            'min': 0,
-            'max': len(admdate_yyyymm) - 1,
-            'step': 1,
-            'marks': {i: {'label': d.strftime('%Y-%m')} for i, d in enumerate(admdate_yyyymm)},
-            'value': [0, len(admdate_yyyymm) - 1]
-        }
-
-        country_options = [{'label': r['country_name'], 'value': r['country_iso']} for _, r in df_countries.iterrows()]
-        outcome_options = [{'label': v, 'value': v} for v in df_map['filters_outcome'].dropna().unique()]
-
-        filter_options = {
-            'sex_options': sex_options,
-            'age_options': age_options,
-            'admdate_options': admdate_options,
-            'country_options': country_options,
-            'outcome_options': outcome_options,
-        }
-
-        layout = define_app_layout(fig, buttons, filter_options, map_layout_dict, config_dict['project_name'])
-
-        return layout
+        return build_project_layout(project_path)
 
 
     ## Change the current project
@@ -478,63 +249,45 @@ def register_callbacks(
             Input('country-checkboxes', 'value'),
             Input('admdate-slider', 'value'),
             Input('admdate-slider', 'marks'),
-            # Input('disease-checkboxes', 'value'),
-            Input('outcome-checkboxes', 'value')
+            Input('outcome-checkboxes', 'value'),
+            State('selected-project-path', 'data'),
         ],
         [State('map-layout', 'data')],
-        prevent_initial_call=True
     )
-    def update_map(
-            sex_value, age_value, country_value,
-            admdate_value, admdate_marks,  # disease_value,
-            outcome_value,
-            map_layout_dict):
-        df_map['filters_age'] = df_map['filters_age'].astype(float)
-        admdate_min = pd.to_datetime(
-            admdate_marks[str(admdate_value[0])]['label'])
-        admdate_max = pd.to_datetime(
-            admdate_marks[str(admdate_value[1])]['label'])
-        df_map_filtered = df_map[(
-            (df_map['filters_sex'].isin(sex_value)) &
-            (
-                (df_map['filters_age'] >= age_value[0]) |
-                (df_map['filters_age'].isna())
-            ) &
-            (
-                (df_map['filters_age'] <= age_value[1]) |
-                (df_map['filters_age'].isna())
-            ) &
-            (
-                (df_map['filters_admdate'] >= admdate_min) |
-                (df_map['filters_admdate'].isna())
-            ) &
-            (
-                (df_map['filters_admdate'] <= admdate_max) |
-                (df_map['filters_admdate'].isna())
-            ) &
-            # (df_map['filters_disease'].isin(disease_value)) &
-            (df_map['filters_outcome'].isin(outcome_value)) &
-            (df_map['filters_country'].isin(country_value))
-        )]
-        if df_map_filtered.empty:
-            geojson = os.path.join(
-                'https://raw.githubusercontent.com/',
-                'martynafford/natural-earth-geojson/master/',
-                '50m/cultural/ne_50m_admin_0_map_units.json')
-            # geojson = os.path.join(
-            #     'https://raw.githubusercontent.com/',
-            #     'johan/world.geo.json/master/countries.geo.json')
+    def update_map(sex_value, age_value, country_value,
+                admdate_value, admdate_marks, outcome_value,
+                project_path, map_layout_dict):
+        project_data = get_project_data(project_path)
 
+        if not project_data:
+            raise PreventUpdate
+
+        df_map = project_data['df_map']   # ✅ fresh copy each reload
+        df_filtered = filter_df_map(
+            df_map, sex_value, age_value,
+            country_value, admdate_value,
+            admdate_marks, outcome_value
+        )
+
+        if df_filtered.empty:
+            geojson = (
+                "https://raw.githubusercontent.com/"
+                "martynafford/natural-earth-geojson/master/"
+                "50m/cultural/ne_50m_admin_0_map_units.json"
+            )
             fig = go.Figure(
                 go.Choroplethmap(
                     geojson=geojson,
                     featureidkey='properties.ISO_A3'
                 ),
-                layout=map_layout_dict)
+                layout=map_layout_dict
+            )
         else:
-            df_countries = get_countries(df_map_filtered)
+            df_countries = get_countries(df_filtered)
             fig = create_map(df_countries, map_layout_dict)
+
         return fig
+
 
     @app.callback(
         [
@@ -661,27 +414,43 @@ def register_callbacks(
             Output('button', 'data')
         ],
         [Input({'type': 'open-modal', 'index': ALL}, 'n_clicks')],
-        [State('modal', 'is_open')],
+        [State('modal', 'is_open'), State('selected-project-path', 'data')],
         prevent_initial_call=True
     )
-    def toggle_modal(n, is_open):
+    def toggle_modal(n_clicks, is_open, project_path):
         ctx = callback_context
         if not ctx.triggered:
-            empty_button = {'item': '', 'label': '', 'suffix': ''}
-            output = is_open, [], False, empty_button
-        else:
-            button_id = ctx.triggered[0]['prop_id'].split('.')[0]
-            suffix = json.loads(button_id)['index']
-            visuals = insight_panels[suffix].create_visuals(
-                df_map=df_map.copy(),
-                df_forms_dict={k: v.copy() for k, v in df_forms_dict.items()},
-                dictionary=dictionary.copy(), quality_report=quality_report,
-                suffix=suffix, filepath=filepath, save_inputs=False)
-            button = {
-                **insight_panels[suffix].define_button(), **{'suffix': suffix}}
-            modal = create_modal(visuals, button, filter_options)
-            output = not is_open, modal, True, button
-        return output
+            return is_open, [], False, {'item': '', 'label': '', 'suffix': ''}
+
+        # Extract suffix from the triggered button
+        trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
+        suffix = json.loads(trigger_id)['index']
+
+        # Grab fresh project data
+        project_data = get_project_data(project_path)
+        if not project_data:
+            raise PreventUpdate
+
+        insight_panels = project_data['insight_panels']
+        df_map = project_data['df_map']
+        df_forms_dict = project_data['df_forms_dict']
+        dictionary = project_data['dictionary']
+        quality_report = project_data['quality_report']
+
+        # Build visuals
+        visuals = insight_panels[suffix].create_visuals(
+            df_map=df_map.copy(),
+            df_forms_dict={k: v.copy() for k, v in df_forms_dict.items()},
+            dictionary=dictionary.copy(),
+            quality_report=quality_report,
+            suffix=suffix,
+            filepath=project_path,
+            save_inputs=False
+        )
+        button = {**insight_panels[suffix].define_button(), **{'suffix': suffix}}
+        modal = create_modal(visuals, button, get_filter_options(df_map))
+
+        return not is_open, modal, True, button
 
     @app.callback(
         [
@@ -899,8 +668,7 @@ def register_callbacks(
             Output('age-slider-modal', 'value', allow_duplicate=True),
             Output('country-checkboxes-modal', 'value', allow_duplicate=True),
             Output('admdate-slider-modal', 'value', allow_duplicate=True),
-            # Output('disease-checkboxes-modal', 'value', allow_duplicate=True),
-            Output('outcome-checkboxes-modal', 'value', allow_duplicate=True)
+            Output('outcome-checkboxes-modal', 'value', allow_duplicate=True),
         ],
         [Input('submit-button-modal', 'n_clicks')],
         [
@@ -910,94 +678,70 @@ def register_callbacks(
             State('country-checkboxes-modal', 'value'),
             State('admdate-slider-modal', 'value'),
             State('admdate-slider-modal', 'marks'),
-            # State('disease-checkboxes-modal', 'value'),
-            State('outcome-checkboxes-modal', 'value')
+            State('outcome-checkboxes-modal', 'value'),
+            State('selected-project-path', 'data'),   # ✅ project path state
         ],
         prevent_initial_call=True
     )
     def update_figures(
-            click, button,
-            sex_value, age_value, country_value,
-            admdate_value, admdate_marks,  # disease_value,
-            outcome_value):
-        df_map['filters_age'] = df_map['filters_age'].astype(float)
-        admdate_min = pd.to_datetime(
-            admdate_marks[str(admdate_value[0])]['label'])
-        admdate_max = pd.to_datetime(
-            admdate_marks[str(admdate_value[1])]['label'])
-        df_map_filtered = df_map[(
-            (df_map['filters_sex'].isin(sex_value)) &
-            (
-                (df_map['filters_age'] >= age_value[0]) |
-                (df_map['filters_age'].isna())
-            ) &
-            (
-                (df_map['filters_age'] <= age_value[1]) |
-                (df_map['filters_age'].isna())
-            ) &
-            (
-                (df_map['filters_admdate'] >= admdate_min) |
-                (df_map['filters_admdate'].isna())
-            ) &
-            (
-                (df_map['filters_admdate'] <= admdate_max) |
-                (df_map['filters_admdate'].isna())
-            ) &
-            # (df_map['filters_disease'].isin(disease_value)) &
-            (df_map['filters_outcome'].isin(outcome_value)) &
-            (df_map['filters_country'].isin(country_value))
-        )]
-        df_map_filtered = df_map_filtered.reset_index(drop=True)
-
-        df_forms_filtered = df_forms_dict.copy()
-        for key in df_forms_filtered.keys():
-            df_filtered = df_forms_filtered[key].copy()
-            df_filtered['filters_age'] = (
-                df_filtered['filters_age'].astype(float))
-            df_filtered = df_filtered[(
-                (df_filtered['filters_sex'].isin(sex_value)) &
-                (
-                    (df_filtered['filters_age'] >= age_value[0]) |
-                    (df_filtered['filters_age'].isna())
-                ) &
-                (
-                    (df_filtered['filters_age'] <= age_value[1]) |
-                    (df_filtered['filters_age'].isna())
-                ) &
-                (
-                    (df_filtered['filters_admdate'] >= admdate_min) |
-                    (df_filtered['filters_admdate'].isna())
-                ) &
-                (
-                    (df_filtered['filters_admdate'] <= admdate_max) |
-                    (df_filtered['filters_admdate'].isna())
-                ) &
-                # (df_filtered['filters_disease'].isin(disease_value)) &
-                (df_filtered['filters_outcome'].isin(outcome_value)) &
-                (df_filtered['filters_country'].isin(country_value))
-            )]
-            df_forms_filtered[key] = df_filtered.reset_index(drop=True)
+        n_clicks, button,
+        sex_value, age_value, country_value,
+        admdate_value, admdate_marks,
+        outcome_value, project_path
+    ):
+        if not button or 'suffix' not in button:
+            raise PreventUpdate
 
         suffix = button['suffix']
-        # If all dataframes in the dict are empty, return an empty modal
+        project_data = get_project_data(project_path)
+        if not project_data:
+            raise PreventUpdate
+
+        df_map = project_data['df_map']
+        df_forms_dict = project_data['df_forms_dict']
+        dictionary = project_data['dictionary']
+        quality_report = project_data['quality_report']
+
+        # Filter the main map
+        df_map_filtered = filter_df_map(
+            df_map, sex_value, age_value,
+            country_value, admdate_value,
+            admdate_marks, outcome_value
+        )
+
+        # Filter forms
+        df_forms_filtered = {}
+        for key, df_form in df_forms_dict.items():
+            df_forms_filtered[key] = filter_df_map(
+                df_form, sex_value, age_value,
+                country_value, admdate_value,
+                admdate_marks, outcome_value
+            )
+
+        # If everything is empty, return blank modal
         df_list = [df_map_filtered] + list(df_forms_filtered.values())
-        if all([x.empty for x in df_list]):
-            modal = ()
-        else:
-            visuals = insight_panels[suffix].create_visuals(
-                df_map=df_map_filtered.copy(),
-                df_forms_dict={
-                    k: v.copy() for k, v in df_forms_filtered.items()},
-                dictionary=dictionary.copy(),
-                quality_report=quality_report,
-                filepath=filepath, suffix=suffix,
-                save_inputs=save_inputs)
-            modal = create_modal(visuals, button, filter_options)
-        output = (
-            modal, sex_value, age_value, country_value,
-            admdate_value,  # disease_value,
-            outcome_value)
-        return output
+        if all(df.empty for df in df_list):
+            return (), sex_value, age_value, country_value, admdate_value, outcome_value
+
+        # Otherwise rebuild visuals
+        visuals = project_data['insight_panels'][suffix].create_visuals(
+            df_map=df_map_filtered.copy(),
+            df_forms_dict={k: v.copy() for k, v in df_forms_filtered.items()},
+            dictionary=dictionary.copy(),
+            quality_report=quality_report,
+            filepath=project_path,
+            suffix=suffix,
+            save_inputs=project_data['config_dict']['save_filtered_public_outputs'],
+        )
+
+        modal = create_modal(visuals, button, get_filter_options(df_map))
+
+        return (
+            modal,
+            sex_value, age_value,
+            country_value, admdate_value,
+            outcome_value,
+        )
 
     # End of callbacks
     return
@@ -1009,9 +753,125 @@ def register_callbacks(
 # Main
 ############################################
 
+def build_project_layout(project_path):
+    print(f"[DEBUG] Building project layout for: {project_path}")
+    if not project_path:
+        raise PreventUpdate
+
+    # If cached, reuse project data
+    project_data = PROJECT_CACHE.get(project_path)
+    if project_data:
+        print(f"[DEBUG] Using cached project data for {project_path}")
+    else:
+        print(f"[DEBUG] No cache found, loading fresh data for {project_path}")
+        config_dict = get_config(project_path, config_defaults)
+        insight_panels_path = os.path.join(project_path, config_dict['insight_panels_path'])
+        insight_panels, buttons = get_insight_panels(config_dict, insight_panels_path)
+
+        df_map, df_forms_dict, dictionary, quality_report = load_vertex_data(project_path, config_dict)
+        df_map = df_map.reset_index(drop=True)
+        df_map_with_countries = merge_data_with_countries(df_map)
+        df_countries = get_countries(df_map_with_countries)
+
+        filter_columns_dict = {
+            'subjid': 'subjid',
+            'demog_sex': 'filters_sex',
+            'demog_age': 'filters_age',
+            'pres_date': 'filters_admdate',
+            'country_iso': 'filters_country',
+            'outco_binary_outcome': 'filters_outcome'
+        }
+
+        df_filters = df_map_with_countries[filter_columns_dict.keys()].rename(columns=filter_columns_dict)
+        df_map = pd.merge(df_map_with_countries, df_filters, on='subjid', how='left').reset_index(drop=True)
+        df_forms_dict = {
+            form: pd.merge(df_form, df_filters, on='subjid', how='left').reset_index(drop=True)
+            for form, df_form in df_forms_dict.items()
+        }
+
+        project_data = {
+            'df_map': df_map,
+            'df_forms_dict': df_forms_dict,
+            'dictionary': dictionary,
+            'quality_report': quality_report,
+            'insight_panels': insight_panels,
+            'buttons': buttons,
+            'config_dict': config_dict,
+            'df_countries': df_countries,  # might be useful later
+        }
+
+        PROJECT_CACHE[project_path] = project_data
+
+        # Optional: public outputs only when building fresh
+        if config_dict['save_public_outputs']:
+            save_public_outputs(
+                buttons, insight_panels, df_map, df_countries,
+                df_forms_dict, dictionary, quality_report,
+                project_path, config_dict
+            )
+
+    # Always build layout from project_data
+    map_layout_dict = dict(
+        map_style='carto-positron',
+        map_zoom=project_data['config_dict']['map_layout_zoom'],
+        map_center={
+            'lat': project_data['config_dict']['map_layout_center_latitude'],
+            'lon': project_data['config_dict']['map_layout_center_longitude'],
+        },
+        margin={'r': 0, 't': 0, 'l': 0, 'b': 0},
+    )
+    fig = create_map(project_data['df_countries'], map_layout_dict)
+
+    # Build filter options (from cached data)
+    sex_options = [
+        {'label': 'Male', 'value': 'Male'},
+        {'label': 'Female', 'value': 'Female'},
+        {'label': 'Other / Unknown', 'value': 'Other / Unknown'},
+    ]
+    max_age = max((100, project_data['df_map']['demog_age'].max()))
+    age_options = {
+        'min': 0, 'max': max_age, 'step': 10,
+        'marks': {i: {'label': str(i)} for i in range(0, max_age + 1, 10)},
+        'value': [0, max_age],
+    }
+    admdate_yyyymm = pd.date_range(
+        start=project_data['df_map']['pres_date'].min(),
+        end=project_data['df_map']['pres_date'].max(),
+        freq='MS',
+    )
+    admdate_options = {
+        'min': 0, 'max': len(admdate_yyyymm) - 1, 'step': 1,
+        'marks': {i: {'label': d.strftime('%Y-%m')} for i, d in enumerate(admdate_yyyymm)},
+        'value': [0, len(admdate_yyyymm) - 1],
+    }
+    country_options = [
+        {'label': r['country_name'], 'value': r['country_iso']}
+        for _, r in project_data['df_countries'].iterrows()
+    ]
+    outcome_options = [
+        {'label': v, 'value': v}
+        for v in project_data['df_map']['filters_outcome'].dropna().unique()
+    ]
+
+    filter_options = {
+        'sex_options': sex_options,
+        'age_options': age_options,
+        'admdate_options': admdate_options,
+        'country_options': country_options,
+        'outcome_options': outcome_options,
+    }
+
+    layout = define_app_layout(
+        fig,
+        project_data['buttons'],
+        filter_options,
+        map_layout_dict,
+        project_data['config_dict']['project_name'],
+    )
+    return layout
+
 
 def main():
-    # app.run_server(debug=True, host='0.0.0.0', port='8080')
     print('Starting VERTEX')
     app = dash.Dash(
         __name__,
@@ -1020,7 +880,8 @@ def main():
         title='Isaric VERTEX',
         suppress_callback_exceptions=True
     )
-    
+
+    # Flask / DB config
     app.server.config.update({
         "SQLALCHEMY_DATABASE_URI": DATABASE_URL,
         "SECRET_KEY": "mouse_trap_robot_fast_cheese_coffee_gross_back_spain",
@@ -1030,188 +891,22 @@ def main():
             {"email": {"mapper": "email", "case_insensitive": True}}
         ]
     })
-    
-    app.layout = html.Div([
-        dcc.Location(id='url', refresh=False),
-        dcc.Store(id='login-state', storage_type='session', data=False),
-        dcc.Store(id='selected-project-path'),
-        html.Div(id='page-content'),
-        html.Div(id="login-output", style={"display": "none"}),
-    ])
-
-    db.init_app(app.server)  # now bind db to app
+    db.init_app(app.server)
     with app.server.app_context():
         global user_datastore
         user_datastore = SQLAlchemyUserDatastore(db, User, None)
         security.init_app(app.server, user_datastore)
 
-    # projects_path, init_project_path = get_project_path()
-    config_dict = get_config(init_project_path, config_defaults)
-
-    insight_panels_path = os.path.join(
-        init_project_path, config_dict['insight_panels_path'])
-    insight_panels, buttons = get_insight_panels(
-        config_dict, insight_panels_path)
-
-    df_map, df_forms_dict, dictionary, quality_report = load_vertex_data(init_project_path, config_dict)
-
-    df_map_with_countries = merge_data_with_countries(df_map)
-    df_countries = get_countries(df_map_with_countries)
-    print(df_countries)
-
-    filter_columns_dict = {
-        'subjid': 'subjid',
-        'demog_sex': 'filters_sex',
-        'demog_age': 'filters_age',
-        'pres_date': 'filters_admdate',
-        'country_iso': 'filters_country',
-        'outco_binary_outcome': 'filters_outcome'
-    }
-
-    map_style = ['open-street-map', 'carto-positron']
-    map_layout_dict = dict(
-        map_style='carto-positron',  # alternative is 'open-street-map'
-        map_zoom=config_dict['map_layout_zoom'],
-        map_center={
-            'lat': config_dict['map_layout_center_latitude'],
-            'lon': config_dict['map_layout_center_longitude']},
-        margin={'r': 0, 't': 0, 'l': 0, 'b': 0},
-    )
-
-    fig = create_map(df_countries, map_layout_dict)
-
-    sex_options = [
-        {'label': 'Male', 'value': 'Male'},
-        {'label': 'Female', 'value': 'Female'},
-        {'label': 'Other / Unknown', 'value': 'Other / Unknown'}]
-
-    max_age = max((100, df_map['demog_age'].max()))
-    age_options = {'min': 0, 'max': max_age, 'step': 10}
-    age_range = range(
-        age_options['min'], age_options['max'] + 1, age_options['step'])
-    age_options['marks'] = {
-        ii: {
-            'label': str(ii),
-            'style': {
-                'text-align': 'right',
-                'transform-origin': 'bottom left',
-                'transform': 'rotate(-45deg)',
-                'margin-left': '-5px',
-                'margin-top': '25px',
-                'height': '70px',
-                'width': '70px'}
-        }
-        for ii in age_range
-    }
-    age_options['value'] = [age_options['min'], age_options['max']]
-
-    end_date = (df_map['pres_date'].max() + pd.DateOffset(months=1))
-    end_date = end_date.strftime('%Y-%m')
-    admdate_yyyymm = pd.date_range(
-        start=df_map['pres_date'].min().strftime('%Y-%m'),
-        end=end_date,
-        freq='MS')
-    admdate_yyyymm = [x.strftime('%Y-%m') for x in admdate_yyyymm]
-    admdate_options = {
-        'min': 0, 'max': len(admdate_yyyymm) - 1, 'step': 1}
-    admdate_range = range(
-        admdate_options['min'],
-        admdate_options['max'] + 1,
-        admdate_options['step'])
-    admdate_options['marks'] = {
-        ii: {
-            'label': admdate_yyyymm[ii],
-            'style': {
-                'text-align': 'right',
-                'transform-origin': 'bottom left',
-                'transform': 'rotate(-45deg)',
-                'margin-left': '-5px',
-                'margin-top': '25px',
-                'height': '70px',
-                'width': '70px'}
-        } for ii in admdate_range
-    }
-    admdate_options['value'] = [admdate_options['min'], admdate_options['max']]
-
-    country_options = [
-        {'label': x[1], 'value': x[0]}
-        for x in df_countries.sort_values(by='country_iso').values]
-
-    outcome_options = [
-        {'label': 'Death', 'value': 'Death'},
-        {'label': 'Censored', 'value': 'Censored'},
-        {'label': 'Discharged', 'value': 'Discharged'}
-    ]
-
-    filter_options = {
-        'sex_options': sex_options,
-        'age_options': age_options,
-        'country_options': country_options,
-        'admdate_options': admdate_options,
-        # 'disease_options': disease_options,
-        'outcome_options': outcome_options}
+    initial_layout = build_project_layout(init_project_path)
 
     app.layout = html.Div([
+        dcc.Location(id='url', refresh=False),
         dcc.Store(id='selected-project-path', data=init_project_path),
-        html.Div(id='page-content', children=define_app_layout(
-            fig, buttons, filter_options,
-            map_layout_dict, config_dict['project_name']))
+        html.Div(id='page-content', children=initial_layout)  # seed initial
     ])
 
-    df_filters = df_map_with_countries[filter_columns_dict.keys()].rename(
-        columns=filter_columns_dict)
+    register_callbacks(app)
 
-    df_map = pd.merge(
-        df_map_with_countries, df_filters, on='subjid', how='left')
-    df_forms_dict = {
-        form: pd.merge(df_form, df_filters, on='subjid', how='left')
-        for form, df_form in df_forms_dict.items()}
-
-    register_callbacks(
-        app, insight_panels, df_map,
-        df_forms_dict, dictionary, quality_report, filter_options,
-        init_project_path, config_dict['save_filtered_public_outputs'])
-
-    if config_dict['save_public_outputs']:
-        public_path = os.path.join(
-            init_project_path, config_dict['public_path'])
-        if os.path.exists(public_path):
-            print(f'Folder "{public_path}" already exists, removing this')
-            shutil.rmtree(public_path)
-        print(f'Saving files for public dashboard to "{public_path}"')
-        os.makedirs(
-            os.path.dirname(os.path.join(public_path, '')), exist_ok=True)
-        for ip in config_dict['insight_panels']:
-            os.makedirs(
-                os.path.dirname(os.path.join(public_path, ip, '')),
-                exist_ok=True)
-        buttons = get_visuals(
-            buttons, insight_panels,
-            df_map=df_map, df_forms_dict=df_forms_dict,
-            dictionary=dictionary, quality_report=quality_report,
-            filepath=os.path.join(public_path, ''))
-        os.makedirs(os.path.dirname(public_path), exist_ok=True)
-        if config_dict['save_base_files_to_public_path']:
-            shutil.copy('descriptive_dashboard_public.py', public_path)
-            shutil.copy('IsaricDraw.py', public_path)
-            shutil.copy('requirements.txt', public_path)
-            assets_path = os.path.join(public_path, 'assets/')
-            os.makedirs(os.path.dirname(assets_path), exist_ok=True)
-            shutil.copytree('assets', assets_path, dirs_exist_ok=True)
-        metadata_file = os.path.join(
-            public_path, 'dashboard_metadata.json')
-        with open(metadata_file, 'w') as file:
-            json.dump({'insight_panels': buttons}, file, indent=4)
-        data_file = os.path.join(public_path, 'dashboard_data.csv')
-        df_countries.to_csv(data_file, index=False)
-        config_json_file = os.path.join(
-            public_path, 'config_file.json')
-        with open(config_json_file, 'w') as file:
-            save_config_keys = [
-                'project_name', 'map_layout_center_latitude',
-                'map_layout_center_longitude', 'map_layout_zoom']
-            save_config_dict = {k: config_dict[k] for k in save_config_keys}
-            json.dump(save_config_dict, file, indent=4)
     return app
 
 if __name__ == '__main__':

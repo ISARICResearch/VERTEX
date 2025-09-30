@@ -135,3 +135,18 @@ def create_map(df_countries, map_layout_dict=None):
     fig.update_layout(map_layout_dict)
     # fig.update_layout({'width': 10.5})
     return fig
+
+def filter_df_map(df_map, sex_value, age_value, country_value, admdate_value, admdate_marks, outcome_value):
+    df_map['filters_age'] = df_map['filters_age'].astype(float)
+    admdate_min = pd.to_datetime(admdate_marks[str(admdate_value[0])]['label'])
+    admdate_max = pd.to_datetime(admdate_marks[str(admdate_value[1])]['label'])
+    df_map_filtered = df_map[
+        (df_map['filters_sex'].isin(sex_value)) &
+        ((df_map['filters_age'] >= age_value[0]) | df_map['filters_age'].isna()) &
+        ((df_map['filters_age'] <= age_value[1]) | df_map['filters_age'].isna()) &
+        ((df_map['filters_admdate'] >= admdate_min) | df_map['filters_admdate'].isna()) &
+        ((df_map['filters_admdate'] <= admdate_max) | df_map['filters_admdate'].isna()) &
+        (df_map['filters_outcome'].isin(outcome_value)) &
+        (df_map['filters_country'].isin(country_value))
+    ]
+    return df_map_filtered.reset_index(drop=True)

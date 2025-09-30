@@ -1,9 +1,10 @@
-import dash_html_components as html
+from dash import html
 from dash import dcc
 import dash_bootstrap_components as dbc
+import pandas as pd
 
 
-def define_filters_and_controls(
+def define_filters_controls(
         sex_options, age_options, country_options,
         admdate_options,  # disease_options,
         outcome_options):
@@ -96,3 +97,49 @@ def define_filters_and_controls(
     )
     return filters
 
+def get_filter_options(df_map):
+    max_age = max((100, df_map['demog_age'].max()))
+    age_options = {
+        'min': 0,
+        'max': max_age,
+        'step': 10,
+        'marks': {i: {'label': str(i)} for i in range(0, max_age + 1, 10)},
+        'value': [0, max_age]
+    }
+
+    admdate_yyyymm = pd.date_range(
+        start=df_map['pres_date'].min(),
+        end=df_map['pres_date'].max(),
+        freq='MS'
+    )
+    admdate_options = {
+        'min': 0,
+        'max': len(admdate_yyyymm) - 1,
+        'step': 1,
+        'marks': {i: {'label': d.strftime('%Y-%m')} for i, d in enumerate(admdate_yyyymm)},
+        'value': [0, len(admdate_yyyymm) - 1]
+    }
+
+    outcome_options = [
+        {'label': v, 'value': v}
+        for v in df_map['filters_outcome'].dropna().unique()
+    ]
+
+    country_options = [
+        {'label': c, 'value': c}
+        for c in sorted(df_map['filters_country'].dropna().unique())
+    ]
+
+    sex_options = [
+        {'label': 'Male', 'value': 'Male'},
+        {'label': 'Female', 'value': 'Female'},
+        {'label': 'Other / Unknown', 'value': 'Other / Unknown'}
+    ]
+
+    return {
+        'sex_options': sex_options,
+        'age_options': age_options,
+        'admdate_options': admdate_options,
+        'country_options': country_options,
+        'outcome_options': outcome_options
+    }

@@ -2,8 +2,10 @@
 import os
 import json
 import pandas as pd
+import shutil
 
 import vertex.getREDCapData as getRC
+from vertex.layout.insight_panels import get_insight_panels, get_visuals
 
 config_defaults = {
     'project_name': None,
@@ -183,3 +185,46 @@ def load_vertex_from_files(project_path, config_dict):
     except Exception:
         print('Could not load the VERTEX dataframes.')
         raise
+
+def save_public_outputs(buttons, insight_panels, df_map, df_countries, df_forms_dict,
+        dictionary, quality_report, project_path, config_dict):
+    """Save public outputs to the PUBLIC folder."""
+    public_path = os.path.join(
+        project_path, config_dict['public_path'])
+    if os.path.exists(public_path):
+        print(f'Folder "{public_path}" already exists, removing this')
+        shutil.rmtree(public_path)
+    print(f'Saving files for public dashboard to "{public_path}"')
+    os.makedirs(
+        os.path.dirname(os.path.join(public_path, '')), exist_ok=True)
+    for ip in config_dict['insight_panels']:
+        os.makedirs(
+            os.path.dirname(os.path.join(public_path, ip, '')),
+            exist_ok=True)
+    buttons = get_visuals(
+        buttons, insight_panels,
+        df_map=df_map, df_forms_dict=df_forms_dict,
+        dictionary=dictionary, quality_report=quality_report,
+        filepath=os.path.join(public_path, ''))
+    os.makedirs(os.path.dirname(public_path), exist_ok=True)
+    if config_dict['save_base_files_to_public_path']:
+        shutil.copy('descriptive_dashboard_public.py', public_path)
+        shutil.copy('IsaricDraw.py', public_path)
+        shutil.copy('requirements.txt', public_path)
+        assets_path = os.path.join(public_path, 'assets/')
+        os.makedirs(os.path.dirname(assets_path), exist_ok=True)
+        shutil.copytree('assets', assets_path, dirs_exist_ok=True)
+    metadata_file = os.path.join(
+        public_path, 'dashboard_metadata.json')
+    with open(metadata_file, 'w') as file:
+        json.dump({'insight_panels': buttons}, file, indent=4)
+    data_file = os.path.join(public_path, 'dashboard_data.csv')
+    df_countries.to_csv(data_file, index=False)
+    config_json_file = os.path.join(
+        public_path, 'config_file.json')
+    with open(config_json_file, 'w') as file:
+        save_config_keys = [
+            'project_name', 'map_layout_center_latitude',
+            'map_layout_center_longitude', 'map_layout_zoom']
+        save_config_dict = {k: config_dict[k] for k in save_config_keys}
+        json.dump(save_config_dict, file, indent=4)

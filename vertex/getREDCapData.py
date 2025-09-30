@@ -717,6 +717,13 @@ def get_df_map(data, dictionary):
     columns = [col for col in columns if col in df_map.columns]
     ind = data['form_name'].apply(
         lambda x: any(y in x.split(',') for y in ['presentation', 'outcome']))
+    df_map = df_map.reset_index(drop=True)
+    ind = ind.reset_index(drop=True) if hasattr(ind, "reset_index") else ind
+    print("[DEBUG] df_map shape:", df_map.shape)
+    print("[DEBUG] ind shape:", getattr(ind, 'shape', None))
+    print("[DEBUG] ind dtype:", getattr(ind, 'dtype', None))
+    print("[DEBUG] df_map index:", df_map.index[:5])
+    print("[DEBUG] ind index:", ind.index[:5] if isinstance(ind, pd.Series) else None)
 
     ###########################################################################
     ###########################################################################
@@ -727,7 +734,7 @@ def get_df_map(data, dictionary):
 
     qc = 'QUALITY CHECK 1: Patient does not have Presentation or Outcome forms'
     quality_report = {qc: missing_id_QC1}
-
+    columns = [col for col in columns if col in df_map.columns]
     df_map = df_map.loc[ind, columns]
     # # ## TODO: Should this remove all columns with no data, or just those
     # # ## from repeating events?

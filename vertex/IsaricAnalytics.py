@@ -148,8 +148,9 @@ def get_variables_by_section_and_type(
 
 
 def convert_categorical_to_onehot(
-        df, dictionary, categorical_columns,
-        sep='___', missing_val='nan', drop_first=False):
+    df, dictionary, categorical_columns,
+    sep='___', missing_val='nan', drop_first=False
+):
     '''Convert categorical variables into onehot-encoded variables.'''
     categorical_columns = [
         col for col in df.columns if col in categorical_columns]
@@ -162,29 +163,30 @@ def convert_categorical_to_onehot(
     for categorical_column in categorical_columns:
         onehot_columns = [
             var for var in df.columns
-            if (var.split(sep)[0] == categorical_column)]
-        # variable_type_dict['binary'] += onehot_columns
+            if var.split(sep)[0] == categorical_column]
         df[onehot_columns] = df[onehot_columns].astype(object)
         if (categorical_column + sep + missing_val) in df.columns:
             mask = (df[categorical_column + sep + missing_val] == 1)
             df.loc[mask, onehot_columns] = np.nan
             df = df.drop(columns=[categorical_column + sep + missing_val])
-        else:
-            if drop_first:
-                drop_column_ind = dictionary.apply(
-                    lambda x: (
-                        (x['parent'] == categorical_column) &
-                        (x['field_name'].split(sep)[0] == categorical_column)
-                    ), axis=1)
+        elif drop_first and isinstance(dictionary, pd.DataFrame) and 'field_name' in dictionary.columns:
+            drop_column_ind = dictionary.apply(
+                lambda x: (
+                    (x['parent'] == categorical_column) &
+                    (x['field_name'].split(sep)[0] == categorical_column)
+                ), axis=1)
+            if drop_column_ind.any():
                 df = df.drop(columns=[
                     dictionary.loc[drop_column_ind, 'field_name'].values[0]])
 
-    columns = [
-        col for col in dictionary['field_name'].values if col in df.columns]
-    columns += [
-        col for col in df.columns
-        if col not in dictionary['field_name'].values]
-    df = df[columns]
+    if isinstance(dictionary, pd.DataFrame) and 'field_name' in dictionary.columns:
+        columns = [
+            col for col in dictionary['field_name'].values if col in df.columns]
+        columns += [
+            col for col in df.columns
+            if col not in dictionary['field_name'].values]
+        df = df[columns]
+
     return df
 
 
@@ -614,17 +616,26 @@ def format_descriptive_table_variables(
 
 
 def format_variables(dictionary, max_len=40, sep='___'):
-    parent_label = dictionary['parent'].apply(
-        lambda x: dictionary.loc[(
-            dictionary['field_name'] == x).idxmax(), 'field_label'])
+    def get_parent_label(x):
+        if pd.isna(x) or not isinstance(x, str):
+            return ""
+        match = dictionary.loc[dictionary['field_name'] == x, 'field_label']
+        return match.iloc[0] if not match.empty else ""
+
+    parent_label = dictionary['parent'].apply(get_parent_label)
     parent_name = parent_label.apply(trim_field_label, max_len=max_len)
+
     name = dictionary['field_label'].apply(
-        lambda x: x.split(':')[-1] if x.startswith('If') else x).apply(
-        trim_field_label, max_len=max_len)
+        lambda x: x.split(':')[-1] if x.startswith('If') else x
+    ).apply(trim_field_label, max_len=max_len)
+
     answer_ind = dictionary['field_name'].str.contains(sep)
+
     name = (
-        ('<b>' + parent_name + '</b>, ' + name)*answer_ind +
-        ('<b>' + name + '</b>')*(answer_ind == 0))
+        ('<b>' + parent_name + '</b>, ' + name) * answer_ind +
+        ('<b>' + name + '</b>') * (~answer_ind)
+    )
+
     return name
 
 
