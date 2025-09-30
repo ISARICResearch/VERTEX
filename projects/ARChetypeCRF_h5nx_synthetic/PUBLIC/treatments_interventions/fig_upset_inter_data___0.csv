@@ -1,6 +1,0 @@
-index,count,short_label,label
-inter_isolation,803,<b>Was the patient isolated at home or in ...</b>,<b>Was the patient isolated at home or in hospital?</b>
-inter_suppleo2,67,<b>Any supplemental oxygen?</b>,<b>Any supplemental oxygen?</b>
-inter_othersuppleo2,61,<b>Other respiratory support ...</b>,<b>Other respiratory support intervention(s) or procedure(s)</b>
-inter_facemask,58,<b>Face mask</b>,<b>Face mask</b>
-inter_invent,57,<b>Invasive ventilation</b>,<b>Invasive ventilation</b>
