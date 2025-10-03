@@ -5,65 +5,60 @@ import dash_bootstrap_components as dbc
 from vertex.layout.menu import define_menu
 from vertex.layout.modals import login_modal, register_modal
 
-def define_app_layout(
-        fig, buttons, filter_options, map_layout_dict, project_name=None):
-    
-    title = 'VERTEX - Visual Evidence & Research Tool for EXploration'
-    subtitle = 'Visual Evidence, Vital Answers'
+# vertex/layout/app_layout.py
+from dash import html, dcc
+import dash_bootstrap_components as dbc
+from vertex.layout.modals import login_modal, register_modal
+from vertex.layout.footer import footer
 
-    isaric_logo = 'ISARIC_logo.png'
-    partners_logo_list = [
-        'FIOCRUZ_logo.png', 'gh.png', 'puc_rio.png']
-    funders_logo_list = [
-        'wellcome-logo.png', 'billmelinda-logo.png',
-        'uk-international-logo.png', 'FundedbytheEU.png']
+def define_shell_layout(init_project_path, initial_body=None):
+    return html.Div([
+        dcc.Store(id="selected-project-path", data=init_project_path),
+        dcc.Store(id="login-state", storage_type="session", data=False),
 
-    logo_style = {'height': '5vh', 'margin': '2px 10px'}
-
-    app_layout = html.Div([
-        dcc.Store(id='login-state', storage_type='session', data=False),
-        dcc.Store(id='button', data={'item': '', 'label': '', 'suffix': ''}),
-        dcc.Store(id='map-layout', data=map_layout_dict),
-        dcc.Graph(
-            id='world-map', figure=fig,
-            style={'height': '92vh', 'margin': '0px'}),
+        # Header
         html.Div([
-                html.H1(title, id='title'),
-                html.P(subtitle),
-                # Add a hidden button here so it always exists in the layout
-                dbc.Button("Login", id="open-login", color="primary", size="sm", style={"display": "none"}),
-                dbc.Button("Logout", id="logout-button", style={"display": "none"}),
-                html.Div(id="auth-button-container"),
-            ],
-            style={
-                'position': 'absolute',
-                'top': 0, 'left': 10,
-                'z-index': 1000}),
-        define_menu(buttons, filter_options, project_name=project_name),
-        html.Div(id='trigger-on-load', style={'display': 'none'}),
-        html.Div(
-            [
-                html.Img(
-                    src='/assets/logos/' + isaric_logo,
-                    className='img-fluid',
-                    style={'height': '7vh', 'margin': '2px 10px'}),
-                html.P('In partnership with: ', style={'display': 'inline'})] +
-            [html.Img(
-                src='/assets/logos/' + logo,
-                className='img-fluid',
-                style=logo_style) for logo in partners_logo_list] +
-            [html.P('    With funding from: ', style={'display': 'inline'})] +
-            [html.Img(
-                src='/assets/logos/' + logo,
-                className='img-fluid',
-                style=logo_style) for logo in funders_logo_list],
-            style={
-                'position': 'absolute', 'bottom': 0,
-                'width': 'calc(100% - 350px)', 'margin-left': '350px',
-                'background-color': '#FFFFFF',
-                'z-index': 0, }),
+            html.H1("VERTEX - Visual Evidence & Research Tool for EXploration", id="title"),
+            html.P("Visual Evidence, Vital Answers"),
+            dbc.Button("Login", id="open-login", color="primary", size="sm", style={"display": "none"}),
+            dbc.Button("Logout", id="logout-button", style={"display": "none"}),
+            html.Div(id="auth-button-container"),
+        ], style={"position": "absolute", "top": 0, "left": 10, "zIndex": 1000}),
 
-            login_modal,
-            register_modal,
+        # Main content area
+        html.Div(id="project-body", children=initial_body),
+
+        # Footer
+        footer,
+
+        # Modals
+        login_modal,
+        register_modal,
+
+        # Insights Modal container (content is replaced dynamically)
+        dbc.Modal(
+            id="modal",
+            children=[dbc.ModalBody("")],
+            is_open=False,
+            size="xl"
+        )
     ])
-    return app_layout
+
+
+def define_inner_layout(fig, buttons, filter_options, map_layout_dict, project_name=None):
+    return html.Div([
+        dcc.Store(id="button", data={"item": "", "label": "", "suffix": ""}),
+        dcc.Store(id="map-layout", data=map_layout_dict),
+
+        # Graph WITHOUT dcc.Loading → Plotly shows its built-in loading overlay instead of flashing
+        dcc.Graph(
+            id="world-map",
+            figure=fig,
+            style={"height": "92vh", "margin": "0px"}
+        ),
+
+        # Side menu
+        define_menu(buttons, filter_options, project_name=project_name),
+
+        html.Div(id="trigger-on-load", style={"display": "none"}),
+    ])

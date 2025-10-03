@@ -24,14 +24,14 @@ from urllib.parse import quote_plus
 
 from vertex.models import User, Project
 from vertex.loader import get_config, load_vertex_data, config_defaults, save_public_outputs
-from vertex.layout.modals import login_modal, register_modal
-from vertex.layout.app_layout import define_app_layout
+from vertex.layout.modals import login_modal, register_modal, create_modal
+from vertex.layout.app_layout import define_inner_layout, define_shell_layout
 from vertex.layout.insight_panels import get_insight_panels
 from vertex.layout.filters import get_filter_options, define_filters_controls
 from vertex.map import create_map, get_countries, merge_data_with_countries, filter_df_map
 
 # Settings
-secret_name = "rds!db-472cc9c8-1f3e-4547-b84d-9b0742de8b9a"
+secret_name = "rds!db-472cc9c8-1f3e-4547-b84d-9b0742de8b9a" #TODO: move to env vars
 region_name = "eu-west-2"
 
 # Create a Secrets Manager client
@@ -67,10 +67,10 @@ security = Security()
 # PROJECT PATHS (CHANGE THIS)
 ############################################
 
-init_project_path = 'projects/ARChetypeCRF_mpox_synthetic/'
+# init_project_path = 'projects/ARChetypeCRF_mpox_synthetic/'
 # init_project_path = 'projects/ARChetypeCRF_dengue_synthetic/'
 # init_project_path = 'projects/ARChetypeCRF_h5nx_synthetic/'
-# init_project_path = 'projects/ARChetypeCRF_h5nx_synthetic_mf/'
+init_project_path = 'projects/ARChetypeCRF_h5nx_synthetic_mf/'
 
 ############################################
 # CACHE DATA
@@ -89,131 +89,6 @@ def clear_project_data(project_path):
 
 
 ############################################
-# APP LAYOUT
-############################################
-
-def generate_html_text(text):
-    text_list = text.strip('\n').split('\n')
-    div_list = []
-    for line in text_list:
-        strong_list = line.split('<strong>')
-        for string in strong_list:
-            if '</strong>' in string:
-                strong, not_strong = string.split('</strong>')
-                div_list.append(html.Div(html.Strong(strong)))
-                div_list.append(html.Div(not_strong))
-            else:
-                div_list.append(html.Div(string))
-        div_list.append(html.Br())
-    div = html.Div(div_list[:-1])
-    return div
-
-
-############################################
-# Modal creation
-############################################
-
-
-def create_modal(visuals, button, filter_options):
-    if visuals is None:
-        insight_children = []
-        about_str = ''
-    else:
-        insight_children = [
-            dbc.Tabs([
-                dbc.Tab(dbc.Row(
-                    [dbc.Col(dcc.Graph(figure=figure), id=id)]), label=label)
-                for figure, id, label, _ in visuals], active_tab='tab-0')]
-        # This text appears after clicking the insight panel's About button
-        about_list = ['Information about each visual in the insight panel:']
-        about_list += [
-            '<strong>' + label + '</strong>' + about
-            for _, _, label, about in visuals]
-        about_str = '\n'.join(about_list)
-
-    try:
-        title = button['item'] + ': ' + button['label']
-    except Exception:
-        title = ''
-
-    instructions_str = open('assets/instructions.txt', 'r').read()
-
-    modal = [
-        dbc.ModalHeader(html.H3(
-            title,
-            id='line-graph-modal-title',
-            style={'fontSize': '2vmin', 'fontWeight': 'bold'})
-        ),
-        dbc.ModalBody([
-            dbc.Accordion([
-                dbc.AccordionItem(
-                    title='Filters and Controls',
-                    children=[
-                        define_filters_controls(**filter_options)
-                    ]),
-                dbc.AccordionItem(
-                    title='Insights', children=insight_children)
-                ], active_item='item-1')
-            ], style={
-                'overflowY': 'auto', 'minHeight': '75vh', 'maxHeight': '75vh'}
-        ),
-        define_footer_modal(
-            generate_html_text(instructions_str),
-            generate_html_text(about_str))
-    ]
-    return modal
-
-
-def define_footer_modal(instructions, about):
-    footer = dbc.ModalFooter([
-        html.Div([
-            dbc.Button(
-                'About',
-                id='modal_about_popover',
-                color='info', size='sm', style={'margin-right': '5px'}),
-            dbc.Button(
-                'Instructions',
-                id='modal_instruction_popover',
-                size='sm', style={'margin-right': '5px'}),
-            # dbc.Button(
-            #     'Download',
-            #     id=f'modal_download_popover_{suffix}',
-            #     size='sm', style={'margin-right': '5px'}),
-            # dbc.Button('Close', id='modal_patChar_close_popover',  size='sm')
-        ], className='ml-auto'),
-        dbc.Popover(
-            [
-                dbc.PopoverHeader(
-                    'Instructions',
-                    style={'fontWeight': 'bold'}),
-                dbc.PopoverBody(instructions)
-            ],
-            # id='modal-line-instructions-popover',
-            # is_open=False,
-            target='modal_instruction_popover',
-            trigger='hover',
-            placement='top',
-            hide_arrow=False,
-            # style={'zIndex':1}
-        ),
-        dbc.Popover(
-            [
-                dbc.PopoverHeader('About', style={'fontWeight': 'bold'}),
-                dbc.PopoverBody(about),
-            ],
-            # id='modal-line-guide-popover',
-            # is_open=False,
-            target='modal_about_popover',
-            trigger='hover',
-            placement='top',
-            hide_arrow=False,
-            # style={'zIndex':1}
-        ),
-    ])
-    return footer
-
-
-############################################
 # Dashboard callbacks
 ############################################
 
@@ -221,19 +96,28 @@ def define_footer_modal(instructions, about):
 def register_callbacks(app):
 
     @app.callback(
-        Output("page-content", "children"),
+        Output("project-body", "children"),
         Input("selected-project-path", "data"),
-        prevent_initial_call=True
     )
     def load_project_layout(project_path):
-        return build_project_layout(project_path)
+        if not project_path:
+            raise PreventUpdate
+
+        try:
+            layout = build_project_layout(project_path)
+        except Exception as e:
+            layout = html.Div([
+                html.H4("Error loading project"),
+                html.Pre(str(e))
+            ])
+
+        return layout
 
 
     ## Change the current project
     @app.callback(
         Output("selected-project-path", "data"),
         Input("project-selector", "value"),
-        prevent_initial_call=True
     )
     def set_project_path(selected_value):
         print(f"Selected project path: {selected_value}")
@@ -262,7 +146,7 @@ def register_callbacks(app):
         if not project_data:
             raise PreventUpdate
 
-        df_map = project_data['df_map']   # ✅ fresh copy each reload
+        df_map = project_data['df_map']
         df_filtered = filter_df_map(
             df_map, sex_value, age_value,
             country_value, admdate_value,
@@ -400,7 +284,6 @@ def register_callbacks(app):
             else:
                 output = html.Div([
                     html.B('Country:'),
-                    # ' (scroll down for all)',
                     html.Br(),
                     f'{display_text}'
                 ])
@@ -408,49 +291,39 @@ def register_callbacks(app):
 
     @app.callback(
         [
-            Output('modal', 'is_open', allow_duplicate=True),
-            Output('modal', 'children', allow_duplicate=True),
-            Output('modal', 'scrollable', allow_duplicate=True),
-            Output('button', 'data')
+            Output("modal", "is_open"),
+            Output("modal", "children"),
+            Output("button", "data"), 
         ],
-        [Input({'type': 'open-modal', 'index': ALL}, 'n_clicks')],
-        [State('modal', 'is_open'), State('selected-project-path', 'data')],
+        Input({"type": "open-modal", "index": ALL}, "n_clicks"),
+        State("selected-project-path", "data"),
         prevent_initial_call=True
     )
-    def toggle_modal(n_clicks, is_open, project_path):
-        ctx = callback_context
-        if not ctx.triggered:
-            return is_open, [], False, {'item': '', 'label': '', 'suffix': ''}
+    def open_and_load_modal(n_clicks, project_path):
+        if not any(n_clicks):
+            raise PreventUpdate
 
-        # Extract suffix from the triggered button
-        trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
-        suffix = json.loads(trigger_id)['index']
+        suffix = json.loads(callback_context.triggered[0]["prop_id"].split(".")[0])["index"]
 
-        # Grab fresh project data
         project_data = get_project_data(project_path)
         if not project_data:
             raise PreventUpdate
 
-        insight_panels = project_data['insight_panels']
-        df_map = project_data['df_map']
-        df_forms_dict = project_data['df_forms_dict']
-        dictionary = project_data['dictionary']
-        quality_report = project_data['quality_report']
-
-        # Build visuals
-        visuals = insight_panels[suffix].create_visuals(
-            df_map=df_map.copy(),
-            df_forms_dict={k: v.copy() for k, v in df_forms_dict.items()},
-            dictionary=dictionary.copy(),
-            quality_report=quality_report,
+        visuals = project_data["insight_panels"][suffix].create_visuals(
+            df_map=project_data["df_map"].copy(),
+            df_forms_dict={k: v.copy() for k, v in project_data["df_forms_dict"].items()},
+            dictionary=project_data["dictionary"].copy(),
+            quality_report=project_data["quality_report"],
             suffix=suffix,
             filepath=project_path,
-            save_inputs=False
+            save_inputs=False,
         )
-        button = {**insight_panels[suffix].define_button(), **{'suffix': suffix}}
-        modal = create_modal(visuals, button, get_filter_options(df_map))
 
-        return not is_open, modal, True, button
+        button = {**project_data["insight_panels"][suffix].define_button(), **{"suffix": suffix}}
+        modal_content = create_modal(visuals, button, get_filter_options(project_data["df_map"]))
+
+        return True, modal_content, button
+
 
     @app.callback(
         [
@@ -689,6 +562,7 @@ def register_callbacks(app):
         admdate_value, admdate_marks,
         outcome_value, project_path
     ):
+        print("[DEBUG] updating figures")
         if not button or 'suffix' not in button:
             raise PreventUpdate
 
@@ -861,7 +735,7 @@ def build_project_layout(project_path):
         'outcome_options': outcome_options,
     }
 
-    layout = define_app_layout(
+    layout = define_inner_layout(
         fig,
         project_data['buttons'],
         filter_options,
@@ -898,12 +772,7 @@ def main():
         security.init_app(app.server, user_datastore)
 
     initial_layout = build_project_layout(init_project_path)
-
-    app.layout = html.Div([
-        dcc.Location(id='url', refresh=False),
-        dcc.Store(id='selected-project-path', data=init_project_path),
-        html.Div(id='page-content', children=initial_layout)  # seed initial
-    ])
+    app.layout = define_shell_layout(init_project_path, initial_body=initial_layout)
 
     register_callbacks(app)
 

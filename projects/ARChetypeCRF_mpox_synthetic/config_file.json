@@ -8,6 +8,8 @@
 	"save_public_outputs": true,
 	"save_filtered_public_outputs": false,
 	"public_path": "PUBLIC/",
+	"is_public": false,
+	"project_owner": "alasdari.wilson@dtc.ox.ac.uk",
 	"insight_panels_path": "insight_panels/",
 	"insight_panels": [
 			"enrolment_details",
