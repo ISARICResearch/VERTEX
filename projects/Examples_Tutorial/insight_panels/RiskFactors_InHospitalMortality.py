@@ -1,12 +1,11 @@
 import dash
 import dash_bootstrap_components as dbc
-import getREDCapData as getRC
+import vertex.getREDCapData as getRC
 import vertex.IsaricAnalytics as ia
 import vertex.IsaricDraw as idw
 import numpy as np
 import pandas as pd
 import pycountry
-import redcap_config as rc_config
 from dash import html
 from dash.dependencies import Input, Output, State
 
