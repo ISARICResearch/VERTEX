@@ -1,0 +1,11 @@
+variable,proportion,label,short_label
+compl_thrombemb,0.9411764705882353,<b>Thromboembolism</b>,<b>Thromboembolism</b>
+compl_pleuraleff,0.9401129943502825,<b>Pleural effusion</b>,<b>Pleural effusion</b>
+compl_cardiacisc,0.9158878504672897,<b>Cardiac ischaemia</b>,<b>Cardiac ischaemia</b>
+compl_severeliver,0.8474148802017655,<b>Severe liver disease (new onset)</b>,<b>Severe liver disease (new onset)</b>
+compl_myocardial,0.8421717171717171,<b>Myocardial infarction</b>,<b>Myocardial infarction</b>
+compl_cardiarrhy,0.8270481144343304,<b>Cardiac arrhythmia</b>,<b>Cardiac arrhythmia</b>
+compl_copneumoni,0.8196166854565953,<b>Cryptogenic organising pneumonia (COP)</b>,<b>Cryptogenic organising pneumonia (COP)</b>
+compl_jaundice,0.8040455120101138,<b>Jaundice</b>,<b>Jaundice</b>
+compl_seizure,0.7822485207100591,<b>Seizure</b>,<b>Seizure</b>
+compl_pericarditis,0.7428896473265074,<b>Pericarditis</b>,<b>Pericarditis</b>

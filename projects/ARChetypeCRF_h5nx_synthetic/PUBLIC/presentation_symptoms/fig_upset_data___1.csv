@@ -1,0 +1,29 @@
+index,label,count
+"('adsym_pruritus', 'adsym_myalgia', 'adsym_haemorrhag', 'adsym_anosmia', 'adsym_rhinorrhoe')","('<b>Itch / pruritus</b>', '<b>Muscle aches / myalgia</b>', '<b>Bleeding / haemorrhage</b>', '<b>Loss of smell / anosmia</b>', '<b>Runny nose / rhinorrhoea</b>')",336
+"('adsym_pruritus', 'adsym_myalgia', 'adsym_haemorrhag', 'adsym_anosmia')","('<b>Itch / pruritus</b>', '<b>Muscle aches / myalgia</b>', '<b>Bleeding / haemorrhage</b>', '<b>Loss of smell / anosmia</b>')",105
+"('adsym_pruritus', 'adsym_myalgia', 'adsym_haemorrhag', 'adsym_rhinorrhoe')","('<b>Itch / pruritus</b>', '<b>Muscle aches / myalgia</b>', '<b>Bleeding / haemorrhage</b>', '<b>Runny nose / rhinorrhoea</b>')",95
+"('adsym_pruritus', 'adsym_haemorrhag', 'adsym_anosmia', 'adsym_rhinorrhoe')","('<b>Itch / pruritus</b>', '<b>Bleeding / haemorrhage</b>', '<b>Loss of smell / anosmia</b>', '<b>Runny nose / rhinorrhoea</b>')",72
+"('adsym_pruritus', 'adsym_myalgia', 'adsym_anosmia', 'adsym_rhinorrhoe')","('<b>Itch / pruritus</b>', '<b>Muscle aches / myalgia</b>', '<b>Loss of smell / anosmia</b>', '<b>Runny nose / rhinorrhoea</b>')",68
+"('adsym_myalgia', 'adsym_haemorrhag', 'adsym_anosmia', 'adsym_rhinorrhoe')","('<b>Muscle aches / myalgia</b>', '<b>Bleeding / haemorrhage</b>', '<b>Loss of smell / anosmia</b>', '<b>Runny nose / rhinorrhoea</b>')",45
+"('adsym_pruritus', 'adsym_myalgia', 'adsym_haemorrhag')","('<b>Itch / pruritus</b>', '<b>Muscle aches / myalgia</b>', '<b>Bleeding / haemorrhage</b>')",35
+"('adsym_pruritus', 'adsym_anosmia', 'adsym_rhinorrhoe')","('<b>Itch / pruritus</b>', '<b>Loss of smell / anosmia</b>', '<b>Runny nose / rhinorrhoea</b>')",32
+"('adsym_pruritus', 'adsym_myalgia', 'adsym_anosmia')","('<b>Itch / pruritus</b>', '<b>Muscle aches / myalgia</b>', '<b>Loss of smell / anosmia</b>')",25
+"('adsym_pruritus', 'adsym_haemorrhag', 'adsym_anosmia')","('<b>Itch / pruritus</b>', '<b>Bleeding / haemorrhage</b>', '<b>Loss of smell / anosmia</b>')",25
+"('adsym_pruritus', 'adsym_myalgia', 'adsym_rhinorrhoe')","('<b>Itch / pruritus</b>', '<b>Muscle aches / myalgia</b>', '<b>Runny nose / rhinorrhoea</b>')",24
+"('adsym_myalgia', 'adsym_haemorrhag', 'adsym_anosmia')","('<b>Muscle aches / myalgia</b>', '<b>Bleeding / haemorrhage</b>', '<b>Loss of smell / anosmia</b>')",22
+"('adsym_pruritus', 'adsym_haemorrhag', 'adsym_rhinorrhoe')","('<b>Itch / pruritus</b>', '<b>Bleeding / haemorrhage</b>', '<b>Runny nose / rhinorrhoea</b>')",20
+"('adsym_myalgia', 'adsym_haemorrhag', 'adsym_rhinorrhoe')","('<b>Muscle aches / myalgia</b>', '<b>Bleeding / haemorrhage</b>', '<b>Runny nose / rhinorrhoea</b>')",13
+"('adsym_haemorrhag', 'adsym_anosmia', 'adsym_rhinorrhoe')","('<b>Bleeding / haemorrhage</b>', '<b>Loss of smell / anosmia</b>', '<b>Runny nose / rhinorrhoea</b>')",13
+"('adsym_pruritus', 'adsym_myalgia')","('<b>Itch / pruritus</b>', '<b>Muscle aches / myalgia</b>')",11
+"('adsym_myalgia', 'adsym_anosmia', 'adsym_rhinorrhoe')","('<b>Muscle aches / myalgia</b>', '<b>Loss of smell / anosmia</b>', '<b>Runny nose / rhinorrhoea</b>')",10
+"('adsym_pruritus', 'adsym_anosmia')","('<b>Itch / pruritus</b>', '<b>Loss of smell / anosmia</b>')",9
+"('adsym_pruritus', 'adsym_haemorrhag')","('<b>Itch / pruritus</b>', '<b>Bleeding / haemorrhage</b>')",9
+"('adsym_anosmia', 'adsym_rhinorrhoe')","('<b>Loss of smell / anosmia</b>', '<b>Runny nose / rhinorrhoea</b>')",6
+"('adsym_pruritus', 'adsym_rhinorrhoe')","('<b>Itch / pruritus</b>', '<b>Runny nose / rhinorrhoea</b>')",5
+"('adsym_myalgia', 'adsym_haemorrhag')","('<b>Muscle aches / myalgia</b>', '<b>Bleeding / haemorrhage</b>')",4
+"('adsym_myalgia', 'adsym_anosmia')","('<b>Muscle aches / myalgia</b>', '<b>Loss of smell / anosmia</b>')",4
+"('adsym_myalgia', 'adsym_rhinorrhoe')","('<b>Muscle aches / myalgia</b>', '<b>Runny nose / rhinorrhoea</b>')",4
+"('adsym_haemorrhag', 'adsym_anosmia')","('<b>Bleeding / haemorrhage</b>', '<b>Loss of smell / anosmia</b>')",4
+"('adsym_haemorrhag', 'adsym_rhinorrhoe')","('<b>Bleeding / haemorrhage</b>', '<b>Runny nose / rhinorrhoea</b>')",2
+"('adsym_pruritus',)","('<b>Itch / pruritus</b>',)",1
+"('adsym_myalgia',)","('<b>Muscle aches / myalgia</b>',)",1

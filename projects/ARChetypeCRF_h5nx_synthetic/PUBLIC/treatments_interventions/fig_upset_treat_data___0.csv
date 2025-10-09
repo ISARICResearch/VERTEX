@@ -1,0 +1,6 @@
+index,count,short_label,label
+treat_o2supp,881,<b>Supplemental oxygen</b>,<b>Supplemental oxygen</b>
+treat_pao2yn___Venous,567,"<b>PaO2 sample type</b>, Venous","<b>PaO2 sample type</b>, Venous"
+treat_prone,484,<b>Prone positioning</b>,<b>Prone positioning</b>
+treat_hfno,465,<b>High flow nasal oxygen</b>,<b>High flow nasal oxygen</b>
+treat_niv,347,<b>Non-invasive ventilation</b>,<b>Non-invasive ventilation</b>

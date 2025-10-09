@@ -1,0 +1,20 @@
+index,label,count
+"('treat_o2supp', 'treat_pao2yn___Venous', 'treat_prone')","('<b>Supplemental oxygen</b>', '<b>PaO2 sample type</b>, Venous', '<b>Prone positioning</b>')",83
+"('treat_o2supp', 'treat_pao2yn___Venous', 'treat_prone', 'treat_hfno')","('<b>Supplemental oxygen</b>', '<b>PaO2 sample type</b>, Venous', '<b>Prone positioning</b>', '<b>High flow nasal oxygen</b>')",82
+"('treat_o2supp',)","('<b>Supplemental oxygen</b>',)",77
+"('treat_o2supp', 'treat_pao2yn___Venous', 'treat_prone', 'treat_hfno', 'treat_niv')","('<b>Supplemental oxygen</b>', '<b>PaO2 sample type</b>, Venous', '<b>Prone positioning</b>', '<b>High flow nasal oxygen</b>', '<b>Non-invasive ventilation</b>')",77
+"('treat_o2supp', 'treat_prone', 'treat_hfno')","('<b>Supplemental oxygen</b>', '<b>Prone positioning</b>', '<b>High flow nasal oxygen</b>')",72
+"('treat_o2supp', 'treat_pao2yn___Venous')","('<b>Supplemental oxygen</b>', '<b>PaO2 sample type</b>, Venous')",68
+"('treat_o2supp', 'treat_pao2yn___Venous', 'treat_hfno')","('<b>Supplemental oxygen</b>', '<b>PaO2 sample type</b>, Venous', '<b>High flow nasal oxygen</b>')",61
+"('treat_o2supp', 'treat_pao2yn___Venous', 'treat_hfno', 'treat_niv')","('<b>Supplemental oxygen</b>', '<b>PaO2 sample type</b>, Venous', '<b>High flow nasal oxygen</b>', '<b>Non-invasive ventilation</b>')",59
+"('treat_o2supp', 'treat_pao2yn___Venous', 'treat_niv')","('<b>Supplemental oxygen</b>', '<b>PaO2 sample type</b>, Venous', '<b>Non-invasive ventilation</b>')",52
+"('treat_o2supp', 'treat_hfno')","('<b>Supplemental oxygen</b>', '<b>High flow nasal oxygen</b>')",50
+"('treat_o2supp', 'treat_prone')","('<b>Supplemental oxygen</b>', '<b>Prone positioning</b>')",41
+"('treat_o2supp', 'treat_pao2yn___Venous', 'treat_prone', 'treat_niv')","('<b>Supplemental oxygen</b>', '<b>PaO2 sample type</b>, Venous', '<b>Prone positioning</b>', '<b>Non-invasive ventilation</b>')",38
+"('treat_o2supp', 'treat_niv')","('<b>Supplemental oxygen</b>', '<b>Non-invasive ventilation</b>')",36
+"('treat_o2supp', 'treat_hfno', 'treat_niv')","('<b>Supplemental oxygen</b>', '<b>High flow nasal oxygen</b>', '<b>Non-invasive ventilation</b>')",35
+"('treat_pao2yn___Venous',)","('<b>PaO2 sample type</b>, Venous',)",31
+"('treat_o2supp', 'treat_prone', 'treat_hfno', 'treat_niv')","('<b>Supplemental oxygen</b>', '<b>Prone positioning</b>', '<b>High flow nasal oxygen</b>', '<b>Non-invasive ventilation</b>')",29
+"('treat_prone',)","('<b>Prone positioning</b>',)",25
+"('treat_o2supp', 'treat_prone', 'treat_niv')","('<b>Supplemental oxygen</b>', '<b>Prone positioning</b>', '<b>Non-invasive ventilation</b>')",21
+"('treat_pao2yn___Venous', 'treat_prone')","('<b>PaO2 sample type</b>, Venous', '<b>Prone positioning</b>')",16
