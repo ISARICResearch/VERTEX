@@ -3,99 +3,111 @@ from dash import dcc
 import dash_bootstrap_components as dbc
 import pandas as pd
 
-
 def define_filters_controls(
         sex_options, age_options, country_options,
-        admdate_options,  # disease_options,
-        outcome_options):
-    filters = dbc.AccordionItem(
-        title='Filters and Controls',
-        children=[
-            html.Label(html.B('Sex at birth:')),
-            html.Div(style={'margin-top': '5px'}),
-            dcc.Checklist(
-                id='sex-checkboxes',
-                options=sex_options,
-                value=[option['value'] for option in sex_options],
-                inputStyle={'margin-right': '2px', 'margin-left': '10px'},
-                style={'margin-left': '-10px'},
-                inline=True
-            ),
-            html.Div(style={'margin-top': '10px'}),
-            html.Label(html.B('Age:')),
-            html.Div(style={'margin-top': '5px'}),
-            dcc.RangeSlider(
-                id='age-slider',
-                min=age_options['min'],
-                max=age_options['max'],
-                step=age_options['step'],
-                marks=age_options['marks'],
-                value=age_options['value'],
-                pushable=10,
-            ),
-            html.Div(style={'margin-top': '10px'}),
+        admdate_options, outcome_options,
+        layout="accordion", with_submit=False, prefix=""):
+    """
+    Unified filter component generator.
+
+    Args:
+        layout: "accordion" (default) or "modal".
+        with_submit: include a submit button.
+        prefix: optional string to prefix component IDs (e.g., "modal-").
+        add_row: optional dbc.Row() to insert before submit button.
+    """
+    def cid(base):
+        return f"{base}-{prefix}" if prefix else base
+
+    sex_checklist = dcc.Checklist(
+        id=cid("sex-checkboxes"),
+        options=sex_options,
+        value=[opt["value"] for opt in sex_options],
+        inputStyle={'margin-right': '2px', 'margin-left': '10px'},
+        inline=(layout == "accordion"),
+        style={'margin-left': '-10px'} if layout == "accordion" else {},
+    )
+
+    age_slider = dcc.RangeSlider(
+        id=cid("age-slider"),
+        min=age_options['min'], max=age_options['max'],
+        step=age_options['step'], marks=age_options['marks'],
+        value=age_options['value'], pushable=10,
+    )
+
+    admdate_slider = dcc.RangeSlider(
+        id=cid("admdate-slider"),
+        min=admdate_options['min'], max=admdate_options['max'],
+        step=admdate_options['step'], marks=admdate_options['marks'],
+        value=admdate_options['value'], pushable=1,
+    )
+
+    outcome_checklist = dcc.Checklist(
+        id=cid("outcome-checkboxes"),
+        options=outcome_options,
+        value=[opt["value"] for opt in outcome_options],
+        inputStyle={'margin-right': '2px', 'margin-left': '10px'},
+        inline=(layout == "accordion"),
+        style={'margin-left': '-10px'} if layout == "accordion" else {},
+    )
+
+    country_section = html.Div([
+        html.Div(id=cid('country-display'), children=html.B('Country:'), style={'cursor': 'pointer'}),
+        dbc.Fade(
             html.Div([
-                html.Div(
-                    id='country-display',
-                    children=html.Div([
-                        html.B('Country:'),
-                        # ' (scroll down for all)'
-                    ]),
-                    style={'cursor': 'pointer'}),
-                dbc.Fade(
-                    html.Div([
-                        dcc.Checklist(
-                            id='country-selectall',
-                            options=[{
-                                'label': 'Select all',
-                                'value': 'all'
-                            }],
-                            value=['all'],
-                            inputStyle={'margin-right': '2px'}
-                        ),
-                        dcc.Checklist(
-                            id='country-checkboxes',
-                            options=country_options,
-                            value=[
-                                option['value'] for option in country_options],
-                            style={
-                                'overflowY': 'auto',
-                                'maxHeight': '70px'
-                            },
-                            inputStyle={'margin-right': '2px'}
-                        )
-                    ]),
-                    id='country-fade',
-                    is_in=True,
-                    appear=True,
+                dcc.Checklist(
+                    id=cid('country-selectall'),
+                    options=[{'label': 'Select all', 'value': 'all'}],
+                    value=['all'], inputStyle={'margin-right': '2px'}
+                ),
+                dcc.Checklist(
+                    id=cid('country-checkboxes'),
+                    options=country_options,
+                    value=[opt['value'] for opt in country_options],
+                    style={'overflowY': 'auto', 'maxHeight': '100px'},
+                    inputStyle={'margin-right': '2px'}
                 )
             ]),
-            html.Div(style={'margin-top': '15px'}),
-            html.Label(html.B('Admission date:')),
-            html.Div(style={'margin-top': '5px'}),
-            dcc.RangeSlider(
-                id='admdate-slider',
-                min=admdate_options['min'],
-                max=admdate_options['max'],
-                step=admdate_options['step'],
-                marks=admdate_options['marks'],
-                value=admdate_options['value'],
-                pushable=1,
-            ),
-            html.Div(style={'margin-top': '35px'}),
-            html.Label(html.B('Outcome:')),
-            html.Div(style={'margin-top': '5px'}),
-            dcc.Checklist(
-                id='outcome-checkboxes',
-                options=outcome_options,
-                value=[option['value'] for option in outcome_options],
-                inputStyle={'margin-right': '2px', 'margin-left': '10px'},
-                style={'margin-left': '-10px'},
-                inline=True
+            id=cid('country-fade'), is_in=True, appear=True
+        )
+    ])
+
+    # layout differences
+    if layout == "accordion":
+        children = [
+            html.Label(html.B('Sex at birth:')), sex_checklist,
+            html.Label(html.B('Age:')), age_slider,
+            country_section,
+            html.Label(html.B('Admission date:')), admdate_slider,
+            html.Label(html.B('Outcome:')), outcome_checklist,
+        ]
+        comp = dbc.AccordionItem(
+            title='Filters and Controls',
+            children=children,
+            style={'overflowY': 'auto', 'maxHeight': '75vh'}
+        )
+    else:
+        # modal layout in rows
+        rows = [dbc.Row([
+            dbc.Col([html.H6('Sex at birth:'), sex_checklist], width=2),
+            dbc.Col([html.H6('Age:'), age_slider], width=3),
+            dbc.Col([html.H6('Admission date:'), admdate_slider], width=3),
+            dbc.Col([html.H6('Country:'), country_section], width=2),
+            dbc.Col([html.H6('Outcome:'), outcome_checklist], width=2),
+        ])]
+        if with_submit:
+            rows.append(
+                dbc.Row([
+                    dbc.Col([
+                        dbc.Button('Submit', id=cid('submit-button'),
+                                   color='primary', className='mr-2')
+                    ], width={'size': 6, 'offset': 3},
+                    style={'textAlign': 'center'})
+                ])
             )
-        ], style={'overflowY': 'auto', 'maxHeight': '75vh'},
-    )
-    return filters
+        comp = dbc.Row([dbc.Col(rows)])
+
+    return comp
 
 def define_filters_controls_modal(
         sex_options, age_options, country_options,

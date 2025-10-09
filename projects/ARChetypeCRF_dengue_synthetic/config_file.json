@@ -5,7 +5,7 @@
 	"map_layout_center_latitude": 6,
 	"map_layout_center_longitude": -75,
 	"map_layout_zoom": 1.7,
-	"save_public_outputs": true,
+	"save_public_outputs": false,
 	"save_filtered_public_outputs": false,
 	"public_path": "PUBLIC/",
 	"insight_panels_path": "insight_panels/",

@@ -7,6 +7,9 @@ import shutil
 import vertex.getREDCapData as getRC
 from vertex.layout.insight_panels import get_insight_panels, get_visuals
 
+from vertex.logging.logger import setup_logger
+logger = setup_logger(__name__)
+
 config_defaults = {
     'project_name': None,
     "data_access_groups": None,
@@ -228,3 +231,4 @@ def save_public_outputs(buttons, insight_panels, df_map, df_countries, df_forms_
             'map_layout_center_longitude', 'map_layout_zoom']
         save_config_dict = {k: config_dict[k] for k in save_config_keys}
         json.dump(save_config_dict, file, indent=4)
+    logger.info(f'Public dashboard files saved to {public_path}')

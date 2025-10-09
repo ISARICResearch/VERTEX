@@ -27,8 +27,11 @@ from vertex.loader import get_config, load_vertex_data, config_defaults, save_pu
 from vertex.layout.modals import login_modal, register_modal, create_modal
 from vertex.layout.app_layout import define_inner_layout, define_shell_layout
 from vertex.layout.insight_panels import get_insight_panels
-from vertex.layout.filters import get_filter_options, define_filters_controls
+from vertex.layout.filters import get_filter_options
 from vertex.map import create_map, get_countries, merge_data_with_countries, filter_df_map
+
+from vertex.logging.logger import setup_logger
+logger = setup_logger(__name__)
 
 # Settings
 secret_name = "rds!db-472cc9c8-1f3e-4547-b84d-9b0742de8b9a" #TODO: move to env vars
@@ -67,10 +70,10 @@ security = Security()
 # PROJECT PATHS (CHANGE THIS)
 ############################################
 
-# init_project_path = 'projects/ARChetypeCRF_mpox_synthetic/'
+init_project_path = 'projects/ARChetypeCRF_mpox_synthetic/'
 # init_project_path = 'projects/ARChetypeCRF_dengue_synthetic/'
 # init_project_path = 'projects/ARChetypeCRF_h5nx_synthetic/'
-init_project_path = 'projects/ARChetypeCRF_h5nx_synthetic_mf/'
+# init_project_path = 'projects/ARChetypeCRF_h5nx_synthetic_mf/'
 
 ############################################
 # CACHE DATA
@@ -118,9 +121,15 @@ def register_callbacks(app):
     @app.callback(
         Output("selected-project-path", "data"),
         Input("project-selector", "value"),
+        State("project-selector", "options"),
+        prevent_initial_call=True,
     )
-    def set_project_path(selected_value):
-        print(f"Selected project path: {selected_value}")
+    def set_project_path(selected_value, project_options):
+        logger.info(f"Selected project is: {selected_value}")
+        # This line maps the selected label back to the project folder path, 
+        # it is absolutely absurd that dash gives you the label and not the value of the dropdown
+        project_value = next((opt["value"] for opt in project_options if opt["label"] == selected_value), None)
+        logger.debug(f"Mapped selected project to folder: {project_value}")
         if not selected_value:
             raise PreventUpdate
         return selected_value
