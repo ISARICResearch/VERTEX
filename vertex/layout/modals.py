@@ -1,7 +1,7 @@
 # modals.py
 from dash import html, dcc
 import dash_bootstrap_components as dbc
-from vertex.layout.filters import define_filters_controls_modal
+from vertex.layout.filters import define_filters_controls
 
 login_modal = dbc.Modal(
     id="login-modal",
@@ -78,7 +78,7 @@ def create_modal(visuals, button, filter_options):
         title = ''
 
     instructions_str = open('assets/instructions.txt', 'r').read()
-
+    filters_modal = define_filters_controls(**filter_options, layout="modal", with_submit=True, prefix="modal")    
     modal = [
         dbc.ModalHeader(html.H3(
             title,
@@ -90,7 +90,7 @@ def create_modal(visuals, button, filter_options):
                 dbc.AccordionItem(
                     title='Filters and Controls',
                     children=[
-                        define_filters_controls_modal(**filter_options)
+                        filters_modal
                     ]),
                 dbc.AccordionItem(
                     title='Insights', children=insight_children)
