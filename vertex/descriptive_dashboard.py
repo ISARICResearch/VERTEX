@@ -1,45 +1,43 @@
-import dash
 import json
-from dash import dcc, html, callback_context, no_update
-import dash_bootstrap_components as dbc
-from dash.dependencies import Input, Output, State, ALL
-from dash.exceptions import PreventUpdate
-from plotly import graph_objs as go
-from flask_login import LoginManager, login_user, logout_user, current_user
-from flask import session as flask_session
-
-from flask_security import SQLAlchemyUserDatastore, Security
-from flask_security.utils import login_user, verify_and_update_password, hash_password
-import pandas as pd
 import os
-
-import webbrowser
 import secrets
-from sqlalchemy import create_engine, Table, Column, String, MetaData, select, \
-    TIMESTAMP, Boolean, Text, UUID
-from sqlalchemy.orm import Session
 import uuid
-import boto3
+import webbrowser
 from urllib.parse import quote_plus
 
-from vertex.models import User, Project
-from vertex.io import get_config, load_vertex_data, config_defaults, save_public_outputs, get_projects
-from vertex.layout.modals import login_modal, register_modal, create_modal
-from vertex.layout.app_layout import define_inner_layout, define_shell_layout
-from vertex.layout.insight_panels import get_insight_panels
-from vertex.layout.filters import get_filter_options
-from vertex.map import create_map, get_countries, merge_data_with_countries, filter_df_map
+import boto3
+import dash
+import dash_bootstrap_components as dbc
+import pandas as pd
+from dash import callback_context, html, no_update
+from dash.dependencies import ALL, Input, Output, State
+from dash.exceptions import PreventUpdate
+from flask_login import login_user, logout_user
+from flask_security import Security, SQLAlchemyUserDatastore
+from flask_security.utils import hash_password, verify_and_update_password
+from flask_sqlalchemy import SQLAlchemy
+from plotly import graph_objs as go
+from sqlalchemy import MetaData, create_engine
+from sqlalchemy.orm import Session
 
+from vertex.io import config_defaults, get_config, get_projects, load_vertex_data, save_public_outputs
+from vertex.layout.app_layout import define_inner_layout, define_shell_layout
+from vertex.layout.filters import get_filter_options
+from vertex.layout.insight_panels import get_insight_panels
+from vertex.layout.modals import create_modal
 from vertex.logging.logger import setup_logger
+from vertex.map import create_map, filter_df_map, get_countries, merge_data_with_countries
+from vertex.models import User
+
 logger = setup_logger(__name__)
 
 # Settings
-secret_name = "rds!db-472cc9c8-1f3e-4547-b84d-9b0742de8b9a" #TODO: move to env vars
+secret_name = "rds!db-472cc9c8-1f3e-4547-b84d-9b0742de8b9a"  # TODO: move to env vars
 region_name = "eu-west-2"
 
 # Create a Secrets Manager client
 session = boto3.session.Session()
-client = session.client(service_name='secretsmanager', region_name=region_name)
+client = session.client(service_name="secretsmanager", region_name=region_name)
 
 # Get secret value
 response = client.get_secret_value(SecretId=secret_name)
@@ -59,23 +57,23 @@ metadata = MetaData()
 
 # Flask login
 
-from flask_security import SQLAlchemyUserDatastore
-from flask_sqlalchemy import SQLAlchemy
-
-db = SQLAlchemy() # we will bind these to the app later
-security = Security() 
+db = SQLAlchemy()  # we will bind these to the app later
+security = Security()
 
 ############################################
 # CACHE DATA
 ############################################
 
-PROJECT_CACHE = {} 
+PROJECT_CACHE = {}
+
 
 def get_project_data(project_path):
     return PROJECT_CACHE.get(project_path)
 
+
 def set_project_data(project_path, data):
     PROJECT_CACHE[project_path] = data
+
 
 def clear_project_data(project_path):
     PROJECT_CACHE.pop(project_path, None)
@@ -87,7 +85,6 @@ def clear_project_data(project_path):
 
 
 def register_callbacks(app):
-
     @app.callback(
         Output("project-body", "children"),
         Input("selected-project-path", "data"),
@@ -99,13 +96,9 @@ def register_callbacks(app):
         try:
             layout = build_project_layout(project_path)
         except Exception as e:
-            layout = html.Div([
-                html.H4("Error loading project"),
-                html.Pre(str(e))
-            ])
+            layout = html.Div([html.H4("Error loading project"), html.Pre(str(e))])
 
         return layout
-
 
     ## Change the current project
     @app.callback(
@@ -116,41 +109,37 @@ def register_callbacks(app):
     )
     def set_project_path(selected_value, project_options):
         logger.info(f"Selected project is: {selected_value}")
-        # This line maps the selected label back to the project folder path, 
+        # This line maps the selected label back to the project folder path,
         # it is absolutely absurd that dash gives you the label and not the value of the dropdown
         project_value = next((opt["value"] for opt in project_options if opt["label"] == selected_value), None)
         logger.debug(f"Mapped selected project to folder: {project_value}")
         if not selected_value:
             raise PreventUpdate
         return selected_value
-    
+
     @app.callback(
-        Output('world-map', 'figure'),
+        Output("world-map", "figure"),
         [
-            Input('sex-checkboxes', 'value'),
-            Input('age-slider', 'value'),
-            Input('country-checkboxes', 'value'),
-            Input('admdate-slider', 'value'),
-            Input('admdate-slider', 'marks'),
-            Input('outcome-checkboxes', 'value'),
-            State('selected-project-path', 'data'),
+            Input("sex-checkboxes", "value"),
+            Input("age-slider", "value"),
+            Input("country-checkboxes", "value"),
+            Input("admdate-slider", "value"),
+            Input("admdate-slider", "marks"),
+            Input("outcome-checkboxes", "value"),
+            State("selected-project-path", "data"),
         ],
-        [State('map-layout', 'data')],
+        [State("map-layout", "data")],
     )
-    def update_map(sex_value, age_value, country_value,
-                admdate_value, admdate_marks, outcome_value,
-                project_path, map_layout_dict):
+    def update_map(
+        sex_value, age_value, country_value, admdate_value, admdate_marks, outcome_value, project_path, map_layout_dict
+    ):
         project_data = get_project_data(project_path)
 
         if not project_data:
             raise PreventUpdate
 
-        df_map = project_data['df_map']
-        df_filtered = filter_df_map(
-            df_map, sex_value, age_value,
-            country_value, admdate_value,
-            admdate_marks, outcome_value
-        )
+        df_map = project_data["df_map"]
+        df_filtered = filter_df_map(df_map, sex_value, age_value, country_value, admdate_value, admdate_marks, outcome_value)
 
         if df_filtered.empty:
             geojson = (
@@ -158,145 +147,109 @@ def register_callbacks(app):
                 "martynafford/natural-earth-geojson/master/"
                 "50m/cultural/ne_50m_admin_0_map_units.json"
             )
-            fig = go.Figure(
-                go.Choroplethmap(
-                    geojson=geojson,
-                    featureidkey='properties.ISO_A3'
-                ),
-                layout=map_layout_dict
-            )
+            fig = go.Figure(go.Choroplethmap(geojson=geojson, featureidkey="properties.ISO_A3"), layout=map_layout_dict)
         else:
             df_countries = get_countries(df_filtered)
             fig = create_map(df_countries, map_layout_dict)
 
         return fig
 
-
     @app.callback(
-        [
-            Output('country-selectall', 'value'),
-            Output('country-selectall', 'options'),
-            Output('country-checkboxes', 'value')
-        ],
-        [
-            Input('country-selectall', 'value'),
-            Input('country-checkboxes', 'value')
-        ],
-        [State('country-checkboxes', 'options')]
+        [Output("country-selectall", "value"), Output("country-selectall", "options"), Output("country-checkboxes", "value")],
+        [Input("country-selectall", "value"), Input("country-checkboxes", "value")],
+        [State("country-checkboxes", "options")],
     )
-    def update_country_selection(
-            selectall_value, country_value, country_options):
+    def update_country_selection(selectall_value, country_value, country_options):
         ctx = dash.callback_context
 
         if not ctx.triggered:
             # Initial load, no input has triggered the callback yet
-            output = [
-                ['all'],
-                [{'label': 'Unselect all', 'value': 'all'}],
-                country_value
-            ]
+            output = [["all"], [{"label": "Unselect all", "value": "all"}], country_value]
 
-        trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
+        trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
-        if trigger_id == 'country-selectall':
-            if 'all' in selectall_value:
+        if trigger_id == "country-selectall":
+            if "all" in selectall_value:
                 # 'Select all' (now 'Unselect all') is checked
                 output = [
-                    ['all'],
-                    [{'label': 'Unselect all', 'value': 'all'}],
-                    [option['value'] for option in country_options],
+                    ["all"],
+                    [{"label": "Unselect all", "value": "all"}],
+                    [option["value"] for option in country_options],
                 ]
             else:
                 # 'Unselect all' is unchecked
-                output = [[], [{'label': 'Select all', 'value': 'all'}], []]
-        elif trigger_id == 'country-checkboxes':
+                output = [[], [{"label": "Select all", "value": "all"}], []]
+        elif trigger_id == "country-checkboxes":
             if len(country_value) == len(country_options):
                 # All countries are selected manually
-                output = [
-                    ['all'],
-                    [{'label': 'Unselect all', 'value': 'all'}],
-                    country_value
-                ]
+                output = [["all"], [{"label": "Unselect all", "value": "all"}], country_value]
             else:
                 # Some countries are deselected
-                output = [
-                    [],
-                    [{'label': 'Select all', 'value': 'all'}],
-                    country_value
-                ]
+                output = [[], [{"label": "Select all", "value": "all"}], country_value]
         else:
-            output = [
-                selectall_value,
-                [{'label': 'Select all', 'value': 'all'}],
-                country_value
-            ]
+            output = [selectall_value, [{"label": "Select all", "value": "all"}], country_value]
         return output
 
-    @app.callback(
-        Output('country-fade', 'is_in'),
-        [Input('country-display', 'n_clicks')],
-        [State('country-fade', 'is_in')]
-    )
+    @app.callback(Output("country-fade", "is_in"), [Input("country-display", "n_clicks")], [State("country-fade", "is_in")])
     def toggle_country_fade(n_clicks, is_in):
         if n_clicks:
             return not is_in
         return is_in
 
     @app.callback(
-        Output('country-display', 'children'),
-        [Input('country-checkboxes', 'value')],
-        [State('country-checkboxes', 'options')]
+        Output("country-display", "children"), [Input("country-checkboxes", "value")], [State("country-checkboxes", "options")]
     )
     def update_country_display(country_value, country_options):
         if not country_value:
-            output = html.Div([
-                html.B('Country:'),
-                # ' (scroll down for all)',
-                html.Br(),
-                'None selected'
-            ])
+            output = html.Div(
+                [
+                    html.B("Country:"),
+                    # ' (scroll down for all)',
+                    html.Br(),
+                    "None selected",
+                ]
+            )
         else:
             # Create a dictionary to map values to labels
-            value_label_map = {
-                option['value']: option['label'] for option in country_options}
+            value_label_map = {option["value"]: option["label"] for option in country_options}
 
             # Build the display string
-            selected_labels = [
-                value_label_map[val] for val in country_value
-                if val in value_label_map]
-            display_text = ', '.join(selected_labels)
+            selected_labels = [value_label_map[val] for val in country_value if val in value_label_map]
+            display_text = ", ".join(selected_labels)
 
             if len(display_text) > 35:  # Adjust character limit as needed
                 if len(selected_labels) == 1:
-                    output = html.Div([
-                        html.B('Country:'),
-                        # ' (scroll down for all)',
-                        html.Br(),
-                        f'{selected_labels[0]}'])
+                    output = html.Div(
+                        [
+                            html.B("Country:"),
+                            # ' (scroll down for all)',
+                            html.Br(),
+                            f"{selected_labels[0]}",
+                        ]
+                    )
                 else:
-                    output = html.Div([
-                        html.B('Country:'),
-                        # ' (scroll down for all)',
-                        html.Br(),
-                        f'{selected_labels[0]}, ',
-                        f'+{len(selected_labels) - 1} more...'])
+                    output = html.Div(
+                        [
+                            html.B("Country:"),
+                            # ' (scroll down for all)',
+                            html.Br(),
+                            f"{selected_labels[0]}, ",
+                            f"+{len(selected_labels) - 1} more...",
+                        ]
+                    )
             else:
-                output = html.Div([
-                    html.B('Country:'),
-                    html.Br(),
-                    f'{display_text}'
-                ])
+                output = html.Div([html.B("Country:"), html.Br(), f"{display_text}"])
         return output
 
     @app.callback(
         [
             Output("modal", "is_open"),
             Output("modal", "children"),
-            Output("button", "data"), 
+            Output("button", "data"),
         ],
         Input({"type": "open-modal", "index": ALL}, "n_clicks"),
         State("selected-project-path", "data"),
-        prevent_initial_call=True
+        prevent_initial_call=True,
     )
     def open_and_load_modal(n_clicks, project_path):
         if not any(n_clicks):
@@ -323,70 +276,45 @@ def register_callbacks(app):
 
         return True, modal_content, button
 
-
     @app.callback(
         [
-            Output('country-selectall-modal', 'value'),
-            Output('country-selectall-modal', 'options'),
-            Output('country-checkboxes-modal', 'value')
+            Output("country-selectall-modal", "value"),
+            Output("country-selectall-modal", "options"),
+            Output("country-checkboxes-modal", "value"),
         ],
-        [
-            Input('country-selectall-modal', 'value'),
-            Input('country-checkboxes-modal', 'value')
-        ],
-        [State('country-checkboxes-modal', 'options')]
+        [Input("country-selectall-modal", "value"), Input("country-checkboxes-modal", "value")],
+        [State("country-checkboxes-modal", "options")],
     )
-    def update_country_selection_modal(
-            selectall_value, country_value, country_options):
+    def update_country_selection_modal(selectall_value, country_value, country_options):
         ctx = dash.callback_context
         if not ctx.triggered:
             # Initial load, no input has triggered the callback yet
-            output = [
-                ['all'],
-                [{'label': 'Unselect all', 'value': 'all'}],
-                country_value
-            ]
+            output = [["all"], [{"label": "Unselect all", "value": "all"}], country_value]
 
-        trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
+        trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
         #
-        if trigger_id == 'country-selectall-modal':
-            if 'all' in selectall_value:
+        if trigger_id == "country-selectall-modal":
+            if "all" in selectall_value:
                 # 'Select all' (now 'Unselect all') is checked
-                output = [
-                    ['all'],
-                    [{'label': 'Unselect all', 'value': 'all'}],
-                    [option['value'] for option in country_options]
-                ]
+                output = [["all"], [{"label": "Unselect all", "value": "all"}], [option["value"] for option in country_options]]
             else:
                 # 'Unselect all' is unchecked
-                output = [[], [{'label': 'Select all', 'value': 'all'}], []]
-        elif trigger_id == 'country-checkboxes-modal':
+                output = [[], [{"label": "Select all", "value": "all"}], []]
+        elif trigger_id == "country-checkboxes-modal":
             if len(country_value) == len(country_options):
                 # All countries are selected manually
-                output = [
-                    ['all'],
-                    [{'label': 'Unselect all', 'value': 'all'}],
-                    country_value
-                ]
+                output = [["all"], [{"label": "Unselect all", "value": "all"}], country_value]
             else:
                 # Some countries are deselected
-                output = [
-                    [],
-                    [{'label': 'Select all', 'value': 'all'}],
-                    country_value
-                ]
+                output = [[], [{"label": "Select all", "value": "all"}], country_value]
         else:
-            output = [
-                selectall_value,
-                [{'label': 'Select all', 'value': 'all'}],
-                country_value
-            ]
+            output = [selectall_value, [{"label": "Select all", "value": "all"}], country_value]
         return output
 
     @app.callback(
-        Output('country-fade-modal', 'is_in'),
-        [Input('country-display-modal', 'n_clicks')],
-        [State('country-fade-modal', 'is_in')]
+        Output("country-fade-modal", "is_in"),
+        [Input("country-display-modal", "n_clicks")],
+        [State("country-fade-modal", "is_in")],
     )
     def toggle_country_fade_modal(n_clicks, is_in):
         state = is_in
@@ -394,28 +322,27 @@ def register_callbacks(app):
             state = not is_in
         return state
 
-    @app.callback(
-        Output("auth-button-container", "children"),
-        Input("login-state", "data")
-    )
+    @app.callback(Output("auth-button-container", "children"), Input("login-state", "data"))
     def render_auth_button(is_logged_in):
-        return html.Div([
-            dbc.Button(
-                "Login",
-                id="open-login",
-                color="primary",
-                size="md",
-                style={"display": "inline-block" if not is_logged_in else "none"}
-            ),
-            dbc.Button(
-                "Logout",
-                id="logout-button",
-                color="danger",
-                size="md",
-                style={"display": "inline-block" if is_logged_in else "none"}
-            )
-        ])
-            
+        return html.Div(
+            [
+                dbc.Button(
+                    "Login",
+                    id="open-login",
+                    color="primary",
+                    size="md",
+                    style={"display": "inline-block" if not is_logged_in else "none"},
+                ),
+                dbc.Button(
+                    "Logout",
+                    id="logout-button",
+                    color="danger",
+                    size="md",
+                    style={"display": "inline-block" if is_logged_in else "none"},
+                ),
+            ]
+        )
+
     @app.callback(
         Output("login-state", "data"),
         Output("login-modal", "is_open"),
@@ -426,7 +353,7 @@ def register_callbacks(app):
         State("login-modal", "is_open"),
         State("username", "value"),
         State("password", "value"),
-        prevent_initial_call=True
+        prevent_initial_call=True,
     )
     def handle_login_logout(open_clicks, submit_clicks, logout_clicks, is_open, username, password):
         ctx = callback_context
@@ -459,7 +386,6 @@ def register_callbacks(app):
                 else:
                     logger.debug(f"Invalid login attempt for user: {username}")
                     return False, True, "Invalid username or password."
-                    
 
         return dash.no_update, is_open, ""
 
@@ -472,7 +398,7 @@ def register_callbacks(app):
         State("register-email", "value"),
         State("register-password", "value"),
         State("register-confirm-password", "value"),
-        prevent_initial_call=True
+        prevent_initial_call=True,
     )
     def handle_register(open_clicks, submit_clicks, is_open, email, password, confirm_password):
         ctx = callback_context
@@ -506,89 +432,78 @@ def register_callbacks(app):
 
         return no_update, is_open
 
-
     @app.callback(
-        Output('country-display-modal', 'children'),
-        [Input('country-checkboxes-modal', 'value')],
-        [State('country-checkboxes-modal', 'options')]
+        Output("country-display-modal", "children"),
+        [Input("country-checkboxes-modal", "value")],
+        [State("country-checkboxes-modal", "options")],
     )
     def update_country_display_modal(country_value, country_options):
         if not country_value:
-            return 'Country:'
+            return "Country:"
 
         # Create a dictionary to map values to labels
-        value_label_map = {
-            option['value']: option['label'] for option in country_options}
+        value_label_map = {option["value"]: option["label"] for option in country_options}
 
         # Build the display string
-        selected_labels = [
-            value_label_map[val] for val in country_value
-            if val in value_label_map]
-        display_text = ', '.join(selected_labels)
+        selected_labels = [value_label_map[val] for val in country_value if val in value_label_map]
+        display_text = ", ".join(selected_labels)
 
         if len(display_text) > 20:  # Adjust character limit as needed
-            output = f'{selected_labels[0]}, '
-            output += f'+{len(selected_labels) - 1} more...'
+            output = f"{selected_labels[0]}, "
+            output += f"+{len(selected_labels) - 1} more..."
         else:
-            output = f'Country: {display_text}'
+            output = f"Country: {display_text}"
         return output
 
     @app.callback(
         [
-            Output('modal', 'children', allow_duplicate=True),
-            Output('sex-checkboxes-modal', 'value', allow_duplicate=True),
-            Output('age-slider-modal', 'value', allow_duplicate=True),
-            Output('country-checkboxes-modal', 'value', allow_duplicate=True),
-            Output('admdate-slider-modal', 'value', allow_duplicate=True),
-            Output('outcome-checkboxes-modal', 'value', allow_duplicate=True),
+            Output("modal", "children", allow_duplicate=True),
+            Output("sex-checkboxes-modal", "value", allow_duplicate=True),
+            Output("age-slider-modal", "value", allow_duplicate=True),
+            Output("country-checkboxes-modal", "value", allow_duplicate=True),
+            Output("admdate-slider-modal", "value", allow_duplicate=True),
+            Output("outcome-checkboxes-modal", "value", allow_duplicate=True),
         ],
-        [Input('submit-button-modal', 'n_clicks')],
+        [Input("submit-button-modal", "n_clicks")],
         [
-            State('button', 'data'),
-            State('sex-checkboxes-modal', 'value'),
-            State('age-slider-modal', 'value'),
-            State('country-checkboxes-modal', 'value'),
-            State('admdate-slider-modal', 'value'),
-            State('admdate-slider-modal', 'marks'),
-            State('outcome-checkboxes-modal', 'value'),
-            State('selected-project-path', 'data'),   # ✅ project path state
+            State("button", "data"),
+            State("sex-checkboxes-modal", "value"),
+            State("age-slider-modal", "value"),
+            State("country-checkboxes-modal", "value"),
+            State("admdate-slider-modal", "value"),
+            State("admdate-slider-modal", "marks"),
+            State("outcome-checkboxes-modal", "value"),
+            State("selected-project-path", "data"),  # ✅ project path state
         ],
-        prevent_initial_call=True
+        prevent_initial_call=True,
     )
     def update_figures(
-        n_clicks, button,
-        sex_value, age_value, country_value,
-        admdate_value, admdate_marks,
-        outcome_value, project_path
+        n_clicks, button, sex_value, age_value, country_value, admdate_value, admdate_marks, outcome_value, project_path
     ):
         logger.debug("updating figures")
-        if not button or 'suffix' not in button:
+        if not button or "suffix" not in button:
             raise PreventUpdate
 
-        suffix = button['suffix']
+        suffix = button["suffix"]
         project_data = get_project_data(project_path)
         if not project_data:
             raise PreventUpdate
 
-        df_map = project_data['df_map']
-        df_forms_dict = project_data['df_forms_dict']
-        dictionary = project_data['dictionary']
-        quality_report = project_data['quality_report']
+        df_map = project_data["df_map"]
+        df_forms_dict = project_data["df_forms_dict"]
+        dictionary = project_data["dictionary"]
+        quality_report = project_data["quality_report"]
 
         # Filter the main map
         df_map_filtered = filter_df_map(
-            df_map, sex_value, age_value,
-            country_value, admdate_value,
-            admdate_marks, outcome_value
+            df_map, sex_value, age_value, country_value, admdate_value, admdate_marks, outcome_value
         )
 
         # Filter forms
         df_forms_filtered = {}
         for key, df_form in df_forms_dict.items():
             df_forms_filtered[key] = filter_df_map(
-                df_form, sex_value, age_value,
-                country_value, admdate_value,
-                admdate_marks, outcome_value
+                df_form, sex_value, age_value, country_value, admdate_value, admdate_marks, outcome_value
             )
 
         # If everything is empty, return blank modal
@@ -597,22 +512,24 @@ def register_callbacks(app):
             return (), sex_value, age_value, country_value, admdate_value, outcome_value
 
         # Otherwise rebuild visuals
-        visuals = project_data['insight_panels'][suffix].create_visuals(
+        visuals = project_data["insight_panels"][suffix].create_visuals(
             df_map=df_map_filtered.copy(),
             df_forms_dict={k: v.copy() for k, v in df_forms_filtered.items()},
             dictionary=dictionary.copy(),
             quality_report=quality_report,
             filepath=project_path,
             suffix=suffix,
-            save_inputs=project_data['config_dict']['save_filtered_public_outputs'],
+            save_inputs=project_data["config_dict"]["save_filtered_public_outputs"],
         )
 
         modal = create_modal(visuals, button, get_filter_options(df_map))
 
         return (
             modal,
-            sex_value, age_value,
-            country_value, admdate_value,
+            sex_value,
+            age_value,
+            country_value,
+            admdate_value,
             outcome_value,
         )
 
@@ -620,35 +537,35 @@ def register_callbacks(app):
     return
 
 
-
-
 ############################################
 # Main
 ############################################
 
+
 def build_project_layout(project_path):
     project_data = load_project_data(project_path)
     map_layout_dict = dict(
-        map_style='carto-positron',
-        map_zoom=project_data['config_dict']['map_layout_zoom'],
+        map_style="carto-positron",
+        map_zoom=project_data["config_dict"]["map_layout_zoom"],
         map_center={
-            'lat': project_data['config_dict']['map_layout_center_latitude'],
-            'lon': project_data['config_dict']['map_layout_center_longitude'],
+            "lat": project_data["config_dict"]["map_layout_center_latitude"],
+            "lon": project_data["config_dict"]["map_layout_center_longitude"],
         },
-        margin={'r': 0, 't': 0, 'l': 0, 'b': 0},
+        margin={"r": 0, "t": 0, "l": 0, "b": 0},
     )
-    fig = create_map(project_data['df_countries'], map_layout_dict)
+    fig = create_map(project_data["df_countries"], map_layout_dict)
 
-    filter_options = get_filter_options(project_data['df_map'])
+    filter_options = get_filter_options(project_data["df_map"])
 
     layout = define_inner_layout(
         fig,
-        project_data['buttons'],
+        project_data["buttons"],
         filter_options,
         map_layout_dict,
-        project_data['config_dict']['project_name'],
+        project_data["config_dict"]["project_name"],
     )
     return layout
+
 
 def load_project_data(project_path):
     """Load project data into cache (if not already loaded) and return it."""
@@ -663,7 +580,7 @@ def load_project_data(project_path):
 
     logger.info(f" No cache found, loading fresh data for {project_path}")
     config_dict = get_config(project_path, config_defaults)
-    insight_panels_path = os.path.join(project_path, config_dict['insight_panels_path'])
+    insight_panels_path = os.path.join(project_path, config_dict["insight_panels_path"])
     insight_panels, buttons = get_insight_panels(config_dict, insight_panels_path)
 
     df_map, df_forms_dict, dictionary, quality_report = load_vertex_data(project_path, config_dict)
@@ -672,70 +589,69 @@ def load_project_data(project_path):
     df_countries = get_countries(df_map_with_countries)
 
     filter_columns_dict = {
-        'subjid': 'subjid',
-        'demog_sex': 'filters_sex',
-        'demog_age': 'filters_age',
-        'pres_date': 'filters_admdate',
-        'country_iso': 'filters_country',
-        'outco_binary_outcome': 'filters_outcome'
+        "subjid": "subjid",
+        "demog_sex": "filters_sex",
+        "demog_age": "filters_age",
+        "pres_date": "filters_admdate",
+        "country_iso": "filters_country",
+        "outco_binary_outcome": "filters_outcome",
     }
 
     df_filters = df_map_with_countries[filter_columns_dict.keys()].rename(columns=filter_columns_dict)
-    df_map = pd.merge(df_map_with_countries, df_filters, on='subjid', how='left').reset_index(drop=True)
+    df_map = pd.merge(df_map_with_countries, df_filters, on="subjid", how="left").reset_index(drop=True)
     df_forms_dict = {
-        form: pd.merge(df_form, df_filters, on='subjid', how='left').reset_index(drop=True)
+        form: pd.merge(df_form, df_filters, on="subjid", how="left").reset_index(drop=True)
         for form, df_form in df_forms_dict.items()
     }
 
     project_data = {
-        'df_map': df_map,
-        'df_forms_dict': df_forms_dict,
-        'dictionary': dictionary,
-        'quality_report': quality_report,
-        'insight_panels': insight_panels,
-        'buttons': buttons,
-        'config_dict': config_dict,
-        'df_countries': df_countries,
+        "df_map": df_map,
+        "df_forms_dict": df_forms_dict,
+        "dictionary": dictionary,
+        "quality_report": quality_report,
+        "insight_panels": insight_panels,
+        "buttons": buttons,
+        "config_dict": config_dict,
+        "df_countries": df_countries,
     }
 
     PROJECT_CACHE[project_path] = project_data
 
-    if config_dict['save_public_outputs']:
+    if config_dict["save_public_outputs"]:
         logger.info(f" Saving public outputs for project {project_path}")
         save_public_outputs(
-            buttons, insight_panels, df_map, df_countries,
-            df_forms_dict, dictionary, quality_report,
-            project_path, config_dict
+            buttons, insight_panels, df_map, df_countries, df_forms_dict, dictionary, quality_report, project_path, config_dict
         )
     logger.info(f" Project data loaded and cached for {project_path}")
     return project_data
 
+
 def main():
-    logger.info('Starting VERTEX')
+    logger.info("Starting VERTEX")
     app = dash.Dash(
         __name__,
         external_stylesheets=[dbc.themes.BOOTSTRAP],
-        assets_folder=os.path.join(os.path.dirname(__file__), '..', 'assets'),
-        title='Isaric VERTEX',
-        suppress_callback_exceptions=True
+        assets_folder=os.path.join(os.path.dirname(__file__), "..", "assets"),
+        title="Isaric VERTEX",
+        suppress_callback_exceptions=True,
     )
 
     # Flask / DB config
-    app.server.config.update({
-        "SQLALCHEMY_DATABASE_URI": DATABASE_URL,
-        "SECRET_KEY": "mouse_trap_robot_fast_cheese_coffee_gross_back_spain",
-        "SECURITY_PASSWORD_HASH": "bcrypt",
-        "SECURITY_PASSWORD_SALT": "host_place_china_horse_past_arena_brand_sugar",
-        "SECURITY_USER_IDENTITY_ATTRIBUTES": [
-            {"email": {"mapper": "email", "case_insensitive": True}}
-        ]
-    })
+    app.server.config.update(
+        {
+            "SQLALCHEMY_DATABASE_URI": DATABASE_URL,
+            "SECRET_KEY": "mouse_trap_robot_fast_cheese_coffee_gross_back_spain",
+            "SECURITY_PASSWORD_HASH": "bcrypt",
+            "SECURITY_PASSWORD_SALT": "host_place_china_horse_past_arena_brand_sugar",
+            "SECURITY_USER_IDENTITY_ATTRIBUTES": [{"email": {"mapper": "email", "case_insensitive": True}}],
+        }
+    )
     db.init_app(app.server)
     with app.server.app_context():
         global user_datastore
         user_datastore = SQLAlchemyUserDatastore(db, User, None)
         security.init_app(app.server, user_datastore)
-    
+
     project_paths, names = get_projects()
     logger.debug(f" Found {len(project_paths)} projects: {project_paths}")
 
@@ -756,10 +672,11 @@ def main():
 
     return app
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app = main()
-    webbrowser.open('http://127.0.0.1:8050', new=2, autoraise=True)
-    app.run_server(debug=True, host='0.0.0.0', port=8050, use_reloader=False)
+    webbrowser.open("http://127.0.0.1:8050", new=2, autoraise=True)
+    app.run_server(debug=True, host="0.0.0.0", port=8050, use_reloader=False)
 else:
     app = main()
     server = app.server

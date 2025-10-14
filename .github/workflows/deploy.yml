@@ -48,7 +48,7 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no -i private_key.pem ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
           set -euo pipefail
-      
+
           export AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id)
           export AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key)
           export AWS_SESSION_TOKEN=$(aws configure get aws_session_token)
@@ -61,7 +61,7 @@ jobs:
           docker system prune -af
 
           docker pull ${{ secrets.ECR_REPOSITORY }}:latest
-      
+
           docker run -d --restart unless-stopped --name isaric-vertex -p 8050:8050 ${{ secrets.ECR_REPOSITORY }}:latest
 
           EOF

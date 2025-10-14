@@ -44,3 +44,21 @@ dependencies = [
 
 [project.scripts]
 run-vertex = "descriptive_dashboard:main"
+
+[tool.ruff]
+
+line-length = 128
+target-version = "py311"
+
+lint.select = ["E", "F", "W", "I"]  # pycodestyle, pyflakes, warnings, import sorting
+
+# Optional: exclude certain paths
+exclude = [
+    ".venv",
+    "build",
+    "dist"
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
