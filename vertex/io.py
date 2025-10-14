@@ -33,9 +33,7 @@ def get_config(project_path, config_defaults):
         _ = config_dict['api_key']
         _ = config_dict['api_url']
     except Exception:
-        error_message = f'''config_file.json is required in \
-{project_path}. This file must contain both "api_key" and "api_url".'''
-        print(error_message)
+        logger.error(f'Could not read {config_file} or it is missing required keys (api_key, api_url).')
         raise SystemExit
     # The default for the list of insight panels is all that exist in the
     # relevant folder (which may or not be specified in config)
@@ -57,24 +55,17 @@ def get_config(project_path, config_defaults):
         for k, v in config_defaults.items() if k not in config_dict.keys()}
     config_dict = {**config_dict, **config_defaults}
     if any([x not in insight_panels for x in config_dict['insight_panels']]):
-        print('The following insight panels in config_file.json do not exist:')
         missing_insight_panels = [
             x for x in config_dict['insight_panels']
             if x not in insight_panels]
-        print('\n'.join(missing_insight_panels))
-        print('These are ignored and will not appear in the dashboard.')
+        logger.warning(f'The following insight panels are ignored and will not appear in the dashboard: {missing_insight_panels}')
         config_dict['insight_panels'] = [
             x for x in config_dict['insight_panels'] if x in insight_panels]
     if any([x not in config_dict['insight_panels'] for x in insight_panels]):
-        print('''The following insight panel files are not listed in \
-                config_file.json:''')
         missing_insight_panels = [
             x for x in insight_panels
             if x not in config_dict['insight_panels']]
-        print('\n'.join(missing_insight_panels))
-        print('''These will not appear in the dashboard. Please add them \
-                to the list "insight_panels" in config_file.json to include them in \
-                the dashboard.''')
+        logger.warning(f'The following insight panels are available but not included in the dashboard (add these to config_file.json to include them): {missing_insight_panels}')
     return config_dict
 
 def load_vertex_data(project_path, config_dict):
@@ -85,14 +76,13 @@ def load_vertex_data(project_path, config_dict):
     if get_data_from_api:
         df_map, df_forms_dict, dictionary, quality_report = load_vertex_from_api(api_url, api_key, config_dict)
     else:
-        print(f'Loading data from {project_path}')
+        logger.info(f'Loading data from {project_path}')
         df_map, df_forms_dict, dictionary, quality_report = load_vertex_from_files(project_path, config_dict)
-    print("dfm keys", df_map.keys())
     return df_map, df_forms_dict, dictionary, quality_report
 
 def load_vertex_from_api(api_url, api_key, config_dict):
     """Load data from the REDCap API."""
-    print('Retrieving data from the API')
+    logger.info('Retrieving data from redcap API')
     user_assigned_to_dag = getRC.user_assigned_to_dag(api_url, api_key)
     get_data_kwargs = {
         'data_access_groups': config_dict['data_access_groups'],
@@ -178,7 +168,7 @@ def load_vertex_from_files(project_path, config_dict):
                 key = file.split('.csv')[0]
                 df_forms_dict[key] = df_form
             else:
-                print(f'{file} does not include subjid, ignoring this.')
+                logger.warning(f'{file} does not include subjid, ignoring.')
         return {
             'df_map': df_map,
             'dictionary': dictionary,
@@ -186,7 +176,7 @@ def load_vertex_from_files(project_path, config_dict):
             'quality_report': quality_report,
         }
     except Exception:
-        print('Could not load the VERTEX dataframes.')
+        logger.error('Could not load the VERTEX dataframes.')
         raise
 
 def get_projects():
@@ -218,9 +208,9 @@ def save_public_outputs(buttons, insight_panels, df_map, df_countries, df_forms_
     public_path = os.path.join(
         project_path, config_dict['public_path'])
     if os.path.exists(public_path):
-        print(f'Folder "{public_path}" already exists, removing this')
+        logger.warning(f'Folder "{public_path}" already exists, removing this')
         shutil.rmtree(public_path)
-    print(f'Saving files for public dashboard to "{public_path}"')
+    logger.info(f'Saving files for public dashboard to "{public_path}"')
     os.makedirs(
         os.path.dirname(os.path.join(public_path, '')), exist_ok=True)
     for ip in config_dict['insight_panels']:

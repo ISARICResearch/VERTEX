@@ -28,7 +28,7 @@ def get_config(path, config_defaults):
                 path, 'config_file.json'), 'r') as json_data:
             config_dict = json.load(json_data)
     except Exception:
-        print(f'config_file.json not in {path}, using defaults.')
+        logger.warning(f'config_file.json not in {path}, using defaults.')
         config_dict = config_defaults.copy()
     config_defaults = {
         k: v

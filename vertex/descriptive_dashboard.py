@@ -452,12 +452,12 @@ def register_callbacks(app):
 
             with Session(engine) as session:
                 user = session.query(User).filter_by(email=username.strip().lower()).first()
-                print(user)
+                logger.debug(f"User found: {user}")
                 if user and verify_and_update_password(password, user):
                     login_user(user)
                     return True, False, ""
                 else:
-                    print(f"[DEBUG] Invalid login attempt for user: {username}")
+                    logger.debug(f"Invalid login attempt for user: {username}")
                     return False, True, "Invalid username or password."
                     
 
@@ -639,44 +639,7 @@ def build_project_layout(project_path):
     )
     fig = create_map(project_data['df_countries'], map_layout_dict)
 
-    # Build filter options (from cached data)
-    sex_options = [
-        {'label': 'Male', 'value': 'Male'},
-        {'label': 'Female', 'value': 'Female'},
-        {'label': 'Other / Unknown', 'value': 'Other / Unknown'},
-    ]
-    max_age = max((100, project_data['df_map']['demog_age'].max()))
-    age_options = {
-        'min': 0, 'max': max_age, 'step': 10,
-        'marks': {i: {'label': str(i)} for i in range(0, max_age + 1, 10)},
-        'value': [0, max_age],
-    }
-    admdate_yyyymm = pd.date_range(
-        start=project_data['df_map']['pres_date'].min(),
-        end=project_data['df_map']['pres_date'].max(),
-        freq='MS',
-    )
-    admdate_options = {
-        'min': 0, 'max': len(admdate_yyyymm) - 1, 'step': 1,
-        'marks': {i: {'label': d.strftime('%Y-%m')} for i, d in enumerate(admdate_yyyymm)},
-        'value': [0, len(admdate_yyyymm) - 1],
-    }
-    country_options = [
-        {'label': r['country_name'], 'value': r['country_iso']}
-        for _, r in project_data['df_countries'].iterrows()
-    ]
-    outcome_options = [
-        {'label': v, 'value': v}
-        for v in project_data['df_map']['filters_outcome'].dropna().unique()
-    ]
-
-    filter_options = {
-        'sex_options': sex_options,
-        'age_options': age_options,
-        'admdate_options': admdate_options,
-        'country_options': country_options,
-        'outcome_options': outcome_options,
-    }
+    filter_options = get_filter_options(project_data['df_map'])
 
     layout = define_inner_layout(
         fig,

@@ -4,6 +4,9 @@ import numpy as np
 import io
 import os
 
+from vertex.logging.logger import setup_logger
+logger = setup_logger(__name__)
+
 ############################################
 # Functions that call to the API
 ############################################
@@ -41,7 +44,7 @@ def get_records(
             'returnFormat': 'json'
         }
         response = requests.post(redcap_url, data=conex)
-        print('HTTP Status: ' + str(response.status_code))
+        logger.debug('HTTP Status: ' + str(response.status_code))
         df = pd.read_csv(io.StringIO(response.text), keep_default_na=False)
         if data_access_groups is not None:
             ind = df['redcap_data_access_group'].isin(data_access_groups)
@@ -59,7 +62,7 @@ def get_records(
             }
             response = requests.post(redcap_url, data=conex)
             if response.text != '1':
-                print(f'Data access group ID: {dag}. Warning: Could not \
+                logger.warning(f'Data access group ID: {dag}. Warning: Could not \
 switch DAG to unique group name: {unique_group}')
                 continue
             conex = {
@@ -82,12 +85,9 @@ switch DAG to unique group name: {unique_group}')
                     io.StringIO(response.text), keep_default_na=False)
                 df_new['redcap_data_access_group'] = dag
                 df_list.append(df_new)
-                print(f'Data access group ID: {dag}, HTTP Status: \
-{response.status_code}')
+                logger.debug(f'Data access group ID: {dag}, HTTP Status: {response.status_code}')
             except pd.errors.EmptyDataError:
-                print(f'Data access group ID: {dag}, HTTP Status: \
-{response.status_code}. Warning: Could not retrieve data from unique group \
-name: {unique_group}')
+                logger.warning(f'Data access group ID: {dag}, HTTP Status: {response.status_code}. Warning: Could not retrieve data from unique group name: {unique_group}')
                 continue
         if len(df_list) > 0:
             df = pd.concat(df_list, axis=0)
@@ -719,11 +719,6 @@ def get_df_map(data, dictionary):
         lambda x: any(y in x.split(',') for y in ['presentation', 'outcome']))
     df_map = df_map.reset_index(drop=True)
     ind = ind.reset_index(drop=True) if hasattr(ind, "reset_index") else ind
-    print("[DEBUG] df_map shape:", df_map.shape)
-    print("[DEBUG] ind shape:", getattr(ind, 'shape', None))
-    print("[DEBUG] ind dtype:", getattr(ind, 'dtype', None))
-    print("[DEBUG] df_map index:", df_map.index[:5])
-    print("[DEBUG] ind index:", ind.index[:5] if isinstance(ind, pd.Series) else None)
 
     ###########################################################################
     ###########################################################################
@@ -735,8 +730,6 @@ def get_df_map(data, dictionary):
     qc = 'QUALITY CHECK 1: Patient does not have Presentation or Outcome forms'
     quality_report = {qc: missing_id_QC1}
     columns = [col for col in columns if col in df_map.columns]
-    print("df_map.shape:", df_map.shape, "df_map.index:", df_map.index[:10])
-    print("ind.shape:", ind.shape, "ind.index:", getattr(ind, "index", None)[:10])
 
     df_map = df_map.loc[ind, columns]
     # # ## TODO: Should this remove all columns with no data, or just those
@@ -782,6 +775,7 @@ def get_df_map(data, dictionary):
     dictionary = pd.concat([
         dictionary, pd.DataFrame.from_dict(outcome_dict)], axis=0)
     dictionary = dictionary.reset_index(drop=True)
+    logger.debug(f'Data contains {df_map.shape[0]} patients')
     return df_map, dictionary, quality_report
 
 
