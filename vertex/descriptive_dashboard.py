@@ -23,7 +23,7 @@ import boto3
 from urllib.parse import quote_plus
 
 from vertex.models import User, Project
-from vertex.loader import get_config, load_vertex_data, config_defaults, save_public_outputs
+from vertex.io import get_config, load_vertex_data, config_defaults, save_public_outputs, get_projects
 from vertex.layout.modals import login_modal, register_modal, create_modal
 from vertex.layout.app_layout import define_inner_layout, define_shell_layout
 from vertex.layout.insight_panels import get_insight_panels
@@ -64,16 +64,6 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy() # we will bind these to the app later
 security = Security() 
-
-
-############################################
-# PROJECT PATHS (CHANGE THIS)
-############################################
-
-init_project_path = 'projects/ARChetypeCRF_mpox_synthetic/'
-# init_project_path = 'projects/ARChetypeCRF_dengue_synthetic/'
-# init_project_path = 'projects/ARChetypeCRF_h5nx_synthetic/'
-# init_project_path = 'projects/ARChetypeCRF_h5nx_synthetic_mf/'
 
 ############################################
 # CACHE DATA
@@ -571,7 +561,7 @@ def register_callbacks(app):
         admdate_value, admdate_marks,
         outcome_value, project_path
     ):
-        print("[DEBUG] updating figures")
+        logger.debug("updating figures")
         if not button or 'suffix' not in button:
             raise PreventUpdate
 
@@ -637,63 +627,7 @@ def register_callbacks(app):
 ############################################
 
 def build_project_layout(project_path):
-    print(f"[DEBUG] Building project layout for: {project_path}")
-    if not project_path:
-        raise PreventUpdate
-
-    # If cached, reuse project data
-    project_data = PROJECT_CACHE.get(project_path)
-    if project_data:
-        print(f"[DEBUG] Using cached project data for {project_path}")
-    else:
-        print(f"[DEBUG] No cache found, loading fresh data for {project_path}")
-        config_dict = get_config(project_path, config_defaults)
-        insight_panels_path = os.path.join(project_path, config_dict['insight_panels_path'])
-        insight_panels, buttons = get_insight_panels(config_dict, insight_panels_path)
-
-        df_map, df_forms_dict, dictionary, quality_report = load_vertex_data(project_path, config_dict)
-        df_map = df_map.reset_index(drop=True)
-        df_map_with_countries = merge_data_with_countries(df_map)
-        df_countries = get_countries(df_map_with_countries)
-
-        filter_columns_dict = {
-            'subjid': 'subjid',
-            'demog_sex': 'filters_sex',
-            'demog_age': 'filters_age',
-            'pres_date': 'filters_admdate',
-            'country_iso': 'filters_country',
-            'outco_binary_outcome': 'filters_outcome'
-        }
-
-        df_filters = df_map_with_countries[filter_columns_dict.keys()].rename(columns=filter_columns_dict)
-        df_map = pd.merge(df_map_with_countries, df_filters, on='subjid', how='left').reset_index(drop=True)
-        df_forms_dict = {
-            form: pd.merge(df_form, df_filters, on='subjid', how='left').reset_index(drop=True)
-            for form, df_form in df_forms_dict.items()
-        }
-
-        project_data = {
-            'df_map': df_map,
-            'df_forms_dict': df_forms_dict,
-            'dictionary': dictionary,
-            'quality_report': quality_report,
-            'insight_panels': insight_panels,
-            'buttons': buttons,
-            'config_dict': config_dict,
-            'df_countries': df_countries,  # might be useful later
-        }
-
-        PROJECT_CACHE[project_path] = project_data
-
-        # Optional: public outputs only when building fresh
-        if config_dict['save_public_outputs']:
-            save_public_outputs(
-                buttons, insight_panels, df_map, df_countries,
-                df_forms_dict, dictionary, quality_report,
-                project_path, config_dict
-            )
-
-    # Always build layout from project_data
+    project_data = load_project_data(project_path)
     map_layout_dict = dict(
         map_style='carto-positron',
         map_zoom=project_data['config_dict']['map_layout_zoom'],
@@ -753,9 +687,68 @@ def build_project_layout(project_path):
     )
     return layout
 
+def load_project_data(project_path):
+    """Load project data into cache (if not already loaded) and return it."""
+    logger.debug(f" Loading project data for: {project_path}")
+    if not project_path:
+        raise PreventUpdate
+
+    project_data = PROJECT_CACHE.get(project_path)
+    if project_data:
+        logger.info(f" Using cached project data for {project_path}")
+        return project_data
+
+    logger.info(f" No cache found, loading fresh data for {project_path}")
+    config_dict = get_config(project_path, config_defaults)
+    insight_panels_path = os.path.join(project_path, config_dict['insight_panels_path'])
+    insight_panels, buttons = get_insight_panels(config_dict, insight_panels_path)
+
+    df_map, df_forms_dict, dictionary, quality_report = load_vertex_data(project_path, config_dict)
+    df_map = df_map.reset_index(drop=True)
+    df_map_with_countries = merge_data_with_countries(df_map)
+    df_countries = get_countries(df_map_with_countries)
+
+    filter_columns_dict = {
+        'subjid': 'subjid',
+        'demog_sex': 'filters_sex',
+        'demog_age': 'filters_age',
+        'pres_date': 'filters_admdate',
+        'country_iso': 'filters_country',
+        'outco_binary_outcome': 'filters_outcome'
+    }
+
+    df_filters = df_map_with_countries[filter_columns_dict.keys()].rename(columns=filter_columns_dict)
+    df_map = pd.merge(df_map_with_countries, df_filters, on='subjid', how='left').reset_index(drop=True)
+    df_forms_dict = {
+        form: pd.merge(df_form, df_filters, on='subjid', how='left').reset_index(drop=True)
+        for form, df_form in df_forms_dict.items()
+    }
+
+    project_data = {
+        'df_map': df_map,
+        'df_forms_dict': df_forms_dict,
+        'dictionary': dictionary,
+        'quality_report': quality_report,
+        'insight_panels': insight_panels,
+        'buttons': buttons,
+        'config_dict': config_dict,
+        'df_countries': df_countries,
+    }
+
+    PROJECT_CACHE[project_path] = project_data
+
+    if config_dict['save_public_outputs']:
+        logger.info(f" Saving public outputs for project {project_path}")
+        save_public_outputs(
+            buttons, insight_panels, df_map, df_countries,
+            df_forms_dict, dictionary, quality_report,
+            project_path, config_dict
+        )
+    logger.info(f" Project data loaded and cached for {project_path}")
+    return project_data
 
 def main():
-    print('Starting VERTEX')
+    logger.info('Starting VERTEX')
     app = dash.Dash(
         __name__,
         external_stylesheets=[dbc.themes.BOOTSTRAP],
@@ -779,9 +772,22 @@ def main():
         global user_datastore
         user_datastore = SQLAlchemyUserDatastore(db, User, None)
         security.init_app(app.server, user_datastore)
+    
+    project_paths, names = get_projects()
+    logger.debug(f" Found {len(project_paths)} projects: {project_paths}")
 
-    initial_layout = build_project_layout(init_project_path)
-    app.layout = define_shell_layout(init_project_path, initial_body=initial_layout)
+    for path, name in zip(project_paths, names):
+        try:
+            logger.debug(f" Preloading project: {name}")
+            _ = load_project_data(path)  # this loads and caches it
+        except Exception as e:
+            logger.error(f"Failed to load project {path}: {e}")
+    # load the first projects layout
+    # TODO: allow this to be configurable
+    active_project = project_paths[0] if project_paths else None
+    if active_project is not None:
+        initial_layout = build_project_layout(active_project)
+        app.layout = define_shell_layout(active_project, initial_body=initial_layout)
 
     register_callbacks(app)
 

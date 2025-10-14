@@ -1,5 +1,6 @@
-"""loader.py"""
+"""io.py"""
 import os
+from pathlib import Path
 import json
 import pandas as pd
 import shutil
@@ -101,7 +102,6 @@ def load_vertex_from_api(api_url, api_key, config_dict):
     return df_map, df_forms_dict, dictionary, quality_report
 
 def load_vertex_from_files(project_path, config_dict):
-
     try:
         vertex_dataframes_path = os.path.join(
             project_path, config_dict['vertex_dataframes_path'])
@@ -189,6 +189,29 @@ def load_vertex_from_files(project_path, config_dict):
         print('Could not load the VERTEX dataframes.')
         raise
 
+def get_projects():
+    project_path = pathlib.Path("projects/")
+    logger.info(f"Looking for projects in: {project_path.resolve()}")
+    projects = [p for p in project_path.iterdir() if p.is_dir()]
+    names = [get_project_name(p) for p in projects]
+    logger.info(f"Found projects: {[p.name for p in projects]}")
+    return [str(p) + "/" for p in projects], names
+
+def get_project_name(project_path):
+    config_file = pathlib.Path(project_path) / "config_file.json"
+    if config_file.exists():
+        try:
+            with open(config_file, "r") as f:
+                config = json.load(f)
+                logger.debug(f"Loaded config for {project_path.name}: {config}")
+                project_name = config.get("project_name", project_path.name)
+        except Exception as e:
+            logger.warning(f"Could not read config for {project_path.name}: {e}")
+            project_name = project_path.name
+    else:
+        project_name = project_path.name
+    return project_name
+
 def save_public_outputs(buttons, insight_panels, df_map, df_countries, df_forms_dict,
         dictionary, quality_report, project_path, config_dict):
     """Save public outputs to the PUBLIC folder."""
@@ -232,3 +255,27 @@ def save_public_outputs(buttons, insight_panels, df_map, df_countries, df_forms_
         save_config_dict = {k: config_dict[k] for k in save_config_keys}
         json.dump(save_config_dict, file, indent=4)
     logger.info(f'Public dashboard files saved to {public_path}')
+
+
+def get_projects():
+    project_path = Path("projects/")
+    logger.info(f"Looking for projects in: {project_path.resolve()}")
+    projects = [p for p in project_path.iterdir() if p.is_dir()]
+    names = [get_project_name(p) for p in projects]
+    logger.info(f"Found projects: {[p.name for p in projects]}")
+    return [str(p) + "/" for p in projects], names
+
+def get_project_name(project_path):
+    config_file = Path(project_path) / "config_file.json"
+    if config_file.exists():
+        try:
+            with open(config_file, "r") as f:
+                config = json.load(f)
+                logger.debug(f"Loaded config for {project_path.name}: {config}")
+                project_name = config.get("project_name", project_path.name)
+        except Exception as e:
+            logger.warning(f"Could not read config for {project_path.name}: {e}")
+            project_name = project_path.name
+    else:
+        project_name = project_path.name
+    return project_name
