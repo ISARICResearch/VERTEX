@@ -3,9 +3,7 @@ import os
 import secrets
 import uuid
 import webbrowser
-from urllib.parse import quote_plus
 
-import boto3
 import dash
 import dash_bootstrap_components as dbc
 import pandas as pd
@@ -20,6 +18,7 @@ from plotly import graph_objs as go
 from sqlalchemy import MetaData, create_engine
 from sqlalchemy.orm import Session
 
+from vertex.database import get_database_url
 from vertex.io import config_defaults, get_config, get_projects, load_vertex_data, save_public_outputs
 from vertex.layout.app_layout import define_inner_layout, define_shell_layout
 from vertex.layout.filters import get_filter_options
@@ -31,27 +30,11 @@ from vertex.models import User
 
 logger = setup_logger(__name__)
 
-# Settings
-secret_name = "rds!db-472cc9c8-1f3e-4547-b84d-9b0742de8b9a"  # TODO: move to env vars
-region_name = "eu-west-2"
+############################################
+# DATABASE SETUP
+############################################
 
-# Create a Secrets Manager client
-session = boto3.session.Session()
-client = session.client(service_name="secretsmanager", region_name=region_name)
-
-# Get secret value
-response = client.get_secret_value(SecretId=secret_name)
-secret = json.loads(response["SecretString"])
-
-# Extract credentials
-username = secret["username"]
-password = quote_plus(secret["password"])  # URL-encode password
-host = "isaric-user-db.cf4o0aos4r0d.eu-west-2.rds.amazonaws.com"
-port = 5432
-database = "postgres"
-
-# Build SQLAlchemy connection string
-DATABASE_URL = f"postgresql+psycopg2://{username}:{password}@{host}:{port}/{database}?sslmode=require"
+DATABASE_URL = get_database_url()
 engine = create_engine(DATABASE_URL)
 metadata = MetaData()
 

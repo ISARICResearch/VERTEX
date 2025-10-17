@@ -6,6 +6,7 @@ repos:
     rev: v0.7.2
     hooks:
       - id: ruff
+        args: [--fix]  # auto-fix issues where possible
       - id: ruff-format     # runs formatter
 
   # Basic hygiene checks
