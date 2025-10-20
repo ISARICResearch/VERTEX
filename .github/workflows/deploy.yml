@@ -62,7 +62,11 @@ jobs:
 
           docker pull ${{ secrets.ECR_REPOSITORY }}:latest
 
-          docker run -d --restart unless-stopped --name isaric-vertex -p 8050:8050 ${{ secrets.ECR_REPOSITORY }}:latest
+          docker run -d --restart unless-stopped \
+                     --env-file /etc/environment \
+                     --name isaric-vertex \
+                     -p 8050:8050 \
+                     ${{ secrets.ECR_REPOSITORY }}:latest
 
           EOF
 

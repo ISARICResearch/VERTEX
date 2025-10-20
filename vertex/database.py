@@ -9,6 +9,7 @@ def get_database_url():
     env = os.getenv("APP_ENV", "local")
     if env == "ci":
         # GitHub Actions
+        # TODO: seed test db for ci testing
         return "postgresql+psycopg2://test_user:test_password@localhost:5432/test_db"
 
     if env == "local":
