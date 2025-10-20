@@ -18,7 +18,6 @@ from plotly import graph_objs as go
 from sqlalchemy import MetaData, create_engine
 from sqlalchemy.orm import Session
 
-from vertex.database import get_database_url
 from vertex.io import config_defaults, get_config, get_projects, load_vertex_data, save_public_outputs
 from vertex.layout.app_layout import define_inner_layout, define_shell_layout
 from vertex.layout.filters import get_filter_options
@@ -27,6 +26,7 @@ from vertex.layout.modals import create_modal
 from vertex.logging.logger import setup_logger
 from vertex.map import create_map, filter_df_map, get_countries, merge_data_with_countries
 from vertex.models import User
+from vertex.secrets import get_database_url, get_flask_auth_secrets
 
 logger = setup_logger(__name__)
 
@@ -620,12 +620,13 @@ def main():
     )
 
     # Flask / DB config
+    flask_auth_secrets = get_flask_auth_secrets()
     app.server.config.update(
         {
             "SQLALCHEMY_DATABASE_URI": DATABASE_URL,
-            "SECRET_KEY": "mouse_trap_robot_fast_cheese_coffee_gross_back_spain",
+            "SECRET_KEY": flask_auth_secrets.get("SECRET_KEY"),
             "SECURITY_PASSWORD_HASH": "bcrypt",
-            "SECURITY_PASSWORD_SALT": "host_place_china_horse_past_arena_brand_sugar",
+            "SECURITY_PASSWORD_SALT": flask_auth_secrets.get("SECURITY_PASSWORD_SALT"),
             "SECURITY_USER_IDENTITY_ATTRIBUTES": [{"email": {"mapper": "email", "case_insensitive": True}}],
         }
     )

@@ -32,3 +32,15 @@ def get_database_url():
     database = secret["dbname"]
 
     return f"postgresql+psycopg2://{username}:{password}@{host}:{port}/{database}?sslmode=require"
+
+
+def get_flask_auth_secrets():
+    # Production mode – fetch from AWS Secrets Manager
+    # TODO: add local mode to prevent secrets fetch during local dev
+    secret_name = os.getenv("FLASK_AUTH_SECRETS")
+    region_name = os.getenv("AWS_REGION", "eu-west-2")
+    session = boto3.session.Session()
+    client = session.client(service_name="secretsmanager", region_name=region_name)
+    response = client.get_secret_value(SecretId=secret_name)
+    secret = json.loads(response["SecretString"])
+    return secret
