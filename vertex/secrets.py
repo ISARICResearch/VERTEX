@@ -36,7 +36,14 @@ def get_database_url():
 
 def get_flask_auth_secrets():
     # Production mode – fetch from AWS Secrets Manager
-    # TODO: add local mode to prevent secrets fetch during local dev
+    app_env = os.getenv("APP_ENV", "local").lower()
+
+    # Return hardcoded secrets for local/dev environments
+    if app_env in ("ci", "local", "dev", "development"):
+        return {
+            "SECRET_KEY": "local_dev_secret_key_mouse_trap",
+            "SECURITY_PASSWORD_SALT": "local_dev_password_salt_host_place",
+        }
     secret_name = os.getenv("FLASK_AUTH_SECRETS")
     region_name = os.getenv("AWS_REGION", "eu-west-2")
     session = boto3.session.Session()
