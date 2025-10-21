@@ -2,51 +2,61 @@ name: Docker Build and Test
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:14
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd "pg_isready -U test_user"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build Docker image
+      - name: Set up environment for CI
         run: |
-          docker build -t isaric-vertex .
+          echo "APP_ENV=ci" >> $GITHUB_ENV
 
-      - name: Run Docker container
+      - name: Build Docker image
+        run: docker build -t isaric-vertex .
+
+      - name: Run Docker container (connected to postgres)
         run: |
-          docker run -d -p 80:8050 --name isaric-vertex isaric-vertex
+          docker run -d -p 80:8050 \
+            -e APP_ENV=ci \
+            -e DATABASE_URL=postgresql+psycopg2://test_user:test_password@host.docker.internal:5432/test_db \
+            --name isaric-vertex isaric-vertex
 
       - name: Wait for container to be ready
-        run: |
-          sleep 5
+        run: sleep 10
 
-      - name: Check if container is running
-        run: |
-          if [ "$(docker inspect -f '{{.State.Running}}' isaric-vertex)" != "true" ]; then
-            exit 1
-          fi
-
-      - name: Check if app is responding
+      - name: Check health
         run: |
           for i in {1..10}; do
             if curl -sSf http://localhost:80 >/dev/null; then
               echo "App responding"
               exit 0
             fi
-            echo "Waiting for app to be ready..."
+            echo "Waiting for app..."
             sleep 2
           done
           exit 1
 
-      - name: Stop and remove container
-        run: |
-          docker stop isaric-vertex
-          docker rm isaric-vertex
+      - name: Cleanup
+        run: docker stop isaric-vertex && docker rm isaric-vertex

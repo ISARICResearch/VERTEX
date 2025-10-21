@@ -1,19 +1,21 @@
 FROM python:3.11-slim
 
-# Set the working directory in the container
+# Set the working directory
 WORKDIR /app
 
-# Copy the requirements file into the container
-COPY requirements.txt .
-RUN pip install --upgrade pip
-# Autograd-gamma does not have prebuild wheels for some reason so we need wheel
-RUN pip install --upgrade wheel setuptools
-RUN pip install --no-cache-dir -r requirements.txt
+# Upgrade pip and install pip-tools first
+RUN pip install --upgrade pip setuptools wheel
+RUN pip install pip-tools
 
-# Copy the rest of the application code
+COPY pyproject.toml ./
+
+# Compile requirements.txt from pyproject.toml using pip-tools
+RUN pip-compile --output-file=requirements.txt pyproject.toml
+
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 EXPOSE 8050
 
-# Command to run the app using Gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8050", "descriptive_dashboard:server"]
+CMD ["gunicorn", "--workers", "1","--reload", "--bind", "0.0.0.0:8050", "vertex.descriptive_dashboard:server"]
