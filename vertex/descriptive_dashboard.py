@@ -30,6 +30,9 @@ from vertex.secrets import get_database_url, get_flask_auth_secrets
 
 logger = setup_logger(__name__)
 
+# are we running locally, i.e. no db:
+APP_ENV = os.getenv("APP_ENV")
+AUTH_ENABLED = bool(APP_ENV)
 ############################################
 # DATABASE SETUP
 ############################################
@@ -307,6 +310,8 @@ def register_callbacks(app):
 
     @app.callback(Output("auth-button-container", "children"), Input("login-state", "data"))
     def render_auth_button(is_logged_in):
+        if not AUTH_ENABLED:
+            return html.Div()  # No auth in local mode
         return html.Div(
             [
                 dbc.Button(
@@ -623,18 +628,19 @@ def main():
     flask_auth_secrets = get_flask_auth_secrets()
     app.server.config.update(
         {
-            "SQLALCHEMY_DATABASE_URI": DATABASE_URL,
+            "SQLALCHEMY_DATABASE_URI": DATABASE_URL if AUTH_ENABLED else None,
             "SECRET_KEY": flask_auth_secrets.get("SECRET_KEY"),
             "SECURITY_PASSWORD_HASH": "bcrypt",
             "SECURITY_PASSWORD_SALT": flask_auth_secrets.get("SECURITY_PASSWORD_SALT"),
             "SECURITY_USER_IDENTITY_ATTRIBUTES": [{"email": {"mapper": "email", "case_insensitive": True}}],
         }
     )
-    db.init_app(app.server)
-    with app.server.app_context():
-        global user_datastore
-        user_datastore = SQLAlchemyUserDatastore(db, User, None)
-        security.init_app(app.server, user_datastore)
+    if AUTH_ENABLED:
+        db.init_app(app.server)
+        with app.server.app_context():
+            global user_datastore
+            user_datastore = SQLAlchemyUserDatastore(db, User, None)
+            security.init_app(app.server, user_datastore)
 
     project_paths, names = get_projects()
     logger.debug(f" Found {len(project_paths)} projects: {project_paths}")

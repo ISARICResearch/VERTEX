@@ -4,6 +4,10 @@ from urllib.parse import quote_plus
 
 import boto3
 
+from vertex.logging.logger import setup_logger
+
+logger = setup_logger(__name__)
+
 
 def get_database_url():
     env = os.getenv("APP_ENV", "local")
@@ -27,9 +31,9 @@ def get_database_url():
 
     username = secret["username"]
     password = quote_plus(secret["password"])
-    host = secret["host"]
-    port = secret.get("port", 5432)
-    database = secret["dbname"]
+    host = os.getenv("DATABASE_HOST")
+    port = os.getenv("DATABASE_PORT", 5432)
+    database = "postgres"
 
     return f"postgresql+psycopg2://{username}:{password}@{host}:{port}/{database}?sslmode=require"
 
