@@ -87,7 +87,7 @@ def fig_placeholder(
 
     fig = go.Figure()
 
-    fig.add_trace(data=go.Scatter(x=x, y=y, mode="markers", marker={"size": 10, "color": "blue"}))
+    fig.add_trace(go.Scatter(x=x, y=y, mode="markers", marker={"size": 10, "color": "blue"}))
 
     fig.update_layout(
         title={"text": title, "x": 0.5, "xanchor": "center"},
@@ -219,6 +219,7 @@ def fig_timelines(
         width = widths[y]
 
         symbol = ["circle", "arrow-right"] if ongoing else ["circle", "circle"]
+        size = [14, 20] if ongoing else [14, 14]
 
         fig.add_trace(
             go.Scatter(
@@ -226,7 +227,7 @@ def fig_timelines(
                 y=[y, y],
                 mode="lines+markers",
                 line={"color": color, "width": width},
-                marker={"size": [14, 18], "symbol": symbol, "color": color, "line": {"width": 1, "color": "black"}},
+                marker={"size": size, "symbol": symbol, "color": color, "line": {"width": 1, "color": color}, "opacity": 1},
                 name=row[group_col],
                 legendgroup=row[group_col],
                 showlegend=(row[group_col] not in [t.name for t in fig.data]),
@@ -1127,6 +1128,8 @@ def fig_forest_plot(
     ylabel="",
     reorder=True,
     labels=["Variable", "OddsRatio", "LowerCI", "UpperCI"],
+    marker=None,
+    noeffect_line=True,
     height=600,
     suffix="",
     filepath="",
@@ -1154,6 +1157,9 @@ def fig_forest_plot(
     else:
         df = df.loc[::-1]
 
+    if marker is None:
+        marker = {"color": "blue", "size": 10}
+
     # Error Handling
     if not set(labels).issubset(df.columns):
         print(df.columns)
@@ -1165,7 +1171,7 @@ def fig_forest_plot(
 
     # Add the point estimates as scatter plot points
     traces.append(
-        go.Scatter(x=df[labels[1]], y=df[labels[0]], mode="markers", name="Odds Ratio", marker={"color": "blue", "size": 10})
+        go.Scatter(x=df[labels[1]], y=df[labels[0]], mode="markers", name="Odds Ratio", marker=marker)
     )
 
     # Add the confidence intervals as lines
@@ -1176,9 +1182,24 @@ def fig_forest_plot(
                 y=[row[labels[0]], row[labels[0]]],
                 mode="lines",
                 showlegend=False,
-                line={"color": "blue", "width": 2},
+                line={"color": marker["color"], "width": 2},
             )
         )
+
+    if noeffect_line is not None:
+        if isinstance(noeffect_line, dict) is False:
+            noeffect_line = {"color": "red", "width": 2}
+        add_shape = [{
+            # Line of no effect
+            "type": "line",
+            "x0": 1,
+            "y0": -0.5,
+            "x1": 1,
+            "y1": len(df[labels[0]]) - 0.5,
+            "line": noeffect_line,
+        }]
+    else:
+        add_shape = None
 
     # Define layout
     layout = go.Layout(
@@ -1190,18 +1211,9 @@ def fig_forest_plot(
             "tickmode": "array",
             "tickvals": df[labels[0]].tolist(),
             "ticktext": df[labels[0]].tolist(),
+            "range": [-1, len(df[labels[0]])],
         },
-        shapes=[
-            {
-                # Line of no effect
-                "type": "line",
-                "x0": 1,
-                "y0": -0.5,
-                "x1": 1,
-                "y1": len(df[labels[0]]) - 0.5,
-                "line": {"color": "red", "width": 2},
-            }
-        ],
+        shapes=add_shape,
         margin={"l": 100, "r": 100, "t": 100, "b": 50},
         height=height,
         minreducedwidth=500,
@@ -1646,6 +1658,161 @@ def fig_bar_line_chart(
         minreducedwidth=500,
     )
     fig = go.Figure(data=data, layout=layout)
+
+    # ----
+    # Every figure must return the same outputs
+    return fig, graph_id, graph_label, graph_about
+
+
+def fig_heatmaps(
+        data,
+        title="",
+        subplot_titles=None,
+        ylabel="",
+        xlabel="",
+        colorbar_label="",
+        index_column="index",
+        zmin=None,
+        zmax=None,
+        include_annotations=False,
+        base_color_map=None,
+        height=750,
+        suffix="",
+        filepath="",
+        save_inputs=False,
+        graph_id=None,
+        graph_label="",
+        graph_about=""):
+    # ----
+    # Every figure must start with this
+    if save_inputs:
+        inputs = save_inputs_to_file(locals())
+
+    if graph_id is None:
+        graph_id = get_graph_id(suffix)
+    else:
+        graph_id = suffix + "/" + graph_id
+    # ----
+
+    if isinstance(data, tuple) is False:
+        data = (data,)
+
+    # Create subplots for the heatmaps
+    fig = make_subplots(
+        rows=len(data), cols=1,
+        subplot_titles=subplot_titles,
+        vertical_spacing=0.1,
+        y_title=ylabel,
+    )
+
+    if zmin is None:
+        zmin = min(
+            data[ii].drop(columns=index_column).min().min()
+            for ii in range(len(data)))
+    if zmax is None:
+        zmax = max(
+            data[ii].drop(columns=index_column).max().max()
+            for ii in range(len(data)))
+    if base_color_map is None:
+        base_color_map = "viridis"
+
+    for ii in range(len(data)):
+        df = data[ii].set_index(index_column)
+        if include_annotations:
+            text = df.loc[::-1].astype(str).values
+            texttemplate = "%{text}"
+        else:
+            text = None
+            texttemplate = None
+        fig.add_trace(
+            go.Heatmap(
+                z=df.loc[::-1].values,
+                x=df.loc[::-1].columns,
+                y=df.loc[::-1].index,
+                text=text,
+                texttemplate=texttemplate,
+                zmin=zmin,
+                zmax=zmax,
+                colorscale=base_color_map,
+                colorbar=({"title": colorbar_label} if ii == 0 else None),
+                showscale=(True if ii == 0 else False)
+            ),
+            row=(ii + 1), col=1
+        )
+
+    # Update layout
+    fig.update_layout(
+        height=height,
+        title_text=title,
+        title_x=0.5,
+        title_xref="paper",
+        showlegend=False,
+        # margin={'l': 150}
+    )
+    for ii in range(1, len(data)):
+        fig.update_xaxes(showticklabels=False, row=ii, col=1)
+
+    fig.update_xaxes(
+        showticklabels=True,
+        tickangle=0,
+        title=xlabel,
+        row=len(data) + 1,
+        col=1,
+    )
+
+    # ----
+    # Every figure must return the same outputs
+    return fig, graph_id, graph_label, graph_about
+
+
+def fig_sankey(
+        data,
+        height=500,
+        suffix="",
+        filepath="",
+        save_inputs=False,
+        graph_id="sankey",
+        graph_label="",
+        graph_about=""):
+    # ----
+    # Every figure must start with this
+    if save_inputs:
+        inputs = save_inputs_to_file(locals())
+
+    if graph_id is None:
+        graph_id = get_graph_id(suffix)
+    else:
+        graph_id = suffix + "/" + graph_id
+    # ----
+
+    node = data[0].copy()
+    link = data[1].copy()
+    annotations = data[2].copy()
+
+    node_metadata = {
+        "hovertemplate": "%{customdata}",
+        "pad": 15,
+        "thickness": 20,
+        "line": {"color": "black", "width": 1.2}
+    }
+    link_metadata = {
+        "hovertemplate": "%{source.customdata} to %{target.customdata}",
+        "line": {"color": "rgba(0,0,0,0.3)", "width": 0.3},
+    }
+
+    fig = go.Figure(
+        data=[go.Sankey(
+            arrangement="snap",
+            valueformat=".0f",
+            node={**node.to_dict(orient="list"), **node_metadata},
+            link={**link.to_dict(orient="list"), **link_metadata},
+        )],
+        layout=go.Layout(
+            annotations=annotations.to_dict(orient="records"),
+            height=height,
+            minreducedwidth=500,
+        ),
+    )
 
     # ----
     # Every figure must return the same outputs
