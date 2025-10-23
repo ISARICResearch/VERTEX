@@ -17,8 +17,8 @@ footer = html.Div(
     style={
         "position": "absolute",
         "bottom": 0,
-        "width": "calc(100% - 300px)",
-        "margin-left": "300px",
+        "width": "calc(100% - 350px)",
+        "margin-left": "350px",
         "background-color": "#FFFFFF",
         "zIndex": 50,
     },
