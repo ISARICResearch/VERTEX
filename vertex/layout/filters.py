@@ -96,13 +96,21 @@ def define_filters_controls(
     if layout == "accordion":
         children = [
             html.Label(html.B("Sex at birth:")),
+            html.Div(style={'margin-top': '5px'}),
             sex_checklist,
+            html.Div(style={'margin-top': '10px'}),
             html.Label(html.B("Age:")),
+            html.Div(style={'margin-top': '5px'}),
             age_slider,
+            html.Div(style={'margin-top': '10px'}),
             country_section,
+            html.Div(style={'margin-top': '15px'}),
             html.Label(html.B("Admission date:")),
+            html.Div(style={'margin-top': '5px'}),
             admdate_slider,
+            html.Div(style={'margin-top': '35px'}),
             html.Label(html.B("Outcome:")),
+            html.Div(style={'margin-top': '5px'}),
             outcome_checklist,
         ]
         comp = dbc.AccordionItem(
