@@ -280,21 +280,31 @@ def define_filters_controls_modal(
 
 
 def get_filter_options(df_map):
+    marks_style = {
+        "text-align": "right",
+        "transform-origin": "bottom left",
+        "transform": "rotate(-45deg)",
+        "margin-left": "-5px",
+        "margin-top": "25px",
+        "height": "70px",
+        "width": "70px",
+    }
+
     max_age = max((100, df_map["demog_age"].max()))
     age_options = {
         "min": 0,
         "max": max_age,
         "step": 10,
-        "marks": {i: {"label": str(i)} for i in range(0, max_age + 1, 10)},
+        "marks": {i: {"label": str(i), "style": marks_style} for i in range(0, max_age + 1, 10)},
         "value": [0, max_age],
     }
 
-    admdate_yyyymm = pd.date_range(start=df_map["pres_date"].min(), end=df_map["pres_date"].max(), freq="MS")
+    admdate_yyyymm = pd.date_range(start=df_map["pres_date"].min(), end=df_map["pres_date"].max() + pd.DateOffset(months=1), freq="MS")
     admdate_options = {
         "min": 0,
         "max": len(admdate_yyyymm) - 1,
         "step": 1,
-        "marks": {i: {"label": d.strftime("%Y-%m")} for i, d in enumerate(admdate_yyyymm)},
+        "marks": {i: {"label": d.strftime("%Y-%m"), "style": marks_style} for i, d in enumerate(admdate_yyyymm)},
         "value": [0, len(admdate_yyyymm) - 1],
     }
 
