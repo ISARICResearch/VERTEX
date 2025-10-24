@@ -1170,9 +1170,7 @@ def fig_forest_plot(
     traces = []
 
     # Add the point estimates as scatter plot points
-    traces.append(
-        go.Scatter(x=df[labels[1]], y=df[labels[0]], mode="markers", name="Odds Ratio", marker=marker)
-    )
+    traces.append(go.Scatter(x=df[labels[1]], y=df[labels[0]], mode="markers", name="Odds Ratio", marker=marker))
 
     # Add the confidence intervals as lines
     for index, row in df.iterrows():
@@ -1189,15 +1187,17 @@ def fig_forest_plot(
     if noeffect_line is not None:
         if isinstance(noeffect_line, dict) is False:
             noeffect_line = {"color": "red", "width": 2}
-        add_shape = [{
-            # Line of no effect
-            "type": "line",
-            "x0": 1,
-            "y0": -0.5,
-            "x1": 1,
-            "y1": len(df[labels[0]]) - 0.5,
-            "line": noeffect_line,
-        }]
+        add_shape = [
+            {
+                # Line of no effect
+                "type": "line",
+                "x0": 1,
+                "y0": -0.5,
+                "x1": 1,
+                "y1": len(df[labels[0]]) - 0.5,
+                "line": noeffect_line,
+            }
+        ]
     else:
         add_shape = None
 
@@ -1665,24 +1665,25 @@ def fig_bar_line_chart(
 
 
 def fig_heatmaps(
-        data,
-        title="",
-        subplot_titles=None,
-        ylabel="",
-        xlabel="",
-        colorbar_label="",
-        index_column="index",
-        zmin=None,
-        zmax=None,
-        include_annotations=False,
-        base_color_map=None,
-        height=750,
-        suffix="",
-        filepath="",
-        save_inputs=False,
-        graph_id=None,
-        graph_label="",
-        graph_about=""):
+    data,
+    title="",
+    subplot_titles=None,
+    ylabel="",
+    xlabel="",
+    colorbar_label="",
+    index_column="index",
+    zmin=None,
+    zmax=None,
+    include_annotations=False,
+    base_color_map=None,
+    height=750,
+    suffix="",
+    filepath="",
+    save_inputs=False,
+    graph_id=None,
+    graph_label="",
+    graph_about="",
+):
     # ----
     # Every figure must start with this
     if save_inputs:
@@ -1699,20 +1700,17 @@ def fig_heatmaps(
 
     # Create subplots for the heatmaps
     fig = make_subplots(
-        rows=len(data), cols=1,
+        rows=len(data),
+        cols=1,
         subplot_titles=subplot_titles,
         vertical_spacing=0.1,
         y_title=ylabel,
     )
 
     if zmin is None:
-        zmin = min(
-            data[ii].drop(columns=index_column).min().min()
-            for ii in range(len(data)))
+        zmin = min(data[ii].drop(columns=index_column).min().min() for ii in range(len(data)))
     if zmax is None:
-        zmax = max(
-            data[ii].drop(columns=index_column).max().max()
-            for ii in range(len(data)))
+        zmax = max(data[ii].drop(columns=index_column).max().max() for ii in range(len(data)))
     if base_color_map is None:
         base_color_map = "viridis"
 
@@ -1735,9 +1733,10 @@ def fig_heatmaps(
                 zmax=zmax,
                 colorscale=base_color_map,
                 colorbar=({"title": colorbar_label} if ii == 0 else None),
-                showscale=(True if ii == 0 else False)
+                showscale=(True if ii == 0 else False),
             ),
-            row=(ii + 1), col=1
+            row=(ii + 1),
+            col=1,
         )
 
     # Update layout
@@ -1765,15 +1764,7 @@ def fig_heatmaps(
     return fig, graph_id, graph_label, graph_about
 
 
-def fig_sankey(
-        data,
-        height=500,
-        suffix="",
-        filepath="",
-        save_inputs=False,
-        graph_id="sankey",
-        graph_label="",
-        graph_about=""):
+def fig_sankey(data, height=500, suffix="", filepath="", save_inputs=False, graph_id="sankey", graph_label="", graph_about=""):
     # ----
     # Every figure must start with this
     if save_inputs:
@@ -1789,24 +1780,21 @@ def fig_sankey(
     link = data[1].copy()
     annotations = data[2].copy()
 
-    node_metadata = {
-        "hovertemplate": "%{customdata}",
-        "pad": 15,
-        "thickness": 20,
-        "line": {"color": "black", "width": 1.2}
-    }
+    node_metadata = {"hovertemplate": "%{customdata}", "pad": 15, "thickness": 20, "line": {"color": "black", "width": 1.2}}
     link_metadata = {
         "hovertemplate": "%{source.customdata} to %{target.customdata}",
         "line": {"color": "rgba(0,0,0,0.3)", "width": 0.3},
     }
 
     fig = go.Figure(
-        data=[go.Sankey(
-            arrangement="snap",
-            valueformat=".0f",
-            node={**node.to_dict(orient="list"), **node_metadata},
-            link={**link.to_dict(orient="list"), **link_metadata},
-        )],
+        data=[
+            go.Sankey(
+                arrangement="snap",
+                valueformat=".0f",
+                node={**node.to_dict(orient="list"), **node_metadata},
+                link={**link.to_dict(orient="list"), **link_metadata},
+            )
+        ],
         layout=go.Layout(
             annotations=annotations.to_dict(orient="records"),
             height=height,
