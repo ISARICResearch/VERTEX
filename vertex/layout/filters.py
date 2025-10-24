@@ -307,7 +307,11 @@ def get_filter_options(df_map):
         "value": [0, max_age],
     }
 
-    admdate_yyyymm = pd.date_range(start=df_map["pres_date"].min(), end=df_map["pres_date"].max() + pd.DateOffset(months=1), freq="MS")
+    admdate_yyyymm = pd.date_range(
+        start=df_map["pres_date"].min(),
+        end=df_map["pres_date"].max() + pd.DateOffset(months=1),
+        freq="MS"
+    )
     admdate_options = {
         "min": 0,
         "max": len(admdate_yyyymm) - 1,
