@@ -1,6 +1,9 @@
 # logs
 app.log*
 
+#public project dir
+public-projects/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

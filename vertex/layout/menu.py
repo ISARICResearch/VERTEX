@@ -9,9 +9,12 @@ from vertex.logging.logger import setup_logger
 logger = setup_logger(__name__)
 
 
-def define_menu(buttons, filter_options, project_name=None):
+def define_menu(buttons, filter_options=None, project_name=None):
     menu = pd.DataFrame(data=buttons)
-    menu_items = [define_filters_controls(**filter_options)]
+    if filter_options is not None:
+        menu_items = [define_filters_controls(**filter_options)]
+    else:
+        menu_items = []
 
     for item in menu["item"].unique():
         item_children = []

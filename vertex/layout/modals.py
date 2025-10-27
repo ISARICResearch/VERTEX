@@ -3,6 +3,9 @@ import dash_bootstrap_components as dbc
 from dash import dcc, html
 
 from vertex.layout.filters import define_filters_controls
+from vertex.logging.logger import setup_logger
+
+logger = setup_logger(__name__)
 
 login_modal = dbc.Modal(
     id="login-modal",
@@ -67,7 +70,7 @@ register_modal = dbc.Modal(
 #######################
 
 
-def create_modal(visuals, button, filter_options):
+def create_modal(visuals, button, filter_options=None):
     if visuals is None:
         insight_children = []
         about_str = ""
@@ -78,30 +81,31 @@ def create_modal(visuals, button, filter_options):
                 active_tab="tab-0",
             )
         ]
-        # This text appears after clicking the insight panel's About button
+        logger.debug(f" Creating modal for button: {button} with {len(visuals)} visuals ")
+
         about_list = ["Information about each visual in the insight panel:"]
         about_list += ["<strong>" + label + "</strong>" + about for _, _, label, about in visuals]
         about_str = "\n".join(about_list)
 
     try:
-        title = button["item"] + ": " + button["label"]
+        title = f"{button.get('item', '')}: {button.get('label', '')}"
     except Exception:
         title = ""
 
     instructions_str = open("assets/instructions.txt", "r").read()
-    filters_modal = define_filters_controls(**filter_options, layout="modal", with_submit=True, prefix="modal")
+
+    accordion_items = []
+
+    # Only add filters if available
+    if filter_options is not None:
+        filters_modal = define_filters_controls(**filter_options, layout="modal", with_submit=True, prefix="modal")
+        accordion_items.append(dbc.AccordionItem(title="Filters and Controls", children=[filters_modal]))
+    accordion_items.append(dbc.AccordionItem(title="Insights", children=insight_children))
+
     modal = [
         dbc.ModalHeader(html.H3(title, id="line-graph-modal-title", style={"fontSize": "2vmin", "fontWeight": "bold"})),
         dbc.ModalBody(
-            [
-                dbc.Accordion(
-                    [
-                        dbc.AccordionItem(title="Filters and Controls", children=[filters_modal]),
-                        dbc.AccordionItem(title="Insights", children=insight_children),
-                    ],
-                    active_item="item-1",
-                )
-            ],
+            [dbc.Accordion(accordion_items, active_item="item-1")],
             style={"overflowY": "auto", "minHeight": "75vh", "maxHeight": "75vh"},
         ),
         define_footer_modal(generate_html_text(instructions_str), generate_html_text(about_str)),

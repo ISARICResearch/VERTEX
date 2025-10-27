@@ -33,16 +33,18 @@ def get_config(project_path, config_defaults):
     try:
         with open(config_file, "r") as json_data:
             config_dict = json.load(json_data)
-        _ = config_dict["api_key"]
-        _ = config_dict["api_url"]
-    except Exception:
-        logger.error(f"Could not read {config_file} or it is missing required keys (api_key, api_url).")
-        raise SystemExit
-    # The default for the list of insight panels is all that exist in the
-    # relevant folder (which may or not be specified in config)
+    except IOError as e:
+        logger.error(f"Could not read config_file.json: {e}, using defaults")
+
+    # If no insight_panels_path is specified, then this is a public projects which requires a dashboard_metadata.json file:
     if "insight_panels_path" not in config_dict.keys():
-        rel_insight_panels_path = config_defaults["insight_panels_path"]
-        config_dict["insight_panels_path"] = rel_insight_panels_path
+        if not os.path.exists(os.path.join(project_path, "dashboard_metadata.json")):
+            logger.error("Could not read dashboard_metadata.json in public project, cannot proceed.")
+            logger.error(
+                "please define a insight_panels_path for data processing or"
+                " add a dashboard_metadata.json file for static projects."
+            )
+        return config_dict
     # Get a list of python files in the repository (excluding e.g. __init__.py)
     insight_panels_path = os.path.join(project_path, config_dict["insight_panels_path"])
     for _, _, filenames in os.walk(insight_panels_path):
@@ -71,6 +73,7 @@ def load_vertex_data(project_path, config_dict):
     api_url = config_dict["api_url"]
     api_key = config_dict["api_key"]
     get_data_from_api = (api_url is not None) and (api_key is not None)
+    logger.debug(f"api_url: {api_url}, api_key: {'***' if api_key else None}")
 
     if get_data_from_api:
         df_map, df_forms_dict, dictionary, quality_report = load_vertex_from_api(api_url, api_key, config_dict)
@@ -78,6 +81,13 @@ def load_vertex_data(project_path, config_dict):
         logger.info(f"Loading data from {project_path}")
         df_map, df_forms_dict, dictionary, quality_report = load_vertex_from_files(project_path, config_dict)
     return df_map, df_forms_dict, dictionary, quality_report
+
+
+def load_public_dashboard(project_path, config_dict):
+    metadata_file = os.path.join(project_path, config_dict.get("dashboard_metadata") or "dashboard_metadata.json")
+    with open(metadata_file, "r") as file:
+        metadata = json.load(file)
+    return metadata
 
 
 def load_vertex_from_api(api_url, api_key, config_dict):
