@@ -48,81 +48,106 @@ def get_public_visuals(path, buttons):
     visuals_by_suffix = {}
     for ii in range(len(buttons)):
         suffix = buttons[ii]["suffix"]
-        graph_ids = tuple(x.split("/")[-1] for x in buttons[ii]["graph_ids"])
+        logger.debug(f"\n[get_public_visuals] ===== Processing suffix: {suffix} =====")
         metadata_dir = os.path.join(path, suffix)
-        try:
-            metadata_files = os.listdir(metadata_dir)
-        except FileNotFoundError:
-            logger.warning(f"No directory for suffix {suffix} at {metadata_dir}")
+
+        if not os.path.isdir(metadata_dir):
+            logger.warning(f"[get_public_visuals] Directory missing: {metadata_dir}")
             visuals_by_suffix[suffix] = StaticInsightPanel([])
             continue
 
-        # prefer explicit and/startswith for clarity
-        metadata_files = [
-            f
-            for f in os.listdir(os.path.join(path, suffix))
-            if f.endswith(".json") and any(f.startswith(gid) for gid in graph_ids)
-        ]
-        logger.debug(f"[get_public_visuals] graph_ids={graph_ids}, matched_files={metadata_files}")
+        all_files = os.listdir(metadata_dir)
+        logger.debug(f"[get_public_visuals] All files in {metadata_dir}: {all_files}")
 
-        logger.info(f" Loading public visuals from {metadata_files} ")
+        # get graph_ids (may be empty)
+        graph_ids = tuple(x.split("/")[-1] for x in buttons[ii].get("graph_ids", []))
+        logger.debug(f"[get_public_visuals] graph_ids from buttons: {graph_ids}")
+
+        # select candidate metadata files
+        metadata_files = [f for f in all_files if f.endswith(".json")]
+        if graph_ids:
+            metadata_files = [f for f in metadata_files if any(f.startswith(gid) for gid in graph_ids)]
+        logger.debug(f"[get_public_visuals] JSON metadata_files selected: {metadata_files}")
+
+        if not metadata_files:
+            logger.warning(f"[get_public_visuals] No JSON metadata files found for suffix={suffix}")
+            visuals_by_suffix[suffix] = StaticInsightPanel([])
+            continue
+
         suffix_visuals = []
+
         for filename in metadata_files:
             new_file_path = os.path.join(metadata_dir, filename)
-            with open(new_file_path, "r") as fh:
-                new_file = json.load(fh)
-            fig_id = new_file["fig_id"]
-            logger.debug(f" fig_id: {fig_id} ")
-            data = tuple(pd.read_csv(os.path.join(path, name)) for name in new_file["fig_data"])
-            data = data[0] if (len(data) == 1) else data
-
+            logger.debug(f"[get_public_visuals] --- Reading metadata: {new_file_path}")
             try:
-                fig_fun = eval("idw." + new_file["fig_name"])
-                new_file["fig_arguments"]["save_inputs"] = False
-
-                # call the drawing function
-                fig_ret = fig_fun(data, **new_file["fig_arguments"])
-
-                # NORMALIZE RETURN VALUE:
-                # Cases we want to accept:
-                # 1) fig_fun returns (figure_obj, fig_id, label, about) -> use as-is
-                # 2) fig_fun returns Figure/dict -> construct tuple using metadata
-                if isinstance(fig_ret, (list, tuple)) and len(fig_ret) == 4:
-                    # defensive check: first element should be a Figure-like or a dict
-                    first = fig_ret[0]
-                    if isinstance(first, (go.Figure, dict)):
-                        figure_obj, returned_id, returned_label, returned_about = fig_ret
-                        suffix_visuals.append((figure_obj, returned_id, returned_label, returned_about))
-                    else:
-                        # unexpected shape: fallback to constructing from metadata
-                        logger.warning(f"Unexpected fig tuple first element type for {fig_id}: {type(first)}; using fallback.")
-                        suffix_visuals.append((fig_ret, fig_id, new_file["fig_name"], new_file.get("about", "")))
-                else:
-                    # fig_fun returned a single figure object (or something else)
-                    # Accept go.Figure or dict (plotly JSON); otherwise log and pack anyway
-                    if isinstance(fig_ret, (go.Figure, dict)):
-                        suffix_visuals.append((fig_ret, fig_id, new_file["fig_name"], new_file.get("about", "")))
-                    else:
-                        logger.warning(f"fig_fun for {fig_id} returned unexpected type {type(fig_ret)}; wrapping anyway.")
-                        suffix_visuals.append((fig_ret, fig_id, new_file["fig_name"], new_file.get("about", "")))
-
-            except AttributeError as e:
-                logger.error(f" Could not load figure {fig_id} : {e} ")
-                # remove this graph id from the button list to avoid broken references
-                try:
-                    buttons[ii]["graph_ids"].remove(fig_id)
-                except ValueError:
-                    pass
+                with open(new_file_path, "r") as fh:
+                    new_file = json.load(fh)
             except Exception as e:
-                logger.exception(f"Unexpected error while loading {fig_id}: {e}")
-                try:
-                    buttons[ii]["graph_ids"].remove(fig_id)
-                except ValueError:
-                    pass
+                logger.error(f"[get_public_visuals] ERROR reading JSON {filename}: {e}")
+                continue
 
-        # wrap visuals in our StaticInsightPanel stub so we can call create_visuals
+            fig_id = new_file.get("fig_id")
+            fig_name = new_file.get("fig_name")
+            fig_args = new_file.get("fig_arguments", {})
+            fig_data_files = new_file.get("fig_data", [])
+            logger.debug(f"[get_public_visuals] fig_id={fig_id}, fig_name={fig_name}, data_files={fig_data_files}")
+            logger.debug(f"[get_public_visuals] fig_args keys={list(fig_args.keys())}")
+
+            # Check data file existence and load
+            data_paths = [os.path.join(path, name) for name in fig_data_files]
+            missing = [p for p in data_paths if not os.path.exists(p)]
+            if missing:
+                logger.warning(f"[get_public_visuals] Missing CSV(s) for {fig_id}: {missing}")
+            try:
+                data = tuple(pd.read_csv(p) for p in data_paths if os.path.exists(p))
+                data = data[0] if len(data) == 1 else data
+                logger.debug(
+                    f"[get_public_visuals] Loaded data type={type(data)}, "
+                    f"shape(s)={[getattr(d,'shape',None) for d in (data if isinstance(data,tuple) else [data])]}"
+                )
+            except Exception as e:
+                logger.error(f"[get_public_visuals] ERROR reading CSVs for {fig_id}: {e}")
+                continue
+
+            # Now call figure builder
+            try:
+                import vertex.IsaricDraw as idw
+
+                if not hasattr(idw, fig_name):
+                    logger.error(f"[get_public_visuals] Draw function not found: idw.{fig_name}")
+                    continue
+                fig_fun = getattr(idw, fig_name)
+                fig_args["save_inputs"] = False
+                fig_ret = fig_fun(data, **fig_args)
+                logger.debug(
+                    f"[get_public_visuals] fig_fun returned type={type(fig_ret)} "
+                    f"len={(len(fig_ret) if hasattr(fig_ret,'__len__') else 'no-len')}"
+                )
+
+                # Normalize result
+                if isinstance(fig_ret, (list, tuple)) and len(fig_ret) == 4:
+                    first = fig_ret[0]
+                    logger.debug(f"[get_public_visuals] inner tuple types={[type(x) for x in fig_ret]}")
+                    if isinstance(first, (go.Figure, dict)):
+                        suffix_visuals.append(fig_ret)
+                    else:
+                        logger.warning(
+                            f"[get_public_visuals] Unexpected first element type for {fig_id}:"
+                            f"{type(first)}; skipping normalization"
+                        )
+                        suffix_visuals.append((fig_ret, fig_id, fig_name, ""))
+                else:
+                    suffix_visuals.append((fig_ret, fig_id, fig_name, ""))
+                logger.debug(f"[get_public_visuals] Appended visual for {fig_id}, total now={len(suffix_visuals)}")
+            except Exception as e:
+                logger.exception(f"[get_public_visuals] ERROR building figure for {fig_id}: {e}")
+                continue
+
+        logger.debug(f"[get_public_visuals] Final visuals count for suffix={suffix}: {len(suffix_visuals)}")
         visuals_by_suffix[suffix] = StaticInsightPanel(suffix_visuals)
-    logger.debug(visuals_by_suffix[suffix]._visuals)
+
+    logger.debug(f"[get_public_visuals] ===== Done: suffixes={list(visuals_by_suffix.keys())} =====")
+    logger.debug(list(visuals_by_suffix)[0])
     return visuals_by_suffix, buttons
 
 

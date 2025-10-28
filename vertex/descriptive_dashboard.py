@@ -593,6 +593,8 @@ def load_project_data(project_path):
 
     logger.info(f" No cache found, loading fresh data for {project_path}")
     config_dict = get_config(project_path, config_defaults)
+    # default to analysis mode
+    PREBUILT = False
     if "insight_panels_path" in config_dict.keys():
         insight_panels_path = os.path.join(project_path, config_dict["insight_panels_path"])
         insight_panels, buttons = get_insight_panels(config_dict, insight_panels_path)
@@ -640,7 +642,7 @@ def load_project_data(project_path):
 
     PROJECT_CACHE[project_path] = project_data
 
-    if config_dict["save_public_outputs"]:
+    if config_dict.get("save_public_outputs", False):
         logger.info(f" Saving public outputs for project {project_path}")
         save_public_outputs(
             buttons, insight_panels, df_map, df_countries, df_forms_dict, dictionary, quality_report, project_path, config_dict

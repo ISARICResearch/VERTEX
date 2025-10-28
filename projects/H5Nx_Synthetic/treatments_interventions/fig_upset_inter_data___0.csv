@@ -1,0 +1,6 @@
+index,count,short_label,label
+inter_suppleo2,612,<b>Any supplemental oxygen?</b>,<b>Any supplemental oxygen?</b>
+inter_o2support_type___Non-invasive ventilation,341,"<b>If yes: Select all types of respiratory ...</b>, Non-invasive ventilation","<b>If yes: Select all types of respiratory support the patient received</b>, Non-invasive ventilation"
+inter_o2support_type___High-flow nasal oxygen,338,"<b>If yes: Select all types of respiratory ...</b>, High-flow nasal oxygen","<b>If yes: Select all types of respiratory support the patient received</b>, High-flow nasal oxygen"
+inter_o2support_type___Invasive ventilation,162,"<b>If yes: Select all types of respiratory ...</b>, Invasive ventilation","<b>If yes: Select all types of respiratory support the patient received</b>, Invasive ventilation"
+inter_o2support_type___Unknown,14,"<b>If yes: Select all types of respiratory ...</b>, Unknown","<b>If yes: Select all types of respiratory support the patient received</b>, Unknown"

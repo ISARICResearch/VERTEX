@@ -1,0 +1,23 @@
+{
+    "fig_id": "Figure1/fig_line_chart_complications",
+    "fig_name": "fig_line_chart",
+    "fig_arguments": {
+        "title": "Proportion of ICU admissions with any complication",
+        "xlabel": "Year",
+        "ylabel": "Complication rate (%)",
+        "line_column": "percent_complications",
+        "upper_column": "percent_complications_upper",
+        "lower_column": "percent_complications_lower",
+        "index_column": "index",
+        "line_color": "darkgreen",
+        "suffix": "Figure1",
+        "filepath": "",
+        "save_inputs": false,
+        "graph_id": "fig_line_chart_complications",
+        "graph_label": "Figure 1C: Complications",
+        "graph_about": "Proportion of admission with any complication."
+    },
+    "fig_data": [
+        "Figure1/fig_line_chart_complications_data___0.csv"
+    ]
+}

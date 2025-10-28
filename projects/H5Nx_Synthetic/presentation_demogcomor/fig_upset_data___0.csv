@@ -1,0 +1,6 @@
+index,count,short_label,label
+comor_obesity,270,<b>Obesity</b>,<b>Obesity</b>
+comor_hypertensi,253,<b>Hypertension (physician diagnosed)</b>,<b>Hypertension (physician diagnosed)</b>
+comor_diabetes_yn,181,<b>Diabetes mellitus</b>,<b>Diabetes mellitus</b>
+comor_smoking_yn,180,<b>Ever smoked</b>,<b>Ever smoked</b>
+comor_chrkidney,146,<b>Chronic kidney disease</b>,<b>Chronic kidney disease</b>

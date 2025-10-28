@@ -1,0 +1,23 @@
+{
+    "fig_id": "Figure2/fig_bar_chart_figure2a",
+    "fig_name": "fig_bar_chart",
+    "fig_arguments": {
+        "title": "a) Sex",
+        "xlabel": "Age (years)",
+        "ylabel": "Complications during ICU stay",
+        "base_color_map": {
+            "F": "#87CEFA",
+            "M": "#FF9999"
+        },
+        "barmode": "group",
+        "suffix": "Figure2",
+        "filepath": "",
+        "save_inputs": false,
+        "graph_id": "fig_bar_chart_figure2a",
+        "graph_label": "Figure 2A: Sex",
+        "graph_about": "Complications by sex, stratified by age groups."
+    },
+    "fig_data": [
+        "Figure2/fig_bar_chart_figure2a_data___0.csv"
+    ]
+}

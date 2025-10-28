@@ -1,0 +1,23 @@
+{
+    "fig_id": "Figure2/fig_bar_chart_figure2c",
+    "fig_name": "fig_bar_chart",
+    "fig_arguments": {
+        "title": "b) Year",
+        "xlabel": "Age (years)",
+        "ylabel": "Complications during ICU stay",
+        "base_color_map": {
+            "2012-2023": "#FF9999",
+            "2024": "#87CEFA"
+        },
+        "barmode": "group",
+        "suffix": "Figure2",
+        "filepath": "",
+        "save_inputs": false,
+        "graph_id": "fig_bar_chart_figure2c",
+        "graph_label": "Figure 2C: Year",
+        "graph_about": "Complications by period of time, stratified by age groups."
+    },
+    "fig_data": [
+        "Figure2/fig_bar_chart_figure2c_data___0.csv"
+    ]
+}

@@ -1,0 +1,26 @@
+{
+    "fig_id": "Figure1/fig_bar_line_chart",
+    "fig_name": "fig_bar_line_chart",
+    "fig_arguments": {
+        "title": "Admissions and In-Hospital Mortality of ICU Dengue Patients Over Time",
+        "xlabel": "Year",
+        "ylabel_left": "ICU Dengue Admissions",
+        "ylabel_right": "60-day In-Hospital Mortality (%)",
+        "bar_column": "total_admissions",
+        "line_column": "percent_deaths",
+        "upper_column": "percent_deaths_upper",
+        "lower_column": "percent_deaths_lower",
+        "index_column": "index",
+        "bar_color": "#ADD8E6",
+        "line_color": "black",
+        "suffix": "Figure1",
+        "filepath": "",
+        "save_inputs": false,
+        "graph_id": null,
+        "graph_label": "Figure 1",
+        "graph_about": "Combined chart showing ICU dengue admissions (bars) and 60-day mortality (line)."
+    },
+    "fig_data": [
+        "Figure1/fig_bar_line_chart_data___0.csv"
+    ]
+}
