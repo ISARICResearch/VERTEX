@@ -47,15 +47,32 @@ def define_menu(buttons, filter_options=None, project_name=None):
     )
 
     menu = html.Div(
-        [menu_header, dbc.ModalBody([dbc.Accordion(menu_items, start_collapsed=True)])],
+        [
+            menu_header,  # fixed top
+            dbc.ModalBody(
+                dbc.Accordion(menu_items, start_collapsed=True),
+                style={
+                    "overflowY": "auto",
+                    "flexGrow": 1,
+                    "maxHeight": "calc(100vh - 320px)",  # leaves room for header
+                },
+            ),
+        ],
         style={
             "width": "350px",
             "position": "fixed",
-            "bottom": 0,
             "left": 0,
+            "bottom": "0.5vh",  # small offset from absolute bottom
             "zIndex": 1000,
-            "background-color": "rgba(255, 255, 255, 0.8)",
+            "backgroundColor": "rgba(255, 255, 255, 0.9)",
             "padding": "10px",
+            "borderTopRightRadius": "10px",
+            "boxShadow": "2px -2px 6px rgba(0,0,0,0.1)",
+            "maxHeight": "95vh",  # never taller than viewport
+            "overflow": "hidden",  # prevent the dropdown from sticking out
+            "display": "flex",
+            "flexDirection": "column",
+            "justifyContent": "flex-end",  # keep header near bottom edge
         },
     )
     return menu
