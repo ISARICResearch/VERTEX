@@ -99,13 +99,13 @@ def create_modal(visuals, button, filter_options=None):
     # Only add filters if available
     if filter_options is not None:
         filters_modal = define_filters_controls(**filter_options, layout="modal", with_submit=True, prefix="modal")
-        accordion_items.append(dbc.AccordionItem(title="Filters and Controls", children=[filters_modal]))
-    accordion_items.append(dbc.AccordionItem(title="Insights", children=insight_children))
+        accordion_items.append(dbc.AccordionItem(title="Filters and Controls", item_id="filters", children=[filters_modal]))
+    accordion_items.append(dbc.AccordionItem(title="insights", item_id="insights", children=insight_children))
 
     modal = [
         dbc.ModalHeader(html.H3(title, id="line-graph-modal-title", style={"fontSize": "2vmin", "fontWeight": "bold"})),
         dbc.ModalBody(
-            [dbc.Accordion(accordion_items, active_item="item-1")],
+            [dbc.Accordion(accordion_items, active_item="insights")],
             style={"overflowY": "auto", "minHeight": "75vh", "maxHeight": "75vh"},
         ),
         define_footer_modal(generate_html_text(instructions_str), generate_html_text(about_str)),

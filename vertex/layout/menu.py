@@ -61,18 +61,15 @@ def define_menu(buttons, filter_options=None, project_name=None):
         style={
             "width": "350px",
             "position": "fixed",
+            "bottom": 0,
             "left": 0,
-            "bottom": "0.5vh",  # small offset from absolute bottom
+            "height": "50vh",  # half viewport height
+            "display": "flex",
+            "flexDirection": "column",
             "zIndex": 1000,
             "backgroundColor": "rgba(255, 255, 255, 0.9)",
             "padding": "10px",
-            "borderTopRightRadius": "10px",
-            "boxShadow": "2px -2px 6px rgba(0,0,0,0.1)",
-            "maxHeight": "95vh",  # never taller than viewport
-            "overflow": "hidden",  # prevent the dropdown from sticking out
-            "display": "flex",
-            "flexDirection": "column",
-            "justifyContent": "flex-end",  # keep header near bottom edge
+            "boxShadow": "2px 0 6px rgba(0,0,0,0.1)",
         },
     )
     return menu
