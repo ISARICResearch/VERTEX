@@ -16,6 +16,7 @@ logger = setup_logger(__name__)
 config_defaults = {
     "project_name": None,
     "data_access_groups": None,
+    "language": "en",
     "map_layout_center_latitude": 6,
     "map_layout_center_longitude": -75,
     "map_layout_zoom": 1.7,
@@ -84,7 +85,11 @@ def load_vertex_from_api(api_url, api_key, config_dict):
     """Load data from the REDCap API."""
     logger.info("Retrieving data from redcap API")
     user_assigned_to_dag = getRC.user_assigned_to_dag(api_url, api_key)
-    get_data_kwargs = {"data_access_groups": config_dict["data_access_groups"], "user_assigned_to_dag": user_assigned_to_dag}
+    get_data_kwargs = {
+        "data_access_groups": config_dict["data_access_groups"],
+        "user_assigned_to_dag": user_assigned_to_dag,
+        "language": config_dict["language"]
+    }
     df_map, df_forms_dict, dictionary, quality_report = getRC.get_redcap_data(api_url, api_key, **get_data_kwargs)
     return df_map, df_forms_dict, dictionary, quality_report
 

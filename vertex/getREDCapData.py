@@ -6,6 +6,7 @@ import pandas as pd
 import requests
 
 from vertex.logging.logger import setup_logger
+from vertex.translation import translate, remove_accents
 
 logger = setup_logger(__name__)
 
@@ -169,7 +170,7 @@ def get_label(x):
     return labels
 
 
-def add_answer_dict(dictionary):
+def add_answer_dict(dictionary, language="en"):
     """Add a lookup dict of labels/values to the dictionary from REDCap schema.
     By default, ignore Yes/No/Unknown radio variables."""
     new_dictionary = dictionary.copy()
@@ -177,7 +178,7 @@ def add_answer_dict(dictionary):
     answers = new_dictionary["select_choices_or_calculations"].copy()
     # This may throw an error if there are variables of type: slider or calc
     no_answers_ind = answers.fillna("").apply(lambda x: (len(x) > 0) & (x.count("|") == 0) & (x.count(",") == 0))
-    yes_no_unknown_ind = answers.fillna("").apply(is_yesno)
+    yes_no_unknown_ind = answers.fillna("").apply(is_yesno, language=language)
 
     answers.loc[(no_answers_ind | yes_no_unknown_ind)] = np.nan
     answers = answers.str.rstrip("|,").str.split(r"\|").fillna("")
@@ -276,15 +277,17 @@ def add_onehot_variables(data, dictionary, sep="___"):
     return new_dictionary
 
 
-def is_yesno(x):
+def is_yesno(x, language="en"):
     """Check if a Yes/No/Unknown question. Remove spaces in case of different
     versions of the same string."""
-    output = x.replace(" ", "") in ("1,Yes|0,No|99,Unknown", "1,Yes|0,No")
-    # output = output.isin(['1,Yes|0,No|99,Unknown', '1,Yes|0,No'])
+    yes_str = translate("Yes", language=language)
+    no_str = translate("No", language=language)
+    unknown_str = translate("Unknown", language=language)
+    output = x.replace(" ", "") in (f"1,{yes_str}|0,{no_str}", f"1,{yes_str}|0,{no_str}|99,{unknown_str}")
     return output
 
 
-def convert_dictionary_field_type(dictionary):
+def convert_dictionary_field_type(dictionary, language="en"):
     """Get a dictionary of variable types, based on REDCAP structure"""
     new_dictionary = dictionary.copy()
     val_column = "text_validation_type_or_show_slider_number"
@@ -294,7 +297,7 @@ def convert_dictionary_field_type(dictionary):
 
     binary_ind = new_dictionary["field_type"].isin(["radio", "dropdown"]) & new_dictionary[
         "select_choices_or_calculations"
-    ].apply(is_yesno)
+    ].apply(is_yesno, language=language)
     # Or truefalse/yesno types
     binary_ind |= new_dictionary["field_type"].isin(["truefalse", "yesno"])
     new_dictionary.loc[binary_ind, "field_type"] = "binary"
@@ -347,7 +350,7 @@ def is_unlisted_item(x):
     return output
 
 
-def combine_unlisted_variables(df, dictionary, sep="___"):
+def combine_unlisted_variables(df, dictionary, sep="___", language="en"):
     """Combine variables that exist in repeated versions of the same question
     (e.g. additional dropdown questions asked after Yes/No/Unknown questions
     for established variables)
@@ -364,7 +367,7 @@ def combine_unlisted_variables(df, dictionary, sep="___"):
     for ind in unlisted_columns.index:
         column = dictionary.loc[ind, "field_name"]
         values = df[unlisted_columns_dict[column]].stack().unique()
-        values = [val for val in values if val not in (np.nan, "", "Other")]
+        values = [val for val in values if val not in (np.nan, "", translate("Other", language=language))]
         new_df = pd.DataFrame(index=df.index, columns=[column + "_item" + sep + x for x in values])
         for value in values:  # it's too slow...
             yes_ind = (df[unlisted_columns_dict[column]] == value).any(axis=1)
@@ -376,12 +379,6 @@ def combine_unlisted_variables(df, dictionary, sep="___"):
         new_dictionary["field_type"] = "binary"
         new_dictionary["field_name"] = [column + "_item" + sep + value for value in values]
         new_dictionary["field_label"] = values
-        # new_dictionary_row = dictionary.loc[ind]
-        # new_dictionary_row['field_type'] = 'radio'
-        # item_ind = (
-        #     dictionary['field_name'].str.startswith(column) &
-        #     dictionary['field_name'].str.endswith('item'))
-        # item_ind = item_ind.loc[item_ind].index.min()
         new_dictionary["parent"] = column
         new_dictionary["form_name"] = dictionary.loc[ind, "form_name"]
         new_dictionary["branching_logic"] = dictionary.loc[ind, "branching_logic"]
@@ -436,17 +433,17 @@ def resolve_checkbox_branching_logic(df, dictionary):
     return df
 
 
-def harmonise_age(df, age_columns=["demog_age", "demog_age_units"]):
+def harmonise_age(df, age_columns=["demog_age", "demog_age_units"], language="en"):
     """Deprecated, age should now be included in conversion_table.csv.
     Convert age from any units into age in years."""
     df = df.rename(columns=dict(zip(age_columns, ["demog_age", "demog_age_units"])))
     df.loc[:, "demog_age"] = pd.to_numeric(df["demog_age"], errors="coerce")
     df.loc[:, "demog_age"] = df["demog_age"].astype(float)
-    df.loc[(df["demog_age_units"] == "Months"), "demog_age"] *= 1 / 12
-    df.loc[(df["demog_age_units"] == "Days"), "demog_age"] *= 1 / 365
-    unit_list = ["Days", "Months", "Years"]
+    df.loc[(df["demog_age_units"] == translate("Months", language=language)), "demog_age"] *= 1 / 12
+    df.loc[(df["demog_age_units"] == translate("Days", language=language)), "demog_age"] *= 1 / 365
+    unit_list = [translate(x, language=language) for x in ["Days", "Months", "Years"]]
     # Standardize the units to 'Years'
-    df.loc[df["demog_age_units"].isin(unit_list), "demog_age_units"] = "Years"
+    df.loc[df["demog_age_units"].isin(unit_list), "demog_age_units"] = translate("Years", language=language)
     return df
 
 
@@ -459,7 +456,7 @@ def map_variable(variable, mapping_dict, other_value_str="Other / Unknown"):
     return variable
 
 
-def homogenise_variables(df, dictionary):
+def homogenise_variables(df, dictionary, language="en"):
     """
     Converts variables in a DataFrame based on a conversion table.
 
@@ -513,19 +510,28 @@ def homogenise_variables(df, dictionary):
             pass
     if "demog_age" not in conversion_table["variable"]:
         try:
-            df = harmonise_age(df)
+            df = harmonise_age(df, language=language)
         except Exception:
             pass
     return df, dictionary
 
 
-def convert_onehot_to_binary(df, dictionary):
+def convert_onehot_to_binary(df, dictionary, language="en"):
     """Convert onehot-encoded columns to True/False/NaN and discard answers
     from the data dictionary, if they exist."""
     binary_ind = dictionary["field_type"] == "binary"
     binary_columns = dictionary.loc[binary_ind, "field_name"].tolist()
     binary_columns = [col for col in binary_columns if col in df.columns]
-    mapping_dict = {"Yes": True, "Checked": True, "No": False, "Unchecked": False, "Unknown": np.nan}
+    yes_str = translate("Yes", language=language)
+    no_str = translate("No", language=language)
+    unknown_str = translate("Unknown", language=language)
+    mapping_dict = {
+        yes_str: True,
+        "Checked": True,
+        no_str: False,
+        "Unchecked": False,
+        unknown_str: np.nan
+    }
     with pd.option_context("future.no_silent_downcasting", True):
         df.loc[:, binary_columns] = df[binary_columns].replace(mapping_dict)
     return df
@@ -536,11 +542,12 @@ def convert_onehot_to_binary(df, dictionary):
 ############################################
 
 
-def initial_data_processing(data, dictionary, missing_data_codes):
+def initial_data_processing(data, dictionary, missing_data_codes, language="en"):
     """Initial processing of complete pandas dataframe, after REDCAP API call"""
     # Replace empty cells or 'Unknown' with NaN
     with pd.option_context("future.no_silent_downcasting", True):
-        data = data.replace(["", "Unknown", "unknown"], np.nan)
+        unknown_str = translate("Unknown", language=language)
+        data = data.replace(["", unknown_str, unknown_str.lower()], np.nan)
     # Replace missing data codes with NaN
     if missing_data_codes is not None:
         with pd.option_context("future.no_silent_downcasting", True):
@@ -552,7 +559,7 @@ def initial_data_processing(data, dictionary, missing_data_codes):
 
     # Remove columns where all the data is a negative answer option
     # (or missing answer)
-    remove_values = ["", "no", "never smoked", "unchecked", "nan"]
+    remove_values = ["", "nan", "unchecked", translate("No", language=language).lower()]
     remove_values += [x.lower() for x in missing_data_codes.keys()]
     remove_columns = data.columns[data.astype(str).map(lambda x: (x.lower().strip() in remove_values)).all(axis=0)]
     data = data[[col for col in data.columns if col not in remove_columns]]
@@ -576,7 +583,7 @@ def initial_data_processing(data, dictionary, missing_data_codes):
     new_dictionary["section_header"] = new_dictionary["section_header"].mask(new_dictionary["section_header"].duplicated())
     new_dictionary["section_header"] = new_dictionary["section_header"].fillna("")
     new_dictionary = new_dictionary.reset_index(drop=True)
-    new_dictionary = add_answer_dict(new_dictionary)
+    new_dictionary = add_answer_dict(new_dictionary, language=language)
 
     # Rename checkbox variables
     data = rename_checkbox_variables(data, new_dictionary)
@@ -586,26 +593,26 @@ def initial_data_processing(data, dictionary, missing_data_codes):
     # descriptive analysis), without onehot-encoding these yet (because this
     # may affect imputation etc.)
     new_dictionary = add_onehot_variables(data, new_dictionary)
-    new_dictionary = convert_dictionary_field_type(new_dictionary)
+    new_dictionary = convert_dictionary_field_type(new_dictionary, language=language)
 
     columns = ["field_name", "form_name", "field_type", "field_label", "parent", "branching_logic"]
     new_dictionary = new_dictionary[columns]
 
     # Convert Yes(Checked)/No(Unchecked)/Unknown to True/False/NaN
-    data = convert_onehot_to_binary(data, new_dictionary)
+    data = convert_onehot_to_binary(data, new_dictionary, language=language)
 
     # Convert numerical data to numeric type and homogenise if mixed units
     numeric_ind = new_dictionary["field_type"] == "numeric"
     numeric_columns = new_dictionary.loc[numeric_ind, "field_name"].tolist()
     data[numeric_columns] = data[numeric_columns].apply(pd.to_numeric, errors="coerce")
-    data, dictionary = homogenise_variables(data, dictionary)
+    data, dictionary = homogenise_variables(data, dictionary, language=language)
 
     # Convert columns with dates into datetime
     date_ind = new_dictionary["field_type"] == "date"
     date_columns = new_dictionary.loc[date_ind, "field_name"].tolist()
     data[date_columns] = data[date_columns].apply(pd.to_datetime, errors="coerce")
 
-    data, new_dictionary = combine_unlisted_variables(data, new_dictionary)
+    data, new_dictionary = combine_unlisted_variables(data, new_dictionary, language=language)
 
     # # ## TODO: Eventually move this to ISARIC Analytics instead of here?
     # # Remove columns with no data
@@ -617,17 +624,16 @@ def initial_data_processing(data, dictionary, missing_data_codes):
     return data, new_dictionary
 
 
-def get_df_map(data, dictionary):
+def get_df_map(data, dictionary, language="en"):
     """Convert single-event rows into one row per patient."""
     df_map = data.copy()
-    forms = ["presentation", "daily", "outcome"]
+    forms = [remove_accents(translate(x, language=language).lower()) for x in ["Presentation", "Outcome", "Daily"]]
     columns = dictionary.loc[dictionary["form_name"].isin(forms), "field_name"].tolist()
     columns = [col for col in columns if col in df_map.columns]
-    ind = data["form_name"].apply(lambda x: any(y in x.split(",") for y in ["presentation", "outcome"]))
+    ind = data["form_name"].apply(lambda x: any(y in x.split(",") for y in forms[:2]))
     df_map = df_map.reset_index(drop=True)
     ind = ind.reset_index(drop=True) if hasattr(ind, "reset_index") else ind
 
-    ###########################################################################
     ###########################################################################
     # QUALITY CHECK 1 Patients has either Presentation or Outcome forms
     missing_id_QC1 = [id for id in data["subjid"].values if id not in df_map.loc[ind, "subjid"].values]
@@ -637,42 +643,37 @@ def get_df_map(data, dictionary):
     columns = [col for col in columns if col in df_map.columns]
 
     df_map = df_map.loc[ind, columns]
-    # # ## TODO: Should this remove all columns with no data, or just those
-    # # ## from repeating events?
-    # df_map = df_map.dropna(axis=1, how='all')
-    """
-    # Check non-overlapping variables
-    test = data.groupby('subjid').apply(
-            lambda x: x.notna().sum(), include_groups=False
-        ).drop(columns='redcap_event_name').isin([0, 1]).all(axis=None)
-    error = 'At least one variable exists in several non-repeating forms'
-    assert test, error
-    """
+
     # Merge into one row per subjid
     df_map = df_map.set_index("subjid").groupby(level=0).bfill()
     df_map = df_map.drop(columns=[col for col in df_map.columns if "redcap" in col])
     df_map = df_map.reset_index().drop_duplicates("subjid")
     df_map = df_map.reset_index(drop=True)
 
-    other_value_ind = df_map["demog_sex"].isin(["Male", "Female"]) == 0
-    df_map.loc[other_value_ind, "demog_sex"] = "Other / Unknown"
+    sex_values = [translate("Female", language=language), translate("Male", language=language)]
+    other_value_ind = df_map["demog_sex"].isin(sex_values) == 0
+    other_str = translate("Other", language=language)
+    unknown_str = translate("Unknown", language=language)
+    df_map.loc[other_value_ind, "demog_sex"] = f"{other_str} / {unknown_str}"
 
     mapping_dict = {
-        "Discharged alive": "Discharged",  # :)
-        "Discharged against medical advice": "Discharged",  # :)
-        "Death": "Death",  # :(
-        "Palliative care": "Death",  # :(
+        "Discharged alive": "Discharged",
+        "Discharged against medical advice": "Discharged",
+        "Death": "Death",
+        "Palliative care": "Death",
     }
+    mapping_dict = {translate(k, language=language): translate(v, language=language) for k, v in mapping_dict.items()}
+    censored_str = translate("Censored", language=language)
     df_map["outco_binary_outcome"] = map_variable(
-        df_map["outco_outcome"].fillna("Censored"), mapping_dict, other_value_str="Censored"
+        df_map["outco_outcome"].fillna(censored_str), mapping_dict, other_value_str=censored_str
     )
     outcome_dict = {}
-    outcomes = ["Death", "Discharged", "Censored"]
+    outcomes = [translate(x, language=language) for x in ["Death", "Discharged", "Censored"]]
     outcome_dict["field_name"] = ["outco_binary_outcome"]
     outcome_dict["field_name"] += ["outco_binary_outcome___" + x for x in outcomes]
     outcome_dict["form_name"] = "outcome"
     outcome_dict["field_type"] = ["categorical"] + ["binary"] * len(outcomes)
-    outcome_dict["field_label"] = ["Outcome (binary)"] + outcomes
+    outcome_dict["field_label"] = ["Outcome (mapped)"] + outcomes
     outcome_dict["parent"] = ["outco"] + ["outco_binary_outcome"] * len(outcomes)
     outcome_dict["branching_logic"] = ""
     dictionary = pd.concat([dictionary, pd.DataFrame.from_dict(outcome_dict)], axis=0)
@@ -694,7 +695,14 @@ def get_df_forms(data, dictionary):
     return df_forms_dict
 
 
-def get_redcap_data(redcap_url, redcap_api_key, data_access_groups=None, user_assigned_to_dag=False, country_mapping=None):
+def get_redcap_data(
+    redcap_url,
+    redcap_api_key,
+    data_access_groups=None,
+    user_assigned_to_dag=False,
+    country_mapping=None,
+    language="en"
+):
     """Get data from REDCap API and transform into analysis-ready dataframes"""
     data = get_records(
         redcap_url, redcap_api_key, data_access_groups=data_access_groups, user_assigned_to_dag=user_assigned_to_dag
@@ -702,7 +710,7 @@ def get_redcap_data(redcap_url, redcap_api_key, data_access_groups=None, user_as
     dictionary = get_data_dictionary(redcap_url, redcap_api_key)
     missing_data_codes = get_missing_data_codes(redcap_url, redcap_api_key)
 
-    data, new_dictionary = initial_data_processing(data, dictionary, missing_data_codes)
+    data, new_dictionary = initial_data_processing(data, dictionary, missing_data_codes, language=language)
 
     redcap_columns = ["redcap_event_name", "redcap_repeat_instrument"]
     redcap_columns += ["redcap_repeat_instance", "redcap_data_access_group"]
@@ -718,7 +726,7 @@ def get_redcap_data(redcap_url, redcap_api_key, data_access_groups=None, user_as
     form_dict = dict(zip(form_event["event_name"], form_event["form_name"]))
     data.loc[data["form_name"].isna(), "form_name"] = data.loc[data["form_name"].isna(), "redcap_event_name"].map(form_dict)
     data = data.loc[data["form_name"].notna()].reset_index(drop=True)
-    df_map, new_dictionary, quality_report = get_df_map(data, new_dictionary)
+    df_map, new_dictionary, quality_report = get_df_map(data, new_dictionary, language=language)
     df_forms_dict = get_df_forms(data, new_dictionary)
 
     if country_mapping is None:

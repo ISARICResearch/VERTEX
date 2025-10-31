@@ -730,6 +730,7 @@ def get_modelling_data(
     fillna=True,
     drop_first=False,
     sep="___",
+    negative_values=["No"],
 ):
     df = data.copy()
 
@@ -763,7 +764,7 @@ def get_modelling_data(
         with pd.option_context("future.no_silent_downcasting", True):
             df[columns] = df[columns].fillna(False)
 
-    negative_values = ("no", "never smoked")
+    negative_values = (x.lower() for x in negative_values)
     negative_columns = [col for col in df.columns if col.split(sep)[-1].lower() in negative_values]
     if exclude_negatives:
         df.drop(columns=negative_columns, inplace=True)

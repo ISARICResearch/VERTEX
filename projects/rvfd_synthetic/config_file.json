@@ -1,0 +1,16 @@
+{
+	"project_name": "Rift Valley Fever Synthetic data",
+	"api_url": "https://ncov.medsci.ox.ac.uk/api/",
+	"api_key": "4D91636889AF34B796C73CB14184A226",
+	"language": "fr",
+	"vertex_dataframes_path": "vertex_patient_level_data/",
+	"map_layout_center_latitude": 15,
+	"map_layout_center_longitude": -17,
+	"map_layout_zoom": 5.0,
+	"save_public_outputs": false,
+	"public_path": "PUBLIC/",
+	"insight_panels_path": "insight_panels/",
+	"insight_panels": [
+			"test"
+	]
+}
