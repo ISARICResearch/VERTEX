@@ -137,7 +137,7 @@ def create_map(df_countries, map_layout_dict=None):
 def filter_df_map(df_map, sex_value, age_value, country_value, admdate_value, admdate_marks, outcome_value):
     df_map["filters_age"] = df_map["filters_age"].astype(float)
     admdate_min = pd.to_datetime(admdate_marks[str(admdate_value[0])]["label"])
-    admdate_max = pd.to_datetime(admdate_marks[str(admdate_value[1])]["label"])
+    admdate_max = pd.to_datetime(admdate_marks[str(admdate_value[1])]["label"]) + pd.DateOffset(months=1)
     df_map_filtered = df_map[
         (df_map["filters_sex"].isin(sex_value))
         & ((df_map["filters_age"] >= age_value[0]) | df_map["filters_age"].isna())
