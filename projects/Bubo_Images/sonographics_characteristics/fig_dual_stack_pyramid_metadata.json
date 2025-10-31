@@ -1,0 +1,21 @@
+{
+    "fig_id": "sonographics_characteristics/fig_dual_stack_pyramid",
+    "fig_name": "fig_dual_stack_pyramid",
+    "fig_arguments": {
+        "title": "Sonographic characteristics of confirmed cases on D1 and D11",
+        "ylabel": "Characteristics",
+        "base_color_map": {
+            "Present": "#02788E",
+            "Absent": "#7A03B7"
+        },
+        "suffix": "sonographic_characteristics",
+        "filepath": "",
+        "save_inputs": false,
+        "graph_id": null,
+        "graph_label": "Bubo Characteristics",
+        "graph_about": "Summary of sonographic characteristics detected in confirmed cases at D1 and D11"
+    },
+    "fig_data": [
+        "sonographics_characteristics/fig_dual_stack_pyramid_data___0.csv"
+    ]
+}

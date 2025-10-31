@@ -1,0 +1,33 @@
+side,y_axis,stack_group,value,left_side
+Day 1,Oval shaped,Present,6,TRUE
+Day 1,Blurred capsule,Present,4,TRUE
+Day 1,Distinct hilum,Present,4,TRUE
+Day 1,Homogeneous cortex,Present,5,TRUE
+Day 1,Necrosis,Present,1,TRUE
+Day 1,Hypervascularity,Present,2,TRUE
+Day 1,Perinodal reactivity,Present,4,TRUE
+Day 1,Coalescence,Present,1,TRUE
+Day 1,Oval shaped,Absent,3,TRUE
+Day 1,Blurred capsule,Absent,5,TRUE
+Day 1,Distinct hilum,Absent,5,TRUE
+Day 1,Homogeneous cortex,Absent,4,TRUE
+Day 1,Necrosis,Absent,8,TRUE
+Day 1,Hypervascularity,Absent,7,TRUE
+Day 1,Perinodal reactivity,Absent,5,TRUE
+Day 1,Coalescence,Absent,8,TRUE
+Day 11,Oval shaped,Present,6,FALSE
+Day 11,Blurred capsule,Present,4,FALSE
+Day 11,Distinct hilum,Present,5,FALSE
+Day 11,Homogeneous cortex,Present,6,FALSE
+Day 11,Necrosis,Present,0,FALSE
+Day 11,Hypervascularity,Present,2,FALSE
+Day 11,Perinodal reactivity,Present,5,FALSE
+Day 11,Coalescence,Present,1,FALSE
+Day 11,Oval shaped,Absent,3,FALSE
+Day 11,Blurred capsule,Absent,5,FALSE
+Day 11,Distinct hilum,Absent,4,FALSE
+Day 11,Homogeneous cortex,Absent,3,FALSE
+Day 11,Necrosis,Absent,9,FALSE
+Day 11,Hypervascularity,Absent,7,FALSE
+Day 11,Perinodal reactivity,Absent,4,FALSE
+Day 11,Coalescence,Absent,8,FALSE

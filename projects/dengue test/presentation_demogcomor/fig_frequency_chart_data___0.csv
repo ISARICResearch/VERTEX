@@ -1,0 +1,11 @@
+variable,proportion,label,short_label
+comor_chrkidney,0.9254859611231101,<b>Chronic kidney disease</b>,<b>Chronic kidney disease</b>
+comor_liverdisease,0.8880434782608696,<b>Liver disease</b>,<b>Liver disease</b>
+comor_diabetes,0.7938751472320377,<b>Diabetes mellitus</b>,<b>Diabetes mellitus</b>
+comor_malignantn,0.7160919540229885,<b>Malignant neoplasm</b>,<b>Malignant neoplasm</b>
+comor_chrcardiac,0.6087962962962963,<b>Chronic cardiac disease (not hypertension)</b>,<b>Chronic cardiac disease (not ...</b>
+comor_aids,0.6065959952885748,<b>HIV</b>,<b>HIV</b>
+comor_hypertensi,0.6047261009667024,<b>Hypertension</b>,<b>Hypertension</b>
+comor_malnutriti,0.602577873254565,<b>Malnutrition</b>,<b>Malnutrition</b>
+comor_dementia,0.5686695278969958,<b>Dementia</b>,<b>Dementia</b>
+comor_obesity,0.562955254942768,<b>Obesity</b>,<b>Obesity</b>

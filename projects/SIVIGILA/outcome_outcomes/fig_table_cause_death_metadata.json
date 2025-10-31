@@ -1,0 +1,18 @@
+{
+    "fig_id": "outcome_outcomes/fig_table_cause_death",
+    "fig_name": "fig_table",
+    "fig_arguments": {
+        "table_key": "",
+        "columnwidth": [0.6, 0.4],
+        "height": 500,
+        "suffix": "outcome_outcomes",
+        "filepath": "",
+        "save_inputs": false,
+        "graph_id": null,
+        "graph_label": "Mortality causes",
+        "graph_about": "Mortality causes"
+    },
+    "fig_data": [
+        "outcome_outcomes/fig_table_cause_death_data___0.csv"
+    ]
+}

@@ -1,0 +1,337 @@
+Cause of Death,Count
+COVID-19,630
+Pneumonia,342
+Tuberculosis,338
+Shock,237
+Acute respiratory failure,144
+other,84
+Dengue fever,79
+Unspecified acute lower respiratory infection,66
+"Respiratory failure, unspecified",55
+Respiratory arrest,51
+"Sepsis, unspecified organism",51
+"Tuberculosis of lung, without mention of bacteriological or histological confirmation",50
+Unspecified human immunodeficiency virus [HIV] disease,46
+Acute respiratory distress syndrome,36
+"Acute myocardial infarction, unspecified",28
+"Cardiac arrest, cause unspecified",27
+"Viral pneumonia, unspecified",26
+"Other pneumonia, unspecified organism",25
+Hypovolemic shock,24
+Cardiogenic shock,23
+"Respiratory tuberculosis unspecified, without mention of bacteriological or histological confirmation",22
+"Acute upper respiratory infection, unspecified",22
+"Tuberculosis of lung, confirmed by culture only",21
+Influenza due to other identified influenza virus with pneumonia,18
+Other bacterial meningitis,17
+Tuberculosis of other specified organs,16
+Tuberculous meningitis,15
+"Miliary tuberculosis, unspecified",15
+Other acute upper respiratory infections of multiple sites,14
+Respiratory tuberculosis,14
+Chronic obstructive pulmonary disease with acute lower respiratory infection,14
+HIV disease resulting in mycobacterial infection,14
+"Tuberculosis of lung, bacteriological and histological examination not done",11
+"Chronic obstructive pulmonary disease, unspecified",11
+Chronic obstructive pulmonary disease with (acute) exacerbation,10
+"Lobar pneumonia, unspecified organism",10
+"Tuberculosis of intestines, peritoneum and mesenteric glands",9
+Acute HIV infection syndrome,9
+"Tuberculosis of lung, bacteriologically and histologically negative",9
+"Tuberculosis of lung, confirmed histologically",9
+"Bronchopneumonia, unspecified organism",9
+HIV disease resulting in multiple infections,9
+Other and unspecified encephalopathy,7
+Acute miliary tuberculosis of multiple sites,7
+"Tuberculosis of nervous system, unspecified",7
+Malignant neoplasm of unspecified part of bronchus or lung,7
+Other respiratory tuberculosis,7
+Primary respiratory tuberculosis without mention of bacteriological or histological confirmation,6
+Cerebral edema,6
+"Other respiratory tuberculosis, without mention of bacteriological or histological confirmation",6
+"Bacterial meningitis, unspecified",6
+Other tuberculosis of nervous system,6
+"Chronic kidney disease, unspecified",5
+Parainfluenza virus pneumonia,5
+Other viral pneumonia,5
+"Hepatic failure, unspecified",5
+Pneumonia in viral diseases classified elsewhere,5
+"Acute miliary tuberculosis, unspecified",5
+HIV disease resulting in multiple diseases classified elsewhere,5
+"Meningitis, unspecified",5
+Other and unspecified T-cell lymphomas,5
+Carcinoma in situ of bronchus and lung,5
+Streptococcal meningitis,4
+Systemic inflammatory response syndrome (SIRS) of non-infectious origin,4
+Congestive heart failure,4
+"Bacterial meningoencephalitis and meningomyelitis, not elsewhere classified",4
+Dyspnea,4
+Pneumonia due to other specified infectious organisms,4
+Contact with and (suspected) exposure to tuberculosis,4
+Plasmodium vivax malaria with other complications,4
+Alcoholic cirrhosis of liver,4
+Meningococcal meningitis,4
+Plasmodium malariae malaria with other complications,4
+Sepsis due to Streptococcus pneumoniae,4
+Other lack of coordination,3
+Primary pulmonary hypertension,3
+"Peritonitis, unspecified",3
+"Urinary tract infection, site not specified",3
+Other specified cerebrovascular diseases,3
+Malignant neoplasm of breast of unspecified site,3
+Leptospirosis icterohemorrhagica,3
+"Gastrointestinal hemorrhage, unspecified",3
+Acute myeloblastic leukemia,3
+"Abdominal aortic aneurysm, ruptured",3
+"Nontraumatic intracerebral hemorrhage, unspecified",3
+"Neoplasm of uncertain behavior of trachea, bronchus and lung",3
+"Bradycardia, unspecified",3
+"Stomach, unspecified",3
+ST elevation (STEMI) myocardial infarction of other sites,3
+Respiratory syncytial virus pneumonia,2
+Acute bronchiolitis due to respiratory syncytial virus,2
+Dengue hemorrhagic fever,2
+Influenza due to unidentified influenza virus with other respiratory manifestations,2
+"Cryptococcosis, unspecified",2
+"Malignant neoplasm of upper lobe, bronchus or lung",2
+Antibody deficiency with near-normal immunoglobulins or with hyperimmunoglobulinemia,2
+Meningeal tuberculoma,2
+Other interstitial pulmonary diseases with fibrosis,2
+Hemoptysis,2
+Sequelae of protein-calorie malnutrition,2
+Pericardial effusion (noninflammatory),2
+Other classical Hodgkin lymphoma,2
+Cerebral cryptococcosis,2
+"Viral meningitis, unspecified",2
+Other current complications following acute myocardial infarction,2
+"Traumatic shock, sequela",2
+Acute tracheitis,2
+"Malignant neoplasm of lower lobe, bronchus or lung",2
+"Thrombocytopenia, unspecified",2
+Influenza due to unidentified influenza virus with pneumonia,2
+Meningitis due to other specified causes,2
+"Other disorders of electrolyte and fluid balance, not elsewhere classified",2
+HIV disease resulting in other bacterial infections,2
+Left ventricular failure,2
+"Chronic myeloid leukemia, BCR/ABL-positive",2
+"Viral infection, unspecified",2
+Other and unspecified cirrhosis of liver,2
+Chronic respiratory failure,2
+Pneumonia in bacterial diseases classified elsewhere,2
+"Plasmodium falciparum malaria, unspecified",2
+"Tuberculous pleurisy, without mention of bacteriological or histological confirmation",2
+Pneumococcal meningitis,2
+Acute bronchitis due to other specified organisms,2
+Instantaneous death,2
+"Sequelae of stroke, not specified as haemorrhage or infarction",2
+Pneumonia due to other streptococci,2
+"Heart disease, unspecified",2
+"Hemorrhage from respiratory passages, unspecified",2
+Tuberculosis of spine,2
+"Malignant neoplasm of pancreas, unspecified",2
+Calculus of bile duct with cholangitis,2
+Influenza due to other identified influenza virus with other respiratory manifestations,2
+Renovascular hypertension,2
+Other mycobacterial infections,2
+Malignant neoplasm of fundus of stomach,2
+Other iron deficiency anemias,2
+Systemic lupus erythematosus with organ or system involvement,2
+Acute lymphoblastic leukemia [ALL],2
+"Meningococcemia, unspecified",2
+Other miliary tuberculosis,2
+Plasmodium vivax malaria without complication,2
+Other specified chronic obstructive pulmonary disease,2
+Pneumonia due to Pseudomonas,2
+Old myocardial infarction,2
+Other specified sepsis,2
+Sequelae of cerebral infarction,2
+Secondary malignant neoplasm of lung,2
+HIV disease resulting in Pneumocystis carinii pneumonia,1
+"Acute pharyngitis, unspecified",1
+Unspecified chronic gastritis,1
+Other intraoperative and postprocedural complications and disorders of nervous system,1
+Influenza due to unidentified influenza virus with other manifestations,1
+Sickle-cell disease without crisis,1
+"Bladder disorder, unspecified",1
+"Immunodeficiency, unspecified",1
+"Non-Hodgkin lymphoma, unspecified",1
+Acute tonsillitis due to other specified organisms,1
+Acute nonspecific idiopathic pericarditis,1
+Other acute sinusitis,1
+"Chronic hepatitis, not elsewhere classified",1
+Encounter for issue of repeat prescription,1
+Benign neoplasm of mouth and pharynx,1
+Acute bronchitis due to rhinovirus,1
+Type 1 diabetes mellitus with kidney complications,1
+Other nontraumatic subarachnoid hemorrhage,1
+Tuberculous pleurisy,1
+Liver cell carcinoma,1
+"Chronic or unspecified peptic ulcer, site unspecified, with both hemorrhage and perforation",1
+Esophageal varices,1
+"Panniculitis, unspecified",1
+"Hypostatic pneumonia, unspecified organism",1
+Typhoid fever,1
+Acute Chagas' disease with heart involvement,1
+Liver disorders in infectious and parasitic diseases classified elsewhere,1
+Chronic lymphocytic leukemia of B-cell type,1
+Cardiovascular disorders in other infectious and parasitic diseases classified elsewhere,1
+Toxoplasmosis with other organ involvement,1
+Atherosclerotic heart disease of native coronary artery,1
+Sequelae of tuberculosis of other organs,1
+"Hypertensive chronic kidney disease with stage 1 through stage 4 chronic kidney disease, or unspecified chronic kidney disease",1
+Malignant neoplasm of pleura,1
+"Encephalocele, unspecified",1
+"Acute tonsillitis, unspecified",1
+"Tuberculosis of larynx, trachea and bronchus",1
+"Hereditary nephropathy, not elsewhere classified with other morphologic lesions",1
+Non-ST elevation (NSTEMI) myocardial infarction,1
+Cocaine abuse,1
+"Alcoholic liver disease, unspecified",1
+HIV disease resulting in cytomegaloviral disease,1
+"Histoplasmosis capsulati, unspecified",1
+"Infectious gastroenteritis and colitis, unspecified",1
+Unspecified severe protein-calorie malnutrition,1
+Embolism and thrombosis of unspecified vein,1
+"Osteoarthritis, unspecified site",1
+"Streptococcal sepsis, unspecified",1
+Sequelae of viral hepatitis,1
+Other specified congenital malformations of kidney,1
+"Meningococcal infection, unspecified",1
+Abscess of liver,1
+"Nontraumatic intracranial hemorrhage, unspecified",1
+"Malignant neoplasm of intestinal tract, part unspecified",1
+Acute gastritis,1
+Varicella with other complications,1
+"Varicella encephalitis, myelitis and encephalomyelitis",1
+Chronic cholecystitis,1
+Acute hepatitis B without delta-agent and without hepatic coma,1
+Fluid overload,1
+Acute hepatitis B without delta-agent with hepatic coma,1
+Acute delta-(super) infection of hepatitis B carrier,1
+Neoplasm of uncertain behavior of retroperitoneum,1
+Carrier of viral hepatitis,1
+Hemophilus meningitis,1
+Other epilepsy and recurrent seizures,1
+Other specified bacterial diseases,1
+Acute meningococcemia,1
+Malignant neoplasm of cerebral meninges,1
+Other transient cerebral ischemic attacks and related syndromes,1
+Hepatitis A with hepatic coma,1
+Other viral meningitis,1
+Other forms of chronic ischemic heart disease,1
+Acute serous otitis media,1
+Burkitt lymphoma,1
+Secondary biliary cirrhosis,1
+"Other specified malignant neoplasms of lymphoid, haematopoietic and related tissue",1
+Pulmonary mycobacterial infection,1
+"Neoplasm of uncertain behavior of liver, gallbladder and bile ducts",1
+HIV disease resulting in other specified conditions,1
+Other ill-defined sites,1
+Aneurysm of unspecified site,1
+Malignant neoplasm of head of pancreas,1
+"Disorder resulting from impaired renal tubular function, unspecified",1
+"Malignant neoplasm of bladder, unspecified",1
+Traumatic subarachnoid haemorrhage,1
+Unattended death,1
+Ischemic cardiomyopathy,1
+inj_non_disaster,1
+Other status epilepticus,1
+"Rheumatoid arthritis, unspecified",1
+Salmonella sepsis,1
+"Leptospirosis, unspecified",1
+Hemorrhage from other sites in respiratory passages,1
+Diffuse brain injury,1
+Pulmonary embolism without acute cor pulmonale,1
+Carcinoma in situ of colon,1
+Re-entry ventricular arrhythmia,1
+Other nonrheumatic pulmonary valve disorders,1
+"Malignant neoplasm of pharynx, unspecified",1
+Other specified interstitial pulmonary diseases,1
+"Malignant neoplasm of mediastinum, part unspecified",1
+Other acute kidney failure,1
+"Haemorrhage and haematoma complicating a procedure, not elsewhere classified",1
+Malignant neoplasm of medulla of adrenal gland,1
+Other autoimmune hemolytic anemias,1
+Need for assistance at home and no other household member able to render care,1
+Other viral infections of unspecified site,1
+"Respiratory disorder, unspecified",1
+Idiopathic aplastic anemia,1
+Portal hypertension,1
+"Heart failure, unspecified",1
+Neoplasm of uncertain behavior of thyroid gland,1
+"Fever, unspecified",1
+Hypertensive chronic kidney disease with stage 5 chronic kidney disease or end stage renal disease,1
+Toxoplasma meningoencephalitis,1
+Acute miliary tuberculosis of a single specified site,1
+Malignant neoplasm of abdomen,1
+Other specified coagulation defects,1
+"Non-pressure chronic ulcer of skin, not elsewhere classified",1
+"Cerebrovascular disease, unspecified",1
+"Acute pericarditis, unspecified",1
+Subsequent ST elevation (STEMI) myocardial infarction of unspecified site,1
+Pneumonia due to Klebsiella pneumoniae,1
+Other bacterial sepsis of newborn,1
+"Interstitial pulmonary disease, unspecified",1
+Other pulmonary aspergillosis,1
+"Assault by unspecified firearm discharge, sequela",1
+"Malignant neoplasm of brain, unspecified",1
+Other lymphoid leukaemia,1
+"Malignant neoplasm of penis, unspecified",1
+Tuberculosis of bones and joints,1
+Hemothorax,1
+"Malignant neoplasm of tongue, unspecified",1
+Nodular sclerosis classical Hodgkin lymphoma,1
+Other specified diseases of liver,1
+Open wound of unspecified part of neck,1
+Carcinoma in situ of vulva,1
+"Person injured in unspecified motor-vehicle accident, traffic, sequela",1
+"Malignant neoplasm of larynx, unspecified",1
+Benign intracranial hypertension,1
+Human immunodeficiency virus [HIV] counseling,1
+Unspecified B-cell lymphoma,1
+"Leukemia, unspecified",1
+Respiratory disorders in diseases classified elsewhere,1
+Type 1 diabetes mellitus with other specified complications,1
+"Malignant neoplasm of bone and articular cartilage, unspecified",1
+Assault by large calibre rifle discharge,1
+"Malignant neoplasm of oropharynx, unspecified",1
+Hypertensive heart disease with heart failure,1
+Contact with and (suspected) exposure to human immunodeficiency virus [HIV],1
+Other impaction of intestine,1
+Acute coronary thrombosis not resulting in myocardial infarction,1
+Toxic shock syndrome,1
+Sequelae of respiratory and unspecified tuberculosis,1
+Other general symptoms and signs,1
+Abnormal plasma viscosity,1
+inj_suicide_other,1
+Carcinoma in situ of prostate,1
+Other myeloid leukaemia,1
+"Sudden cardiac death, so described",1
+"Cardiomyopathy, unspecified",1
+Sepsis due to other Gram-negative organisms,1
+Malignant neoplasm of cardia,1
+Meningitis in bacterial diseases classified elsewhere,1
+HIV disease resulting in other viral infections,1
+Air conditioner and humidifier lung,1
+Malignant neoplasm of spinal cord,1
+Pulmonary actinomycosis,1
+Other vascular syndromes of brain in cerebrovascular diseases,1
+Pneumonitis due to inhalation of other solids and liquids,1
+Observation for suspected tuberculosis,1
+"Cardiac arrhythmia, unspecified",1
+"Carcinoma in situ of respiratory system, unspecified",1
+"Anoxic brain damage, not elsewhere classified",1
+Multiple myeloma,1
+"Thoracic aortic aneurysm, without rupture",1
+Lymphosarcoma,1
+Other generalized epilepsy and epileptic syndromes,1
+Hypersensitivity pneumonitis due to unspecified organic dust,1
+"Acute kidney failure, unspecified",1
+Fistula of intestine,1
+ST elevation (STEMI) myocardial infarction of unspecified site,1
+HIV disease resulting in Burkitt's lymphoma,1
+Nontraumatic intracerebral hemorrhage in brain stem,1
+Neoplasm of uncertain behavior of pleura,1
+Necrosis of artery,1
+Respiratory conditions due to other specified external agents,1
+"Other acute and subacute respiratory conditions due to chemicals, gases, fumes and vapors",1

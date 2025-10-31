@@ -1,0 +1,17 @@
+{
+    "fig_id": "clinical_presentation/fig_table_OtherCharacteristics",
+    "fig_name": "fig_table",
+    "fig_arguments": {
+        "table_key": "<b>KEY</b><br>(*) Count (%) | N<br>(+) Median (IQR) | N",
+        "columnwidth": [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+        "suffix": "clinical_presentation",
+        "filepath": "",
+        "save_inputs": false,
+        "graph_id": "fig_table_OtherCharacteristics",
+        "graph_label": "Clinical Characteristics",
+        "graph_about": ""
+    },
+    "fig_data": [
+        "clinical_presentation/fig_table_OtherCharacteristics_data___0.csv"
+    ]
+}

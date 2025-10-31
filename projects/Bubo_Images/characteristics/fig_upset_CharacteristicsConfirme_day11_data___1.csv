@@ -1,0 +1,8 @@
+index,count,label
+"('unilateral', 'distinct hilum', 'homogenous cortex', 'oval shape', 'distinct capsule')",3,"('unilateral', 'distinct hilum', 'homogenous cortex', 'oval shape', 'distinct capsule')"
+"('unilateral', 'distinct hilum', 'homogenous cortex', 'peri-nodal reaction', 'oval shape', 'distinct capsule')",1,"('unilateral', 'distinct hilum', 'homogenous cortex', 'peri-nodal reaction', 'oval shape', 'distinct capsule')"
+"('unilateral', 'homogenous cortex', 'hypervascularity', 'peri-nodal reaction', 'oval shape', 'blurred capsule')",1,"('unilateral', 'homogenous cortex', 'hypervascularity', 'peri-nodal reaction', 'oval shape', 'blurred capsule')"
+"('unilateral', 'distinct hilum', 'homogenous cortex', 'round shape', 'distinct capsule')",1,"('unilateral', 'distinct hilum', 'homogenous cortex', 'round shape', 'distinct capsule')"
+"('unilateral', 'peri-nodal reaction', 'coalescence', 'round shape', 'blurred capsule')",1,"('unilateral', 'peri-nodal reaction', 'coalescence', 'round shape', 'blurred capsule')"
+"('unilateral', 'hypervascularity', 'peri-nodal reaction', 'round shape', 'blurred capsule')",1,"('unilateral', 'hypervascularity', 'peri-nodal reaction', 'round shape', 'blurred capsule')"
+"('unilateral', 'peri-nodal reaction', 'oval shape', 'blurred capsule')",1,"('unilateral', 'peri-nodal reaction', 'oval shape', 'blurred capsule')"

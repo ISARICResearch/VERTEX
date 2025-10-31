@@ -1,0 +1,17 @@
+{
+    "fig_id": "sonographics_characteristics/fig_table_SonographicCharacteristics",
+    "fig_name": "fig_table",
+    "fig_arguments": {
+        "table_key": "<b>KEY</b><br>(*) Count (%) | N<br>(+) Median (IQR) | N",
+        "columnwidth": [0.16, 0.14, 0.14, 0.14, 0.14, 0.14, 0.14],
+        "suffix": "sonographic_characteristics",
+        "filepath": "",
+        "save_inputs": false,
+        "graph_id": "fig_table_SonographicCharacteristics",
+        "graph_label": "Sonographic Characteristics",
+        "graph_about": ""
+    },
+    "fig_data": [
+        "sonographics_characteristics/fig_table_SonographicCharacteristics_data___0.csv"
+    ]
+}

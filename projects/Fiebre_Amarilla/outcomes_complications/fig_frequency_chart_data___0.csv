@@ -1,0 +1,11 @@
+variable,proportion,label,short_label
+compl_acutehepat,0.9210526315789473,<b>Acute hepatitis</b>,<b>Acute hepatitis</b>
+compl_hepaticenc,0.6842105263157895,<b> Hepatic encephalopathy (any grade)</b>,<b> Hepatic encephalopathy (any grade)</b>
+compl_severeliver,0.6052631578947368,<b>Severe liver disease (new onset)</b>,<b>Severe liver disease (new onset)</b>
+compl_coagulatio,0.5675675675675675,<b>Coagulation disorder / DIC</b>,<b>Coagulation disorder / DIC</b>
+compl_sevorgimp,0.45454545454545453,<b>Severe organ dysfunction</b>,<b>Severe organ dysfunction</b>
+compl_acuterenal,0.4166666666666667,<b>Acute renal injury / acute renal failure</b>,<b>Acute renal injury / acute renal failure</b>
+compl_ards,0.3783783783783784,<b>Acute Respiratory Distress Syndrome (ARDS)</b>,<b>Acute Respiratory Distress Syndrome ...</b>
+compl_sepsis,0.35135135135135137,<b>Sepsis</b>,<b>Sepsis</b>
+compl_shock,0.35135135135135137,<b>Shock </b>,<b>Shock </b>
+compl_cardiarrest,0.32432432432432434,<b>Cardiac arrest</b>,<b>Cardiac arrest</b>

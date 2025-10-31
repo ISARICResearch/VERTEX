@@ -36,7 +36,7 @@ def define_shell_layout(init_project_path, initial_body=None):
     )
 
 
-def define_inner_layout(fig, buttons, filter_options, map_layout_dict, project_name=None):
+def define_inner_layout(fig, buttons, map_layout_dict, filter_options=None, project_name=None):
     return html.Div(
         [
             dcc.Store(id="button", data={"item": "", "label": "", "suffix": ""}),
@@ -44,7 +44,7 @@ def define_inner_layout(fig, buttons, filter_options, map_layout_dict, project_n
             # Graph WITHOUT dcc.Loading → Plotly shows its built-in loading overlay instead of flashing
             dcc.Graph(id="world-map", figure=fig, style={"height": "92vh", "margin": "0px"}),
             # Side menu
-            define_menu(buttons, filter_options, project_name=project_name),
+            define_menu(buttons, filter_options=filter_options, project_name=project_name),
             html.Div(id="trigger-on-load", style={"display": "none"}),
         ]
     )

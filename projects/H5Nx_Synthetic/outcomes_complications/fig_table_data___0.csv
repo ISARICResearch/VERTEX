@@ -1,0 +1,12 @@
+Variable,All,Discharged,Death,Censored
+<b>Totals</b>,1000,539,88,373
+<b><i>COMPLICATIONS</i></b>,,,,
+<b>Severe liver disease (new onset)</b> (*),175 (17.5) | 1000,94 (17.4) | 539,28 (31.8) | 88,53 (14.2) | 373
+<b>Acute renal injury / acute renal failure</b> (*),165 (16.5) | 1000,76 (14.1) | 539,30 (34.1) | 88,59 (15.8) | 373
+<b>Acute Respiratory Distress Syndrome (ARDS)</b> (*),155 (15.5) | 1000,67 (12.4) | 539,35 (39.8) | 88,53 (14.2) | 373
+<b><i>OUTCOME</i></b>,,,,
+<b>Outcome</b> (*),,,,
+   ↳ Discharged alive,539 (53.9) | 1000,539 (100.0) | 539,0 (0.0) | 88,0 (0.0) | 373
+   ↳ Still hospitalised,373 (37.3) | 1000,0 (0.0) | 539,0 (0.0) | 88,373 (100.0) | 373
+   ↳ Death,88 (8.8) | 1000,0 (0.0) | 539,88 (100.0) | 88,0 (0.0) | 373
+<b>Length of stay</b> (+),6.0 (4.0-8.0) | 1000,6.0 (4.0-7.0) | 539,8.0 (5.8-10.0) | 88,6.0 (4.0-8.0) | 373

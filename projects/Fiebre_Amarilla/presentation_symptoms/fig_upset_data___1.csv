@@ -1,0 +1,13 @@
+index,label,count
+"('adsym_feverplus', 'adsym_fatigue', 'adsym_arthralgia', 'adsym_myalgia')","('<b>Fever / chills / rigors (onset to admission)</b>', '<b>Fatigue / malaise / lethargy (onset to admission)</b>', '<b>Joint pain / arthralgia (onset to admission)</b>', '<b>Muscle aches / myalgia (onset to admission)</b>')",11
+"('adsym_feverplus', 'adsym_fatigue', 'adsym_headache')","('<b>Fever / chills / rigors (onset to admission)</b>', '<b>Fatigue / malaise / lethargy (onset to admission)</b>', '<b>Headache (onset to admission)</b>')",5
+"('adsym_feverplus', 'adsym_fatigue')","('<b>Fever / chills / rigors (onset to admission)</b>', '<b>Fatigue / malaise / lethargy (onset to admission)</b>')",5
+"('adsym_feverplus', 'adsym_arthralgia', 'adsym_myalgia', 'adsym_headache')","('<b>Fever / chills / rigors (onset to admission)</b>', '<b>Joint pain / arthralgia (onset to admission)</b>', '<b>Muscle aches / myalgia (onset to admission)</b>', '<b>Headache (onset to admission)</b>')",5
+"('adsym_feverplus', 'adsym_fatigue', 'adsym_arthralgia', 'adsym_myalgia', 'adsym_headache')","('<b>Fever / chills / rigors (onset to admission)</b>', '<b>Fatigue / malaise / lethargy (onset to admission)</b>', '<b>Joint pain / arthralgia (onset to admission)</b>', '<b>Muscle aches / myalgia (onset to admission)</b>', '<b>Headache (onset to admission)</b>')",5
+"('adsym_feverplus', 'adsym_headache')","('<b>Fever / chills / rigors (onset to admission)</b>', '<b>Headache (onset to admission)</b>')",2
+"('adsym_feverplus', 'adsym_fatigue', 'adsym_arthralgia')","('<b>Fever / chills / rigors (onset to admission)</b>', '<b>Fatigue / malaise / lethargy (onset to admission)</b>', '<b>Joint pain / arthralgia (onset to admission)</b>')",1
+"('adsym_feverplus', 'adsym_fatigue', 'adsym_myalgia', 'adsym_headache')","('<b>Fever / chills / rigors (onset to admission)</b>', '<b>Fatigue / malaise / lethargy (onset to admission)</b>', '<b>Muscle aches / myalgia (onset to admission)</b>', '<b>Headache (onset to admission)</b>')",1
+"('adsym_feverplus', 'adsym_arthralgia', 'adsym_headache')","('<b>Fever / chills / rigors (onset to admission)</b>', '<b>Joint pain / arthralgia (onset to admission)</b>', '<b>Headache (onset to admission)</b>')",1
+"('adsym_feverplus', 'adsym_arthralgia', 'adsym_myalgia')","('<b>Fever / chills / rigors (onset to admission)</b>', '<b>Joint pain / arthralgia (onset to admission)</b>', '<b>Muscle aches / myalgia (onset to admission)</b>')",1
+"('adsym_feverplus',)","('<b>Fever / chills / rigors (onset to admission)</b>',)",1
+"('adsym_fatigue', 'adsym_headache')","('<b>Fatigue / malaise / lethargy (onset to admission)</b>', '<b>Headache (onset to admission)</b>')",1

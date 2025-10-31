@@ -1,0 +1,31 @@
+Variable,All,Female,Male
+<b>Totals</b>,39,6,33
+<b><i>DEMOGRAPHICS</i></b>,,,
+<b>Age</b> (+),45.0 (37.0-62.5) | 39,46.5 (42.8-51.0) | 6,44.0 (37.0-63.0) | 33
+<b>Height </b> (+),168.0 (162.0-170.0) | 13,155.5 (155.2-155.8) | 2,168.0 (166.5-172.5) | 11
+<b>Weight </b> (+),70.0 (64.0-70.0) | 29,70.0 (70.0-78.0) | 5,70.0 (64.0-70.0) | 24
+<b>Primary location of occupation</b> (*),,,
+   ↳ Home-working or unemployed, 3 (10.7) | 28,3 (60.0) | 5, 0 ( 0.0) | 23
+   ↳ Indoors-office/health/education/hospitality/business/homes, 4 (14.3) | 28,2 (40.0) | 5, 2 ( 8.7) | 23
+"   ↳ Outdoors-animal contact (vet, animal farmer, abattoir worker)", 1 ( 3.6) | 28,0 ( 0.0) | 5, 1 ( 4.3) | 23
+   ↳ Outdoors-agriculture/forestry/fisheries,19 (67.9) | 28,0 ( 0.0) | 5,19 (82.6) | 23
+   ↳ Other, 1 ( 3.6) | 28,0 ( 0.0) | 5, 1 ( 4.3) | 23
+<b>Patient's city of residence</b> (*),,,
+   ↳ Same as health care facility, 1 ( 2.6) | 39,0 ( 0.0) | 6, 1 ( 3.0) | 33
+   ↳ Different from health care facility,38 (97.4) | 39,6 (100.) | 6,32 (97.0) | 33
+<b><i>CO-MORBIDITIES AND RISK FACTORS</i></b>,,,
+<b>Chronic cardiac disease (not hypertension)</b> (*), 1 ( 2.6) | 39,0 ( 0.0) | 6, 1 ( 3.0) | 33
+<b>Hypertension (physician diagnosed)</b> (*), 5 (12.8) | 39,1 (16.7) | 6, 4 (12.1) | 33
+<b>Chronic pulmonary disease (not asthma)</b> (*), 3 ( 7.7) | 39,0 ( 0.0) | 6, 3 ( 9.1) | 33
+<b>Chronic kidney disease</b> (*), 3 ( 7.7) | 39,0 ( 0.0) | 6, 3 ( 9.1) | 33
+<b>Obesity</b> (*), 1 ( 2.6) | 39,1 (16.7) | 6, 0 ( 0.0) | 33
+<b>Chronic hematologic disease</b> (*), 1 ( 2.6) | 39,0 ( 0.0) | 6, 1 ( 3.0) | 33
+<b>Diabetes mellitus</b> (*), 4 (10.3) | 39,1 (16.7) | 6, 3 ( 9.1) | 33
+<b>Type 2 diabetes mellitus</b> (*), 4 (100.) |  4,1 (100.) | 1, 3 (100.) |  3
+<b>HbA1C result within last 6 months </b> (+),6.8 (6.6-7.0) |  3,7.2 (7.2-7.2) | 1,6.6 (6.6-6.7) |  2
+<b>Malnutrition</b> (*), 1 ( 2.6) | 39,0 ( 0.0) | 6, 1 ( 3.0) | 33
+<b>Ever smoked</b> (*), 5 (13.5) | 37,0 ( 0.0) | 6, 5 (16.1) | 31
+<b> Current smoker</b> (*), 3 (60.0) |  5,N/A, 3 (60.0) |  5
+<b> Former smoker</b> (*), 2 (50.0) |  4,N/A, 2 (50.0) |  4
+<b><i>VACCINATION</i></b>,,,
+<b>Yellow fever vaccine</b> (*), 6 (15.4) | 39,2 (33.3) | 6, 4 (12.1) | 33

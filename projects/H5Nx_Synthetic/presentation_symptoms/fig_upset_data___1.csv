@@ -1,0 +1,16 @@
+index,label,count
+"('adsym_fever', 'sympt_fever', 'sympt_headache', 'adsym_headache')","('<b>Fever (onset to admission)</b>', '<b>Fever (first 24hr after admission)</b>', '<b>Headache (first 24hr after admission)</b>', '<b>Headache (onset to admission)</b>')",270
+"('adsym_fever', 'sympt_fever', 'sympt_headache')","('<b>Fever (onset to admission)</b>', '<b>Fever (first 24hr after admission)</b>', '<b>Headache (first 24hr after admission)</b>')",201
+"('adsym_fever', 'sympt_fever')","('<b>Fever (onset to admission)</b>', '<b>Fever (first 24hr after admission)</b>')",108
+"('sympt_headache', 'adsym_headache')","('<b>Headache (first 24hr after admission)</b>', '<b>Headache (onset to admission)</b>')",77
+"('adsym_fever',)","('<b>Fever (onset to admission)</b>',)",60
+"('sympt_fever', 'sympt_headache', 'adsym_headache')","('<b>Fever (first 24hr after admission)</b>', '<b>Headache (first 24hr after admission)</b>', '<b>Headache (onset to admission)</b>')",40
+"('adsym_fever', 'sympt_fever', 'adsym_headache')","('<b>Fever (onset to admission)</b>', '<b>Fever (first 24hr after admission)</b>', '<b>Headache (onset to admission)</b>')",37
+"('adsym_headache',)","('<b>Headache (onset to admission)</b>',)",35
+"('sympt_fever',)","('<b>Fever (first 24hr after admission)</b>',)",27
+"('sympt_fever', 'sympt_headache')","('<b>Fever (first 24hr after admission)</b>', '<b>Headache (first 24hr after admission)</b>')",21
+"('sympt_headache',)","('<b>Headache (first 24hr after admission)</b>',)",20
+"('adsym_fever', 'sympt_headache')","('<b>Fever (onset to admission)</b>', '<b>Headache (first 24hr after admission)</b>')",18
+"('adsym_fever', 'adsym_headache')","('<b>Fever (onset to admission)</b>', '<b>Headache (onset to admission)</b>')",15
+"('sympt_fever', 'adsym_headache')","('<b>Fever (first 24hr after admission)</b>', '<b>Headache (onset to admission)</b>')",10
+"('adsym_fever', 'sympt_headache', 'adsym_headache')","('<b>Fever (onset to admission)</b>', '<b>Headache (first 24hr after admission)</b>', '<b>Headache (onset to admission)</b>')",5

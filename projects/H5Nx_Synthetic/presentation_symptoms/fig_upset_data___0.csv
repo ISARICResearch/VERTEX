@@ -1,0 +1,5 @@
+index,count,short_label,label
+adsym_fever,714,<b>Fever (onset to admission)</b>,<b>Fever (onset to admission)</b>
+sympt_fever,714,<b>Fever (first 24hr after admission)</b>,<b>Fever (first 24hr after admission)</b>
+sympt_headache,652,<b>Headache (first 24hr after admission)</b>,<b>Headache (first 24hr after admission)</b>
+adsym_headache,489,<b>Headache (onset to admission)</b>,<b>Headache (onset to admission)</b>

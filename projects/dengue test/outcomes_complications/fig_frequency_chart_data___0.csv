@@ -1,0 +1,11 @@
+variable,proportion,label,short_label
+compl_shock,0.9590958019375673,<b>Shock </b>,<b>Shock </b>
+compl_meningitis,0.9018475750577367,<b>Meningitis</b>,<b>Meningitis</b>
+compl_acuterenal,0.8990498812351544,<b>Acute renal injury / acute renal failure</b>,<b>Acute renal injury / acute renal failure</b>
+compl_cardiarrest,0.8531889290012034,<b>Cardiac arrest</b>,<b>Cardiac arrest</b>
+compl_seizure,0.816953316953317,<b>Seizure</b>,<b>Seizure</b>
+compl_acutehepat,0.8137128072445019,<b>Acute hepatitis</b>,<b>Acute hepatitis</b>
+compl_focalneuro,0.7484008528784648,<b>Focal neurological signs</b>,<b>Focal neurological signs</b>
+compl_ascite,0.6541755888650964,<b>Ascites</b>,<b>Ascites</b>
+compl_sepsis,0.5756906077348066,<b>Sepsis</b>,<b>Sepsis</b>
+compl_encephalitis,0.526258205689278,<b>Encephalitis</b>,<b>Encephalitis</b>

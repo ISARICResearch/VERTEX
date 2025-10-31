@@ -1,0 +1,11 @@
+variable,proportion,label,short_label
+adsym_feverplus,0.9743589743589743,<b>Fever / chills / rigors (onset to admission)</b>,<b>Fever / chills / rigors (onset to ...</b>
+adsym_fatigue,0.7435897435897436,<b>Fatigue / malaise / lethargy (onset to admission)</b>,<b>Fatigue / malaise / lethargy (onset to ...</b>
+adsym_arthralgia,0.6153846153846154,<b>Joint pain / arthralgia (onset to admission)</b>,<b>Joint pain / arthralgia (onset to ...</b>
+adsym_myalgia,0.5897435897435898,<b>Muscle aches / myalgia (onset to admission)</b>,<b>Muscle aches / myalgia (onset to ...</b>
+sympt_jaund,0.5277777777777778,<b>Jaundice (first 24hr after admission)</b>,<b>Jaundice (first 24hr after admission)</b>
+adsym_headache,0.5128205128205128,<b>Headache (onset to admission)</b>,<b>Headache (onset to admission)</b>
+adsym_abdpain,0.48717948717948717,<b>Abdominal pain (onset to admission)</b>,<b>Abdominal pain (onset to admission)</b>
+adsym_jaund,0.46153846153846156,<b>Jaundice (onset to admission)</b>,<b>Jaundice (onset to admission)</b>
+adsym_restlessne,0.42105263157894735,<b>Restlessness (onset to admission)</b>,<b>Restlessness (onset to admission)</b>
+adsym_vomit,0.41025641025641024,<b>Vomiting (onset to admission)</b>,<b>Vomiting (onset to admission)</b>

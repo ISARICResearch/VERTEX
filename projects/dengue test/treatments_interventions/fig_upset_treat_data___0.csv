@@ -1,0 +1,6 @@
+index,count,short_label,label
+treat_dailydata,558,<b>Enter Treatments & Interventions data ...</b>,<b>Enter Treatments & Interventions data for this date?</b>
+treat_plasmapher,488,<b>Plasmapheresis / plasma exchange</b>,<b>Plasmapheresis / plasma exchange</b>
+treat_fluid_oral,484,<b>Oral rehydration</b>,<b>Oral rehydration</b>
+treat_pao2yn___Not done,471,"<b>PaO2 sample type</b>, Not done","<b>PaO2 sample type</b>, Not done"
+treat_fluid,412,<b>Any fluids prescribed</b>,<b>Any fluids prescribed</b>

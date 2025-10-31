@@ -1,0 +1,16 @@
+{
+    "fig_id": "Tabela2/fig_table",
+    "fig_name": "fig_table",
+    "fig_arguments": {
+        "table_key": "",
+        "suffix": "Tabela2",
+        "filepath": "",
+        "save_inputs": false,
+        "graph_id": null,
+        "graph_label": "Table 2",
+        "graph_about": "Univariable regression and Multivariable logistic regression to analyse the influence of risk factors of dengue complication."
+    },
+    "fig_data": [
+        "Tabela2/fig_table_data___0.csv"
+    ]
+}

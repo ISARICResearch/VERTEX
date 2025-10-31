@@ -1,0 +1,27 @@
+{
+    "fig_id": "modelling_riskfactors/fig_forest_plot",
+    "fig_name": "fig_forest_plot",
+    "fig_arguments": {
+        "title": "Forest Plot for anytime in-hospital mortality*",
+        "xlabel": "Odds Ratio (95% CI)",
+        "ylabel": "",
+        "reorder": true,
+        "labels": [
+            "Variable",
+            "OddsRatio (multi)",
+            "LowerCI (multi)",
+            "UpperCI (multi)",
+            "p-value (multi)"
+        ],
+        "height": 600,
+        "suffix": "modelling_riskfactors",
+        "filepath": "",
+        "save_inputs": false,
+        "graph_id": null,
+        "graph_label": "Forest Plot for anytime in-hospital mortality*",
+        "graph_about": "..."
+    },
+    "fig_data": [
+        "modelling_riskfactors/fig_forest_plot_data___0.csv"
+    ]
+}

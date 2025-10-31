@@ -1,0 +1,17 @@
+{
+    "fig_id": "characteristics/fig_upset_CharacteristicsNonCase_day11",
+    "fig_name": "fig_upset",
+    "fig_arguments": {
+        "title": "Intersection sizes of bubo characteristics",
+        "suffix": "characteristics",
+        "filepath": "",
+        "save_inputs": false,
+        "graph_id": "fig_upset_CharacteristicsNonCase_day11",
+        "graph_label": "Day11: Non cases",
+        "graph_about": "Upset plot of sonographic characteristics among non-cases on D11"
+    },
+    "fig_data": [
+        "characteristics/fig_upset_CharacteristicsNonCase_day11_data___0.csv",
+        "characteristics/fig_upset_CharacteristicsNonCase_day11_data___1.csv"
+    ]
+}

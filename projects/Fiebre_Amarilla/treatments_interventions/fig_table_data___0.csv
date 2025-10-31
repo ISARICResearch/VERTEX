@@ -1,0 +1,43 @@
+Variable,All,Discharged,Death,Censored
+<b>Totals</b>,39,24,13,2
+<b><i>INTERVENTIONS</i></b>,,,,
+<b>Parenteral / IV fluid</b> (*),35 (97.2) | 36,22 (95.7) | 23,13 (100.) | 13,N/A
+<b> Select all parenteral / IV fluid that were administered</b>,,,,
+   ↳ Crystalloid,34 (94.4) | 36,22 (95.7) | 23,12 (92.3) | 13,N/A
+   ↳ Albumin,22 (61.1) | 36, 9 (39.1) | 23,13 (100.) | 13,N/A
+   ↳ Other,18 (50.0) | 36, 8 (34.8) | 23,10 (76.9) | 13,N/A
+<b>Reason(s) for IV fluid (check all that apply)</b>,,,,
+   ↳ Shock,11 (30.6) | 36, 2 ( 8.7) | 23, 9 (69.2) | 13,N/A
+   ↳ High/rising haematocrit, 3 ( 8.3) | 36, 1 ( 4.3) | 23, 2 (15.4) | 13,N/A
+   ↳ Persistent vomiting, 2 ( 5.6) | 36, 1 ( 4.3) | 23, 1 ( 7.7) | 13,N/A
+   ↳ Other,23 (63.9) | 36,15 (65.2) | 23, 8 (61.5) | 13,N/A
+<b>Blood product transfusion</b> (*),13 (38.2) | 34, 3 (14.3) | 21,10 (76.9) | 13,N/A
+<b> Select all blood product transfusion that were administered</b>,,,,
+   ↳ Platelets, 5 (14.7) | 34, 0 ( 0.0) | 21, 5 (38.5) | 13,N/A
+   ↳ Cryoprecipitate, 2 ( 5.9) | 34, 0 ( 0.0) | 21, 2 (15.4) | 13,N/A
+   ↳ Whole blood/packed RBC, 3 ( 8.8) | 34, 0 ( 0.0) | 21, 3 (23.1) | 13,N/A
+   ↳ Frozen fresh plasma,10 (29.4) | 34, 2 ( 9.5) | 21, 8 (61.5) | 13,N/A
+   ↳ Fibrinogen concentrate, 3 ( 8.8) | 34, 1 ( 4.8) | 21, 2 (15.4) | 13,N/A
+"<b>Platelets, total number of units</b> (+)",18.0 (11.0-19.0) |  5,N/A,18.0 (11.0-19.0) |  5,N/A
+"<b>Cryoprecipitate, total number of units</b> (+)",7.5 (6.8-8.2) |  2,N/A,7.5 (6.8-8.2) |  2,N/A
+"<b>Whole blood/packed RBC, total number of units</b> (+)",5.0 (3.5-6.5) |  3,N/A,5.0 (3.5-6.5) |  3,N/A
+"<b>Fresh frozen plasma (FFP), total number of units</b> (+)",6.0 (5.2-7.5) | 10,5.0 (4.5-5.5) |  2,6.0 (5.8-9.0) |  8,N/A
+"<b>Fibrinogen concentrate, total number of units</b> (+)",4.0 (2.5-5.5) |  2,N/A,4.0 (2.5-5.5) |  2,N/A
+<b>Diuretics</b> (*), 8 (22.9) | 35, 4 (18.2) | 22, 4 (30.8) | 13,N/A
+<b>N-acetyl cysteine</b> (*),20 (55.6) | 36, 9 (39.1) | 23,11 (84.6) | 13,N/A
+<b>Plasmapheresis / plasma exchange</b> (*),18 (47.4) | 38,10 (41.7) | 24, 7 (53.8) | 13,1 (100.) | 1
+<b> Days on plasma exchange support during admission</b> (+),3.0 (1.8-4.0) | 16,3.0 (3.0-4.0) |  9,3.0 (1.5-4.0) |  7,N/A
+<b>Supplemental Oxygen (any)</b> (*),17 (48.6) | 35, 4 (18.2) | 22,13 (100.) | 13,N/A
+<b> Select all types of respiratory support the patient received</b>,,,,
+   ↳ Nasal prong, 9 (25.7) | 35, 3 (13.6) | 22, 6 (46.2) | 13,N/A
+   ↳ Face mask, 1 ( 2.9) | 35, 1 ( 4.5) | 22, 0 ( 0.0) | 13,N/A
+   ↳ High-flow nasal oxygen, 2 ( 5.7) | 35, 0 ( 0.0) | 22, 2 (15.4) | 13,N/A
+   ↳ Non-invasive ventilation, 1 ( 2.9) | 35, 0 ( 0.0) | 22, 1 ( 7.7) | 13,N/A
+   ↳ Invasive ventilation,15 (42.9) | 35, 2 ( 9.1) | 22,13 (100.) | 13,N/A
+<b>Maximum O2 flow volume (L/min)</b> (*),,,,
+   ↳ <2 L/min, 1 ( 5.9) | 17, 1 (25.0) |  4, 0 ( 0.0) | 13,N/A
+   ↳ 2-5 L/min, 1 ( 5.9) | 17, 1 (25.0) |  4, 0 ( 0.0) | 13,N/A
+   ↳ >15 L/min,15 (88.2) | 17, 2 (50.0) |  4,13 (100.) | 13,N/A
+<b>Number of calendar days the patient received any respiratory support during admission</b> (+),3.0 (2.0-5.0) | 16,5.0 (3.5-7.5) |  3,3.0 (2.0-4.0) | 13,N/A
+<b>Type of non-invasive ventilation</b> (*),,,,
+   ↳ CPAP, 1 (100.) |  1,N/A, 1 (100.) |  1,N/A

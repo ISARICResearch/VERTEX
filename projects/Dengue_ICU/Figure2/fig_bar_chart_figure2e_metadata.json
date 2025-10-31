@@ -1,0 +1,25 @@
+{
+    "fig_id": "Figure2/fig_bar_chart_figure2e",
+    "fig_name": "fig_bar_chart",
+    "fig_arguments": {
+        "title": "e) Leukocyte level",
+        "xlabel": "Age (years)",
+        "ylabel": "Complications during ICU stay",
+        "base_color_map": {
+            "<2.5": "#FF9999",
+            "2.5-5.0": "#32CD32",
+            "5.0-7.0": "#87CEFA",
+            ">7.0": "#9370DB"
+        },
+        "barmode": "group",
+        "suffix": "Figure2",
+        "filepath": "",
+        "save_inputs": false,
+        "graph_id": "fig_bar_chart_figure2e",
+        "graph_label": "Figure 2E: Leukocyte level",
+        "graph_about": "Complications by leukocyte level, stratified by age groups."
+    },
+    "fig_data": [
+        "Figure2/fig_bar_chart_figure2e_data___0.csv"
+    ]
+}

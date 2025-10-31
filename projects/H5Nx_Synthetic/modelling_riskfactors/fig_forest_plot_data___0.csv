@@ -1,0 +1,21 @@
+Variable,OddsRatio (multi),LowerCI (multi),UpperCI (multi),p-value (multi)
+"<b>Sex at birth</b>, Male",1.949,1.149,3.307,0.0134
+<b>Age</b>,1.01,0.998,1.021,0.1012
+"<b>Type of liver disease</b>, Moderate or severe",0.584,0.183,1.864,0.3642
+<b>Obesity</b>,1.181,0.679,2.054,0.555
+<b>Hypertension (physician diagnosed)</b>,2.399,1.431,4.022,0.0009
+<b>Vaccinated for seasonal influenza (ever)</b>,1.644,0.98,2.758,0.0594
+<b>Fever</b>,1.379,0.766,2.484,0.2841
+<b>Headache</b>,0.787,0.469,1.32,0.3634
+"<b>Glasgow Coma Score (GCS / 15)</b>, Moderate (9 to 11)",1.801,0.96,3.38,0.0669
+"<b>Glasgow Coma Score (GCS / 15)</b>, Severe (less than 9)",2.878,1.526,5.426,0.0011
+"<b>Platelets (10^3/uL)</b>, Low (under 1.5)",1.536,0.706,3.339,0.2789
+"<b>Platelets (10^3/uL)</b>, High (over 4.5)",4.741,1.336,16.829,0.016
+<b>Employed as a healthcare worker</b>,0.644,0.309,1.341,0.2398
+<b>Ever smoked</b>,1.53,0.842,2.781,0.1631
+<b>Diabetes mellitus</b>,2.174,1.231,3.838,0.0074
+"<b>Stage of chronic kidney disease</b>, Stage 1",1.607,0.427,6.048,0.4833
+"<b>Stage of chronic kidney disease</b>, Stage 2",0.627,0.194,2.021,0.4339
+"<b>Stage of chronic kidney disease</b>, Stage 3a",0.895,0.281,2.852,0.8507
+"<b>Stage of chronic kidney disease</b>, Stage 3b or 4 or 5",1.798,0.485,6.674,0.3803
+"<b>Type of liver disease</b>, Mild",2.089,0.975,4.473,0.058
