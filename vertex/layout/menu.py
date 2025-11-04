@@ -40,8 +40,14 @@ def define_menu(buttons, filter_options=None, project_name=None):
                         "margin": 0,
                     },
                 ),
+                html.Div(style={"margin-top": "5px"}),
                 project_selector(selected_project=project_name),
-            ]
+                html.Div(style={"margin-top": "5px"}),
+            ],
+            style={
+                "width": "100%",
+                "margin": 0,
+            },
         ),
         close_button=False,
     )
@@ -63,7 +69,7 @@ def define_menu(buttons, filter_options=None, project_name=None):
             "position": "fixed",
             "bottom": 0,
             "left": 0,
-            "height": "50vh",  # half viewport height
+            "height": "90vh",  # half viewport height
             "display": "flex",
             "flexDirection": "column",
             "zIndex": 1000,
