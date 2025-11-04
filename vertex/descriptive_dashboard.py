@@ -569,7 +569,7 @@ def build_project_layout(project_path):
         filter_options = get_filter_options(project_data["df_map"])
     else:
         filter_options = None
-    logger.info(f"buttons: {project_data['buttons']}")
+    logger.debug(f"buttons: {project_data['buttons']}")
     layout = define_inner_layout(
         fig,
         project_data["buttons"],
@@ -603,7 +603,7 @@ def load_project_data(project_path):
         logger.info(f" Public project detected, using dashboard_metadata.json for {project_path}")
         metadata = load_public_dashboard(project_path, config_dict)
         insight_panels, buttons = get_public_visuals(project_path, metadata["insight_panels"])
-        logger.info(f"{buttons}")
+        logger.debug(f"{buttons}")
         df_countries = get_public_countries(project_path)
 
     filter_columns_dict = {
@@ -627,7 +627,7 @@ def load_project_data(project_path):
             form: pd.merge(df_form, df_filters, on="subjid", how="left").reset_index(drop=True)
             for form, df_form in df_forms_dict.items()
         }
-    logger.info(f"{list(insight_panels)[0]}")
+    logger.debug(f"{list(insight_panels)[0]}")
     project_data = {
         "mode": "prebuilt" if PREBUILT else "analysis",
         "df_map": df_map if not PREBUILT else None,
@@ -703,7 +703,7 @@ def main():
 if __name__ == "__main__":
     app = main()
     webbrowser.open("http://127.0.0.1:8050", new=2, autoraise=True)
-    app.run_server(debug=True, host="0.0.0.0", port=8050, use_reloader=False)
+    app.run(debug=True, host="0.0.0.0", port=8050, use_reloader=False)
 else:
     app = main()
     server = app.server

@@ -308,7 +308,9 @@ def get_filter_options(df_map):
     }
 
     admdate_yyyymm = pd.date_range(
-        start=df_map["pres_date"].min(), end=df_map["pres_date"].max() + pd.DateOffset(months=1), freq="MS"
+        start=df_map["pres_date"].min().to_period("M").start_time,
+        end=df_map["pres_date"].max().to_period("M").end_time,
+        freq="MS",
     )
     admdate_options = {
         "min": 0,
@@ -322,11 +324,7 @@ def get_filter_options(df_map):
 
     country_options = [{"label": c, "value": c} for c in sorted(df_map["filters_country"].dropna().unique())]
 
-    sex_options = [
-        {"label": "Male", "value": "Male"},
-        {"label": "Female", "value": "Female"},
-        {"label": "Other / Unknown", "value": "Other / Unknown"},
-    ]
+    sex_options = [{"label": c, "value": c} for c in sorted(df_map["filters_sex"].dropna().unique())]
 
     return {
         "sex_options": sex_options,

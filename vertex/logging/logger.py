@@ -11,5 +11,5 @@ def setup_logger(name: str = None):
         for handler in handlers:
             handler.setFormatter(formatter)
             logger.addHandler(handler)
-        logger.setLevel(logging.DEBUG)  # TODO: Make configurable
+        logger.setLevel(logging.INFO)  # TODO: Make configurable
     return logger
