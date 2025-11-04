@@ -88,7 +88,7 @@ def load_vertex_from_api(api_url, api_key, config_dict):
     get_data_kwargs = {
         "data_access_groups": config_dict["data_access_groups"],
         "user_assigned_to_dag": user_assigned_to_dag,
-        "language": config_dict["language"]
+        "language": config_dict["language"],
     }
     df_map, df_forms_dict, dictionary, quality_report = getRC.get_redcap_data(api_url, api_key, **get_data_kwargs)
     return df_map, df_forms_dict, dictionary, quality_report

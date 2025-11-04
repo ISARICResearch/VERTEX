@@ -2,6 +2,8 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 from dash import dcc, html
 
+from vertex.translation import translate
+
 
 def define_filters_controls(
     sex_options,
@@ -9,6 +11,7 @@ def define_filters_controls(
     country_options,
     admdate_options,
     outcome_options,
+    language="en",
     layout="accordion",
     with_submit=False,
     prefix="",
@@ -66,7 +69,11 @@ def define_filters_controls(
 
     country_section = html.Div(
         [
-            html.Div(id=cid("country-display"), children=html.B("Country:"), style={"cursor": "pointer"}),
+            html.Div(
+                id=cid("country-display"),
+                children=html.B(translate("Country", language=language) + ":"),
+                style={"cursor": "pointer"},
+            ),
             dbc.Fade(
                 html.Div(
                     [
@@ -95,37 +102,39 @@ def define_filters_controls(
     # layout differences
     if layout == "accordion":
         children = [
-            html.Label(html.B("Sex at birth:")),
+            html.Label(html.B(translate("Sex at birth", language=language) + ":")),
             html.Div(style={"margin-top": "5px"}),
             sex_checklist,
             html.Div(style={"margin-top": "10px"}),
-            html.Label(html.B("Age:")),
+            html.Label(html.B(translate("Age", language=language) + ":")),
             html.Div(style={"margin-top": "5px"}),
             age_slider,
             html.Div(style={"margin-top": "10px"}),
             country_section,
             html.Div(style={"margin-top": "15px"}),
-            html.Label(html.B("Admission date:")),
+            html.Label(html.B(translate("Admission date", language=language) + ":")),
             html.Div(style={"margin-top": "5px"}),
             admdate_slider,
             html.Div(style={"margin-top": "35px"}),
-            html.Label(html.B("Outcome:")),
+            html.Label(html.B(translate("Outcome", language=language) + ":")),
             html.Div(style={"margin-top": "5px"}),
             outcome_checklist,
         ]
         comp = dbc.AccordionItem(
-            title="Filters and Controls", children=children, style={"overflowY": "auto", "maxHeight": "75vh"}
+            title=translate("Filters and Controls", language=language),
+            children=children,
+            style={"overflowY": "auto", "maxHeight": "75vh"},
         )
     else:
         # modal layout in rows
         rows = [
             dbc.Row(
                 [
-                    dbc.Col([html.H6("Sex at birth:"), sex_checklist], width=2),
-                    dbc.Col([html.H6("Age:"), age_slider], width=3),
-                    dbc.Col([html.H6("Admission date:"), admdate_slider], width=3),
-                    dbc.Col([html.H6("Country:"), country_section], width=2),
-                    dbc.Col([html.H6("Outcome:"), outcome_checklist], width=2),
+                    dbc.Col([html.H6(translate("Sex at birth", language=language) + ":"), sex_checklist], width=2),
+                    dbc.Col([html.H6(translate("Age", language=language) + ":"), age_slider], width=3),
+                    dbc.Col([html.H6(translate("Admission date", language=language) + ":"), admdate_slider], width=3),
+                    dbc.Col([html.H6(translate("Country", language=language) + ":"), country_section], width=2),
+                    dbc.Col([html.H6(translate("Outcome", language=language) + ":"), outcome_checklist], width=2),
                 ]
             )
         ]
@@ -134,7 +143,14 @@ def define_filters_controls(
                 dbc.Row(
                     [
                         dbc.Col(
-                            [dbc.Button("Submit", id=cid("submit-button"), color="primary", className="mr-2")],
+                            [
+                                dbc.Button(
+                                    translate("Submit", language=language),
+                                    id=cid("submit-button"),
+                                    color="primary",
+                                    className="mr-2",
+                                )
+                            ],
                             width={"size": 6, "offset": 3},
                             style={"textAlign": "center"},
                         )
@@ -146,145 +162,146 @@ def define_filters_controls(
     return comp
 
 
-def define_filters_controls_modal(
-    sex_options,
-    age_options,
-    country_options,
-    admdate_options,  # disease_options,
-    outcome_options,
-    add_row=None,
-):
-    filter_rows = [
-        dbc.Row(
-            [
-                dbc.Col(
-                    [
-                        html.H6("Sex at birth:", style={"margin-right": "10px"}),
-                        html.Div(
-                            [
-                                dcc.Checklist(
-                                    id="sex-checkboxes-modal",
-                                    options=sex_options,
-                                    value=[option["value"] for option in sex_options],
-                                    inputStyle={"margin-right": "2px"},
-                                )
-                            ]
-                        ),
-                    ],
-                    width=2,
-                ),
-                dbc.Col(
-                    [
-                        html.H6("Age:", style={"margin-right": "10px"}),
-                        html.Div(
-                            [
-                                html.Div(
-                                    [
-                                        dcc.RangeSlider(
-                                            id="age-slider-modal",
-                                            min=age_options["min"],
-                                            max=age_options["max"],
-                                            step=age_options["step"],
-                                            marks=age_options["marks"],
-                                            value=age_options["value"],
-                                        )
-                                    ],
-                                    style={"width": "100%"},
-                                )  # Apply style to this div
-                            ]
-                        ),
-                    ],
-                    width=3,
-                ),
-                dbc.Col(
-                    [
-                        html.H6("Admission date:", style={"margin-right": "10px"}),
-                        html.Div(
-                            [
-                                html.Div(
-                                    [
-                                        dcc.RangeSlider(
-                                            id="admdate-slider-modal",
-                                            min=admdate_options["min"],
-                                            max=admdate_options["max"],
-                                            step=admdate_options["step"],
-                                            marks=admdate_options["marks"],
-                                            value=admdate_options["value"],
-                                        )
-                                    ],
-                                    style={"width": "100%"},
-                                )  # Apply style to this div
-                            ]
-                        ),
-                    ],
-                    width=3,
-                ),
-                dbc.Col(
-                    [
-                        html.H6("Country:", style={"margin-right": "10px"}),
-                        html.Div(
-                            [
-                                html.Div(id="country-display-modal", children="Country:", style={"cursor": "pointer"}),
-                                dbc.Fade(
-                                    html.Div(
-                                        [
-                                            dcc.Checklist(
-                                                id="country-selectall-modal",
-                                                options=[{"label": "Select all", "value": "all"}],
-                                                value=["all"],
-                                                inputStyle={"margin-right": "2px"},
-                                            ),
-                                            dcc.Checklist(
-                                                id="country-checkboxes-modal",
-                                                options=country_options,
-                                                value=[option["value"] for option in country_options],
-                                                style={"overflowY": "auto", "maxHeight": "100px"},
-                                                inputStyle={"margin-right": "2px"},
-                                            ),
-                                        ]
-                                    ),
-                                    id="country-fade-modal",
-                                    is_in=True,
-                                    appear=True,
-                                ),
-                            ]
-                        ),
-                    ],
-                    width=2,
-                ),
-                dbc.Col(
-                    [
-                        html.H6("Outcome:", style={"margin-right": "10px"}),
-                        html.Div(
-                            [
-                                dcc.Checklist(
-                                    id="outcome-checkboxes-modal",
-                                    options=outcome_options,
-                                    value=[option["value"] for option in outcome_options],
-                                    inputStyle={"margin-right": "2px"},
-                                )
-                            ]
-                        ),
-                    ],
-                    width=2,
-                ),
-            ]
-        )
-    ]
-    row_button = dbc.Row(
-        [
-            dbc.Col(
-                [dbc.Button("Submit", id="submit-button-modal", color="primary", className="mr-2")],
-                width={"size": 6, "offset": 3},
-                style={"text-align": "center"},
-            )  # Center the button
-        ]
-    )
-    row_list = filter_rows + [row_button]
-    if add_row is not None:
-        row_list = filter_rows + [add_row, row_button]
-    filters = dbc.Row([dbc.Col(row_list)])
-    return filters
+# def define_filters_controls_modal(
+#     sex_options,
+#     age_options,
+#     country_options,
+#     admdate_options,  # disease_options,
+#     outcome_options,
+#     language="en",
+#     add_row=None,
+# ):
+#     filter_rows = [
+#         dbc.Row(
+#             [
+#                 dbc.Col(
+#                     [
+#                         html.H6(translate("Sex at birth:", language=language), style={"margin-right": "10px"}),
+#                         html.Div(
+#                             [
+#                                 dcc.Checklist(
+#                                     id="sex-checkboxes-modal",
+#                                     options=sex_options,
+#                                     value=[option["value"] for option in sex_options],
+#                                     inputStyle={"margin-right": "2px"},
+#                                 )
+#                             ]
+#                         ),
+#                     ],
+#                     width=2,
+#                 ),
+#                 dbc.Col(
+#                     [
+#                         html.H6(translate("Age:", language=language), style={"margin-right": "10px"}),
+#                         html.Div(
+#                             [
+#                                 html.Div(
+#                                     [
+#                                         dcc.RangeSlider(
+#                                             id="age-slider-modal",
+#                                             min=age_options["min"],
+#                                             max=age_options["max"],
+#                                             step=age_options["step"],
+#                                             marks=age_options["marks"],
+#                                             value=age_options["value"],
+#                                         )
+#                                     ],
+#                                     style={"width": "100%"},
+#                                 )  # Apply style to this div
+#                             ]
+#                         ),
+#                     ],
+#                     width=3,
+#                 ),
+#                 dbc.Col(
+#                     [
+#                         html.H6(translate("Admission date:", language=language), style={"margin-right": "10px"}),
+#                         html.Div(
+#                             [
+#                                 html.Div(
+#                                     [
+#                                         dcc.RangeSlider(
+#                                             id="admdate-slider-modal",
+#                                             min=admdate_options["min"],
+#                                             max=admdate_options["max"],
+#                                             step=admdate_options["step"],
+#                                             marks=admdate_options["marks"],
+#                                             value=admdate_options["value"],
+#                                         )
+#                                     ],
+#                                     style={"width": "100%"},
+#                                 )  # Apply style to this div
+#                             ]
+#                         ),
+#                     ],
+#                     width=3,
+#                 ),
+#                 dbc.Col(
+#                     [
+#                         html.H6(translate("Country:", language=language), style={"margin-right": "10px"}),
+#                         html.Div(
+#                             [
+#                                 html.Div(id="country-display-modal", children="Country:", style={"cursor": "pointer"}),
+#                                 dbc.Fade(
+#                                     html.Div(
+#                                         [
+#                                             dcc.Checklist(
+#                                                 id="country-selectall-modal",
+#                                                 options=[{"label": "Select all", "value": "all"}],
+#                                                 value=["all"],
+#                                                 inputStyle={"margin-right": "2px"},
+#                                             ),
+#                                             dcc.Checklist(
+#                                                 id="country-checkboxes-modal",
+#                                                 options=country_options,
+#                                                 value=[option["value"] for option in country_options],
+#                                                 style={"overflowY": "auto", "maxHeight": "100px"},
+#                                                 inputStyle={"margin-right": "2px"},
+#                                             ),
+#                                         ]
+#                                     ),
+#                                     id="country-fade-modal",
+#                                     is_in=True,
+#                                     appear=True,
+#                                 ),
+#                             ]
+#                         ),
+#                     ],
+#                     width=2,
+#                 ),
+#                 dbc.Col(
+#                     [
+#                         html.H6(translate("Outcome:", language=language), style={"margin-right": "10px"}),
+#                         html.Div(
+#                             [
+#                                 dcc.Checklist(
+#                                     id="outcome-checkboxes-modal",
+#                                     options=outcome_options,
+#                                     value=[option["value"] for option in outcome_options],
+#                                     inputStyle={"margin-right": "2px"},
+#                                 )
+#                             ]
+#                         ),
+#                     ],
+#                     width=2,
+#                 ),
+#             ]
+#         )
+#     ]
+#     row_button = dbc.Row(
+#         [
+#             dbc.Col(
+#                 [dbc.Button("Submit", id="submit-button-modal", color="primary", className="mr-2")],
+#                 width={"size": 6, "offset": 3},
+#                 style={"text-align": "center"},
+#             )  # Center the button
+#         ]
+#     )
+#     row_list = filter_rows + [row_button]
+#     if add_row is not None:
+#         row_list = filter_rows + [add_row, row_button]
+#     filters = dbc.Row([dbc.Col(row_list)])
+#     return filters
 
 
 def get_filter_options(df_map):
@@ -308,9 +325,9 @@ def get_filter_options(df_map):
     }
 
     admdate_yyyymm = pd.date_range(
-        start=df_map["pres_date"].min().to_period('M').start_time,
-        end=df_map["pres_date"].max().to_period('M').end_time,
-        freq="MS"
+        start=df_map["pres_date"].min().to_period("M").start_time,
+        end=df_map["pres_date"].max().to_period("M").end_time,
+        freq="MS",
     )
     admdate_options = {
         "min": 0,

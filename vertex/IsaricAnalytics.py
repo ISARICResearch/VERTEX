@@ -24,6 +24,8 @@ from sklearn.preprocessing import LabelEncoder, StandardScaler
 from statsmodels.genmod.bayes_mixed_glm import BinomialBayesMixedGLM
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 
+from vertex.translation import translate
+
 # from sklearn.preprocessing import LabelEncoder, StandardScaler
 # from sklearn.model_selection import train_test_split, GridSearchCV
 # from sklearn.linear_model import LogisticRegression
@@ -245,9 +247,9 @@ def from_timeA_to_timeB(data, dictionary, timeA_column, timeB_column, timediff_c
 ############################################
 
 
-def median_iqr_str(series, add_spaces=False, dp=1, mfw=4, min_n=3):
+def median_iqr_str(series, add_spaces=False, dp=1, mfw=4, min_n=3, language="en"):
     if series.notna().sum() < min_n:
-        output_str = "N/A"
+        output_str = translate("N/A", language=language)
     elif add_spaces:
         mfw_f = int(np.log10(max((series.quantile(0.75), 1)))) + 2 + dp
         output_str = "%*.*f" % (mfw_f, dp, series.median()) + " ("
@@ -262,9 +264,9 @@ def median_iqr_str(series, add_spaces=False, dp=1, mfw=4, min_n=3):
     return output_str
 
 
-def mean_std_str(series, add_spaces=False, dp=1, mfw=4, min_n=3):
+def mean_std_str(series, add_spaces=False, dp=1, mfw=4, min_n=3, language="en"):
     if series.notna().sum() < min_n:
-        output_str = "N/A"
+        output_str = translate("N/A", language=language)
     elif add_spaces:
         mfw_f = int(max((np.log10(series.mean(), 1)))) + 2 + dp
         output_str = "%*.*f" % (mfw_f, dp, series.mean()) + " ("
@@ -277,9 +279,9 @@ def mean_std_str(series, add_spaces=False, dp=1, mfw=4, min_n=3):
     return output_str
 
 
-def n_percent_str(series, add_spaces=False, dp=1, mfw=4, min_n=1):
+def n_percent_str(series, add_spaces=False, dp=1, mfw=4, min_n=1, language="en"):
     if series.notna().sum() < min_n:
-        output_str = "N/A"
+        output_str = translate("N/A", language=language)
     elif add_spaces:
         output_str = "%*g" % (mfw, int(series.sum())) + " ("
         percent = 100 * series.mean()

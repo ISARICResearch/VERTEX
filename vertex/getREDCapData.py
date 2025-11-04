@@ -6,7 +6,7 @@ import pandas as pd
 import requests
 
 from vertex.logging.logger import setup_logger
-from vertex.translation import translate, remove_accents
+from vertex.translation import remove_accents, translate
 
 logger = setup_logger(__name__)
 
@@ -525,13 +525,7 @@ def convert_onehot_to_binary(df, dictionary, language="en"):
     yes_str = translate("Yes", language=language)
     no_str = translate("No", language=language)
     unknown_str = translate("Unknown", language=language)
-    mapping_dict = {
-        yes_str: True,
-        "Checked": True,
-        no_str: False,
-        "Unchecked": False,
-        unknown_str: np.nan
-    }
+    mapping_dict = {yes_str: True, "Checked": True, no_str: False, "Unchecked": False, unknown_str: np.nan}
     with pd.option_context("future.no_silent_downcasting", True):
         df.loc[:, binary_columns] = df[binary_columns].replace(mapping_dict)
     return df
@@ -696,12 +690,7 @@ def get_df_forms(data, dictionary):
 
 
 def get_redcap_data(
-    redcap_url,
-    redcap_api_key,
-    data_access_groups=None,
-    user_assigned_to_dag=False,
-    country_mapping=None,
-    language="en"
+    redcap_url, redcap_api_key, data_access_groups=None, user_assigned_to_dag=False, country_mapping=None, language="en"
 ):
     """Get data from REDCap API and transform into analysis-ready dataframes"""
     data = get_records(

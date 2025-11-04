@@ -27,6 +27,7 @@ from vertex.logging.logger import setup_logger
 from vertex.map import create_map, filter_df_map, get_countries, merge_data_with_countries
 from vertex.models import User
 from vertex.secrets import get_database_url, get_flask_auth_secrets
+from vertex.translation import translate
 
 logger = setup_logger(__name__)
 
@@ -143,14 +144,15 @@ def register_callbacks(app):
     @app.callback(
         [Output("country-selectall", "value"), Output("country-selectall", "options"), Output("country-checkboxes", "value")],
         [Input("country-selectall", "value"), Input("country-checkboxes", "value")],
-        [State("country-checkboxes", "options")],
+        [State("country-checkboxes", "options"), State("selected-project-path", "data")],
     )
-    def update_country_selection(selectall_value, country_value, country_options):
+    def update_country_selection(selectall_value, country_value, country_options, project_path):
+        project_data = get_project_data(project_path)
+        language = project_data["config_dict"]["language"]
         ctx = dash.callback_context
-
         if not ctx.triggered:
             # Initial load, no input has triggered the callback yet
-            output = [["all"], [{"label": "Unselect all", "value": "all"}], country_value]
+            output = [["all"], [{"label": translate("Unselect all", language=language), "value": "all"}], country_value]
 
         trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
@@ -159,21 +161,21 @@ def register_callbacks(app):
                 # 'Select all' (now 'Unselect all') is checked
                 output = [
                     ["all"],
-                    [{"label": "Unselect all", "value": "all"}],
+                    [{"label": translate("Unselect all", language=language), "value": "all"}],
                     [option["value"] for option in country_options],
                 ]
             else:
                 # 'Unselect all' is unchecked
-                output = [[], [{"label": "Select all", "value": "all"}], []]
+                output = [[], [{"label": translate("Select all", language=language), "value": "all"}], []]
         elif trigger_id == "country-checkboxes":
             if len(country_value) == len(country_options):
                 # All countries are selected manually
-                output = [["all"], [{"label": "Unselect all", "value": "all"}], country_value]
+                output = [["all"], [{"label": translate("Unselect all", language=language), "value": "all"}], country_value]
             else:
                 # Some countries are deselected
-                output = [[], [{"label": "Select all", "value": "all"}], country_value]
+                output = [[], [{"label": translate("Select all", language=language), "value": "all"}], country_value]
         else:
-            output = [selectall_value, [{"label": "Select all", "value": "all"}], country_value]
+            output = [selectall_value, [{"label": translate("Select all", language=language), "value": "all"}], country_value]
         return output
 
     @app.callback(Output("country-fade", "is_in"), [Input("country-display", "n_clicks")], [State("country-fade", "is_in")])
@@ -183,16 +185,21 @@ def register_callbacks(app):
         return is_in
 
     @app.callback(
-        Output("country-display", "children"), [Input("country-checkboxes", "value")], [State("country-checkboxes", "options")]
+        Output("country-display", "children"),
+        [Input("country-checkboxes", "value")],
+        [State("country-checkboxes", "options"), State("selected-project-path", "data")],
     )
-    def update_country_display(country_value, country_options):
+    def update_country_display(country_value, country_options, project_path):
+        project_data = get_project_data(project_path)
+        language = project_data["config_dict"]["language"]
+        country_str = translate("Country", language=language)
         if not country_value:
             output = html.Div(
                 [
-                    html.B("Country:"),
+                    html.B(country_str + ":"),
                     # ' (scroll down for all)',
                     html.Br(),
-                    "None selected",
+                    translate("None selected", language=language),
                 ]
             )
         else:
@@ -207,7 +214,7 @@ def register_callbacks(app):
                 if len(selected_labels) == 1:
                     output = html.Div(
                         [
-                            html.B("Country:"),
+                            html.B(country_str + ":"),
                             # ' (scroll down for all)',
                             html.Br(),
                             f"{selected_labels[0]}",
@@ -216,7 +223,7 @@ def register_callbacks(app):
                 else:
                     output = html.Div(
                         [
-                            html.B("Country:"),
+                            html.B(country_str + ":"),
                             # ' (scroll down for all)',
                             html.Br(),
                             f"{selected_labels[0]}, ",
@@ -224,7 +231,7 @@ def register_callbacks(app):
                         ]
                     )
             else:
-                output = html.Div([html.B("Country:"), html.Br(), f"{display_text}"])
+                output = html.Div([html.B(country_str + ":"), html.Br(), f"{display_text}"])
         return output
 
     @app.callback(
@@ -258,7 +265,9 @@ def register_callbacks(app):
         )
 
         button = {**project_data["insight_panels"][suffix].define_button(), **{"suffix": suffix}}
-        modal_content = create_modal(visuals, button, get_filter_options(project_data["df_map"]))
+        modal_content = create_modal(
+            visuals, button, get_filter_options(project_data["df_map"]), language=project_data["config_dict"]["language"]
+        )
 
         return True, modal_content, button
 
@@ -269,32 +278,39 @@ def register_callbacks(app):
             Output("country-checkboxes-modal", "value"),
         ],
         [Input("country-selectall-modal", "value"), Input("country-checkboxes-modal", "value")],
-        [State("country-checkboxes-modal", "options")],
+        [State("country-checkboxes-modal", "options"), State("selected-project-path", "data")],
     )
-    def update_country_selection_modal(selectall_value, country_value, country_options):
+    def update_country_selection_modal(selectall_value, country_value, country_options, project_path):
+        project_data = get_project_data(project_path)
+        language = project_data["config_dict"]["language"]
+
         ctx = dash.callback_context
         if not ctx.triggered:
             # Initial load, no input has triggered the callback yet
-            output = [["all"], [{"label": "Unselect all", "value": "all"}], country_value]
+            output = [["all"], [{"label": translate("Unselect all", language=language), "value": "all"}], country_value]
 
         trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
         #
         if trigger_id == "country-selectall-modal":
             if "all" in selectall_value:
                 # 'Select all' (now 'Unselect all') is checked
-                output = [["all"], [{"label": "Unselect all", "value": "all"}], [option["value"] for option in country_options]]
+                output = [
+                    ["all"],
+                    [{"label": translate("Unselect all", language=language), "value": "all"}],
+                    [option["value"] for option in country_options],
+                ]
             else:
                 # 'Unselect all' is unchecked
-                output = [[], [{"label": "Select all", "value": "all"}], []]
+                output = [[], [{"label": translate("Select all", language=language), "value": "all"}], []]
         elif trigger_id == "country-checkboxes-modal":
             if len(country_value) == len(country_options):
                 # All countries are selected manually
-                output = [["all"], [{"label": "Unselect all", "value": "all"}], country_value]
+                output = [["all"], [{"label": translate("Unselect all", language=language), "value": "all"}], country_value]
             else:
                 # Some countries are deselected
-                output = [[], [{"label": "Select all", "value": "all"}], country_value]
+                output = [[], [{"label": translate("Select all", language=language), "value": "all"}], country_value]
         else:
-            output = [selectall_value, [{"label": "Select all", "value": "all"}], country_value]
+            output = [selectall_value, [{"label": translate("Select all", language=language), "value": "all"}], country_value]
         return output
 
     @app.callback(
@@ -423,11 +439,15 @@ def register_callbacks(app):
     @app.callback(
         Output("country-display-modal", "children"),
         [Input("country-checkboxes-modal", "value")],
-        [State("country-checkboxes-modal", "options")],
+        [State("country-checkboxes-modal", "options"), State("selected-project-path", "data")],
     )
-    def update_country_display_modal(country_value, country_options):
+    def update_country_display_modal(country_value, country_options, project_path):
+        project_data = get_project_data(project_path)
+        language = project_data["config_dict"]["language"]
+
+        country_str = translate("Country", language=language)
         if not country_value:
-            return "Country:"
+            return country_str
 
         # Create a dictionary to map values to labels
         value_label_map = {option["value"]: option["label"] for option in country_options}
@@ -440,7 +460,7 @@ def register_callbacks(app):
             output = f"{selected_labels[0]}, "
             output += f"+{len(selected_labels) - 1} more..."
         else:
-            output = f"Country: {display_text}"
+            output = f"{country_str}: {display_text}"
         return output
 
     @app.callback(
@@ -510,7 +530,7 @@ def register_callbacks(app):
             save_inputs=project_data["config_dict"]["save_filtered_public_outputs"],
         )
 
-        modal = create_modal(visuals, button, get_filter_options(df_map))
+        modal = create_modal(visuals, button, get_filter_options(df_map), language=project_data["config_dict"]["language"])
 
         return (
             modal,
@@ -550,7 +570,8 @@ def build_project_layout(project_path):
         project_data["buttons"],
         filter_options,
         map_layout_dict,
-        project_data["config_dict"]["project_name"],
+        language=project_data["config_dict"]["language"],
+        project_name=project_data["config_dict"]["project_name"],
     )
     return layout
 

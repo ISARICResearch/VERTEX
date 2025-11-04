@@ -3,6 +3,7 @@ import dash_bootstrap_components as dbc
 from dash import dcc, html
 
 from vertex.layout.filters import define_filters_controls
+from vertex.translation import translate
 
 login_modal = dbc.Modal(
     id="login-modal",
@@ -67,7 +68,7 @@ register_modal = dbc.Modal(
 #######################
 
 
-def create_modal(visuals, button, filter_options):
+def create_modal(visuals, button, filter_options, language="en"):
     if visuals is None:
         insight_children = []
         about_str = ""
@@ -79,8 +80,7 @@ def create_modal(visuals, button, filter_options):
             )
         ]
         # This text appears after clicking the insight panel's About button
-        about_list = ["Information about each visual in the insight panel:"]
-        about_list += ["<strong>" + label + "</strong>" + about for _, _, label, about in visuals]
+        about_list = ["<strong>" + label + "</strong>" + about for _, _, label, about in visuals]
         about_str = "\n".join(about_list)
 
     try:
@@ -88,40 +88,60 @@ def create_modal(visuals, button, filter_options):
     except Exception:
         title = ""
 
-    instructions_str = open("assets/instructions.txt", "r").read()
-    filters_modal = define_filters_controls(**filter_options, layout="modal", with_submit=True, prefix="modal")
+    try:
+        instructions_str = open(f"assets/instructions/instructions_{language}.txt", "r").read()
+    except Exception:
+        instructions_str = open("assets/instructions/instructions_en.txt", "r").read()
+
+    filters_modal = define_filters_controls(
+        **filter_options, layout="modal", with_submit=True, prefix="modal", language=language
+    )
     modal = [
         dbc.ModalHeader(html.H3(title, id="line-graph-modal-title", style={"fontSize": "2vmin", "fontWeight": "bold"})),
         dbc.ModalBody(
             [
                 dbc.Accordion(
                     [
-                        dbc.AccordionItem(title="Filters and Controls", children=[filters_modal]),
-                        dbc.AccordionItem(title="Insights", children=insight_children),
+                        dbc.AccordionItem(title=translate("Filters and Controls", language=language), children=[filters_modal]),
+                        dbc.AccordionItem(title=translate("Insights", language=language), children=insight_children),
                     ],
                     active_item="item-1",
                 )
             ],
             style={"overflowY": "auto", "minHeight": "75vh", "maxHeight": "75vh"},
         ),
-        define_footer_modal(generate_html_text(instructions_str), generate_html_text(about_str)),
+        define_footer_modal(generate_html_text(instructions_str), generate_html_text(about_str), language=language),
     ]
     return modal
 
 
 # Footer
-def define_footer_modal(instructions, about):
+def define_footer_modal(instructions, about, language="en"):
     footer = dbc.ModalFooter(
         [
             html.Div(
                 [
-                    dbc.Button("About", id="modal_about_popover", color="info", size="sm", style={"margin-right": "5px"}),
-                    dbc.Button("Instructions", id="modal_instruction_popover", size="sm", style={"margin-right": "5px"}),
+                    dbc.Button(
+                        translate("About", language=language),
+                        id="modal_about_popover",
+                        color="info",
+                        size="sm",
+                        style={"margin-right": "5px"},
+                    ),
+                    dbc.Button(
+                        translate("Instructions", language=language),
+                        id="modal_instruction_popover",
+                        size="sm",
+                        style={"margin-right": "5px"},
+                    ),
                 ],
                 className="ml-auto",
             ),
             dbc.Popover(
-                [dbc.PopoverHeader("Instructions", style={"fontWeight": "bold"}), dbc.PopoverBody(instructions)],
+                [
+                    dbc.PopoverHeader(translate("Instructions", language=language), style={"fontWeight": "bold"}),
+                    dbc.PopoverBody(instructions),
+                ],
                 target="modal_instruction_popover",
                 trigger="hover",
                 placement="top",
@@ -129,7 +149,7 @@ def define_footer_modal(instructions, about):
             ),
             dbc.Popover(
                 [
-                    dbc.PopoverHeader("About", style={"fontWeight": "bold"}),
+                    dbc.PopoverHeader(translate("About", language=language), style={"fontWeight": "bold"}),
                     dbc.PopoverBody(about),
                 ],
                 target="modal_about_popover",
