@@ -1,0 +1,8 @@
+index,label,count
+"('compl_acuterenal',)","('<b>Acute renal injury / acute renal failure</b>',)",102
+"('compl_severeliver',)","('<b>Severe liver disease (new onset)</b>',)",99
+"('compl_ards',)","('<b>Acute Respiratory Distress Syndrome (ARDS)</b>',)",87
+"('compl_severeliver', 'compl_ards')","('<b>Severe liver disease (new onset)</b>', '<b>Acute Respiratory Distress Syndrome (ARDS)</b>')",34
+"('compl_severeliver', 'compl_acuterenal')","('<b>Severe liver disease (new onset)</b>', '<b>Acute renal injury / acute renal failure</b>')",29
+"('compl_acuterenal', 'compl_ards')","('<b>Acute renal injury / acute renal failure</b>', '<b>Acute Respiratory Distress Syndrome (ARDS)</b>')",21
+"('compl_severeliver', 'compl_acuterenal', 'compl_ards')","('<b>Severe liver disease (new onset)</b>', '<b>Acute renal injury / acute renal failure</b>', '<b>Acute Respiratory Distress Syndrome (ARDS)</b>')",13

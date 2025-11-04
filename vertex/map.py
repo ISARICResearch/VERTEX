@@ -50,6 +50,12 @@ def get_countries(df_map):
     return df_countries
 
 
+def get_public_countries(path):
+    data_file = os.path.join(path, "dashboard_data.csv")
+    df_countries = pd.read_csv(data_file)
+    return df_countries
+
+
 def interpolate_colors(colors, n):
     """Interpolate among multiple hex colors."""
     # Convert all hex colors to RGB

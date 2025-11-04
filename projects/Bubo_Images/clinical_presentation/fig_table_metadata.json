@@ -1,0 +1,16 @@
+{
+    "fig_id": "clinical_presentation/fig_table",
+    "fig_name": "fig_table",
+    "fig_arguments": {
+        "table_key": "<b>KEY</b><br>(*) Count (%) | N<br>(+) Median (IQR) | N",
+        "suffix": "clinical_presentation",
+        "filepath": "",
+        "save_inputs": false,
+        "graph_id": null,
+        "graph_label": "Demographics and Comorbidities",
+        "graph_about": "Summary of demographics and comorbidities."
+    },
+    "fig_data": [
+        "clinical_presentation/fig_table_data___0.csv"
+    ]
+}

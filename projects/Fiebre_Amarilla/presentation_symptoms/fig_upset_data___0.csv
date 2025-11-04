@@ -1,0 +1,6 @@
+index,count,short_label,label
+adsym_feverplus,38,<b>Fever / chills / rigors (onset to ...</b>,<b>Fever / chills / rigors (onset to admission)</b>
+adsym_fatigue,29,<b>Fatigue / malaise / lethargy (onset to ...</b>,<b>Fatigue / malaise / lethargy (onset to admission)</b>
+adsym_arthralgia,24,<b>Joint pain / arthralgia (onset to ...</b>,<b>Joint pain / arthralgia (onset to admission)</b>
+adsym_myalgia,23,<b>Muscle aches / myalgia (onset to ...</b>,<b>Muscle aches / myalgia (onset to admission)</b>
+adsym_headache,20,<b>Headache (onset to admission)</b>,<b>Headache (onset to admission)</b>

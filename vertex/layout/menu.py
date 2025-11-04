@@ -9,9 +9,12 @@ from vertex.logging.logger import setup_logger
 logger = setup_logger(__name__)
 
 
-def define_menu(buttons, filter_options, project_name=None):
+def define_menu(buttons, filter_options=None, project_name=None):
     menu = pd.DataFrame(data=buttons)
-    menu_items = [define_filters_controls(**filter_options)]
+    if filter_options is not None:
+        menu_items = [define_filters_controls(**filter_options)]
+    else:
+        menu_items = []
 
     for item in menu["item"].unique():
         item_children = []
@@ -44,15 +47,29 @@ def define_menu(buttons, filter_options, project_name=None):
     )
 
     menu = html.Div(
-        [menu_header, dbc.ModalBody([dbc.Accordion(menu_items, start_collapsed=True)])],
+        [
+            menu_header,  # fixed top
+            dbc.ModalBody(
+                dbc.Accordion(menu_items, start_collapsed=True),
+                style={
+                    "overflowY": "auto",
+                    "flexGrow": 1,
+                    "maxHeight": "calc(100vh - 320px)",  # leaves room for header
+                },
+            ),
+        ],
         style={
             "width": "350px",
             "position": "fixed",
             "bottom": 0,
             "left": 0,
+            "height": "50vh",  # half viewport height
+            "display": "flex",
+            "flexDirection": "column",
             "zIndex": 1000,
-            "background-color": "rgba(255, 255, 255, 0.8)",
+            "backgroundColor": "rgba(255, 255, 255, 0.9)",
             "padding": "10px",
+            "boxShadow": "2px 0 6px rgba(0,0,0,0.1)",
         },
     )
     return menu

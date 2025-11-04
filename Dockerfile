@@ -4,8 +4,8 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Upgrade pip and install pip-tools first
-RUN pip install --upgrade pip setuptools wheel
-RUN pip install pip-tools
+RUN pip install "pip<25" "setuptools<80" wheel
+RUN pip install "pip-tools==7.5.1"
 
 COPY pyproject.toml ./
 

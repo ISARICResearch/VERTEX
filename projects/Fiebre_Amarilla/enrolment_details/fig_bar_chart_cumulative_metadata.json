@@ -1,0 +1,19 @@
+{
+    "fig_id": "enrolment_details/fig_bar_chart_cumulative",
+    "fig_name": "fig_bar_chart",
+    "fig_arguments": {
+        "title": "Cumulative patient enrolment by month",
+        "xlabel": "Month",
+        "ylabel": "Number of patients",
+        "base_color_map": null,
+        "suffix": "enrolment_details",
+        "filepath": "",
+        "save_inputs": false,
+        "graph_id": null,
+        "graph_label": "Cumulative patient enrolment",
+        "graph_about": "..."
+    },
+    "fig_data": [
+        "enrolment_details/fig_bar_chart_cumulative_data___0.csv"
+    ]
+}

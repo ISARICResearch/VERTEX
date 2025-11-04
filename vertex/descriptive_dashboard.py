@@ -18,13 +18,13 @@ from plotly import graph_objs as go
 from sqlalchemy import MetaData, create_engine
 from sqlalchemy.orm import Session
 
-from vertex.io import config_defaults, get_config, get_projects, load_vertex_data, save_public_outputs
+from vertex.io import config_defaults, get_config, get_projects, load_public_dashboard, load_vertex_data, save_public_outputs
 from vertex.layout.app_layout import define_inner_layout, define_shell_layout
 from vertex.layout.filters import get_filter_options
-from vertex.layout.insight_panels import get_insight_panels
+from vertex.layout.insight_panels import get_insight_panels, get_public_visuals
 from vertex.layout.modals import create_modal
 from vertex.logging.logger import setup_logger
-from vertex.map import create_map, filter_df_map, get_countries, merge_data_with_countries
+from vertex.map import create_map, filter_df_map, get_countries, get_public_countries, merge_data_with_countries
 from vertex.models import User
 from vertex.secrets import get_database_url, get_flask_auth_secrets
 
@@ -121,7 +121,7 @@ def register_callbacks(app):
     ):
         project_data = get_project_data(project_path)
 
-        if not project_data:
+        if not project_data or project_data["mode"] != "analysis":
             raise PreventUpdate
 
         df_map = project_data["df_map"]
@@ -246,19 +246,41 @@ def register_callbacks(app):
         project_data = get_project_data(project_path)
         if not project_data:
             raise PreventUpdate
+        logger.debug(f"open_and_load_modal: suffix requested = {suffix!r}")
+        logger.debug(f"Available suffixes: {list(project_data.get('insight_panels', {}).keys())}")
 
-        visuals = project_data["insight_panels"][suffix].create_visuals(
-            df_map=project_data["df_map"].copy(),
-            df_forms_dict={k: v.copy() for k, v in project_data["df_forms_dict"].items()},
-            dictionary=project_data["dictionary"].copy(),
-            quality_report=project_data["quality_report"],
-            suffix=suffix,
-            filepath=project_path,
-            save_inputs=False,
-        )
+        # --- get the insight panel
+        insight_panel = project_data["insight_panels"].get(suffix)
+        if insight_panel is None:
+            logger.error(f"Insight panel {suffix} not found in project {project_path}")
+            raise PreventUpdate
 
-        button = {**project_data["insight_panels"][suffix].define_button(), **{"suffix": suffix}}
-        modal_content = create_modal(visuals, button, get_filter_options(project_data["df_map"]))
+        # --- call create_visuals
+        mode = project_data.get("mode", "analysis")
+        if mode == "prebuilt":
+            visuals = insight_panel.create_visuals(suffix=suffix, filepath=project_path)
+            filter_options = None
+        else:
+            visuals = insight_panel.create_visuals(
+                df_map=project_data["df_map"].copy(),
+                df_forms_dict={k: v.copy() for k, v in project_data["df_forms_dict"].items()},
+                dictionary=project_data["dictionary"].copy(),
+                quality_report=project_data["quality_report"],
+                suffix=suffix,
+                filepath=project_path,
+                save_inputs=False,
+            )
+            filter_options = get_filter_options(project_data["df_map"])
+
+        # --- build button metadata
+        if hasattr(insight_panel, "define_button"):
+            button = {**insight_panel.define_button(), **{"suffix": suffix}}
+        else:
+            # prebuilt panels don’t define_button(); use button data already cached
+            button = next((b for b in project_data["buttons"] if b["suffix"] == suffix), {"suffix": suffix})
+
+        # --- create modal (filters only if available)
+        modal_content = create_modal(visuals, button, filter_options=filter_options)
 
         return True, modal_content, button
 
@@ -509,6 +531,7 @@ def register_callbacks(app):
             suffix=suffix,
             save_inputs=project_data["config_dict"]["save_filtered_public_outputs"],
         )
+        logger.debug(f"raw visuals type: {type(visuals)}; len? {len(visuals) if hasattr(visuals,'__len__') else 'no-len'}")
 
         modal = create_modal(visuals, button, get_filter_options(df_map))
 
@@ -542,15 +565,17 @@ def build_project_layout(project_path):
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
     )
     fig = create_map(project_data["df_countries"], map_layout_dict)
-
-    filter_options = get_filter_options(project_data["df_map"])
-
+    if project_data["mode"] == "analysis":
+        filter_options = get_filter_options(project_data["df_map"])
+    else:
+        filter_options = None
+    logger.info(f"buttons: {project_data['buttons']}")
     layout = define_inner_layout(
         fig,
         project_data["buttons"],
-        filter_options,
         map_layout_dict,
-        project_data["config_dict"]["project_name"],
+        filter_options=filter_options,
+        project_name=project_data["config_dict"]["project_name"],
     )
     return layout
 
@@ -568,13 +593,18 @@ def load_project_data(project_path):
 
     logger.info(f" No cache found, loading fresh data for {project_path}")
     config_dict = get_config(project_path, config_defaults)
-    insight_panels_path = os.path.join(project_path, config_dict["insight_panels_path"])
-    insight_panels, buttons = get_insight_panels(config_dict, insight_panels_path)
-
-    df_map, df_forms_dict, dictionary, quality_report = load_vertex_data(project_path, config_dict)
-    df_map = df_map.reset_index(drop=True)
-    df_map_with_countries = merge_data_with_countries(df_map)
-    df_countries = get_countries(df_map_with_countries)
+    # default to analysis mode
+    PREBUILT = False
+    if "insight_panels_path" in config_dict.keys():
+        insight_panels_path = os.path.join(project_path, config_dict["insight_panels_path"])
+        insight_panels, buttons = get_insight_panels(config_dict, insight_panels_path)
+    else:
+        PREBUILT = True
+        logger.info(f" Public project detected, using dashboard_metadata.json for {project_path}")
+        metadata = load_public_dashboard(project_path, config_dict)
+        insight_panels, buttons = get_public_visuals(project_path, metadata["insight_panels"])
+        logger.info(f"{buttons}")
+        df_countries = get_public_countries(project_path)
 
     filter_columns_dict = {
         "subjid": "subjid",
@@ -585,18 +615,25 @@ def load_project_data(project_path):
         "outco_binary_outcome": "filters_outcome",
     }
 
-    df_filters = df_map_with_countries[filter_columns_dict.keys()].rename(columns=filter_columns_dict)
-    df_map = pd.merge(df_map_with_countries, df_filters, on="subjid", how="left").reset_index(drop=True)
-    df_forms_dict = {
-        form: pd.merge(df_form, df_filters, on="subjid", how="left").reset_index(drop=True)
-        for form, df_form in df_forms_dict.items()
-    }
+    if not PREBUILT:
+        df_map, df_forms_dict, dictionary, quality_report = load_vertex_data(project_path, config_dict)
+        df_map = df_map.reset_index(drop=True)
+        df_map_with_countries = merge_data_with_countries(df_map)
+        df_countries = get_countries(df_map_with_countries)
 
+        df_filters = df_map_with_countries[filter_columns_dict.keys()].rename(columns=filter_columns_dict)
+        df_map = pd.merge(df_map_with_countries, df_filters, on="subjid", how="left").reset_index(drop=True)
+        df_forms_dict = {
+            form: pd.merge(df_form, df_filters, on="subjid", how="left").reset_index(drop=True)
+            for form, df_form in df_forms_dict.items()
+        }
+    logger.info(f"{list(insight_panels)[0]}")
     project_data = {
-        "df_map": df_map,
-        "df_forms_dict": df_forms_dict,
-        "dictionary": dictionary,
-        "quality_report": quality_report,
+        "mode": "prebuilt" if PREBUILT else "analysis",
+        "df_map": df_map if not PREBUILT else None,
+        "df_forms_dict": df_forms_dict if not PREBUILT else None,
+        "dictionary": dictionary if not PREBUILT else None,
+        "quality_report": quality_report if not PREBUILT else None,
         "insight_panels": insight_panels,
         "buttons": buttons,
         "config_dict": config_dict,
@@ -605,7 +642,7 @@ def load_project_data(project_path):
 
     PROJECT_CACHE[project_path] = project_data
 
-    if config_dict["save_public_outputs"]:
+    if config_dict.get("save_public_outputs", False):
         logger.info(f" Saving public outputs for project {project_path}")
         save_public_outputs(
             buttons, insight_panels, df_map, df_countries, df_forms_dict, dictionary, quality_report, project_path, config_dict

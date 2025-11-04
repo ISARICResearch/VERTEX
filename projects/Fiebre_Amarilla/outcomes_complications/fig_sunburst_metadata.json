@@ -1,0 +1,23 @@
+{
+    "fig_id": "outcomes_complications/fig_sunburst",
+    "fig_name": "fig_sunburst",
+    "fig_arguments": {
+        "title": "Patient outcomes",
+        "path": [
+            "filters_country",
+            "outco_binary_outcome"
+        ],
+        "values": "subjid",
+        "base_color_map": null,
+        "height": 430,
+        "suffix": "outcomes_complications",
+        "filepath": "",
+        "save_inputs": false,
+        "graph_id": null,
+        "graph_label": "Patient outcomes",
+        "graph_about": "..."
+    },
+    "fig_data": [
+        "outcomes_complications/fig_sunburst_data___0.csv"
+    ]
+}
