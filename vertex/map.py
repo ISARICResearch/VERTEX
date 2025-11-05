@@ -151,6 +151,6 @@ def filter_df_map(df_map, sex_value, age_value, country_value, admdate_value, ad
         & ((df_map["filters_admdate"] >= admdate_min) | df_map["filters_admdate"].isna())
         & ((df_map["filters_admdate"] <= admdate_max) | df_map["filters_admdate"].isna())
         & (df_map["filters_outcome"].isin(outcome_value))
-        & (df_map["filters_country"].isin(country_value))
+        & (df_map["filters_country"].isin(country_value) | df_map["filters_country"].isna())
     ]
     return df_map_filtered.reset_index(drop=True)

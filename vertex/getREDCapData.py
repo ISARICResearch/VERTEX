@@ -40,7 +40,7 @@ def get_records(redcap_url, redcap_api_key, data_access_groups=None, user_assign
         }
         response = requests.post(redcap_url, data=conex)
         logger.debug("HTTP Status: " + str(response.status_code))
-        df = pd.read_csv(io.StringIO(response.text), keep_default_na=False)
+        df = pd.read_csv(io.StringIO(response.text), dtype={"subjid": "str"}, keep_default_na=False)
         if data_access_groups is not None:
             ind = df["redcap_data_access_group"].isin(data_access_groups)
             df = df.loc[ind].reset_index(drop=True)
@@ -70,7 +70,7 @@ switch DAG to unique group name: {unique_group}")
             }
             try:
                 response = requests.post(redcap_url, data=conex)
-                df_new = pd.read_csv(io.StringIO(response.text), keep_default_na=False)
+                df_new = pd.read_csv(io.StringIO(response.text), dtype={"subjid": "str"}, keep_default_na=False)
                 df_new["redcap_data_access_group"] = dag
                 df_list.append(df_new)
                 logger.debug(f"Data access group ID: {dag}, HTTP Status: {response.status_code}")
@@ -721,7 +721,10 @@ def get_redcap_data(redcap_url, redcap_api_key, data_access_groups=None, user_as
     df_map, new_dictionary, quality_report = get_df_map(data, new_dictionary)
     df_forms_dict = get_df_forms(data, new_dictionary)
 
-    if country_mapping is None:
+    if "demog_country" in dictionary["field_name"].values:
+        countries = pd.read_csv("assets/countries.csv", encoding="latin-1")
+        df_map["country_iso"] = df_map["demog_country"].replace(dict(zip(countries["Country"], countries["Code"])))
+    elif country_mapping is None:
         dag = data[["subjid", "redcap_data_access_group"]].drop_duplicates()
         dag = dag.rename(columns={"redcap_data_access_group": "site"})
         dag["country_iso"] = dag["site"].apply(lambda x: x.split("-")[1])
