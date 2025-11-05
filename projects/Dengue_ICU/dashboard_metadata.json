@@ -1,0 +1,51 @@
+{
+    "insight_panels": [
+        {
+            "item": "Tables",
+            "label": "Table 1",
+            "suffix": "Tabela1",
+            "graph_ids": [
+                "Tabela1/fig_table"
+            ]
+        },
+        {
+            "item": "Tables",
+            "label": "Table 2",
+            "suffix": "Tabela2",
+            "graph_ids": [
+                "Tabela2/fig_table"
+            ]
+        },
+        {
+            "item": "Figures",
+            "label": "Figure 1",
+            "suffix": "Figure1",
+            "graph_ids": [
+                "Figure1/fig_bar_chart",
+                "Figure1/fig_line_chart_mortality",
+                "Figure1/fig_line_chart_complications"
+            ]
+        },
+        {
+            "item": "Figures",
+            "label": "Figure 2",
+            "suffix": "Figure2",
+            "graph_ids": [
+                "Figure2/fig_bar_chart_figure2a",
+                "Figure2/fig_bar_chart_figure2b",
+                "Figure2/fig_bar_chart_figure2c",
+                "Figure2/fig_bar_chart_figure2d",
+                "Figure2/fig_bar_chart_figure2e",
+                "Figure2/fig_bar_chart_figure2f"
+            ]
+        },
+        {
+            "item": "Figures",
+            "label": "Figure 3",
+            "suffix": "Figure3",
+            "graph_ids": [
+                "Figure3/fig_forest_plot"
+            ]
+        }
+    ]
+}

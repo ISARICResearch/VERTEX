@@ -1,6 +1,0 @@
-index,count,short_label,label
-inter_isolation,488,<b>Was the patient isolated at home or in ...</b>,<b>Was the patient isolated at home or in hospital?</b>
-inter_suppleo2,434,<b>Any supplemental oxygen?</b>,<b>Any supplemental oxygen?</b>
-inter_o2support_type___ECLS/ ECMO,353,"<b>If yes: Select all types of respiratory ...</b>, ECLS/ ECMO","<b>If yes: Select all types of respiratory support the patient received</b>, ECLS/ ECMO"
-inter_o2support_type___Invasive ventilation,314,"<b>If yes: Select all types of respiratory ...</b>, Invasive ventilation","<b>If yes: Select all types of respiratory support the patient received</b>, Invasive ventilation"
-inter_o2support_type___Nasal prong,248,"<b>If yes: Select all types of respiratory ...</b>, Nasal prong","<b>If yes: Select all types of respiratory support the patient received</b>, Nasal prong"

@@ -1,6 +1,0 @@
-index,count,short_label,label
-sympt_restlessne,148,<b>Restlessness</b>,<b>Restlessness</b>
-sympt_retroorbit,140,<b>Retro-orbital pain</b>,<b>Retro-orbital pain</b>
-sympt_haemorrhag_yn,122,<b>Bleeding / haemorrhage</b>,<b>Bleeding / haemorrhage</b>
-sympt_haemorrhag_site___Skin,69,"<b>If yes: Specify bleeding / haemorrhage ...</b>, Skin","<b>If yes: Specify bleeding / haemorrhage site(s)</b>, Skin"
-sympt_haemorrhag_site___Other(s),68,"<b>If yes: Specify bleeding / haemorrhage ...</b>, Other(s)","<b>If yes: Specify bleeding / haemorrhage site(s)</b>, Other(s)"

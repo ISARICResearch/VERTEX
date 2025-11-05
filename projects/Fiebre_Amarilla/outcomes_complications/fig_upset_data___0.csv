@@ -1,0 +1,6 @@
+index,count,short_label,label
+compl_acutehepat,35,<b>Acute hepatitis</b>,<b>Acute hepatitis</b>
+compl_severeliver,23,<b>Severe liver disease (new onset)</b>,<b>Severe liver disease (new onset)</b>
+compl_coagulatio,21,<b>Coagulation disorder / DIC</b>,<b>Coagulation disorder / DIC</b>
+compl_sevorgimp,15,<b>Severe organ dysfunction</b>,<b>Severe organ dysfunction</b>
+compl_acuterenal,15,<b>Acute renal injury / acute renal failure</b>,<b>Acute renal injury / acute renal failure</b>

@@ -1,0 +1,10 @@
+variable,proportion,label,short_label
+inter_nacetylcys,0.7161290322580646,<b>N-acetyl cysteine</b>,<b>N-acetyl cysteine</b>
+inter_suppleo2,0.674934725848564,<b>Any supplemental oxygen?</b>,<b>Any supplemental oxygen?</b>
+inter_other,0.6471226927252985,<b>Other intervention(s) or procedure(s)</b>,<b>Other intervention(s) or procedure(s)</b>
+inter_ivimmunogl,0.6129753914988815,<b>Intravenous immunoglobulin</b>,<b>Intravenous immunoglobulin</b>
+inter_plasmaex,0.30153121319199055,<b>Plasmapheresis / plasma exchange</b>,<b>Plasmapheresis / plasma exchange</b>
+inter_ivfluid,0.28903225806451616,<b>Intravenous (parenteral) fluids</b>,<b>Intravenous (parenteral) fluids</b>
+inter_diuretics,0.06031363088057901,<b>Diuretics</b>,<b>Diuretics</b>
+inter_bpt,0.03346203346203346,<b>Blood product transfusion</b>,<b>Blood product transfusion</b>
+inter_fluiddrain,0.017857142857142856,<b>Fluid drainage</b>,<b>Fluid drainage</b>

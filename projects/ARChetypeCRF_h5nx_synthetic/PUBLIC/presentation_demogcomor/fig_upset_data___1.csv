@@ -1,0 +1,26 @@
+index,label,count
+"('comor_chrkidney', 'comor_orgtrans', 'comor_aids', 'comor_chrneurolo', 'comor_rheumatolo')","('<b>Chronic kidney disease</b>', '<b>Transplant recipient </b>', '<b>HIV</b>', '<b>Chronic neurological disorder</b>', '<b>Rheumatologic disorder</b>')",399
+"('comor_chrkidney', 'comor_orgtrans', 'comor_aids', 'comor_chrneurolo')","('<b>Chronic kidney disease</b>', '<b>Transplant recipient </b>', '<b>HIV</b>', '<b>Chronic neurological disorder</b>')",116
+"('comor_chrkidney', 'comor_orgtrans', 'comor_chrneurolo', 'comor_rheumatolo')","('<b>Chronic kidney disease</b>', '<b>Transplant recipient </b>', '<b>Chronic neurological disorder</b>', '<b>Rheumatologic disorder</b>')",75
+"('comor_chrkidney', 'comor_orgtrans', 'comor_aids', 'comor_rheumatolo')","('<b>Chronic kidney disease</b>', '<b>Transplant recipient </b>', '<b>HIV</b>', '<b>Rheumatologic disorder</b>')",74
+"('comor_chrkidney', 'comor_aids', 'comor_chrneurolo', 'comor_rheumatolo')","('<b>Chronic kidney disease</b>', '<b>HIV</b>', '<b>Chronic neurological disorder</b>', '<b>Rheumatologic disorder</b>')",64
+"('comor_orgtrans', 'comor_aids', 'comor_chrneurolo', 'comor_rheumatolo')","('<b>Transplant recipient </b>', '<b>HIV</b>', '<b>Chronic neurological disorder</b>', '<b>Rheumatologic disorder</b>')",63
+"('comor_chrkidney', 'comor_orgtrans', 'comor_aids')","('<b>Chronic kidney disease</b>', '<b>Transplant recipient </b>', '<b>HIV</b>')",26
+"('comor_chrkidney', 'comor_aids', 'comor_chrneurolo')","('<b>Chronic kidney disease</b>', '<b>HIV</b>', '<b>Chronic neurological disorder</b>')",22
+"('comor_orgtrans', 'comor_aids', 'comor_rheumatolo')","('<b>Transplant recipient </b>', '<b>HIV</b>', '<b>Rheumatologic disorder</b>')",21
+"('comor_chrkidney', 'comor_orgtrans', 'comor_chrneurolo')","('<b>Chronic kidney disease</b>', '<b>Transplant recipient </b>', '<b>Chronic neurological disorder</b>')",18
+"('comor_orgtrans', 'comor_chrneurolo', 'comor_rheumatolo')","('<b>Transplant recipient </b>', '<b>Chronic neurological disorder</b>', '<b>Rheumatologic disorder</b>')",18
+"('comor_chrkidney', 'comor_orgtrans', 'comor_rheumatolo')","('<b>Chronic kidney disease</b>', '<b>Transplant recipient </b>', '<b>Rheumatologic disorder</b>')",17
+"('comor_aids', 'comor_chrneurolo', 'comor_rheumatolo')","('<b>HIV</b>', '<b>Chronic neurological disorder</b>', '<b>Rheumatologic disorder</b>')",17
+"('comor_chrkidney', 'comor_aids', 'comor_rheumatolo')","('<b>Chronic kidney disease</b>', '<b>HIV</b>', '<b>Rheumatologic disorder</b>')",14
+"('comor_chrkidney', 'comor_chrneurolo', 'comor_rheumatolo')","('<b>Chronic kidney disease</b>', '<b>Chronic neurological disorder</b>', '<b>Rheumatologic disorder</b>')",14
+"('comor_orgtrans', 'comor_aids', 'comor_chrneurolo')","('<b>Transplant recipient </b>', '<b>HIV</b>', '<b>Chronic neurological disorder</b>')",13
+"('comor_chrkidney', 'comor_rheumatolo')","('<b>Chronic kidney disease</b>', '<b>Rheumatologic disorder</b>')",5
+"('comor_chrkidney', 'comor_aids')","('<b>Chronic kidney disease</b>', '<b>HIV</b>')",4
+"('comor_orgtrans', 'comor_chrneurolo')","('<b>Transplant recipient </b>', '<b>Chronic neurological disorder</b>')",4
+"('comor_orgtrans', 'comor_rheumatolo')","('<b>Transplant recipient </b>', '<b>Rheumatologic disorder</b>')",4
+"('comor_chrkidney', 'comor_orgtrans')","('<b>Chronic kidney disease</b>', '<b>Transplant recipient </b>')",3
+"('comor_chrkidney', 'comor_chrneurolo')","('<b>Chronic kidney disease</b>', '<b>Chronic neurological disorder</b>')",3
+"('comor_orgtrans', 'comor_aids')","('<b>Transplant recipient </b>', '<b>HIV</b>')",3
+"('comor_aids', 'comor_chrneurolo')","('<b>HIV</b>', '<b>Chronic neurological disorder</b>')",2
+"('comor_aids',)","('<b>HIV</b>',)",1

@@ -1,0 +1,10 @@
+index,label,count
+"('comor_hypertensi', 'comor_diabetes_yn')","('<b>Hypertension (physician diagnosed)</b>', '<b>Diabetes mellitus</b>')",2
+"('comor_smoking_yn', 'comor_chrpulmona')","('<b>Ever smoked</b>', '<b>Chronic pulmonary disease (not asthma)</b>')",2
+"('comor_smoking_yn',)","('<b>Ever smoked</b>',)",2
+"('comor_hypertensi', 'comor_chrpulmona', 'comor_chrkidney')","('<b>Hypertension (physician diagnosed)</b>', '<b>Chronic pulmonary disease (not asthma)</b>', '<b>Chronic kidney disease</b>')",1
+"('comor_hypertensi', 'comor_chrkidney')","('<b>Hypertension (physician diagnosed)</b>', '<b>Chronic kidney disease</b>')",1
+"('comor_hypertensi',)","('<b>Hypertension (physician diagnosed)</b>',)",1
+"('comor_smoking_yn', 'comor_diabetes_yn')","('<b>Ever smoked</b>', '<b>Diabetes mellitus</b>')",1
+"('comor_diabetes_yn',)","('<b>Diabetes mellitus</b>',)",1
+"('comor_chrkidney',)","('<b>Chronic kidney disease</b>',)",1

@@ -1,5 +1,5 @@
 {
-	"project_name": "H5Nx Synthetic data",
+	"project_name": "(Analysis) H5Nx Synthetic data",
 	"api_url": "https://ncov.medsci.ox.ac.uk/api/",
 	"api_key": "0D855E040CB0A5DEC78BCA9137BB65B3",
 	"data_access_groups": null,
@@ -7,7 +7,7 @@
 	"map_layout_center_latitude": 15,
 	"map_layout_center_longitude": -45,
 	"map_layout_zoom": 1.7,
-	"save_public_outputs": true,
+	"save_public_outputs": false,
 	"public_path": "PUBLIC/",
 	"insight_panels_path": "insight_panels/",
 	"insight_panels": [

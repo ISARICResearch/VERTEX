@@ -1,0 +1,31 @@
+index,label,count
+"('compl_shock', 'compl_meningitis', 'compl_acuterenal', 'compl_cardiarrest', 'compl_focalneuro')","('<b>Shock </b>', '<b>Meningitis</b>', '<b>Acute renal injury / acute renal failure</b>', '<b>Cardiac arrest</b>', '<b>Focal neurological signs</b>')",256
+"('compl_shock', 'compl_meningitis', 'compl_acuterenal', 'compl_cardiarrest')","('<b>Shock </b>', '<b>Meningitis</b>', '<b>Acute renal injury / acute renal failure</b>', '<b>Cardiac arrest</b>')",121
+"('compl_shock', 'compl_meningitis', 'compl_acuterenal', 'compl_focalneuro')","('<b>Shock </b>', '<b>Meningitis</b>', '<b>Acute renal injury / acute renal failure</b>', '<b>Focal neurological signs</b>')",115
+"('compl_shock', 'compl_meningitis', 'compl_cardiarrest', 'compl_focalneuro')","('<b>Shock </b>', '<b>Meningitis</b>', '<b>Cardiac arrest</b>', '<b>Focal neurological signs</b>')",86
+"('compl_shock', 'compl_acuterenal', 'compl_cardiarrest', 'compl_focalneuro')","('<b>Shock </b>', '<b>Acute renal injury / acute renal failure</b>', '<b>Cardiac arrest</b>', '<b>Focal neurological signs</b>')",67
+"('compl_shock', 'compl_meningitis', 'compl_focalneuro')","('<b>Shock </b>', '<b>Meningitis</b>', '<b>Focal neurological signs</b>')",37
+"('compl_shock', 'compl_acuterenal', 'compl_cardiarrest')","('<b>Shock </b>', '<b>Acute renal injury / acute renal failure</b>', '<b>Cardiac arrest</b>')",37
+"('compl_shock', 'compl_acuterenal', 'compl_focalneuro')","('<b>Shock </b>', '<b>Acute renal injury / acute renal failure</b>', '<b>Focal neurological signs</b>')",34
+"('compl_shock', 'compl_meningitis', 'compl_cardiarrest')","('<b>Shock </b>', '<b>Meningitis</b>', '<b>Cardiac arrest</b>')",31
+"('compl_shock', 'compl_meningitis', 'compl_acuterenal')","('<b>Shock </b>', '<b>Meningitis</b>', '<b>Acute renal injury / acute renal failure</b>')",30
+"('compl_meningitis', 'compl_acuterenal', 'compl_cardiarrest', 'compl_focalneuro')","('<b>Meningitis</b>', '<b>Acute renal injury / acute renal failure</b>', '<b>Cardiac arrest</b>', '<b>Focal neurological signs</b>')",30
+"('compl_shock', 'compl_cardiarrest', 'compl_focalneuro')","('<b>Shock </b>', '<b>Cardiac arrest</b>', '<b>Focal neurological signs</b>')",26
+"('compl_meningitis', 'compl_acuterenal', 'compl_focalneuro')","('<b>Meningitis</b>', '<b>Acute renal injury / acute renal failure</b>', '<b>Focal neurological signs</b>')",18
+"('compl_shock', 'compl_meningitis')","('<b>Shock </b>', '<b>Meningitis</b>')",15
+"('compl_meningitis', 'compl_acuterenal', 'compl_cardiarrest')","('<b>Meningitis</b>', '<b>Acute renal injury / acute renal failure</b>', '<b>Cardiac arrest</b>')",15
+"('compl_shock', 'compl_acuterenal')","('<b>Shock </b>', '<b>Acute renal injury / acute renal failure</b>')",14
+"('compl_shock', 'compl_cardiarrest')","('<b>Shock </b>', '<b>Cardiac arrest</b>')",11
+"('compl_shock', 'compl_focalneuro')","('<b>Shock </b>', '<b>Focal neurological signs</b>')",9
+"('compl_meningitis', 'compl_cardiarrest', 'compl_focalneuro')","('<b>Meningitis</b>', '<b>Cardiac arrest</b>', '<b>Focal neurological signs</b>')",8
+"('compl_meningitis', 'compl_acuterenal')","('<b>Meningitis</b>', '<b>Acute renal injury / acute renal failure</b>')",7
+"('compl_meningitis', 'compl_cardiarrest')","('<b>Meningitis</b>', '<b>Cardiac arrest</b>')",6
+"('compl_acuterenal', 'compl_cardiarrest', 'compl_focalneuro')","('<b>Acute renal injury / acute renal failure</b>', '<b>Cardiac arrest</b>', '<b>Focal neurological signs</b>')",6
+"('compl_acuterenal', 'compl_cardiarrest')","('<b>Acute renal injury / acute renal failure</b>', '<b>Cardiac arrest</b>')",5
+"('compl_meningitis', 'compl_focalneuro')","('<b>Meningitis</b>', '<b>Focal neurological signs</b>')",3
+"('compl_meningitis',)","('<b>Meningitis</b>',)",3
+"('compl_cardiarrest', 'compl_focalneuro')","('<b>Cardiac arrest</b>', '<b>Focal neurological signs</b>')",3
+"('compl_shock',)","('<b>Shock </b>',)",2
+"('compl_acuterenal', 'compl_focalneuro')","('<b>Acute renal injury / acute renal failure</b>', '<b>Focal neurological signs</b>')",2
+"('compl_focalneuro',)","('<b>Focal neurological signs</b>',)",2
+"('compl_cardiarrest',)","('<b>Cardiac arrest</b>',)",1

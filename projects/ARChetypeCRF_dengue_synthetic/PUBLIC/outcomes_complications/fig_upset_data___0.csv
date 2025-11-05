@@ -1,0 +1,6 @@
+index,count,short_label,label
+compl_shock,891,<b>Shock </b>,<b>Shock </b>
+compl_meningitis,781,<b>Meningitis</b>,<b>Meningitis</b>
+compl_acuterenal,757,<b>Acute renal injury / acute renal failure</b>,<b>Acute renal injury / acute renal failure</b>
+compl_cardiarrest,709,<b>Cardiac arrest</b>,<b>Cardiac arrest</b>
+compl_focalneuro,702,<b>Focal neurological signs</b>,<b>Focal neurological signs</b>
