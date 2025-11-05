@@ -322,7 +322,9 @@ def get_filter_options(df_map):
 
     outcome_options = [{"label": v, "value": v} for v in df_map["filters_outcome"].dropna().unique()]
 
-    country_options = [{"label": c, "value": c} for c in sorted(df_map["filters_country"].dropna().unique())]
+    countries = pd.read_csv("assets/countries.csv", encoding="latin-1")
+    country_dict = dict(zip(countries["Code"], countries["Country"]))
+    country_options = [{"label": country_dict.get(c, None), "value": c} for c in df_map["filters_country"].dropna().unique()]
 
     sex_options = [{"label": c, "value": c} for c in sorted(df_map["filters_sex"].dropna().unique())]
 
