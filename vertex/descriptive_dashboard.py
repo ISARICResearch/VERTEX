@@ -26,7 +26,7 @@ from vertex.layout.modals import create_modal
 from vertex.logging.logger import setup_logger
 from vertex.map import create_map, filter_df_map, get_countries, get_public_countries, merge_data_with_countries
 from vertex.models import User
-from vertex.secrets import get_database_url, get_flask_auth_secrets
+from vertex.secrets_app import get_database_url, get_flask_auth_secrets
 
 logger = setup_logger(__name__)
 

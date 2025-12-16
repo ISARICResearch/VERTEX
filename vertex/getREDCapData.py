@@ -279,7 +279,14 @@ def add_onehot_variables(data, dictionary, sep="___"):
 def is_yesno(x):
     """Check if a Yes/No/Unknown question. Remove spaces in case of different
     versions of the same string."""
-    output = x.replace(" ", "") in ("1,Yes|0,No|99,Unknown", "1,Yes|0,No")
+    yesno_patterns = {
+        "1,Yes|0,No",
+        "1,Yes|0,No|99,Unknown",
+        "1,Oui|0,Non",
+        "1,Oui|0,Non|99,Inconnu",
+    }
+    #output = x.replace(" ", "") in ("1,Yes|0,No|99,Unknown", "1,Yes|0,No")
+    output = x.replace(" ", "") in yesno_patterns
     # output = output.isin(['1,Yes|0,No|99,Unknown', '1,Yes|0,No'])
     return output
 
@@ -525,7 +532,8 @@ def convert_onehot_to_binary(df, dictionary):
     binary_ind = dictionary["field_type"] == "binary"
     binary_columns = dictionary.loc[binary_ind, "field_name"].tolist()
     binary_columns = [col for col in binary_columns if col in df.columns]
-    mapping_dict = {"Yes": True, "Checked": True, "No": False, "Unchecked": False, "Unknown": np.nan}
+    #mapping_dict = {"Yes": True, "Checked": True, "No": False, "Unchecked": False, "Unknown": np.nan}
+    mapping_dict = {"Oui": True, "Checked": True, "Non": False, "Unchecked": False, "Inconnu": np.nan}
     with pd.option_context("future.no_silent_downcasting", True):
         df.loc[:, binary_columns] = df[binary_columns].replace(mapping_dict)
     return df
@@ -617,7 +625,7 @@ def initial_data_processing(data, dictionary, missing_data_codes):
     return data, new_dictionary
 
 
-def get_df_map(data, dictionary):
+'''def get_df_map(data, dictionary):
     """Convert single-event rows into one row per patient."""
     df_map = data.copy()
     forms = ["presentation", "daily", "outcome"]
@@ -679,6 +687,63 @@ def get_df_map(data, dictionary):
     dictionary = dictionary.reset_index(drop=True)
     logger.debug(f"Data contains {df_map.shape[0]} patients")
     return df_map, dictionary, quality_report
+'''
+
+def get_df_map(data, dictionary):
+    """Convert single-event rows into one row per patient."""
+    df_map = data.copy()
+    main_events=['Visite Initiale/Jour 1', "Sortie de l'hôpital* ", "Fin de l'étude"]
+    
+    daily_events_notPresentation=['Jour 3  (+1) ', 'Jour 7  (+2)',
+       'Jour 14  (+/-2)', 'Jour 28  (+/-5)',
+       'Jour 90  (+/-20)', 'Jour 180  (+/-20)']
+    
+    other_events=["Sortie de l'hôpital* ", "Fin de l'étude"]
+    
+    df_map = df_map[df_map['redcap_event_name'].isin(main_events) ]
+
+    df_map = df_map.set_index("subjid").groupby(level=0).bfill()
+    df_map = df_map.reset_index().drop_duplicates("subjid")
+
+    #df_map = df_map.set_index("subjid").groupby(level=0).bfill()
+    #df_map = df_map.drop(columns=[col for col in df_map.columns if "redcap" in col])
+    #df_map = df_map.reset_index().drop_duplicates("subjid")
+    #df_map = df_map.reset_index(drop=True)
+    quality_report={}
+
+    other_value_ind = df_map["demog_sex"].isin(["Homme", "Femme"]) == 0
+    df_map.loc[other_value_ind, "demog_sex"] = "Other / Unknown"
+
+
+    '''mapping_dict = {
+        "Discharged alive": "Discharged",  # :)
+        "Discharged against medical advice": "Discharged",  # :)
+        "Death": "Death",  # :(
+        "Palliative care": "Death",  # :(
+    }'''
+    mapping_dict = {
+    "Sortie vivant avec complication(s)": "Discharged",
+    "Sortie vivant sans complication(s)": "Discharged",
+    "Transfert dans un autre établissement": "Discharged",
+    "Sortie contre avis médical": "Discharged",
+    "Décès": "Death",
+    }
+    df_map["outco_binary_outcome"] = map_variable(
+        df_map["outco_outcome"].fillna("Censored"), mapping_dict, other_value_str="Censored"
+    )
+    outcome_dict = {}
+    outcomes = ["Death", "Discharged", "Censored"]
+    outcome_dict["field_name"] = ["outco_binary_outcome"]
+    outcome_dict["field_name"] += ["outco_binary_outcome___" + x for x in outcomes]
+    outcome_dict["form_name"] = "outcome"
+    outcome_dict["field_type"] = ["categorical"] + ["binary"] * len(outcomes)
+    outcome_dict["field_label"] = ["Outcome (binary)"] + outcomes
+    outcome_dict["parent"] = ["outco"] + ["outco_binary_outcome"] * len(outcomes)
+    outcome_dict["branching_logic"] = ""
+    dictionary = pd.concat([dictionary, pd.DataFrame.from_dict(outcome_dict)], axis=0)
+    dictionary = dictionary.reset_index(drop=True)
+    logger.debug(f"Data contains {df_map.shape[0]} patients")
+    return df_map, dictionary, quality_report
 
 
 def get_df_forms(data, dictionary):
@@ -703,6 +768,10 @@ def get_redcap_data(redcap_url, redcap_api_key, data_access_groups=None, user_as
     missing_data_codes = get_missing_data_codes(redcap_url, redcap_api_key)
 
     data, new_dictionary = initial_data_processing(data, dictionary, missing_data_codes)
+
+    subjs = {i: f"SITE_{n}" for n, i in enumerate(data['subjid'].unique(), start=1)}
+    data['subjid'] = data['subjid'].map(subjs)
+
 
     redcap_columns = ["redcap_event_name", "redcap_repeat_instrument"]
     redcap_columns += ["redcap_repeat_instance", "redcap_data_access_group"]
