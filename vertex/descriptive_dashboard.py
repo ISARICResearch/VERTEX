@@ -3,6 +3,7 @@ import os
 import secrets
 import uuid
 import webbrowser
+from urllib.parse import parse_qs, quote
 
 import dash
 import dash_bootstrap_components as dbc
@@ -10,6 +11,7 @@ import pandas as pd
 from dash import callback_context, html, no_update
 from dash.dependencies import ALL, Input, Output, State
 from dash.exceptions import PreventUpdate
+from flask import request
 from flask_login import login_user, logout_user
 from flask_security import Security, SQLAlchemyUserDatastore
 from flask_security.utils import hash_password, verify_and_update_password
@@ -65,12 +67,59 @@ def clear_project_data(project_path):
     PROJECT_CACHE.pop(project_path, None)
 
 
+def resolve_project_request(query_value, project_paths, project_names):
+    if not query_value:
+        return None
+
+    requested = query_value.strip()
+    if not requested:
+        return None
+
+    requested_norm = requested.rstrip("/")
+
+    for path in project_paths:
+        if requested_norm == path.rstrip("/"):
+            return path
+
+    for path in project_paths:
+        if requested_norm == os.path.basename(os.path.normpath(path)):
+            return path
+
+    requested_lower = requested_norm.lower()
+    for path, name in zip(project_paths, project_names):
+        if requested_lower == str(name).strip().lower():
+            return path
+
+    return None
+
+
 ############################################
 # Dashboard callbacks
 ############################################
 
 
-def register_callbacks(app):
+def register_callbacks(app, project_paths, project_names):
+    @app.callback(
+        Output("selected-project-path", "data", allow_duplicate=True),
+        Input("url", "search"),
+        State("selected-project-path", "data"),
+        prevent_initial_call="initial_duplicate",
+    )
+    def set_project_from_url(search, current_project):
+        if not search:
+            raise PreventUpdate
+
+        query = parse_qs(search.lstrip("?"))
+        query_project = (query.get("project") or query.get("param") or [None])[0]
+        if not query_project:
+            raise PreventUpdate
+
+        requested_project = resolve_project_request(query_project, project_paths, project_names)
+        if not requested_project or requested_project == current_project:
+            raise PreventUpdate
+
+        return requested_project
+
     @app.callback(
         Output("project-body", "children"),
         Input("selected-project-path", "data"),
@@ -102,6 +151,28 @@ def register_callbacks(app):
         if not selected_value:
             raise PreventUpdate
         return selected_value
+
+    @app.callback(
+        Output("url", "search"),
+        Input("project-selector", "value"),
+        State("project-selector", "options"),
+        prevent_initial_call=True,
+    )
+    def update_url_for_project(selected_value, project_options):
+        if not selected_value:
+            raise PreventUpdate
+
+        project_path = None
+        if project_options:
+            project_path = next((opt["value"] for opt in project_options if opt["label"] == selected_value), None)
+            if project_path is None:
+                project_path = next((opt["value"] for opt in project_options if opt["value"] == selected_value), None)
+
+        if not project_path:
+            raise PreventUpdate
+
+        project_key = os.path.basename(os.path.normpath(project_path))
+        return f"?project={quote(project_key, safe='')}"
 
     @app.callback(
         Output("world-map", "figure"),
@@ -688,14 +759,28 @@ def main():
             _ = load_project_data(path)  # this loads and caches it
         except Exception as e:
             logger.error(f"Failed to load project {path}: {e}")
-    # load the first projects layout
-    # TODO: allow this to be configurable
-    active_project = project_paths[0] if project_paths else None
-    if active_project is not None:
-        initial_layout = build_project_layout(active_project)
-        app.layout = define_shell_layout(active_project, initial_body=initial_layout)
 
-    register_callbacks(app)
+    def serve_layout():
+        # Prefer project= for new links, but keep param= for legacy one-off deployments.
+        default_project = project_paths[0] if project_paths else None
+        requested_project = None
+
+        try:
+            query_project = request.args.get("project") or request.args.get("param")
+            if query_project:
+                requested_project = resolve_project_request(query_project, project_paths, names)
+                if requested_project is None:
+                    logger.warning(f"Unknown project requested via query string: {query_project}")
+        except Exception as exc:
+            logger.debug(f"Unable to read request args for project selection: {exc}")
+
+        active_project = requested_project or default_project
+        initial_layout = build_project_layout(active_project) if active_project is not None else None
+        return define_shell_layout(active_project, initial_body=initial_layout)
+
+    app.layout = serve_layout
+
+    register_callbacks(app, project_paths, names)
 
     return app
 

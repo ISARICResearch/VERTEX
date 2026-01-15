@@ -10,6 +10,7 @@ from vertex.layout.modals import login_modal, register_modal
 def define_shell_layout(init_project_path, initial_body=None):
     return html.Div(
         [
+            dcc.Location(id="url", refresh=False),
             dcc.Store(id="selected-project-path", data=init_project_path),
             dcc.Store(id="login-state", storage_type="session", data=False),
             # Header

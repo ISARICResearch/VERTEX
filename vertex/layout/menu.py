@@ -69,7 +69,9 @@ def define_menu(buttons, filter_options=None, project_name=None):
             "position": "fixed",
             "bottom": 0,
             "left": 0,
-            "height": "90vh",  # half viewport height
+            "minHeight": "45vh",
+            "maxHeight": "90vh",
+            "height": "auto",
             "display": "flex",
             "flexDirection": "column",
             "zIndex": 1000,
