@@ -1,15 +1,21 @@
 {
 	"project_name": "RVF Dashboard",
 	"api_url": "https://ncov.medsci.ox.ac.uk/api/",
-	"api_key": "8BB21DDACE817797FAB309682383BEC5",
+	"api_key": "B4076C3EFC8E8EBEC741FD88E925F5D3",
 	"map_layout_center_latitude": 15,
 	"map_layout_center_longitude": -15,
 	"map_layout_zoom": 1.8,
-	"save_public_outputs": false,
+	"save_public_outputs": true,
 	"save_filtered_public_outputs": false,
 	"public_path": "PUBLIC/",
 	"insight_panels_path": "insight_panels/",
 	"insight_panels": [
-		"presentation_demogcomor"
+		"presentation_demogcomor",
+		"presentation_sympO2P",
+		"daily_vital",
+		"daily_sympt",
+		"daily_sign",
+		"daily_treat",
+		"daily_labs"
 	]
 }

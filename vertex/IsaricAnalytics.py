@@ -2003,3 +2003,80 @@ def get_parameter_ranking(logistic, n_top=10, threshold=1e-3):
     params_df = params_df.sort_values("score", ascending=False).drop_duplicates("n_features0").head(n_top)
 
     return params_df
+
+
+
+#######################################################
+#######################################################
+### RVF implementation
+
+
+
+
+def get_patient_event_series(daily_forms_data, patient_id, var, patient_col="subjid", agg="first"):
+    """
+    Return a pd.Series indexed by event names (in dict order) with the patient's value for var.
+    Missing -> NaN.
+
+    agg: what to do if there are multiple rows for the patient in the same event:
+         "first", "last", "mean", "median"
+    """
+    out = {}
+    for event, df_event in daily_forms_data.items():
+        if df_event.empty:
+            out[event] = np.nan
+        else:
+            df_event = df_event.loc[:, ~df_event.T.duplicated()]
+            sub = df_event.loc[df_event[patient_col] == patient_id, var]
+
+            if sub.empty:
+                out[event] = np.nan
+            else:
+                if agg == "first":
+                    out[event] = sub.iloc[0]
+                elif agg == "last":
+                    out[event] = sub.iloc[-1]
+                elif agg == "mean":
+                    out[event] = sub.mean()
+                elif agg == "median":
+                    out[event] = sub.median()
+                else:
+                    raise ValueError("agg must be one of: first, last, mean, median")
+
+    return pd.Series(out, name=var)
+
+
+def build_all_patients_event_dataframe(
+    daily_forms_data,
+    daily_events,
+    variables,
+    patient_col="subjid",
+    day_col="day",
+):
+    dfs = []
+
+    for event in daily_events:
+        df_event = daily_forms_data.get(event)
+
+        if df_event is None or df_event.empty:
+            continue
+
+        # remove duplicate columns (by content), like you’ve been doing
+        df_event = df_event.loc[:, ~df_event.T.duplicated()].copy()
+
+        # keep only columns that exist in this event df
+        keep_cols = [c for c in ([patient_col] + variables) if c in df_event.columns]
+        if patient_col not in keep_cols:
+            continue
+
+        tmp = df_event[keep_cols].copy()
+        tmp[day_col] = event  # the grouping column for descriptive_table
+        dfs.append(tmp)
+
+    if not dfs:
+        return pd.DataFrame(columns=[patient_col, day_col] + variables)
+
+    return pd.concat(dfs, ignore_index=True)
+
+#/RVF implementation
+#######################################################

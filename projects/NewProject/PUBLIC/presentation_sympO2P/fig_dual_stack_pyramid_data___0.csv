@@ -1,0 +1,8 @@
+side,y_axis,stack_group,value,left_side
+Femme,0-18,Censored,2,True
+Homme,0-18,Censored,3,False
+Femme,18-40,Censored,2,True
+Homme,18-40,Censored,4,False
+Femme,41-80,Censored,2,True
+Femme,Unknown,Censored,5,True
+Homme,Unknown,Censored,8,False

@@ -1,0 +1,18 @@
+{
+    "fig_id": "daily_treat/fig_table",
+    "fig_name": "fig_table",
+    "fig_arguments": {
+        "table_key": "<b>KEY</b><br>(*) Count (%) | N<br>(+) Median (IQR) | N",
+        "columnwidth": null,
+        "height": 500,
+        "suffix": "daily_treat",
+        "filepath": "",
+        "save_inputs": false,
+        "graph_id": null,
+        "graph_label": "Descriptive Table",
+        "graph_about": "..."
+    },
+    "fig_data": [
+        "daily_treat/fig_table_data___0.csv"
+    ]
+}

@@ -1,0 +1,11 @@
+variable,proportion,label,short_label
+adsym_headache,0.5,<b>Maux de tête</b>,<b>Maux de tête</b>
+adsym_anorexia,0.375,<b>Anorexie</b>,<b>Anorexie</b>
+adsym_abdpain,0.375,<b>Douleurs abdominales</b>,<b>Douleurs abdominales</b>
+adsym_photoph,0.2857142857142857,<b>Photophobie</b>,<b>Photophobie</b>
+adsym_consti,0.25,<b>Constipation</b>,<b>Constipation</b>
+adsym_coldsweat,0.25,<b>Sueurs</b>,<b>Sueurs</b>
+adsym_fatigue,0.25,<b>Asthénie</b>,<b>Asthénie</b>
+adsym_myalgia,0.25,<b>Douleurs musculaires / myalgies</b>,<b>Douleurs musculaires / myalgies</b>
+adsym_cough,0.25,<b>Toux</b>,<b>Toux</b>
+adsym_paineyes,0.25,<b>Douleurs oculaires</b>,<b>Douleurs oculaires</b>

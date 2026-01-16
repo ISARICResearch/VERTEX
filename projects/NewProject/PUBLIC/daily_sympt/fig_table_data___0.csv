@@ -1,0 +1,26 @@
+Variable,All,Jour 1,Jour 3  (+1) ,Jour 7  (+2),Jour 28  (+/-5),Jour 90  (+/-20)
+<b>Totals</b>,28,1,1,2,13,11
+<b><i>SYMPTÔMES </i></b>,,,,,,
+<b>Saisir les symptômes rapportés par le patient pour cette date ?</b> (*),12 (50.0) | 24,N/A,N/A,N/A,7 (53.8) | 13,5 (45.5) | 11
+<b>Fièvre</b> (*),1 (9.1) | 11,N/A,N/A,N/A,0 (0.0) | 6,1 (20.0) | 5
+<b>Frissons</b> (*),0 (0.0) | 12,N/A,N/A,N/A,0 (0.0) | 7,0 (0.0) | 5
+<b>Sueurs</b> (*),1 (14.3) | 7,N/A,N/A,N/A,1 (14.3) | 7,N/A
+<b>Asthénie</b> (*),2 (28.6) | 7,N/A,N/A,N/A,2 (28.6) | 7,N/A
+<b>Vertiges / évanouissements</b> (*),4 (57.1) | 7,N/A,N/A,N/A,4 (57.1) | 7,N/A
+<b>Douleurs musculaires / myalgies</b> (*),3 (60.0) | 5,N/A,N/A,N/A,N/A,3 (60.0) | 5
+<b>Douleurs articulaires / arthralgies</b> (*),4 (33.3) | 12,N/A,N/A,N/A,2 (28.6) | 7,2 (40.0) | 5
+<b>Éruption cutanée</b> (*),1 (14.3) | 7,N/A,N/A,N/A,1 (14.3) | 7,N/A
+<b>Pâleur conjonctivale</b> (*),2 (28.6) | 7,N/A,N/A,N/A,2 (28.6) | 7,N/A
+<b>Toux</b> (*),3 (42.9) | 7,N/A,N/A,N/A,3 (42.9) | 7,N/A
+<b>Maux de gorge</b> (*),1 (14.3) | 7,N/A,N/A,N/A,1 (14.3) | 7,N/A
+<b>Douleurs abdominales</b> (*),2 (28.6) | 7,N/A,N/A,N/A,2 (28.6) | 7,N/A
+<b>Constipation</b> (*),1 (14.3) | 7,N/A,N/A,N/A,1 (14.3) | 7,N/A
+<b>Nausées</b> (*),2 (40.0) | 5,N/A,N/A,N/A,N/A,2 (40.0) | 5
+<b>Saignement / hémorragie</b> (*),1 (14.3) | 7,N/A,N/A,N/A,1 (14.3) | 7,N/A
+<b>Saignement / hémorragie grave (nécessitant une intervention)</b> (*),0 (0.0) | 1,N/A,N/A,N/A,0 (0.0) | 1,N/A
+<b>Maux de tête</b> (*),6 (85.7) | 7,N/A,N/A,N/A,6 (85.7) | 7,N/A
+<b>Convulsions</b> (*),0 (0.0) | 6,N/A,N/A,N/A,0 (0.0) | 6,N/A
+<b>Autre anomalie neurologique</b> (*),1 (16.7) | 6,N/A,N/A,N/A,1 (16.7) | 6,N/A
+<b>Vision trouble / floue</b> (*),2 (28.6) | 7,N/A,N/A,N/A,2 (28.6) | 7,N/A
+<b>Troubles visuels</b> (*),1 (14.3) | 7,N/A,N/A,N/A,1 (14.3) | 7,N/A
+<b>Autres symptômes ophtalmologiques</b> (*),0 (0.0) | 9,N/A,N/A,N/A,0 (0.0) | 5,0 (0.0) | 4

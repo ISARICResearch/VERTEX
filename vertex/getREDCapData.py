@@ -692,11 +692,16 @@ def initial_data_processing(data, dictionary, missing_data_codes):
 def get_df_map(data, dictionary):
     """Convert single-event rows into one row per patient."""
     df_map = data.copy()
-    main_events=['Visite Initiale/Jour 1', "Sortie de l'hôpital* ", "Fin de l'étude"]
+    #main_events=['Visite Initiale/Jour 1', "Sortie de l'hôpital* ", "Fin de l'étude"]
+    main_events=['Visite Initiale']
     
-    daily_events_notPresentation=['Jour 3  (+1) ', 'Jour 7  (+2)',
-       'Jour 14  (+/-2)', 'Jour 28  (+/-5)',
-       'Jour 90  (+/-20)', 'Jour 180  (+/-20)']
+    
+    #daily_events_notPresentation=['Jour 3  (+1) ', 'Jour 7  (+2)',
+    #   'Jour 14  (+/-2)', 'Jour 28  (+/-5)',
+    #   'Jour 90  (+/-20)', 'Jour 180  (+/-20)']
+
+    daily_events_notPresentation=['Jour 28  (+/-5)', 'Jour 90  (+/-20)',
+       'Jour 7  (+2)', 'Jour 1', 'Jour 3  (+1) ']
     
     other_events=["Sortie de l'hôpital* ", "Fin de l'étude"]
     
@@ -728,6 +733,15 @@ def get_df_map(data, dictionary):
     "Sortie contre avis médical": "Discharged",
     "Décès": "Death",
     }
+    #######################################################
+    #######################################################
+    ### RVF implementation
+    if "outco_outcome" not in df_map.columns:
+        df_map["outco_outcome"] = np.nan
+
+    #/RVF implementation
+    #######################################################
+    
     df_map["outco_binary_outcome"] = map_variable(
         df_map["outco_outcome"].fillna("Censored"), mapping_dict, other_value_str="Censored"
     )
@@ -778,6 +792,13 @@ def get_redcap_data(redcap_url, redcap_api_key, data_access_groups=None, user_as
     redcap_columns = [col for col in redcap_columns if col not in data.columns]
     data = pd.concat([data, pd.DataFrame(columns=redcap_columns)], axis=1)
 
+    #######################################################
+    #######################################################
+    ### RVF implementation
+    data["redcap_data_access_group"]='site-SEN-001'
+    #/RVF implementation
+    #######################################################
+
     # Get forms and events from the API
     form, form_event = get_form_event(redcap_url, redcap_api_key)
     # Convert repeating forms from label to name
@@ -789,6 +810,13 @@ def get_redcap_data(redcap_url, redcap_api_key, data_access_groups=None, user_as
     data = data.loc[data["form_name"].notna()].reset_index(drop=True)
     df_map, new_dictionary, quality_report = get_df_map(data, new_dictionary)
     df_forms_dict = get_df_forms(data, new_dictionary)
+    
+    #######################################################
+    #######################################################
+    ### RVF implementation
+    df_Dailyforms_dict = get_daily_dfs(data, new_dictionary)
+    #/RVF implementation
+    #######################################################
 
     if "demog_country" in dictionary["field_name"].values:
         countries = pd.read_csv("assets/countries.csv", encoding="latin-1")
@@ -819,7 +847,73 @@ def get_redcap_data(redcap_url, redcap_api_key, data_access_groups=None, user_as
 
     new_dictionary = pd.concat([new_dictionary, pd.DataFrame.from_dict(country_dict)], axis=0)
     new_dictionary = new_dictionary.reset_index(drop=True)
-    return df_map, df_forms_dict, new_dictionary, quality_report
+    return df_map, df_Dailyforms_dict, new_dictionary, quality_report
+
+#######################################################
+#######################################################
+### RVF implementation
+#
+def get_daily_dfs(data,dictionary):
+    #daily_events=['jour_1_arm_1','jour_3__1_arm_1','jour_7__2_arm_1','jour_14__2_arm_1',
+    #              'jour_28__5_arm_1','jour_90__20_arm_1','jour_180__20_arm_1']
+
+    daily_events=	['Jour 1', 'Jour 3  (+1) ','Jour 7  (+2)',"Jour 14 (+/-2)",'Jour 28  (+/-5)','Jour 90  (+/-20)',"Jour 180 (+/-20)"]
+    
+    data_daily = data[data['redcap_event_name'].isin(daily_events)].reset_index(drop=True)
+    daily_forms = data['form_name'].unique().tolist()
+    daily_dictionary=dictionary[dictionary['form_name'].isin(daily_forms)]
+    dayly_columns = daily_dictionary['field_name'].tolist()
+    dayly_columns = [col for col in dayly_columns if col in data_daily.columns]
+    dayly_columns=dayly_columns+['redcap_event_name','form_name']
+    data_daily=data_daily[dayly_columns]
+    data_daily = data_daily.dropna(axis=1, how="all")
+
+    daily_forms_data={}
+    for event in daily_events:
+        df_daily_event = data_daily[data_daily['redcap_event_name']==event].reset_index(drop=True)
+        daily_forms_data[event]=df_daily_event
+
+        
+    #pp=get_patient_event_series(daily_forms_data,'SITE_15','vital_gcs')
+    return daily_forms_data
+
+'''def get_patient_event_series(daily_forms_data, patient_id, var, patient_col="subjid", agg="first"):
+    """
+    Return a pd.Series indexed by event names (in dict order) with the patient's value for var.
+    Missing -> NaN.
+
+    agg: what to do if there are multiple rows for the patient in the same event:
+         "first", "last", "mean", "median"
+    """
+    out = {}
+    for event, df_event in daily_forms_data.items():
+        if df_event.empty:
+            out[event] = np.nan
+        else:
+            df_event = df_event.loc[:, ~df_event.T.duplicated()]
+            sub = df_event.loc[df_event[patient_col] == patient_id, var]
+
+            if sub.empty:
+                out[event] = np.nan
+            else:
+                if agg == "first":
+                    out[event] = sub.iloc[0]
+                elif agg == "last":
+                    out[event] = sub.iloc[-1]
+                elif agg == "mean":
+                    out[event] = sub.mean()
+                elif agg == "median":
+                    out[event] = sub.median()
+                else:
+                    raise ValueError("agg must be one of: first, last, mean, median")
+
+    return pd.Series(out, name=var)
+'''
+
+
+#/RVF implementation
+#######################################################
+
 
 
 # def convert_fixed_date_events_to_repeating_event(df, event_prefix='Day '):

@@ -28,6 +28,8 @@ from vertex.map import create_map, filter_df_map, get_countries, get_public_coun
 from vertex.models import User
 from vertex.secrets_app import get_database_url, get_flask_auth_secrets
 
+
+
 logger = setup_logger(__name__)
 
 # are we running locally, i.e. no db:
@@ -71,6 +73,10 @@ def clear_project_data(project_path):
 
 
 def register_callbacks(app):
+
+
+    
+
     @app.callback(
         Output("project-body", "children"),
         Input("selected-project-path", "data"),

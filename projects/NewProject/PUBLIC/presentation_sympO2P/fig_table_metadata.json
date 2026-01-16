@@ -1,0 +1,18 @@
+{
+    "fig_id": "presentation_sympO2P/fig_table",
+    "fig_name": "fig_table",
+    "fig_arguments": {
+        "table_key": "<b>KEY</b><br>(*) Count (%) | N<br>(+) Median (IQR) | N",
+        "columnwidth": null,
+        "height": 500,
+        "suffix": "presentation_sympO2P",
+        "filepath": "",
+        "save_inputs": false,
+        "graph_id": null,
+        "graph_label": "Descriptive Table Symptoms from onset to presentation",
+        "graph_about": "Summary of Symptoms from onset to presentation"
+    },
+    "fig_data": [
+        "presentation_sympO2P/fig_table_data___0.csv"
+    ]
+}

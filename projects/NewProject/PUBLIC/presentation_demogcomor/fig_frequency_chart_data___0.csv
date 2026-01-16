@@ -1,0 +1,11 @@
+variable,proportion,label,short_label
+comor_blindness___Non,1.0,"<b>Cécité</b>, Non","<b>Cécité</b>, Non"
+comor_hypertensi,0.42857142857142855,<b>Hypertension artérielle chronique</b>,<b>Hypertension artérielle chronique</b>
+comor_diabetes,0.42857142857142855,<b>Diabète</b>,<b>Diabète</b>
+comor_rheumatolo,0.25,<b>Trouble rhumatologique</b>,<b>Trouble rhumatologique</b>
+comor_sickle,0.14285714285714285,<b>Drépanocytose</b>,<b>Drépanocytose</b>
+comor_chrneurolo,0.0,<b>Troubles neurologiques chroniques</b>,<b>Troubles neurologiques chroniques</b>
+comor_radiotherapy,0.0,<b>Traitement immunosuppresseur</b>,<b>Traitement immunosuppresseur</b>
+comor_chemotherapy,0.0,<b>Chimiothérapie</b>,<b>Chimiothérapie</b>
+comor_alcohol,0.0,<b>Ethylisme</b>,<b>Ethylisme</b>
+comor_smoking,0.0,<b>Tabagisme</b>,<b>Tabagisme</b>

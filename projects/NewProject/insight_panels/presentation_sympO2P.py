@@ -12,7 +12,7 @@ def define_button():
     # according to this
     # However, the combination of button_item and button_label must be unique
     button_item = "Clinical Presentation"
-    button_label = "Demographics / Comorbidities"
+    button_label = "Symptoms from onset to presentation"
     output = {"item": button_item, "label": button_label}
     return output
 
@@ -64,7 +64,7 @@ def create_visuals(df_map, df_forms_dict, dictionary, quality_report, filepath, 
     #table=dictionary.loc[dictionary['field_name'].isin(include_columns),['field_name','field_label']]
     #table=df_map[include_columns[8:15]].head()
     #table_key='demog_comor_table'
-    
+    '''
     fig_table = idw.fig_table(
         table,
         table_key=table_key,
@@ -104,7 +104,7 @@ def create_visuals(df_map, df_forms_dict, dictionary, quality_report, filepath, 
         graph_label=section_name + ": Intersections*",
         graph_about=about,
     )
-    '''
+    
     table=pd.DataFrame([['a','b'],['1','2']],columns=['col1','col2'])
     #table=df_map.head()
     fig_table = idw.fig_table(
@@ -127,21 +127,21 @@ def create_visuals(df_map, df_forms_dict, dictionary, quality_report, filepath, 
     #table=dictionary.loc[dictionary['field_name'].isin(include_columns),['field_name','field_label']]
     #table=df_map[include_columns[8:15]].head()
     #table_key='demog_comor_table'
-    '''
+    
     fig_table_adsym = idw.fig_table(
         table_adsym,
         table_key=table_key_adsym,
         suffix=suffix,
         filepath=filepath,
         save_inputs=save_inputs,
-        graph_label="Descriptive Table Symptoms from onset to presentation*",
-        graph_about="Summary of demographics and comorbidities.",
+        graph_label="Descriptive Table Symptoms from onset to presentation",
+        graph_about="Summary of Symptoms from onset to presentation",
     )
 
 
     # sumptoms frequency and upset charts
     section = "adsym"
-    section_name = "Comorbidities on presentation"
+    section_name = "Symptoms from onset to presentation"
     df_upset = ia.get_descriptive_data(df_map, dictionary, include_sections=[section], include_types=["binary", "categorical"])
     proportions = ia.get_proportions(df_upset, dictionary)
     counts_intersections = ia.get_upset_counts_intersections(df_upset, dictionary)
@@ -167,6 +167,6 @@ def create_visuals(df_map, df_forms_dict, dictionary, quality_report, filepath, 
         save_inputs=save_inputs,
         graph_label=section_name + ": Intersections*",
         graph_about=about,
-    )'''
-    return (pyramid_chart,fig_table,freq_chart_comor,upset_plot_comor)
+    )
+    return (fig_table_adsym,freq_chart_adsym,upset_plot_adsym)
     #return (pyramid_chart, fig_table, freq_chart_comor, upset_plot_comor)

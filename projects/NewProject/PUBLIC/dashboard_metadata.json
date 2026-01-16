@@ -1,0 +1,66 @@
+{
+    "insight_panels": [
+        {
+            "item": "Clinical Presentation",
+            "label": "Demographics / Comorbidities",
+            "suffix": "presentation_demogcomor",
+            "graph_ids": [
+                "presentation_demogcomor/fig_dual_stack_pyramid",
+                "presentation_demogcomor/fig_table",
+                "presentation_demogcomor/fig_frequency_chart",
+                "presentation_demogcomor/fig_upset"
+            ]
+        },
+        {
+            "item": "Clinical Presentation",
+            "label": "Symptoms from onset to presentation",
+            "suffix": "presentation_sympO2P",
+            "graph_ids": [
+                "presentation_sympO2P/fig_table",
+                "presentation_sympO2P/fig_frequency_chart",
+                "presentation_sympO2P/fig_upset"
+            ]
+        },
+        {
+            "item": "Daily Patient Observations",
+            "label": "Vital Signs & Assessments",
+            "suffix": "daily_vital",
+            "graph_ids": [
+                "daily_vital/fig_table"
+            ]
+        },
+        {
+            "item": "Daily Patient Observations",
+            "label": "Symptoms",
+            "suffix": "daily_sympt",
+            "graph_ids": [
+                "daily_sympt/fig_table",
+                "/fig_heatmaps"
+            ]
+        },
+        {
+            "item": "Daily Patient Observations",
+            "label": "Signs",
+            "suffix": "daily_sign",
+            "graph_ids": [
+                "daily_sign/fig_table"
+            ]
+        },
+        {
+            "item": "Daily Patient Observations",
+            "label": "Treatments & Interventions",
+            "suffix": "daily_treat",
+            "graph_ids": [
+                "daily_treat/fig_table"
+            ]
+        },
+        {
+            "item": "Daily Patient Observations",
+            "label": "Laboratory Results",
+            "suffix": "daily_labs",
+            "graph_ids": [
+                "daily_labs/fig_table"
+            ]
+        }
+    ]
+}

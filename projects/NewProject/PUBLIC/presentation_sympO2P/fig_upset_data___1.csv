@@ -1,0 +1,7 @@
+index,label,count
+"('adsym_headache', 'adsym_anorexia', 'adsym_abdpain')","('<b>Maux de tête</b>', '<b>Anorexie</b>', '<b>Douleurs abdominales</b>')",1
+"('adsym_headache', 'adsym_fatigue')","('<b>Maux de tête</b>', '<b>Asthénie</b>')",1
+"('adsym_headache',)","('<b>Maux de tête</b>',)",1
+"('adsym_headache', 'adsym_anorexia', 'adsym_abdpain', 'adsym_coldsweat', 'adsym_fatigue')","('<b>Maux de tête</b>', '<b>Anorexie</b>', '<b>Douleurs abdominales</b>', '<b>Sueurs</b>', '<b>Asthénie</b>')",1
+"('adsym_anorexia', 'adsym_abdpain')","('<b>Anorexie</b>', '<b>Douleurs abdominales</b>')",1
+"('adsym_coldsweat',)","('<b>Sueurs</b>',)",1

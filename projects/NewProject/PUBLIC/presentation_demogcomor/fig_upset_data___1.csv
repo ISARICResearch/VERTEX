@@ -1,0 +1,5 @@
+index,label,count
+"('comor_blindness___Non',)","('<b>Cécité</b>, Non',)",3
+"('comor_blindness___Non', 'comor_hypertensi', 'comor_rheumatolo')","('<b>Cécité</b>, Non', '<b>Hypertension artérielle chronique</b>', '<b>Trouble rhumatologique</b>')",2
+"('comor_blindness___Non', 'comor_diabetes', 'comor_diabetes_type___Type 1')","('<b>Cécité</b>, Non', '<b>Diabète</b>', '<b>Type de diabète</b>, Type 1')",2
+"('comor_blindness___Non', 'comor_hypertensi', 'comor_diabetes')","('<b>Cécité</b>, Non', '<b>Hypertension artérielle chronique</b>', '<b>Diabète</b>')",1

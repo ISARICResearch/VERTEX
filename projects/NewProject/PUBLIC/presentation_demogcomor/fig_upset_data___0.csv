@@ -1,0 +1,6 @@
+index,count,short_label,label
+comor_blindness___Non,8,"<b>Cécité</b>, Non","<b>Cécité</b>, Non"
+comor_hypertensi,3,<b>Hypertension artérielle chronique</b>,<b>Hypertension artérielle chronique</b>
+comor_diabetes,3,<b>Diabète</b>,<b>Diabète</b>
+comor_rheumatolo,2,<b>Trouble rhumatologique</b>,<b>Trouble rhumatologique</b>
+comor_diabetes_type___Type 1,2,"<b>Type de diabète</b>, Type 1","<b>Type de diabète</b>, Type 1"

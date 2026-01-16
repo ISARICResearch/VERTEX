@@ -1,0 +1,41 @@
+Variable,All,Femme,Homme
+<b>Totals</b>,26,11,15
+<b><i>DONNÉES DÉMOGRAPHIQUES</i></b>,,,
+<b>Marié</b> (*),11 (42.3) | 26,6 (54.5) | 11,5 (33.3) | 15
+<b>La date de naissance est-elle connue ?</b> (*),13 (50.0) | 26,5 (45.5) | 11,8 (53.3) | 15
+<b>Âge</b> (+),19.0 (13.0-34.0) | 13,29.0 (16.0-49.5) | 6,18.0 (12.5-21.0) | 7
+<b>Profession</b> (*),,,
+   ↳ Eleveur d'animaux,4 (16.0) | 25,1 (10.0) | 10,3 (20.0) | 15
+   ↳ Autre,21 (84.0) | 25,9 (90.0) | 10,12 (80.0) | 15
+<b>Troubles neurologiques chroniques</b> (*),0 (0.0) | 8,0 (0.0) | 6,0 (0.0) | 2
+<b>Épilepsie</b> (*),0 (0.0) | 8,0 (0.0) | 6,0 (0.0) | 2
+"<b>Maladies neurodégénératives (Parkinson, Alzheimer)</b> (*)",0 (0.0) | 8,0 (0.0) | 6,0 (0.0) | 2
+<b>Antécédents d'accident vasculaire cérébral</b> (*),0 (0.0) | 8,0 (0.0) | 6,0 (0.0) | 2
+<b>Maladie cardiaque chronique (hors hypertension)</b> (*),0 (0.0) | 8,0 (0.0) | 6,0 (0.0) | 2
+<b>Hypertension artérielle chronique</b> (*),3 (42.9) | 7,2 (40.0) | 5,1 (50.0) | 2
+<b>Maladie vasculaire périphérique</b> (*),0 (0.0) | 8,0 (0.0) | 6,0 (0.0) | 2
+<b>Maladie pulmonaire restrictive/fibrose pulmonaire</b> (*),0 (0.0) | 8,0 (0.0) | 6,0 (0.0) | 2
+<b>Bronchopathie chronique obstructive (BPCO)</b> (*),0 (0.0) | 8,0 (0.0) | 6,0 (0.0) | 2
+<b>Asthme sévère</b> (*),0 (0.0) | 8,0 (0.0) | 6,0 (0.0) | 2
+<b>Maladie hépatique</b> (*),0 (0.0) | 8,0 (0.0) | 6,0 (0.0) | 2
+<b>Maladie rénale chronique</b> (*),0 (0.0) | 8,0 (0.0) | 6,0 (0.0) | 2
+<b>Néphropathie diabétique</b> (*),0 (0.0) | 8,0 (0.0) | 6,0 (0.0) | 2
+<b>VIH</b> (*),0 (0.0) | 7,0 (0.0) | 5,0 (0.0) | 2
+<b>Tuberculose</b> (*),0 (0.0) | 8,0 (0.0) | 6,0 (0.0) | 2
+<b>Drépanocytose</b> (*),1 (14.3) | 7,1 (20.0) | 5,0 (0.0) | 2
+<b>Coagulopathies</b> (*),0 (0.0) | 8,0 (0.0) | 6,0 (0.0) | 2
+<b>Cécité</b> (*),,,
+   ↳ Non,8 (100.0) | 8,6 (100.0) | 6,2 (100.0) | 2
+<b>Trouble rhumatologique</b> (*),2 (25.0) | 8,1 (16.7) | 6,1 (50.0) | 2
+<b>Tumeur maligne</b> (*),0 (0.0) | 8,0 (0.0) | 6,0 (0.0) | 2
+<b>Obésité</b> (*),0 (0.0) | 8,0 (0.0) | 6,0 (0.0) | 2
+<b>Malnutrition</b> (*),0 (0.0) | 8,0 (0.0) | 6,0 (0.0) | 2
+<b>Diabète</b> (*),3 (42.9) | 7,3 (60.0) | 5,0 (0.0) | 2
+<b>Type de diabète</b> (*),,,
+   ↳ Type 1,2 (66.7) | 3,2 (66.7) | 3,N/A
+   ↳ Type 2,1 (33.3) | 3,1 (33.3) | 3,N/A
+<b>Tabagisme</b> (*),0 (0.0) | 8,0 (0.0) | 6,0 (0.0) | 2
+<b>Ethylisme</b> (*),0 (0.0) | 8,0 (0.0) | 6,0 (0.0) | 2
+<b>Chimiothérapie</b> (*),0 (0.0) | 8,0 (0.0) | 6,0 (0.0) | 2
+<b>Traitement immunosuppresseur</b> (*),0 (0.0) | 8,0 (0.0) | 6,0 (0.0) | 2
+<b>Traitement corticostéroïde à long terme ou à forte dose</b> (*),0 (0.0) | 8,0 (0.0) | 6,0 (0.0) | 2

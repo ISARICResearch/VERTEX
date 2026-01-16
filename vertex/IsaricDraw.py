@@ -1663,7 +1663,7 @@ def fig_bar_line_chart(
     # Every figure must return the same outputs
     return fig, graph_id, graph_label, graph_about
 
-
+'''
 def fig_heatmaps(
     data,
     title="",
@@ -1706,11 +1706,13 @@ def fig_heatmaps(
         vertical_spacing=0.1,
         y_title=ylabel,
     )
-
+    
     if zmin is None:
-        zmin = min(data[ii].drop(columns=index_column).min().min() for ii in range(len(data)))
+        #zmin = min(data[ii].drop(columns=index_column).min().min() for ii in range(len(data)))
+        zmin = min(data[ii].min().min() for ii in range(len(data)))
     if zmax is None:
-        zmax = max(data[ii].drop(columns=index_column).max().max() for ii in range(len(data)))
+        #zmax = max(data[ii].drop(columns=index_column).max().max() for ii in range(len(data)))
+        zmax = max(data[ii].max().max() for ii in range(len(data)))
     if base_color_map is None:
         base_color_map = "viridis"
 
@@ -1761,6 +1763,119 @@ def fig_heatmaps(
 
     # ----
     # Every figure must return the same outputs
+    return fig, graph_id, graph_label, graph_about
+'''
+
+
+def fig_heatmaps(
+    data,
+    title="",
+    subplot_titles=None,
+    ylabel="",
+    xlabel="",
+    colorbar_label="",
+    index_column="index",
+    zmin=None,
+    zmax=None,
+    include_annotations=False,
+    base_color_map=None,
+    height=750,
+    suffix="",
+    filepath="",
+    save_inputs=False,
+    graph_id=None,
+    graph_label="",
+    graph_about="",
+):
+    if save_inputs:
+        inputs = save_inputs_to_file(locals())
+
+    if graph_id is None:
+        graph_id = get_graph_id(suffix)
+    else:
+        graph_id = suffix + "/" + graph_id
+
+    if isinstance(data, tuple) is False:
+        data = (data,)
+
+    fig = make_subplots(
+        rows=len(data),
+        cols=1,
+        subplot_titles=subplot_titles,
+        vertical_spacing=0.1,
+        y_title=ylabel,
+    )
+
+    # ---- ensure numeric matrices (excluding index column) for zmin/zmax
+    numeric_mats = []
+    for ii in range(len(data)):
+        dfi = data[ii].copy()
+
+        # drop index column if present
+        if index_column in dfi.columns:
+            dfi = dfi.drop(columns=[index_column])
+
+        # force numeric; non-numeric -> NaN
+        dfi = dfi.apply(pd.to_numeric, errors="coerce")
+        numeric_mats.append(dfi.to_numpy(dtype=float))
+
+    if zmin is None:
+        zmin = float(np.nanmin([np.nanmin(m) for m in numeric_mats]))
+    if zmax is None:
+        zmax = float(np.nanmax([np.nanmax(m) for m in numeric_mats]))
+
+    if base_color_map is None:
+        base_color_map = "viridis"
+
+    for ii in range(len(data)):
+        df_plot = data[ii].set_index(index_column)
+
+        # ensure numeric z
+        z_df = df_plot.apply(pd.to_numeric, errors="coerce")
+
+        if include_annotations:
+            text = df_plot.loc[::-1].astype(str).values  # annotations from original
+            texttemplate = "%{text}"
+        else:
+            text = None
+            texttemplate = None
+
+        fig.add_trace(
+            go.Heatmap(
+                z=z_df.loc[::-1].to_numpy(dtype=float),
+                x=z_df.columns,
+                y=z_df.index[::-1],
+                text=text,
+                texttemplate=texttemplate,
+                zmin=zmin,
+                zmax=zmax,
+                colorscale=base_color_map,
+                colorbar=({"title": colorbar_label} if ii == 0 else None),
+                showscale=(True if ii == 0 else False),
+            ),
+            row=(ii + 1),
+            col=1,
+        )
+
+    fig.update_layout(
+        height=height,
+        title_text=title,
+        title_x=0.5,
+        title_xref="paper",
+        showlegend=False,
+    )
+
+    for ii in range(1, len(data)):
+        fig.update_xaxes(showticklabels=False, row=ii, col=1)
+
+    fig.update_xaxes(
+        showticklabels=True,
+        tickangle=0,
+        title=xlabel,
+        row=len(data),
+        col=1,
+    )
+
     return fig, graph_id, graph_label, graph_about
 
 
