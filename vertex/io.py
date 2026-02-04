@@ -3,10 +3,10 @@
 import json
 import os
 import shutil
+import time
 from pathlib import Path
 
 import pandas as pd
-import time
 
 import vertex.getREDCapData as getRC
 from vertex.layout.insight_panels import get_visuals
@@ -233,9 +233,6 @@ def save_public_outputs(
         save_config_keys = ["project_name", "map_layout_center_latitude", "map_layout_center_longitude", "map_layout_zoom"]
         save_config_dict = {k: config_dict[k] for k in save_config_keys}
         json.dump(save_config_dict, file, indent=4)
-        runtime_metadata = {
-            "user": os.environ.get("USER", None),
-            "timestamp": time.ctime()
-        }
+        runtime_metadata = {"user": os.environ.get("USER", None), "timestamp": time.ctime()}
         json.dump(runtime_metadata, file, indent=4)
     logger.info(f"Public dashboard files saved to {outputs_path}")
