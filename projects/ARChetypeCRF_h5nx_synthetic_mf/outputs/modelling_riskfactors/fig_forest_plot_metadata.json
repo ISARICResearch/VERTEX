@@ -13,6 +13,8 @@
             "UpperCI (multi)",
             "p-value (multi)"
         ],
+        "marker": null,
+        "noeffect_line": true,
         "height": 600,
         "suffix": "modelling_riskfactors",
         "filepath": "",
