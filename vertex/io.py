@@ -6,6 +6,7 @@ import shutil
 from pathlib import Path
 
 import pandas as pd
+import time
 
 import vertex.getREDCapData as getRC
 from vertex.layout.insight_panels import get_visuals
@@ -19,7 +20,7 @@ config_defaults = {
     "map_layout_center_latitude": 6,
     "map_layout_center_longitude": -75,
     "map_layout_zoom": 1.7,
-    "save_public_outputs": False,
+    "save_outputs": False,
     "outputs_path": "outputs/",
     "insight_panels_path": "insight_panels/",
     "insight_panels": [],
@@ -75,11 +76,11 @@ def load_vertex_data(project_path, config_dict):
     logger.debug(f"api_url: {api_url}, api_key: {'***' if api_key else None}")
 
     if get_data_from_api:
-        df_map, df_forms_dict, dictionary, quality_report = load_vertex_from_api(api_url, api_key, config_dict)
+        data = load_vertex_from_api(api_url, api_key, config_dict)
     else:
         logger.info(f"Loading data from {project_path}")
-        df_map, df_forms_dict, dictionary, quality_report = load_vertex_from_files(project_path, config_dict)
-    return df_map, df_forms_dict, dictionary, quality_report
+        data = load_vertex_from_files(project_path, config_dict)
+    return data
 
 
 def load_public_dashboard(project_path, config_dict):
@@ -95,7 +96,12 @@ def load_vertex_from_api(api_url, api_key, config_dict):
     user_assigned_to_dag = getRC.user_assigned_to_dag(api_url, api_key)
     get_data_kwargs = {"data_access_groups": config_dict["data_access_groups"], "user_assigned_to_dag": user_assigned_to_dag}
     df_map, df_forms_dict, dictionary, quality_report = getRC.get_redcap_data(api_url, api_key, **get_data_kwargs)
-    return df_map, df_forms_dict, dictionary, quality_report
+    return {
+        "df_map": df_map,
+        "dictionary": dictionary,
+        "df_forms_dict": df_forms_dict,
+        "quality_report": quality_report,
+    }
 
 
 def load_vertex_from_files(project_path, config_dict):
@@ -227,4 +233,9 @@ def save_public_outputs(
         save_config_keys = ["project_name", "map_layout_center_latitude", "map_layout_center_longitude", "map_layout_zoom"]
         save_config_dict = {k: config_dict[k] for k in save_config_keys}
         json.dump(save_config_dict, file, indent=4)
+        runtime_metadata = {
+            "user": os.environ.get("USER", None),
+            "timestamp": time.ctime()
+        }
+        json.dump(runtime_metadata, file, indent=4)
     logger.info(f"Public dashboard files saved to {outputs_path}")

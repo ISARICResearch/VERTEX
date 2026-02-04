@@ -531,7 +531,7 @@ def register_callbacks(app):
             suffix=suffix,
             save_inputs=False,
         )
-        logger.debug(f"raw visuals type: {type(visuals)}; len? {len(visuals) if hasattr(visuals,'__len__') else 'no-len'}")
+        logger.debug(f"raw visuals type: {type(visuals)}; len? {len(visuals) if hasattr(visuals, '__len__') else 'no-len'}")
 
         modal = create_modal(visuals, button, get_filter_options(df_map))
 
@@ -616,11 +616,14 @@ def load_project_data(project_path):
     }
 
     if not PREBUILT:
-        df_map, df_forms_dict, dictionary, quality_report = load_vertex_data(project_path, config_dict)
+        data = load_vertex_data(project_path, config_dict)
+        df_map = data.get("df_map", None)
+        df_forms_dict = data.get("df_forms_dict", {})
+        dictionary = data.get("dictionary", None)
+        quality_report = data.get("quality_report", {})
         df_map = df_map.reset_index(drop=True)
         df_map_with_countries = merge_data_with_countries(df_map)
         df_countries = get_countries(df_map_with_countries)
-
         df_filters = df_map_with_countries[filter_columns_dict.keys()].rename(columns=filter_columns_dict)
         df_map = pd.merge(df_map_with_countries, df_filters, on="subjid", how="left").reset_index(drop=True)
         df_forms_dict = {
@@ -642,7 +645,7 @@ def load_project_data(project_path):
 
     PROJECT_CACHE[project_path] = project_data
 
-    if config_dict.get("save_public_outputs", False):
+    if config_dict.get("save_outputs", False):
         logger.info(f" Saving public outputs for project {project_path}")
         save_public_outputs(
             buttons, insight_panels, df_map, df_countries, df_forms_dict, dictionary, quality_report, project_path, config_dict
