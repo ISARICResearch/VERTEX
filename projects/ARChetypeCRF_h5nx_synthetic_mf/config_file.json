@@ -8,7 +8,7 @@
 	"save_outputs": false,
 	"outputs_path": "outputs/",
 	"insight_panels_path": "insight_panels/",
-	"insight_panels_data_path": "analysis_data/"
+	"insight_panels_data_path": "analysis_data/",
 	"insight_panels": [
 		"enrolment_details",
 		"presentation_demogcomor",
