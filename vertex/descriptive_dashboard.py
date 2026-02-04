@@ -529,7 +529,7 @@ def register_callbacks(app):
             quality_report=quality_report,
             filepath=project_path,
             suffix=suffix,
-            save_inputs=project_data["config_dict"]["save_filtered_public_outputs"],
+            save_inputs=False,
         )
         logger.debug(f"raw visuals type: {type(visuals)}; len? {len(visuals) if hasattr(visuals,'__len__') else 'no-len'}")
 
