@@ -1298,11 +1298,7 @@ def fig_kaplan_meier(
     df_km = df_km.set_index("timeline")
 
     if groups is None:
-        groups = [
-            c for c in df_km.columns
-            if "_lower_" not in c
-            and "_upper_" not in c
-        ]
+        groups = [c for c in df_km.columns if "_lower_" not in c and "_upper_" not in c]
 
     if base_color_map is None:
         colors = [f"hsl({i * (360 / len(groups))}, 70%, 50%)" for i in range(len(groups))]
@@ -1379,10 +1375,7 @@ def fig_kaplan_meier(
     # Add risk table as second row
     for ii in range(risk_table.shape[0]):
         yval = np.arange(risk_table.shape[0])[::-1][ii]
-        color = (
-            dict(zip(groups, colors))
-            .get(risk_table.loc[ii, index_column], "black")
-        )
+        color = dict(zip(groups, colors)).get(risk_table.loc[ii, index_column], "black")
         fig.add_trace(
             go.Scatter(
                 x=risk_table.drop(columns=index_column).columns.astype(float),
