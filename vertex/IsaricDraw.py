@@ -1263,6 +1263,7 @@ def fig_kaplan_meier(
     title="Kaplan-Meier Plot",
     xlabel="Time (days)",
     ylabel="Survival Probability",
+    groups=None,
     index_column="index",
     base_color_map=None,
     xlim=None,
@@ -1289,11 +1290,22 @@ def fig_kaplan_meier(
     df_km = data[0].copy()
     risk_table = data[1].copy()
 
+    if "Group" not in risk_table.columns:
+        raise KeyError("risk table must contain column 'Groups'")
+    if "timeline" not in df_km.columns:
+        raise KeyError("KM curves table must contain column 'timeline'")
+
+    df_km = df_km.set_index("timeline")
+
+    if groups is None:
+        groups = [c for c in df_km.columns if "_lower_" not in c and "_upper_" not in c]
+
     if base_color_map is None:
-        unique_groups = risk_table["Group"].tolist()
-        colors = [f"hsl({i * (360 / len(unique_groups))}, 70%, 50%)" for i in range(len(unique_groups))]
+        colors = [f"hsl({i * (360 / len(groups))}, 70%, 50%)" for i in range(len(groups))]
     else:
         colors = list(base_color_map.values())
+
+    # unique_groups = ["HIV positive", "HIV negative"]
 
     # Create the figure with two rows: one for the plot and one for risk table
     fig = make_subplots(
@@ -1305,11 +1317,10 @@ def fig_kaplan_meier(
         subplot_titles=[title, ""],
     )
 
-    for group, color in zip(unique_groups, colors):
+    for group, color in zip(groups, colors):
         ci_lower_column = [col for col in df_km.columns if col.startswith(group + "_lower")][0]
         ci_upper_column = [col for col in df_km.columns if col.startswith(group + "_upper")][0]
-        ci = df_km.set_index("timeline")
-        ci = ci[[col for col in df_km.columns if col.startswith(group + "_")]]
+        ci = df_km[[col for col in df_km.columns if col.startswith(group + "_")]]
         ci = ci.dropna()
         ci_lower = ci[ci_lower_column]
         ci_upper = ci[ci_upper_column]
@@ -1333,8 +1344,8 @@ def fig_kaplan_meier(
             col=1,
         )
 
-    for group, color in zip(unique_groups, colors):
-        survival = df_km.set_index("timeline")[group]
+    for group, color in zip(groups, colors):
+        survival = df_km[group]
 
         # Add survival curve
         fig.add_trace(
@@ -1364,6 +1375,7 @@ def fig_kaplan_meier(
     # Add risk table as second row
     for ii in range(risk_table.shape[0]):
         yval = np.arange(risk_table.shape[0])[::-1][ii]
+        color = dict(zip(groups, colors)).get(risk_table.loc[ii, index_column], "black")
         fig.add_trace(
             go.Scatter(
                 x=risk_table.drop(columns=index_column).columns.astype(float),
@@ -1371,7 +1383,7 @@ def fig_kaplan_meier(
                 mode="text",
                 text=risk_table.drop(columns=index_column).loc[ii],
                 textposition="middle center",
-                textfont={"color": colors[ii]},
+                textfont={"color": color},
                 showlegend=False,
             ),
             row=2,
@@ -1398,7 +1410,7 @@ def fig_kaplan_meier(
         xlim[0] = min((xlim[0], xlim[0] - (xlim[1] - xlim[0]) * 0.02))
         xlim[1] = max((xlim[1], xlim[1] + (xlim[1] - xlim[0]) * 0.02))
     else:
-        xlim = [df_km["timeline"].min(), df_km["timeline"].max()]
+        xlim = [df_km.index.min(), df_km.index.max()]
         xlim[0] = min((xlim[0], xlim[0] - (xlim[1] - xlim[0]) * 0.02))
         xlim[1] = max((xlim[1], xlim[1] + (xlim[1] - xlim[0]) * 0.02))
 
