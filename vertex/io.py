@@ -3,6 +3,7 @@
 import json
 import os
 import shutil
+import time
 from pathlib import Path
 
 import pandas as pd
@@ -19,12 +20,11 @@ config_defaults = {
     "map_layout_center_latitude": 6,
     "map_layout_center_longitude": -75,
     "map_layout_zoom": 1.7,
-    "save_public_outputs": False,
-    "save_base_files_to_public_path": False,
-    "public_path": "PUBLIC/",
-    "save_filtered_public_outputs": False,
+    "save_outputs": False,
+    "outputs_path": "outputs/",
     "insight_panels_path": "insight_panels/",
     "insight_panels": [],
+    "insight_panels_data_path": None,
 }
 
 
@@ -76,11 +76,11 @@ def load_vertex_data(project_path, config_dict):
     logger.debug(f"api_url: {api_url}, api_key: {'***' if api_key else None}")
 
     if get_data_from_api:
-        df_map, df_forms_dict, dictionary, quality_report = load_vertex_from_api(api_url, api_key, config_dict)
+        data = load_vertex_from_api(api_url, api_key, config_dict)
     else:
         logger.info(f"Loading data from {project_path}")
-        df_map, df_forms_dict, dictionary, quality_report = load_vertex_from_files(project_path, config_dict)
-    return df_map, df_forms_dict, dictionary, quality_report
+        data = load_vertex_from_files(project_path, config_dict)
+    return data
 
 
 def load_public_dashboard(project_path, config_dict):
@@ -96,12 +96,17 @@ def load_vertex_from_api(api_url, api_key, config_dict):
     user_assigned_to_dag = getRC.user_assigned_to_dag(api_url, api_key)
     get_data_kwargs = {"data_access_groups": config_dict["data_access_groups"], "user_assigned_to_dag": user_assigned_to_dag}
     df_map, df_forms_dict, dictionary, quality_report = getRC.get_redcap_data(api_url, api_key, **get_data_kwargs)
-    return df_map, df_forms_dict, dictionary, quality_report
+    return {
+        "df_map": df_map,
+        "dictionary": dictionary,
+        "df_forms_dict": df_forms_dict,
+        "quality_report": quality_report,
+    }
 
 
 def load_vertex_from_files(project_path, config_dict):
     try:
-        vertex_dataframes_path = os.path.join(project_path, config_dict["vertex_dataframes_path"])
+        vertex_dataframes_path = os.path.join(project_path, config_dict["insight_panels_data_path"])
         vertex_dataframes = os.listdir(vertex_dataframes_path)
         dictionary = pd.read_csv(
             os.path.join(vertex_dataframes_path, "vertex_dictionary.csv"), dtype={"field_label": "str"}, keep_default_na=False
@@ -199,15 +204,15 @@ def get_project_name(project_path):
 def save_public_outputs(
     buttons, insight_panels, df_map, df_countries, df_forms_dict, dictionary, quality_report, project_path, config_dict
 ):
-    """Save public outputs to the PUBLIC folder."""
-    public_path = os.path.join(project_path, config_dict["public_path"])
-    if os.path.exists(public_path):
-        logger.warning(f'Folder "{public_path}" already exists, removing this')
-        shutil.rmtree(public_path)
-    logger.info(f'Saving files for public dashboard to "{public_path}"')
-    os.makedirs(os.path.dirname(os.path.join(public_path, "")), exist_ok=True)
+    """Save outputs to the `outputs` folder."""
+    outputs_path = os.path.join(project_path, config_dict["outputs_path"])
+    if os.path.exists(outputs_path):
+        logger.warning(f'Folder "{outputs_path}" already exists, removing this')
+        shutil.rmtree(outputs_path)
+    logger.info(f'Saving files for static dashboard to "{outputs_path}"')
+    os.makedirs(os.path.dirname(os.path.join(outputs_path, "")), exist_ok=True)
     for ip in config_dict["insight_panels"]:
-        os.makedirs(os.path.dirname(os.path.join(public_path, ip, "")), exist_ok=True)
+        os.makedirs(os.path.dirname(os.path.join(outputs_path, ip, "")), exist_ok=True)
     buttons = get_visuals(
         buttons,
         insight_panels,
@@ -215,24 +220,19 @@ def save_public_outputs(
         df_forms_dict=df_forms_dict,
         dictionary=dictionary,
         quality_report=quality_report,
-        filepath=os.path.join(public_path, ""),
+        filepath=os.path.join(outputs_path, ""),
     )
-    os.makedirs(os.path.dirname(public_path), exist_ok=True)
-    if config_dict["save_base_files_to_public_path"]:
-        shutil.copy("descriptive_dashboard_public.py", public_path)
-        shutil.copy("IsaricDraw.py", public_path)
-        shutil.copy("requirements.txt", public_path)
-        assets_path = os.path.join(public_path, "assets/")
-        os.makedirs(os.path.dirname(assets_path), exist_ok=True)
-        shutil.copytree("assets", assets_path, dirs_exist_ok=True)
-    metadata_file = os.path.join(public_path, "dashboard_metadata.json")
+    os.makedirs(os.path.dirname(outputs_path), exist_ok=True)
+    metadata_file = os.path.join(outputs_path, "dashboard_metadata.json")
     with open(metadata_file, "w") as file:
         json.dump({"insight_panels": buttons}, file, indent=4)
-    data_file = os.path.join(public_path, "dashboard_data.csv")
+    data_file = os.path.join(outputs_path, "dashboard_data.csv")
     df_countries.to_csv(data_file, index=False)
-    config_json_file = os.path.join(public_path, "config_file.json")
+    config_json_file = os.path.join(outputs_path, "config_file.json")
     with open(config_json_file, "w") as file:
         save_config_keys = ["project_name", "map_layout_center_latitude", "map_layout_center_longitude", "map_layout_zoom"]
         save_config_dict = {k: config_dict[k] for k in save_config_keys}
         json.dump(save_config_dict, file, indent=4)
-    logger.info(f"Public dashboard files saved to {public_path}")
+        runtime_metadata = {"user": os.environ.get("USER", None), "timestamp": time.ctime()}
+        json.dump(runtime_metadata, file, indent=4)
+    logger.info(f"Public dashboard files saved to {outputs_path}")
