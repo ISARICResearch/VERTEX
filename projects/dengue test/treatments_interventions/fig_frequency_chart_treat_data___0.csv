@@ -1,7 +1,0 @@
-variable,proportion,label,short_label
-treat_pao2yn___Not done,0.5807644882860666,"<b>PaO2 sample type</b>, Not done","<b>PaO2 sample type</b>, Not done"
-treat_dailydata,0.5688073394495413,<b>Enter Treatments & Interventions data for this date?</b>,<b>Enter Treatments & Interventions data ...</b>
-treat_o2supp,0.38852813852813856,<b>Supplemental oxygen</b>,<b>Supplemental oxygen</b>
-treat_pao2yn___Arterial,0.3810110974106042,"<b>PaO2 sample type</b>, Arterial","<b>PaO2 sample type</b>, Arterial"
-treat_pao2yn___Venous,0.32675709001233044,"<b>PaO2 sample type</b>, Venous","<b>PaO2 sample type</b>, Venous"
-treat_pao2yn___Capillary,0.04192355117139334,"<b>PaO2 sample type</b>, Capillary","<b>PaO2 sample type</b>, Capillary"
