@@ -44,6 +44,8 @@ jobs:
         env:
           ECR_REPO: ${{ secrets.ECR_REPOSITORY }}
           INSTANCE_ID: ${{ secrets.EC2_INSTANCE_ID }}
+          PROJECTS_REPO_URL: ${{ secrets.PROJECTS_REPO_URL }}
+          PROJECTS_REPO_BRANCH: ${{ secrets.PROJECTS_REPO_BRANCH }}
         run: |
           set -euo pipefail
 
@@ -60,6 +62,50 @@ jobs:
               # login using instance role
               aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin "${ECR_REPO}"
 
+              PROJECTS_DIR="/opt/vertex-projects"
+              PROJECTS_REPO_BRANCH="${PROJECTS_REPO_BRANCH:-main}"
+              SYNC_SCRIPT_PATH="/usr/local/bin/vertex-sync-projects.sh"
+
+              cat > "${SYNC_SCRIPT_PATH}" <<'SYNC'
+              #!/bin/bash
+              set -euo pipefail
+              PROJECTS_DIR="${VERTEX_PROJECTS_DIR:-/opt/vertex-projects}"
+              PROJECTS_REPO_URL="${PROJECTS_REPO_URL:-}"
+              PROJECTS_REPO_BRANCH="${PROJECTS_REPO_BRANCH:-main}"
+              if [ -z "${PROJECTS_REPO_URL}" ]; then
+                echo "PROJECTS_REPO_URL is not set; cannot sync projects repo." >&2
+                exit 1
+              fi
+              mkdir -p "${PROJECTS_DIR}"
+              if [ -d "${PROJECTS_DIR}/.git" ]; then
+                git -C "${PROJECTS_DIR}" fetch --all --prune
+                git -C "${PROJECTS_DIR}" checkout "${PROJECTS_REPO_BRANCH}"
+                git -C "${PROJECTS_DIR}" pull --ff-only origin "${PROJECTS_REPO_BRANCH}"
+              else
+                rm -rf "${PROJECTS_DIR}"
+                git clone --branch "${PROJECTS_REPO_BRANCH}" "${PROJECTS_REPO_URL}" "${PROJECTS_DIR}"
+              fi
+              SYNC
+              chmod +x "${SYNC_SCRIPT_PATH}"
+
+              if [ -n "${PROJECTS_REPO_URL:-}" ]; then
+                export PROJECTS_REPO_URL PROJECTS_REPO_BRANCH
+                export VERTEX_PROJECTS_DIR="${PROJECTS_DIR}"
+                "${SYNC_SCRIPT_PATH}"
+              else
+                echo "PROJECTS_REPO_URL not set; app will use local ./projects in container."
+              fi
+
+              cat > /etc/cron.d/vertex-projects-sync <<CRON
+              SHELL=/bin/bash
+              PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+              PROJECTS_REPO_URL=${PROJECTS_REPO_URL:-}
+              PROJECTS_REPO_BRANCH=${PROJECTS_REPO_BRANCH:-main}
+              VERTEX_PROJECTS_DIR=${PROJECTS_DIR}
+              0 * * * * root ${SYNC_SCRIPT_PATH} >> /var/log/vertex-projects-sync.log 2>&1
+              CRON
+              chmod 644 /etc/cron.d/vertex-projects-sync
+
               # stop and remove previous container
               docker stop isaric-vertex 2>/dev/null || true
               docker rm -v isaric-vertex 2>/dev/null || true
@@ -71,6 +117,8 @@ jobs:
               docker pull "${ECR_REPO}:latest"
               docker run -d --restart unless-stopped \
                 --env-file /etc/environment \
+                -e VERTEX_PROJECTS_DIR="${PROJECTS_DIR}" \
+                -v "${PROJECTS_DIR}:${PROJECTS_DIR}:ro" \
                 --name isaric-vertex \
                 -p 8050:8050 \
                 "${ECR_REPO}:latest"

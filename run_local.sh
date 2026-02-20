@@ -7,6 +7,7 @@ ROLE_ARN=$ROLE_ARN_ISARIC # the isaric auth arn
 SESSION_NAME="local-dev"
 REGION="eu-west-2"
 IMAGE_NAME="my-app-image"
+PROJECTS_DIR="${VERTEX_PROJECTS_DIR:-$(pwd)/projects}"
 
 # === Ensure you're logged in to SSO ===
 echo "🔐 Ensuring SSO login is active..."
@@ -29,10 +30,13 @@ echo "🐳 Launching Docker container..."
 
 docker run \
   -v "$(pwd)":/app \
+  -v "$(pwd)/demo-projects:/app/demo-projects" \
+  -v "${PROJECTS_DIR}:/app/projects" \
   -p 8050:8050 \
   -e AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" \
   -e AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" \
   -e AWS_SESSION_TOKEN="$AWS_SESSION_TOKEN" \
   -e AWS_REGION="$REGION" \
+  -e VERTEX_PROJECTS_DIR="/app/projects" \
   -w /app \
   -t vertex

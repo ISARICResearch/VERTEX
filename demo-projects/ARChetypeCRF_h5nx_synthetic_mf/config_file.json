@@ -5,7 +5,7 @@
 	"map_layout_center_latitude": 15,
 	"map_layout_center_longitude": -45,
 	"map_layout_zoom": 1.7,
-	"save_outputs": true,
+	"save_outputs": false,
 	"outputs_path": "outputs/",
 	"insight_panels_path": "insight_panels/",
 	"insight_panels_data_path": "analysis_data/",
