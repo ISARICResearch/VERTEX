@@ -44,7 +44,6 @@ jobs:
         env:
           ECR_REPO: ${{ secrets.ECR_REPOSITORY }}
           INSTANCE_ID: ${{ secrets.EC2_INSTANCE_ID }}
-          PROJECTS_REPO_URL: ${{ secrets.PROJECTS_REPO_URL }}
           PROJECTS_REPO_BRANCH: ${{ secrets.PROJECTS_REPO_BRANCH }}
         run: |
           set -euo pipefail
@@ -63,6 +62,7 @@ jobs:
               aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin "${ECR_REPO}"
 
               PROJECTS_DIR="/opt/vertex-projects"
+              PROJECTS_REPO_URL="https://github.com/ISARICResearch/VERTEX-projects.git"
               PROJECTS_REPO_BRANCH="${PROJECTS_REPO_BRANCH:-main}"
               SYNC_SCRIPT_PATH="/usr/local/bin/vertex-sync-projects.sh"
 
@@ -70,12 +70,8 @@ jobs:
               #!/bin/bash
               set -euo pipefail
               PROJECTS_DIR="${VERTEX_PROJECTS_DIR:-/opt/vertex-projects}"
-              PROJECTS_REPO_URL="${PROJECTS_REPO_URL:-}"
+              PROJECTS_REPO_URL="https://github.com/ISARICResearch/VERTEX-projects.git"
               PROJECTS_REPO_BRANCH="${PROJECTS_REPO_BRANCH:-main}"
-              if [ -z "${PROJECTS_REPO_URL}" ]; then
-                echo "PROJECTS_REPO_URL is not set; cannot sync projects repo." >&2
-                exit 1
-              fi
               mkdir -p "${PROJECTS_DIR}"
               if [ -d "${PROJECTS_DIR}/.git" ]; then
                 git -C "${PROJECTS_DIR}" fetch --all --prune
@@ -88,18 +84,14 @@ jobs:
               SYNC
               chmod +x "${SYNC_SCRIPT_PATH}"
 
-              if [ -n "${PROJECTS_REPO_URL:-}" ]; then
-                export PROJECTS_REPO_URL PROJECTS_REPO_BRANCH
-                export VERTEX_PROJECTS_DIR="${PROJECTS_DIR}"
-                "${SYNC_SCRIPT_PATH}"
-              else
-                echo "PROJECTS_REPO_URL not set; app will use local ./projects in container."
-              fi
+              export PROJECTS_REPO_BRANCH
+              export VERTEX_PROJECTS_DIR="${PROJECTS_DIR}"
+              "${SYNC_SCRIPT_PATH}"
 
               cat > /etc/cron.d/vertex-projects-sync <<CRON
               SHELL=/bin/bash
               PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-              PROJECTS_REPO_URL=${PROJECTS_REPO_URL:-}
+              PROJECTS_REPO_URL=https://github.com/ISARICResearch/VERTEX-projects.git
               PROJECTS_REPO_BRANCH=${PROJECTS_REPO_BRANCH:-main}
               VERTEX_PROJECTS_DIR=${PROJECTS_DIR}
               0 * * * * root ${SYNC_SCRIPT_PATH} >> /var/log/vertex-projects-sync.log 2>&1

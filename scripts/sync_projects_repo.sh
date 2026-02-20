@@ -2,13 +2,8 @@
 set -euo pipefail
 
 PROJECTS_DIR="${VERTEX_PROJECTS_DIR:-/opt/vertex-projects}"
-PROJECTS_REPO_URL="${PROJECTS_REPO_URL:-}"
+PROJECTS_REPO_URL="https://github.com/ISARICResearch/VERTEX-projects.git"
 PROJECTS_REPO_BRANCH="${PROJECTS_REPO_BRANCH:-main}"
-
-if [[ -z "${PROJECTS_REPO_URL}" ]]; then
-  echo "PROJECTS_REPO_URL is not set; cannot sync projects repo." >&2
-  exit 1
-fi
 
 mkdir -p "${PROJECTS_DIR}"
 

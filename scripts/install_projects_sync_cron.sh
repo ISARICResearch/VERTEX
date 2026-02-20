@@ -8,7 +8,7 @@ CRON_LOG_PATH="${CRON_LOG_PATH:-/var/log/vertex-projects-sync.log}"
 cat > "${CRON_FILE_PATH}" <<EOF
 SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-PROJECTS_REPO_URL=${PROJECTS_REPO_URL:-}
+PROJECTS_REPO_URL=https://github.com/ISARICResearch/VERTEX-projects.git
 PROJECTS_REPO_BRANCH=${PROJECTS_REPO_BRANCH:-main}
 VERTEX_PROJECTS_DIR=${VERTEX_PROJECTS_DIR:-/opt/vertex-projects}
 0 * * * * root ${SYNC_SCRIPT_PATH} >> ${CRON_LOG_PATH} 2>&1
