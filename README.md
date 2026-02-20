@@ -45,7 +45,7 @@ Both paths are configurable with:
 For prebuilt/static projects, `config_file.json` should include:
 
 - `project_name`
-- `project_uuid`
+- `project_id`
 - `project_owner`
 - `is_public`
 

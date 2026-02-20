@@ -114,7 +114,7 @@ def get_visible_projects(project_catalog, login_state):
 
 
 def get_project_value(project):
-    return project.get("project_uuid") or project["path"]
+    return project.get("project_id") or project["path"]
 
 
 def find_project_by_path(project_catalog, project_path):
@@ -152,7 +152,7 @@ def resolve_project_request(query_value, project_catalog):
             return project["path"]
         if requested_norm == os.path.basename(os.path.normpath(project["path"])):
             return project["path"]
-        if project.get("project_uuid") and requested_norm == project["project_uuid"]:
+        if project.get("project_id") and requested_norm == project["project_id"]:
             return project["path"]
         if requested_lower == str(project["name"]).strip().lower():
             return project["path"]
@@ -249,7 +249,7 @@ def register_callbacks(app):
             raise PreventUpdate
 
         project = find_project_by_path(project_catalog, project_path)
-        project_key = project.get("project_uuid") if project else None
+        project_key = project.get("project_id") if project else None
         if not project_key:
             project_key = os.path.basename(os.path.normpath(project_path))
         return f"?project={quote(project_key, safe='')}"

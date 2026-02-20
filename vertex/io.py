@@ -4,7 +4,6 @@ import json
 import os
 import shutil
 import time
-import uuid
 from pathlib import Path
 
 import pandas as pd
@@ -17,7 +16,7 @@ logger = setup_logger(__name__)
 
 config_defaults = {
     "project_name": None,
-    "project_uuid": None,
+    "project_id": None,
     "project_owner": None,
     "is_public": True,
     "data_access_groups": None,
@@ -40,14 +39,14 @@ def get_static_projects_root():
     return Path(os.getenv("VERTEX_PROJECTS_DIR") or "projects/").expanduser()
 
 
-def _normalise_project_uuid(value, project_path):
+def _normalise_project_id(value, project_path):
     if value in (None, ""):
         return None
-    try:
-        return str(uuid.UUID(str(value)))
-    except (ValueError, TypeError):
-        logger.warning(f"Invalid project_uuid in {project_path}/config_file.json: {value!r}")
+    project_id = str(value).strip()
+    if not project_id:
+        logger.warning(f"Invalid project_id in {project_path}/config_file.json: {value!r}")
         return None
+    return project_id
 
 
 def _normalise_owner_email(value):
@@ -65,7 +64,7 @@ def _normalise_is_public(value):
 
 
 def _validate_project_config(config, project_path, project_type):
-    required_fields = ["project_name", "project_uuid", "project_owner", "is_public"]
+    required_fields = ["project_name", "project_id", "project_owner", "is_public"]
     missing_fields = [field for field in required_fields if field not in config]
     if missing_fields:
         logger.warning(f"Project config missing required fields in {project_path}: {missing_fields}")
@@ -167,7 +166,7 @@ def get_project_record(project_path, project_type):
     return {
         "path": str(project_path) + "/",
         "name": config.get("project_name", project_path.name),
-        "project_uuid": _normalise_project_uuid(config.get("project_uuid"), project_path),
+        "project_id": _normalise_project_id(config.get("project_id"), project_path),
         "project_owner": _normalise_owner_email(config.get("project_owner")),
         "is_public": _normalise_is_public(config.get("is_public", True)),
         "project_type": project_type,
@@ -345,7 +344,7 @@ def save_public_outputs(
     with open(config_json_file, "w") as file:
         save_config_keys = [
             "project_name",
-            "project_uuid",
+            "project_id",
             "project_owner",
             "is_public",
             "map_layout_center_latitude",
