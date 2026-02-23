@@ -1,6 +1,7 @@
 import json
 import os
 import secrets
+import threading
 import uuid
 import webbrowser
 from urllib.parse import parse_qs, quote
@@ -63,6 +64,8 @@ security = Security()
 PROJECT_CACHE = {}
 PROJECT_CACHE_VERSION = {}
 PROJECT_TYPE_BY_PATH = {}
+PRELOAD_THREAD_STARTED = False
+PRELOAD_THREAD_LOCK = threading.Lock()
 
 
 def get_project_data(project_path):
@@ -88,6 +91,29 @@ def get_project_version(project_path):
             except OSError:
                 continue
     return latest_mtime
+
+
+def start_background_preload(project_catalog):
+    global PRELOAD_THREAD_STARTED
+    with PRELOAD_THREAD_LOCK:
+        if PRELOAD_THREAD_STARTED:
+            return
+        PRELOAD_THREAD_STARTED = True
+
+    def _preload():
+        logger.info("Starting background project preload")
+        for project in project_catalog:
+            path = project["path"]
+            name = project["name"]
+            try:
+                logger.debug(f" Preloading project in background: {name}")
+                _ = load_project_data(path)
+            except Exception as e:
+                logger.error(f"Failed to preload project {path}: {e}")
+        logger.info("Background project preload complete")
+
+    thread = threading.Thread(target=_preload, name="vertex-project-preload", daemon=True)
+    thread.start()
 
 
 def sync_project_type_map(project_catalog):
@@ -908,14 +934,7 @@ def main():
 
     preload_projects = os.getenv("VERTEX_PRELOAD_PROJECTS", "false").strip().lower() in {"1", "true", "yes", "y"}
     if preload_projects:
-        for project in project_catalog:
-            path = project["path"]
-            name = project["name"]
-            try:
-                logger.debug(f" Preloading project: {name}")
-                _ = load_project_data(path)
-            except Exception as e:
-                logger.error(f"Failed to load project {path}: {e}")
+        start_background_preload(project_catalog)
 
     def serve_layout():
         # Prefer project= for new links, but keep param= for legacy one-off deployments.
