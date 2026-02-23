@@ -145,7 +145,8 @@ jobs:
                 -v "${PROJECTS_DIR}:${PROJECTS_DIR}:ro" \
                 --name isaric-vertex \
                 -p 8050:8050 \
-                "${ECR_REPO}:latest"
+                "${ECR_REPO}:latest" \
+                gunicorn --workers 1 --timeout 180 --bind 0.0.0.0:8050 vertex.descriptive_dashboard:server
 
               # verify it's up
               sleep 3
