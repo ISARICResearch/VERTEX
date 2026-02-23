@@ -163,6 +163,12 @@ def get_project_record(project_path, project_type):
 
     _validate_project_config(config, project_path, project_type)
 
+    data_source = None
+    if project_type == "analysis":
+        has_api_url = bool(str(config.get("api_url", "")).strip())
+        has_api_key = bool(str(config.get("api_key", "")).strip())
+        data_source = "api" if (has_api_url and has_api_key) else "files"
+
     return {
         "path": str(project_path) + "/",
         "name": config.get("project_name", project_path.name),
@@ -170,6 +176,7 @@ def get_project_record(project_path, project_type):
         "project_owner": _normalise_owner_email(config.get("project_owner")),
         "is_public": _normalise_is_public(config.get("is_public", True)),
         "project_type": project_type,
+        "data_source": data_source,
     }
 
 

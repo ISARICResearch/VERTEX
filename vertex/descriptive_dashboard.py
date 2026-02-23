@@ -113,6 +113,19 @@ def get_visible_projects(project_catalog, login_state):
     return [project for project in project_catalog if is_project_visible(project, login_state)]
 
 
+def get_default_project_path(visible_projects):
+    for project in visible_projects:
+        if project.get("project_type") == "analysis" and project.get("data_source") == "files":
+            return project["path"]
+    for project in visible_projects:
+        if project.get("project_type") == "analysis":
+            return project["path"]
+    for project in visible_projects:
+        if project.get("project_type") == "prebuilt":
+            return project["path"]
+    return visible_projects[0]["path"] if visible_projects else None
+
+
 def get_project_value(project):
     return project.get("project_id") or project["path"]
 
@@ -208,7 +221,7 @@ def register_callbacks(app):
         if project_path not in [project["path"] for project in visible_projects]:
             if not visible_projects:
                 return html.Div([html.H4("No projects available")])
-            project_path = visible_projects[0]["path"]
+            project_path = get_default_project_path(visible_projects)
 
         try:
             layout = build_project_layout(project_path, project_catalog, login_state)
@@ -269,7 +282,9 @@ def register_callbacks(app):
         selected_project = find_project_by_path(visible_projects, selected_project_path)
         if selected_project:
             return options, get_project_value(selected_project)
-        return options, get_project_value(visible_projects[0])
+        default_project_path = get_default_project_path(visible_projects)
+        default_project = find_project_by_path(visible_projects, default_project_path)
+        return options, get_project_value(default_project) if default_project else get_project_value(visible_projects[0])
 
     @app.callback(
         Output("selected-project-path", "data", allow_duplicate=True),
@@ -284,7 +299,7 @@ def register_callbacks(app):
             raise PreventUpdate
         if not visible_projects:
             return None
-        return visible_projects[0]["path"]
+        return get_default_project_path(visible_projects)
 
     @app.callback(
         Output("world-map", "figure"),
@@ -908,7 +923,7 @@ def main():
         sync_project_type_map(project_catalog)
         login_state = current_user.is_authenticated if AUTH_ENABLED else True
         visible_projects = get_visible_projects(project_catalog, login_state)
-        default_project = visible_projects[0]["path"] if visible_projects else None
+        default_project = get_default_project_path(visible_projects)
         requested_project = None
 
         try:
