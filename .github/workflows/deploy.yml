@@ -114,8 +114,8 @@ jobs:
               PROJECTS_REPO_URL=git@github.com:ISARICResearch/VERTEX-projects.git
               PROJECTS_REPO_BRANCH=${PROJECTS_REPO_BRANCH:-main}
               VERTEX_PROJECTS_DIR=${PROJECTS_DIR}
-              PROJECTS_GIT_SSH_KEY_PATH=${PROJECTS_GIT_SSH_KEY_PATH}
-              PROJECTS_GIT_KNOWN_HOSTS_PATH=${PROJECTS_GIT_KNOWN_HOSTS_PATH}
+              PROJECTS_GIT_SSH_KEY_PATH=${PROJECTS_GIT_SSH_KEY_PATH:-/root/.ssh/vertex_projects_deploy_key}
+              PROJECTS_GIT_KNOWN_HOSTS_PATH=${PROJECTS_GIT_KNOWN_HOSTS_PATH:-/root/.ssh/known_hosts}
               0 * * * * root ${SYNC_SCRIPT_PATH} >> /var/log/vertex-projects-sync.log 2>&1
               CRON
               chmod 644 /etc/cron.d/vertex-projects-sync
