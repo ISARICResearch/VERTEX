@@ -31,7 +31,7 @@ echo "🐳 Launching Docker container..."
 docker run \
   -v "$(pwd)":/app \
   -v "$(pwd)/demo-projects:/app/demo-projects" \
-  -v "${PROJECTS_DIR}:/app/projects" \
+  -v "$(pwd)/projects" \
   -p 8050:8050 \
   -e AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" \
   -e AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" \
