@@ -1,0 +1,26 @@
+{
+  "project_name": "(Analysis) H5Nx Synthetic data",
+  "api_url": null,
+  "api_key": null,
+  "map_layout_center_latitude": 15,
+  "map_layout_center_longitude": -45,
+  "map_layout_zoom": 1.7,
+  "save_outputs": false,
+  "outputs_path": "outputs/",
+  "insight_panels_path": "insight_panels/",
+  "insight_panels_data_path": "analysis_data/",
+  "insight_panels": [
+    "enrolment_details",
+    "presentation_demogcomor",
+    "presentation_symptoms",
+    "presentation_labs",
+    "treatments_interventions",
+    "outcomes_complications",
+    "modelling_riskfactors",
+    "modelling_lengthofstay",
+    "modelling_survivalanalysis"
+  ],
+  "project_id": "archetypecrf-h5nx-synthetic-mf",
+  "project_owner": "data@isaric.org",
+  "is_public": true
+}

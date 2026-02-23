@@ -12,7 +12,7 @@ from dash import callback_context, html, no_update
 from dash.dependencies import ALL, Input, Output, State
 from dash.exceptions import PreventUpdate
 from flask import request
-from flask_login import login_user, logout_user
+from flask_login import current_user, login_user, logout_user
 from flask_security import Security, SQLAlchemyUserDatastore
 from flask_security.utils import hash_password, verify_and_update_password
 from flask_sqlalchemy import SQLAlchemy
@@ -20,7 +20,15 @@ from plotly import graph_objs as go
 from sqlalchemy import MetaData, create_engine
 from sqlalchemy.orm import Session
 
-from vertex.io import config_defaults, get_config, get_projects, load_public_dashboard, load_vertex_data, save_public_outputs
+from vertex.io import (
+    config_defaults,
+    get_config,
+    get_projects_catalog,
+    load_public_dashboard,
+    load_vertex_data,
+    save_public_outputs,
+    should_save_outputs,
+)
 from vertex.layout.app_layout import define_inner_layout, define_shell_layout
 from vertex.layout.filters import get_filter_options
 from vertex.layout.insight_panels import get_insight_panels, get_public_visuals
@@ -53,6 +61,8 @@ security = Security()
 ############################################
 
 PROJECT_CACHE = {}
+PROJECT_CACHE_VERSION = {}
+PROJECT_TYPE_BY_PATH = {}
 
 
 def get_project_data(project_path):
@@ -65,9 +75,81 @@ def set_project_data(project_path, data):
 
 def clear_project_data(project_path):
     PROJECT_CACHE.pop(project_path, None)
+    PROJECT_CACHE_VERSION.pop(project_path, None)
 
 
-def resolve_project_request(query_value, project_paths, project_names):
+def get_project_version(project_path):
+    latest_mtime = 0.0
+    for root, _, files in os.walk(project_path):
+        for file_name in files:
+            file_path = os.path.join(root, file_name)
+            try:
+                latest_mtime = max(latest_mtime, os.path.getmtime(file_path))
+            except OSError:
+                continue
+    return latest_mtime
+
+
+def sync_project_type_map(project_catalog):
+    global PROJECT_TYPE_BY_PATH
+    PROJECT_TYPE_BY_PATH = {project["path"]: project.get("project_type") for project in project_catalog}
+
+
+def is_logged_in_session(login_state):
+    if not AUTH_ENABLED:
+        return True
+    return bool(login_state)
+
+
+def is_project_visible(project, login_state):
+    if project.get("project_type") == "analysis":
+        return True
+    if is_logged_in_session(login_state):
+        return True
+    return bool(project.get("is_public", False))
+
+
+def get_visible_projects(project_catalog, login_state):
+    return [project for project in project_catalog if is_project_visible(project, login_state)]
+
+
+def get_default_project_path(visible_projects):
+    for project in visible_projects:
+        if project.get("project_type") == "analysis" and project.get("data_source") == "files":
+            return project["path"]
+    for project in visible_projects:
+        if project.get("project_type") == "analysis":
+            return project["path"]
+    for project in visible_projects:
+        if project.get("project_type") == "prebuilt":
+            return project["path"]
+    return visible_projects[0]["path"] if visible_projects else None
+
+
+def get_project_value(project):
+    return project.get("project_id") or project["path"]
+
+
+def find_project_by_path(project_catalog, project_path):
+    for project in project_catalog:
+        if project["path"] == project_path:
+            return project
+    return None
+
+
+def resolve_project_value(selected_value, project_catalog):
+    if not selected_value:
+        return None
+    selected_norm = selected_value.rstrip("/")
+    for project in project_catalog:
+        if selected_norm == get_project_value(project).rstrip("/"):
+            return project["path"]
+        if selected_norm == project["path"].rstrip("/"):
+            return project["path"]
+    return None
+
+
+def resolve_project_request(query_value, project_catalog):
     if not query_value:
         return None
 
@@ -77,18 +159,16 @@ def resolve_project_request(query_value, project_paths, project_names):
 
     requested_norm = requested.rstrip("/")
 
-    for path in project_paths:
-        if requested_norm == path.rstrip("/"):
-            return path
-
-    for path in project_paths:
-        if requested_norm == os.path.basename(os.path.normpath(path)):
-            return path
-
     requested_lower = requested_norm.lower()
-    for path, name in zip(project_paths, project_names):
-        if requested_lower == str(name).strip().lower():
-            return path
+    for project in project_catalog:
+        if requested_norm == project["path"].rstrip("/"):
+            return project["path"]
+        if requested_norm == os.path.basename(os.path.normpath(project["path"])):
+            return project["path"]
+        if project.get("project_id") and requested_norm == project["project_id"]:
+            return project["path"]
+        if requested_lower == str(project["name"]).strip().lower():
+            return project["path"]
 
     return None
 
@@ -98,14 +178,21 @@ def resolve_project_request(query_value, project_paths, project_names):
 ############################################
 
 
-def register_callbacks(app, project_paths, project_names):
+def register_callbacks(app):
+    def current_visible_projects(login_state):
+        catalog = get_projects_catalog()
+        sync_project_type_map(catalog)
+        visible = get_visible_projects(catalog, login_state)
+        return catalog, visible
+
     @app.callback(
         Output("selected-project-path", "data", allow_duplicate=True),
         Input("url", "search"),
         State("selected-project-path", "data"),
+        State("login-state", "data"),
         prevent_initial_call="initial_duplicate",
     )
-    def set_project_from_url(search, current_project):
+    def set_project_from_url(search, current_project, login_state):
         if not search:
             raise PreventUpdate
 
@@ -114,7 +201,8 @@ def register_callbacks(app, project_paths, project_names):
         if not query_project:
             raise PreventUpdate
 
-        requested_project = resolve_project_request(query_project, project_paths, project_names)
+        _, visible_projects = current_visible_projects(login_state)
+        requested_project = resolve_project_request(query_project, visible_projects)
         if not requested_project or requested_project == current_project:
             raise PreventUpdate
 
@@ -123,13 +211,20 @@ def register_callbacks(app, project_paths, project_names):
     @app.callback(
         Output("project-body", "children"),
         Input("selected-project-path", "data"),
+        State("login-state", "data"),
     )
-    def load_project_layout(project_path):
+    def load_project_layout(project_path, login_state):
         if not project_path:
             raise PreventUpdate
 
+        project_catalog, visible_projects = current_visible_projects(login_state)
+        if project_path not in [project["path"] for project in visible_projects]:
+            if not visible_projects:
+                return html.Div([html.H4("No projects available")])
+            project_path = get_default_project_path(visible_projects)
+
         try:
-            layout = build_project_layout(project_path)
+            layout = build_project_layout(project_path, project_catalog, login_state)
         except Exception as e:
             layout = html.Div([html.H4("Error loading project"), html.Pre(str(e))])
 
@@ -139,40 +234,72 @@ def register_callbacks(app, project_paths, project_names):
     @app.callback(
         Output("selected-project-path", "data"),
         Input("project-selector", "value"),
-        State("project-selector", "options"),
+        State("login-state", "data"),
         prevent_initial_call=True,
     )
-    def set_project_path(selected_value, project_options):
+    def set_project_path(selected_value, login_state):
         logger.info(f"Selected project is: {selected_value}")
-        # This line maps the selected label back to the project folder path,
-        # it is absolutely absurd that dash gives you the label and not the value of the dropdown
-        project_value = next((opt["value"] for opt in project_options if opt["label"] == selected_value), None)
+        _, visible_projects = current_visible_projects(login_state)
+        project_value = resolve_project_value(selected_value, visible_projects)
         logger.debug(f"Mapped selected project to folder: {project_value}")
-        if not selected_value:
+        if not selected_value or not project_value:
             raise PreventUpdate
-        return selected_value
+        return project_value
 
     @app.callback(
         Output("url", "search"),
         Input("project-selector", "value"),
-        State("project-selector", "options"),
+        State("login-state", "data"),
         prevent_initial_call=True,
     )
-    def update_url_for_project(selected_value, project_options):
+    def update_url_for_project(selected_value, login_state):
         if not selected_value:
             raise PreventUpdate
 
-        project_path = None
-        if project_options:
-            project_path = next((opt["value"] for opt in project_options if opt["label"] == selected_value), None)
-            if project_path is None:
-                project_path = next((opt["value"] for opt in project_options if opt["value"] == selected_value), None)
-
+        project_catalog, visible_projects = current_visible_projects(login_state)
+        project_path = resolve_project_value(selected_value, visible_projects)
         if not project_path:
             raise PreventUpdate
 
-        project_key = os.path.basename(os.path.normpath(project_path))
+        project = find_project_by_path(project_catalog, project_path)
+        project_key = project.get("project_id") if project else None
+        if not project_key:
+            project_key = os.path.basename(os.path.normpath(project_path))
         return f"?project={quote(project_key, safe='')}"
+
+    @app.callback(
+        Output("project-selector", "options"),
+        Output("project-selector", "value"),
+        Input("login-state", "data"),
+        State("selected-project-path", "data"),
+    )
+    def sync_project_options(login_state, selected_project_path):
+        _, visible_projects = current_visible_projects(login_state)
+        options = [{"label": project["name"], "value": get_project_value(project)} for project in visible_projects]
+        if not options:
+            return [], None
+
+        selected_project = find_project_by_path(visible_projects, selected_project_path)
+        if selected_project:
+            return options, get_project_value(selected_project)
+        default_project_path = get_default_project_path(visible_projects)
+        default_project = find_project_by_path(visible_projects, default_project_path)
+        return options, get_project_value(default_project) if default_project else get_project_value(visible_projects[0])
+
+    @app.callback(
+        Output("selected-project-path", "data", allow_duplicate=True),
+        Input("login-state", "data"),
+        State("selected-project-path", "data"),
+        prevent_initial_call=True,
+    )
+    def ensure_visible_project(login_state, selected_project_path):
+        _, visible_projects = current_visible_projects(login_state)
+        visible_paths = [project["path"] for project in visible_projects]
+        if selected_project_path in visible_paths:
+            raise PreventUpdate
+        if not visible_projects:
+            return None
+        return get_default_project_path(visible_projects)
 
     @app.callback(
         Output("world-map", "figure"),
@@ -624,8 +751,11 @@ def register_callbacks(app, project_paths, project_names):
 ############################################
 
 
-def build_project_layout(project_path):
+def build_project_layout(project_path, project_catalog, login_state):
     project_data = load_project_data(project_path)
+    visible_projects = get_visible_projects(project_catalog, login_state)
+    project_options = [{"label": project["name"], "value": get_project_value(project)} for project in visible_projects]
+    selected_project = find_project_by_path(project_catalog, project_path)
     map_layout_dict = dict(
         map_style="carto-positron",
         map_zoom=project_data["config_dict"]["map_layout_zoom"],
@@ -647,6 +777,8 @@ def build_project_layout(project_path):
         map_layout_dict,
         filter_options=filter_options,
         project_name=project_data["config_dict"]["project_name"],
+        project_options=project_options,
+        selected_project_value=get_project_value(selected_project) if selected_project else None,
     )
     return layout
 
@@ -657,10 +789,25 @@ def load_project_data(project_path):
     if not project_path:
         raise PreventUpdate
 
-    project_data = PROJECT_CACHE.get(project_path)
-    if project_data:
+    project_type = PROJECT_TYPE_BY_PATH.get(project_path)
+    if project_type is None:
+        # fallback for safety if the map has not been populated yet
+        project_catalog = get_projects_catalog()
+        sync_project_type_map(project_catalog)
+        project_type = PROJECT_TYPE_BY_PATH.get(project_path)
+
+    current_version = get_project_version(project_path)
+    cached_project = PROJECT_CACHE.get(project_path)
+    cached_version = PROJECT_CACHE_VERSION.get(project_path)
+    if cached_project and project_type == "analysis":
+        logger.info(f" Using sticky cached analysis project data for {project_path}")
+        return cached_project
+    if cached_project and cached_version == current_version:
         logger.info(f" Using cached project data for {project_path}")
-        return project_data
+        return cached_project
+    if cached_project and cached_version != current_version:
+        logger.info(f" Project files changed on disk for {project_path}; reloading cache.")
+        clear_project_data(project_path)
 
     logger.info(f" No cache found, loading fresh data for {project_path}")
     config_dict = get_config(project_path, config_defaults)
@@ -715,8 +862,9 @@ def load_project_data(project_path):
     }
 
     PROJECT_CACHE[project_path] = project_data
+    PROJECT_CACHE_VERSION[project_path] = current_version
 
-    if config_dict.get("save_outputs", False):
+    if should_save_outputs(config_dict):
         logger.info(f" Saving public outputs for project {project_path}")
         save_public_outputs(
             buttons, insight_panels, df_map, df_countries, df_forms_dict, dictionary, quality_report, project_path, config_dict
@@ -753,37 +901,49 @@ def main():
             user_datastore = SQLAlchemyUserDatastore(db, User, None)
             security.init_app(app.server, user_datastore)
 
-    project_paths, names = get_projects()
+    project_catalog = get_projects_catalog()
+    sync_project_type_map(project_catalog)
+    project_paths = [project["path"] for project in project_catalog]
     logger.debug(f" Found {len(project_paths)} projects: {project_paths}")
 
-    for path, name in zip(project_paths, names):
-        try:
-            logger.debug(f" Preloading project: {name}")
-            _ = load_project_data(path)  # this loads and caches it
-        except Exception as e:
-            logger.error(f"Failed to load project {path}: {e}")
+    preload_projects = os.getenv("VERTEX_PRELOAD_PROJECTS", "false").strip().lower() in {"1", "true", "yes", "y"}
+    if preload_projects:
+        for project in project_catalog:
+            path = project["path"]
+            name = project["name"]
+            try:
+                logger.debug(f" Preloading project: {name}")
+                _ = load_project_data(path)
+            except Exception as e:
+                logger.error(f"Failed to load project {path}: {e}")
 
     def serve_layout():
         # Prefer project= for new links, but keep param= for legacy one-off deployments.
-        default_project = project_paths[0] if project_paths else None
+        project_catalog = get_projects_catalog()
+        sync_project_type_map(project_catalog)
+        login_state = current_user.is_authenticated if AUTH_ENABLED else True
+        visible_projects = get_visible_projects(project_catalog, login_state)
+        default_project = get_default_project_path(visible_projects)
         requested_project = None
 
         try:
             query_project = request.args.get("project") or request.args.get("param")
             if query_project:
-                requested_project = resolve_project_request(query_project, project_paths, names)
+                requested_project = resolve_project_request(query_project, visible_projects)
                 if requested_project is None:
                     logger.warning(f"Unknown project requested via query string: {query_project}")
         except Exception as exc:
             logger.debug(f"Unable to read request args for project selection: {exc}")
 
         active_project = requested_project or default_project
-        initial_layout = build_project_layout(active_project) if active_project is not None else None
+        initial_layout = (
+            build_project_layout(active_project, project_catalog, login_state) if active_project is not None else None
+        )
         return define_shell_layout(active_project, initial_body=initial_layout)
 
     app.layout = serve_layout
 
-    register_callbacks(app, project_paths, names)
+    register_callbacks(app)
 
     return app
 

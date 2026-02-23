@@ -2,14 +2,13 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 from dash import dcc, html
 
-from vertex.io import get_projects
 from vertex.layout.filters import define_filters_controls
 from vertex.logging.logger import setup_logger
 
 logger = setup_logger(__name__)
 
 
-def define_menu(buttons, filter_options=None, project_name=None):
+def define_menu(buttons, filter_options=None, project_name=None, project_options=None, selected_project_value=None):
     menu = pd.DataFrame(data=buttons)
     if filter_options is not None:
         menu_items = [define_filters_controls(**filter_options)]
@@ -41,7 +40,7 @@ def define_menu(buttons, filter_options=None, project_name=None):
                     },
                 ),
                 html.Div(style={"margin-top": "5px"}),
-                project_selector(selected_project=project_name),
+                project_selector(project_options=project_options, selected_project=selected_project_value),
                 html.Div(style={"margin-top": "5px"}),
             ],
             style={
@@ -83,16 +82,11 @@ def define_menu(buttons, filter_options=None, project_name=None):
     return menu
 
 
-def project_selector(selected_project=None):
-    projects, names = get_projects()
-    options = []
-
-    for project, name in zip(projects, names):
-        options.append({"label": name, "value": project})
-
+def project_selector(project_options=None, selected_project=None):
     return dcc.Dropdown(
         id="project-selector",
-        options=options,
+        options=project_options or [],
+        value=selected_project,
         placeholder="Change Project...",
         style={"minWidth": "300px"},
         clearable=False,

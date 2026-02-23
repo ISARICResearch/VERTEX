@@ -44,6 +44,7 @@ jobs:
         env:
           ECR_REPO: ${{ secrets.ECR_REPOSITORY }}
           INSTANCE_ID: ${{ secrets.EC2_INSTANCE_ID }}
+          PROJECTS_REPO_BRANCH: ${{ secrets.PROJECTS_REPO_BRANCH }}
         run: |
           set -euo pipefail
 
@@ -60,6 +61,65 @@ jobs:
               # login using instance role
               aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin "${ECR_REPO}"
 
+              PROJECTS_DIR="/opt/vertex-projects"
+              PROJECTS_REPO_URL="git@github.com:ISARICResearch/VERTEX-projects.git"
+              PROJECTS_REPO_BRANCH="${PROJECTS_REPO_BRANCH:-main}"
+              SYNC_SCRIPT_PATH="/usr/local/bin/vertex-sync-projects.sh"
+              PROJECTS_GIT_SSH_KEY_PATH="${PROJECTS_GIT_SSH_KEY_PATH:-/root/.ssh/vertex_projects_deploy_key}"
+              PROJECTS_GIT_KNOWN_HOSTS_PATH="${PROJECTS_GIT_KNOWN_HOSTS_PATH:-/root/.ssh/known_hosts}"
+
+              mkdir -p /root/.ssh
+              chmod 700 /root/.ssh
+              touch "${PROJECTS_GIT_KNOWN_HOSTS_PATH}"
+              chmod 600 "${PROJECTS_GIT_KNOWN_HOSTS_PATH}"
+              if ! ssh-keygen -F github.com -f "${PROJECTS_GIT_KNOWN_HOSTS_PATH}" >/dev/null 2>&1; then
+                ssh-keyscan -H github.com >> "${PROJECTS_GIT_KNOWN_HOSTS_PATH}"
+              fi
+              if [ ! -f "${PROJECTS_GIT_SSH_KEY_PATH}" ]; then
+                echo "Missing deploy key at ${PROJECTS_GIT_SSH_KEY_PATH}"
+                exit 1
+              fi
+              chmod 600 "${PROJECTS_GIT_SSH_KEY_PATH}"
+
+              cat > "${SYNC_SCRIPT_PATH}" <<'SYNC'
+              #!/bin/bash
+              set -euo pipefail
+              PROJECTS_DIR="${VERTEX_PROJECTS_DIR:-/opt/vertex-projects}"
+              PROJECTS_REPO_URL="git@github.com:ISARICResearch/VERTEX-projects.git"
+              PROJECTS_REPO_BRANCH="${PROJECTS_REPO_BRANCH:-main}"
+              PROJECTS_GIT_SSH_KEY_PATH="${PROJECTS_GIT_SSH_KEY_PATH:-/root/.ssh/vertex_projects_deploy_key}"
+              PROJECTS_GIT_KNOWN_HOSTS_PATH="${PROJECTS_GIT_KNOWN_HOSTS_PATH:-/root/.ssh/known_hosts}"
+              export GIT_SSH_COMMAND="ssh -i ${PROJECTS_GIT_SSH_KEY_PATH} -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=${PROJECTS_GIT_KNOWN_HOSTS_PATH}"
+              mkdir -p "${PROJECTS_DIR}"
+              if [ -d "${PROJECTS_DIR}/.git" ]; then
+                git -C "${PROJECTS_DIR}" fetch --all --prune
+                git -C "${PROJECTS_DIR}" checkout "${PROJECTS_REPO_BRANCH}"
+                git -C "${PROJECTS_DIR}" pull --ff-only origin "${PROJECTS_REPO_BRANCH}"
+              else
+                rm -rf "${PROJECTS_DIR}"
+                git clone --branch "${PROJECTS_REPO_BRANCH}" "${PROJECTS_REPO_URL}" "${PROJECTS_DIR}"
+              fi
+              SYNC
+              chmod +x "${SYNC_SCRIPT_PATH}"
+
+              export PROJECTS_REPO_BRANCH
+              export VERTEX_PROJECTS_DIR="${PROJECTS_DIR}"
+              export PROJECTS_GIT_SSH_KEY_PATH
+              export PROJECTS_GIT_KNOWN_HOSTS_PATH
+              "${SYNC_SCRIPT_PATH}"
+
+              cat > /etc/cron.d/vertex-projects-sync <<CRON
+              SHELL=/bin/bash
+              PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+              PROJECTS_REPO_URL=git@github.com:ISARICResearch/VERTEX-projects.git
+              PROJECTS_REPO_BRANCH=${PROJECTS_REPO_BRANCH:-main}
+              VERTEX_PROJECTS_DIR=${PROJECTS_DIR}
+              PROJECTS_GIT_SSH_KEY_PATH=${PROJECTS_GIT_SSH_KEY_PATH}
+              PROJECTS_GIT_KNOWN_HOSTS_PATH=${PROJECTS_GIT_KNOWN_HOSTS_PATH}
+              0 * * * * root ${SYNC_SCRIPT_PATH} >> /var/log/vertex-projects-sync.log 2>&1
+              CRON
+              chmod 644 /etc/cron.d/vertex-projects-sync
+
               # stop and remove previous container
               docker stop isaric-vertex 2>/dev/null || true
               docker rm -v isaric-vertex 2>/dev/null || true
@@ -71,6 +131,9 @@ jobs:
               docker pull "${ECR_REPO}:latest"
               docker run -d --restart unless-stopped \
                 --env-file /etc/environment \
+                -e VERTEX_PROJECTS_DIR="${PROJECTS_DIR}" \
+                -e VERTEX_PRELOAD_PROJECTS="true" \
+                -v "${PROJECTS_DIR}:${PROJECTS_DIR}:ro" \
                 --name isaric-vertex \
                 -p 8050:8050 \
                 "${ECR_REPO}:latest"

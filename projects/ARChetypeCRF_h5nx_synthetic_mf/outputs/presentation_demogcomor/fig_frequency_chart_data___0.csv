@@ -1,7 +1,0 @@
-variable,proportion,label,short_label
-comor_obesity,0.27,<b>Obesity</b>,<b>Obesity</b>
-comor_hypertensi,0.253,<b>Hypertension (physician diagnosed)</b>,<b>Hypertension (physician diagnosed)</b>
-comor_diabetes_yn,0.181,<b>Diabetes mellitus</b>,<b>Diabetes mellitus</b>
-comor_smoking_yn,0.18,<b>Ever smoked</b>,<b>Ever smoked</b>
-comor_chrkidney,0.146,<b>Chronic kidney disease</b>,<b>Chronic kidney disease</b>
-comor_liverdisease,0.144,<b>Liver disease</b>,<b>Liver disease</b>

@@ -16,6 +16,9 @@ logger = setup_logger(__name__)
 
 config_defaults = {
     "project_name": None,
+    "project_id": None,
+    "project_owner": None,
+    "is_public": True,
     "data_access_groups": None,
     "map_layout_center_latitude": 6,
     "map_layout_center_longitude": -75,
@@ -28,45 +31,177 @@ config_defaults = {
 }
 
 
+def get_demo_projects_root():
+    return Path("demo-projects/").expanduser()
+
+
+def get_static_projects_root():
+    return Path(os.getenv("VERTEX_PROJECTS_DIR") or "projects/").expanduser()
+
+
+def _normalise_project_id(value, project_path):
+    if value in (None, ""):
+        return None
+    project_id = str(value).strip()
+    if not project_id:
+        logger.warning(f"Invalid project_id in {project_path}/config_file.json: {value!r}")
+        return None
+    return project_id
+
+
+def _normalise_owner_email(value):
+    if value in (None, ""):
+        return None
+    return str(value).strip().lower()
+
+
+def _normalise_is_public(value):
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return True
+    return str(value).strip().lower() in {"1", "true", "yes", "y"}
+
+
+def _validate_project_config(config, project_path, project_type):
+    required_fields = ["project_name", "project_id", "project_owner", "is_public"]
+    missing_fields = [field for field in required_fields if field not in config]
+    if missing_fields:
+        logger.warning(f"Project config missing required fields in {project_path}: {missing_fields}")
+
+    project_name = config.get("project_name")
+    if project_name is None or str(project_name).strip() == "":
+        logger.warning(f"Project config has invalid project_name in {project_path}")
+
+    owner = config.get("project_owner")
+    if owner is not None:
+        owner_str = str(owner).strip()
+        if owner_str and "@" not in owner_str:
+            logger.warning(f"Project config has non-email project_owner in {project_path}: {owner!r}")
+
+    if "is_public" in config and not isinstance(config.get("is_public"), bool):
+        logger.warning(
+            f"Project config field is_public should be boolean in {project_path}; "
+            f"coercing from {type(config.get('is_public')).__name__}"
+        )
+
+    if project_type == "analysis" and "insight_panels_path" not in config:
+        logger.warning(f"Analysis project missing insight_panels_path in {project_path}")
+
+
+def should_save_outputs(config_dict):
+    if not config_dict.get("save_outputs", False):
+        return False
+
+    # Prevent accidental rewrites of tracked output files; opt-in explicitly.
+    env_flag = os.getenv("VERTEX_ENABLE_SAVE_OUTPUTS")
+    if env_flag is None:
+        return False
+    return env_flag.strip().lower() in {"1", "true", "yes", "y"}
+
+
 def get_config(project_path, config_defaults):
     config_file = os.path.join(project_path, "config_file.json")
+    config_dict = {}
     try:
         with open(config_file, "r") as json_data:
             config_dict = json.load(json_data)
     except IOError as e:
         logger.error(f"Could not read config_file.json: {e}, using defaults")
 
-    # If no insight_panels_path is specified, then this is a public projects which requires a dashboard_metadata.json file:
+    if "project_owner" not in config_dict and "owner_email" in config_dict:
+        # temporary compatibility
+        config_dict["project_owner"] = config_dict["owner_email"]
+
+    # If no insight_panels_path is specified, then this is a static project which requires dashboard_metadata.json.
     if "insight_panels_path" not in config_dict.keys():
         if not os.path.exists(os.path.join(project_path, "dashboard_metadata.json")):
-            logger.error("Could not read dashboard_metadata.json in public project, cannot proceed.")
+            logger.error("Could not read dashboard_metadata.json in static project, cannot proceed.")
             logger.error(
-                "please define a insight_panels_path for data processing or"
-                " add a dashboard_metadata.json file for static projects."
+                "please define insight_panels_path for data processing or "
+                "add a dashboard_metadata.json file for static projects."
             )
         return config_dict
-    # Get a list of python files in the repository (excluding e.g. __init__.py)
+
     insight_panels_path = os.path.join(project_path, config_dict["insight_panels_path"])
     for _, _, filenames in os.walk(insight_panels_path):
         insight_panels = [file.split(".py")[0] for file in filenames if file.endswith(".py") and not file.startswith("_")]
         break
     config_defaults["insight_panels"] = insight_panels
-    # Add default items where the config file doesn't include these
     config_defaults = {k: v for k, v in config_defaults.items() if k not in config_dict.keys()}
     config_dict = {**config_dict, **config_defaults}
+
     if any([x not in insight_panels for x in config_dict["insight_panels"]]):
         missing_insight_panels = [x for x in config_dict["insight_panels"] if x not in insight_panels]
         logger.warning(
-            f"The following insight panels are ignored and will not appear in the dashboard: " f"{missing_insight_panels}"
+            f"The following insight panels are ignored and will not appear in the dashboard: {missing_insight_panels}"
         )
         config_dict["insight_panels"] = [x for x in config_dict["insight_panels"] if x in insight_panels]
+
     if any([x not in config_dict["insight_panels"] for x in insight_panels]):
         missing_insight_panels = [x for x in insight_panels if x not in config_dict["insight_panels"]]
         logger.warning(
             f"The following insight panels are available but not included in the dashboard "
             f"(add these to config_file.json to include them): {missing_insight_panels}"
         )
+
     return config_dict
+
+
+def get_project_record(project_path, project_type):
+    config_file = Path(project_path) / "config_file.json"
+    config = {}
+    if config_file.exists():
+        try:
+            with open(config_file, "r") as f:
+                config = json.load(f)
+        except Exception as e:
+            logger.warning(f"Could not read config for {project_path.name}: {e}")
+
+    if "project_owner" not in config and "owner_email" in config:
+        config["project_owner"] = config["owner_email"]
+
+    _validate_project_config(config, project_path, project_type)
+
+    data_source = None
+    if project_type == "analysis":
+        has_api_url = bool(str(config.get("api_url", "")).strip())
+        has_api_key = bool(str(config.get("api_key", "")).strip())
+        data_source = "api" if (has_api_url and has_api_key) else "files"
+
+    return {
+        "path": str(project_path) + "/",
+        "name": config.get("project_name", project_path.name),
+        "project_id": _normalise_project_id(config.get("project_id"), project_path),
+        "project_owner": _normalise_owner_email(config.get("project_owner")),
+        "is_public": _normalise_is_public(config.get("is_public", True)),
+        "project_type": project_type,
+        "data_source": data_source,
+    }
+
+
+def get_projects_catalog():
+    project_catalog = []
+    roots = [("analysis", get_demo_projects_root()), ("prebuilt", get_static_projects_root())]
+    for project_type, root in roots:
+        logger.info(f"Looking for {project_type} projects in: {root.resolve()}")
+        if not root.exists():
+            logger.warning(f"Project directory does not exist: {root}")
+            continue
+        for project_path in root.iterdir():
+            if not project_path.is_dir() or project_path.name.startswith("."):
+                continue
+            if not (project_path / "config_file.json").exists():
+                logger.warning(f"Skipping folder without config_file.json: {project_path}")
+                continue
+            project_catalog.append(get_project_record(project_path, project_type))
+    logger.info(f"Found {len(project_catalog)} total projects.")
+    return project_catalog
+
+
+def get_projects():
+    projects = get_projects_catalog()
+    return [item["path"] for item in projects], [item["name"] for item in projects]
 
 
 def load_vertex_data(project_path, config_dict):
@@ -114,15 +249,8 @@ def load_vertex_from_files(project_path, config_dict):
         str_ind = dictionary["field_type"].isin(["freetext", "categorical"])
         str_columns = dictionary.loc[str_ind, "field_name"].tolist()
         non_str_columns = dictionary.loc[(str_ind == 0), "field_name"].tolist()
-        # num_ind = dictionary['field_type'].isin(['numeric'])
-        # num_columns = dictionary.loc[num_ind, 'field_name'].tolist()
-        dtype_dict = {
-            **{x: "str" for x in str_columns},
-            # **{x: 'float' for x in num_columns}
-        }
-        # pandas tries to infer NaN values, sometimes this causes issues
-        # solution is to ignore str columns, otherwise there are errors if
-        # e.g. 'None' is an answer option
+        dtype_dict = {**{x: "str" for x in str_columns}}
+
         pandas_default_na_values = [
             "",
             " ",
@@ -149,7 +277,6 @@ def load_vertex_from_files(project_path, config_dict):
         df_map = pd.read_csv(
             os.path.join(vertex_dataframes_path, "df_map.csv"), dtype=dtype_dict, keep_default_na=False, na_values=na_values
         )
-        # Fix dates
         date_variables = dictionary.loc[(dictionary["field_type"] == "date"), "field_name"].tolist()
         df_map[date_variables] = df_map[date_variables].apply(lambda x: x.apply(lambda y: pd.to_datetime(y)))
         quality_report = {}
@@ -174,15 +301,6 @@ def load_vertex_from_files(project_path, config_dict):
     except Exception:
         logger.error("Could not load the VERTEX dataframes.")
         raise
-
-
-def get_projects():
-    project_path = Path("projects/")
-    logger.info(f"Looking for projects in: {project_path.resolve()}")
-    projects = [p for p in project_path.iterdir() if p.is_dir()]
-    names = [get_project_name(p) for p in projects]
-    logger.info(f"Found projects: {[p.name for p in projects]}")
-    return [str(p) + "/" for p in projects], names
 
 
 def get_project_name(project_path):
@@ -226,13 +344,23 @@ def save_public_outputs(
     metadata_file = os.path.join(outputs_path, "dashboard_metadata.json")
     with open(metadata_file, "w") as file:
         json.dump({"insight_panels": buttons}, file, indent=4)
+        file.write("\n")
     data_file = os.path.join(outputs_path, "dashboard_data.csv")
     df_countries.to_csv(data_file, index=False)
     config_json_file = os.path.join(outputs_path, "config_file.json")
     with open(config_json_file, "w") as file:
-        save_config_keys = ["project_name", "map_layout_center_latitude", "map_layout_center_longitude", "map_layout_zoom"]
-        save_config_dict = {k: config_dict[k] for k in save_config_keys}
-        json.dump(save_config_dict, file, indent=4)
+        save_config_keys = [
+            "project_name",
+            "project_id",
+            "project_owner",
+            "is_public",
+            "map_layout_center_latitude",
+            "map_layout_center_longitude",
+            "map_layout_zoom",
+        ]
+        save_config_dict = {k: config_dict.get(k) for k in save_config_keys}
         runtime_metadata = {"user": os.environ.get("USER", None), "timestamp": time.ctime()}
-        json.dump(runtime_metadata, file, indent=4)
+        save_config_dict["runtime_metadata"] = runtime_metadata
+        json.dump(save_config_dict, file, indent=4)
+        file.write("\n")
     logger.info(f"Public dashboard files saved to {outputs_path}")

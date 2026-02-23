@@ -31,6 +31,30 @@ Additionally, if you want to create your own insight panel, please follow our [C
 
 To get started with VERTEX, please refer to our [Getting Started with VERTEX guide](https://isaricresearch.github.io/Training/vertex_starting.html).
 
+## Project Sources
+
+VERTEX loads projects from two roots:
+
+- `demo-projects/`: dynamic analysis projects (API/data-backed, filterable)
+- `projects/`: prebuilt static projects (non-analysis mode)
+
+Both paths are configurable with:
+
+- `VERTEX_PROJECTS_DIR`
+
+For prebuilt/static projects, `config_file.json` should include:
+
+- `project_name`
+- `project_id`
+- `project_owner`
+- `is_public`
+
+Current temporary visibility behavior:
+
+- Not logged in: only prebuilt projects with `is_public: true` are shown
+- Logged in: all prebuilt projects are shown
+- Demo analysis projects are always shown
+
 If you encounter any issues or have suggestions for improvements, we encourage you to submit an [issue](https://github.com/ISARICResearch/VERTEX/issues) on this repository or reach out to us via email at [data@isaric.org](mailto:data@isaric.org).
 
 
