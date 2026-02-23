@@ -44,7 +44,9 @@ jobs:
         env:
           ECR_REPO: ${{ secrets.ECR_REPOSITORY }}
           INSTANCE_ID: ${{ secrets.EC2_INSTANCE_ID }}
-          PROJECTS_REPO_BRANCH: ${{ secrets.PROJECTS_REPO_BRANCH }}
+          PROJECTS_REPO_BRANCH: ${{ vars.PROJECTS_REPO_BRANCH }}
+          PROJECTS_GIT_SSH_KEY_PATH: ${{ vars.PROJECTS_GIT_SSH_KEY_PATH }}
+          PROJECTS_GIT_KNOWN_HOSTS_PATH: ${{ vars.PROJECTS_GIT_KNOWN_HOSTS_PATH }}
         run: |
           set -euo pipefail
 
@@ -53,20 +55,26 @@ jobs:
             exit 1
           fi
 
+          PROJECTS_DIR="/opt/vertex-projects"
+          PROJECTS_REPO_BRANCH="${PROJECTS_REPO_BRANCH:-main}"
+          SYNC_SCRIPT_PATH="/usr/local/bin/vertex-sync-projects.sh"
+          PROJECTS_GIT_SSH_KEY_PATH="${PROJECTS_GIT_SSH_KEY_PATH:-/root/.ssh/vertex_projects_deploy_key}"
+          PROJECTS_GIT_KNOWN_HOSTS_PATH="${PROJECTS_GIT_KNOWN_HOSTS_PATH:-/root/.ssh/known_hosts}"
+
           # 1) write the indented heredoc to a temp file (variables expanded on runner)
           cat > /tmp/ssm-script.indented <<INDENTED
               #!/bin/bash -eux
-              trap 'echo "Error on line $LINENO"; exit 1' ERR
+              trap 'echo "Error on line \$LINENO"; exit 1' ERR
 
               # login using instance role
               aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin "${ECR_REPO}"
 
-              PROJECTS_DIR="/opt/vertex-projects"
+              PROJECTS_DIR="${PROJECTS_DIR}"
               PROJECTS_REPO_URL="git@github.com:ISARICResearch/VERTEX-projects.git"
-              PROJECTS_REPO_BRANCH="${PROJECTS_REPO_BRANCH:-main}"
-              SYNC_SCRIPT_PATH="/usr/local/bin/vertex-sync-projects.sh"
-              PROJECTS_GIT_SSH_KEY_PATH="${PROJECTS_GIT_SSH_KEY_PATH:-/root/.ssh/vertex_projects_deploy_key}"
-              PROJECTS_GIT_KNOWN_HOSTS_PATH="${PROJECTS_GIT_KNOWN_HOSTS_PATH:-/root/.ssh/known_hosts}"
+              PROJECTS_REPO_BRANCH="${PROJECTS_REPO_BRANCH}"
+              SYNC_SCRIPT_PATH="${SYNC_SCRIPT_PATH}"
+              PROJECTS_GIT_SSH_KEY_PATH="${PROJECTS_GIT_SSH_KEY_PATH}"
+              PROJECTS_GIT_KNOWN_HOSTS_PATH="${PROJECTS_GIT_KNOWN_HOSTS_PATH}"
 
               mkdir -p /root/.ssh
               chmod 700 /root/.ssh
