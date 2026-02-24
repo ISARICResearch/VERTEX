@@ -932,10 +932,6 @@ def main():
     project_paths = [project["path"] for project in project_catalog]
     logger.debug(f" Found {len(project_paths)} projects: {project_paths}")
 
-    preload_projects = os.getenv("VERTEX_PRELOAD_PROJECTS", "false").strip().lower() in {"1", "true", "yes", "y"}
-    if preload_projects:
-        start_background_preload(project_catalog)
-
     def serve_layout():
         # Prefer project= for new links, but keep param= for legacy one-off deployments.
         project_catalog = get_projects_catalog()
@@ -958,6 +954,9 @@ def main():
         initial_layout = (
             build_project_layout(active_project, project_catalog, login_state) if active_project is not None else None
         )
+        preload_projects = os.getenv("VERTEX_PRELOAD_PROJECTS", "false").strip().lower() in {"1", "true", "yes", "y"}
+        if preload_projects:
+            start_background_preload(project_catalog)
         return define_shell_layout(active_project, initial_body=initial_layout)
 
     app.layout = serve_layout
