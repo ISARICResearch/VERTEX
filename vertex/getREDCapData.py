@@ -1,5 +1,6 @@
 import io
 import os
+import time
 
 import numpy as np
 import pandas as pd
@@ -23,7 +24,9 @@ def user_assigned_to_dag(redcap_url, redcap_api_key):
 
 def get_records(redcap_url, redcap_api_key, data_access_groups=None, user_assigned_to_dag=False):
     """Fetch records from the REDCap API"""
+    started = time.perf_counter()
     if (data_access_groups is None) or (user_assigned_to_dag is False):
+        logger.info("REDCap records export: requesting all records")
         conex = {
             "token": redcap_api_key,
             "content": "record",
@@ -45,14 +48,17 @@ def get_records(redcap_url, redcap_api_key, data_access_groups=None, user_assign
             ind = df["redcap_data_access_group"].isin(data_access_groups)
             df = df.loc[ind].reset_index(drop=True)
     else:
+        logger.info(f"REDCap records export: requesting DAG-scoped records for {len(data_access_groups)} DAG(s)")
         df_list = []
         for dag in data_access_groups:
             unique_group = dag.replace("-", "").replace(" ", "_").lower()[:18]
             conex = {"token": redcap_api_key, "content": "dag", "action": "switch", "dag": unique_group, "returnFormat": "json"}
             response = requests.post(redcap_url, data=conex)
             if response.text != "1":
-                logger.warning(f"Data access group ID: {dag}. Warning: Could not \
-switch DAG to unique group name: {unique_group}")
+                logger.warning(
+                    f"Data access group ID: {dag}. Warning: Could not \
+switch DAG to unique group name: {unique_group}"
+                )
                 continue
             conex = {
                 "token": redcap_api_key,
@@ -84,6 +90,9 @@ switch DAG to unique group name: {unique_group}")
             df = pd.concat(df_list, axis=0)
         else:
             df = None
+    elapsed = time.perf_counter() - started
+    row_count = 0 if df is None else len(df)
+    logger.info(f"REDCap records export complete in {elapsed:.1f}s (rows={row_count})")
     return df
 
 
@@ -630,7 +639,9 @@ def get_df_map(data, dictionary):
     ###########################################################################
     ###########################################################################
     # QUALITY CHECK 1 Patients has either Presentation or Outcome forms
-    missing_id_QC1 = [id for id in data["subjid"].values if id not in df_map.loc[ind, "subjid"].values]
+    included_subjid = set(df_map.loc[ind, "subjid"].dropna().unique())
+    # Keep deterministic order based on first appearance in source data.
+    missing_id_QC1 = [subjid for subjid in pd.unique(data["subjid"]) if pd.notna(subjid) and subjid not in included_subjid]
 
     qc = "QUALITY CHECK 1: Patient does not have Presentation or Outcome forms"
     quality_report = {qc: missing_id_QC1}
@@ -696,13 +707,29 @@ def get_df_forms(data, dictionary):
 
 def get_redcap_data(redcap_url, redcap_api_key, data_access_groups=None, user_assigned_to_dag=False, country_mapping=None):
     """Get data from REDCap API and transform into analysis-ready dataframes"""
+    total_started = time.perf_counter()
+    logger.info("REDCap data pipeline start")
+
+    step_started = time.perf_counter()
     data = get_records(
         redcap_url, redcap_api_key, data_access_groups=data_access_groups, user_assigned_to_dag=user_assigned_to_dag
     )
-    dictionary = get_data_dictionary(redcap_url, redcap_api_key)
-    missing_data_codes = get_missing_data_codes(redcap_url, redcap_api_key)
+    logger.info(f"REDCap step get_records finished in {time.perf_counter() - step_started:.1f}s")
 
+    step_started = time.perf_counter()
+    dictionary = get_data_dictionary(redcap_url, redcap_api_key)
+    logger.info(f"REDCap step get_data_dictionary finished in {time.perf_counter() - step_started:.1f}s")
+
+    step_started = time.perf_counter()
+    missing_data_codes = get_missing_data_codes(redcap_url, redcap_api_key)
+    logger.info(f"REDCap step get_missing_data_codes finished in {time.perf_counter() - step_started:.1f}s")
+
+    step_started = time.perf_counter()
     data, new_dictionary = initial_data_processing(data, dictionary, missing_data_codes)
+    logger.info(
+        f"REDCap step initial_data_processing finished in {time.perf_counter() - step_started:.1f}s "
+        f"(rows={len(data)}, cols={len(data.columns)})"
+    )
 
     redcap_columns = ["redcap_event_name", "redcap_repeat_instrument"]
     redcap_columns += ["redcap_repeat_instance", "redcap_data_access_group"]
@@ -710,7 +737,9 @@ def get_redcap_data(redcap_url, redcap_api_key, data_access_groups=None, user_as
     data = pd.concat([data, pd.DataFrame(columns=redcap_columns)], axis=1)
 
     # Get forms and events from the API
+    step_started = time.perf_counter()
     form, form_event = get_form_event(redcap_url, redcap_api_key)
+    logger.info(f"REDCap step get_form_event finished in {time.perf_counter() - step_started:.1f}s")
     # Convert repeating forms from label to name
     form_dict = dict(zip(form["form_label"], form["form_name"]))
     data.loc[:, "form_name"] = data["redcap_repeat_instrument"].map(form_dict)
@@ -718,8 +747,14 @@ def get_redcap_data(redcap_url, redcap_api_key, data_access_groups=None, user_as
     form_dict = dict(zip(form_event["event_name"], form_event["form_name"]))
     data.loc[data["form_name"].isna(), "form_name"] = data.loc[data["form_name"].isna(), "redcap_event_name"].map(form_dict)
     data = data.loc[data["form_name"].notna()].reset_index(drop=True)
+
+    step_started = time.perf_counter()
     df_map, new_dictionary, quality_report = get_df_map(data, new_dictionary)
+    logger.info(f"REDCap step get_df_map finished in {time.perf_counter() - step_started:.1f}s (rows={len(df_map)})")
+
+    step_started = time.perf_counter()
     df_forms_dict = get_df_forms(data, new_dictionary)
+    logger.info(f"REDCap step get_df_forms finished in {time.perf_counter() - step_started:.1f}s (forms={len(df_forms_dict)})")
 
     if "demog_country" in dictionary["field_name"].values:
         countries = pd.read_csv("assets/countries.csv", encoding="latin-1")
@@ -750,6 +785,7 @@ def get_redcap_data(redcap_url, redcap_api_key, data_access_groups=None, user_as
 
     new_dictionary = pd.concat([new_dictionary, pd.DataFrame.from_dict(country_dict)], axis=0)
     new_dictionary = new_dictionary.reset_index(drop=True)
+    logger.info(f"REDCap data pipeline complete in {time.perf_counter() - total_started:.1f}s")
     return df_map, df_forms_dict, new_dictionary, quality_report
 
 
