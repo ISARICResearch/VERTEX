@@ -28,6 +28,7 @@ config_defaults = {
     "insight_panels_path": "insight_panels/",
     "insight_panels": [],
     "insight_panels_data_path": None,
+    "write_api_cache": False,
 }
 
 
@@ -60,6 +61,14 @@ def _normalise_is_public(value):
         return value
     if value is None:
         return True
+    return str(value).strip().lower() in {"1", "true", "yes", "y"}
+
+
+def _as_bool(value, default=False):
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
     return str(value).strip().lower() in {"1", "true", "yes", "y"}
 
 
@@ -204,14 +213,54 @@ def get_projects():
     return [item["path"] for item in projects], [item["name"] for item in projects]
 
 
+def _get_vertex_dataframes_path(project_path, config_dict):
+    data_path = config_dict.get("insight_panels_data_path") or "analysis_data/"
+    return os.path.join(project_path, data_path)
+
+
+def _has_vertex_data_cache(project_path, config_dict):
+    vertex_dataframes_path = _get_vertex_dataframes_path(project_path, config_dict)
+    required_files = [
+        os.path.join(vertex_dataframes_path, "df_map.csv"),
+        os.path.join(vertex_dataframes_path, "vertex_dictionary.csv"),
+    ]
+    return all(os.path.exists(file_path) for file_path in required_files)
+
+
+def _save_vertex_data_cache(project_path, config_dict, data):
+    vertex_dataframes_path = _get_vertex_dataframes_path(project_path, config_dict)
+    os.makedirs(vertex_dataframes_path, exist_ok=True)
+
+    data["df_map"].to_csv(os.path.join(vertex_dataframes_path, "df_map.csv"), index=False)
+    data["dictionary"].to_csv(os.path.join(vertex_dataframes_path, "vertex_dictionary.csv"), index=False)
+    for form_name, df_form in data["df_forms_dict"].items():
+        df_form.to_csv(os.path.join(vertex_dataframes_path, f"{form_name}.csv"), index=False)
+
+    quality_report_path = os.path.join(vertex_dataframes_path, "quality_report.json")
+    with open(quality_report_path, "w") as file:
+        json.dump(data.get("quality_report", {}), file, indent=2)
+        file.write("\n")
+
+    logger.info(f"Saved API snapshot cache to {vertex_dataframes_path}")
+
+
 def load_vertex_data(project_path, config_dict):
-    api_url = config_dict["api_url"]
-    api_key = config_dict["api_key"]
-    get_data_from_api = (api_url is not None) and (api_key is not None)
+    api_url = config_dict.get("api_url")
+    api_key = config_dict.get("api_key")
+    api_url_str = "" if api_url is None else str(api_url).strip()
+    api_key_str = "" if api_key is None else str(api_key).strip()
+    get_data_from_api = bool(api_url_str and api_key_str)
     logger.debug(f"api_url: {api_url}, api_key: {'***' if api_key else None}")
 
+    write_api_cache = _as_bool(os.getenv("VERTEX_WRITE_API_CACHE"), _as_bool(config_dict.get("write_api_cache"), False))
+
     if get_data_from_api:
-        data = load_vertex_from_api(api_url, api_key, config_dict)
+        data = load_vertex_from_api(api_url_str, api_key_str, config_dict)
+        if write_api_cache:
+            try:
+                _save_vertex_data_cache(project_path, config_dict, data)
+            except Exception as e:
+                logger.warning(f"Failed to persist API snapshot cache for {project_path}: {e}")
     else:
         logger.info(f"Loading data from {project_path}")
         data = load_vertex_from_files(project_path, config_dict)
@@ -241,7 +290,7 @@ def load_vertex_from_api(api_url, api_key, config_dict):
 
 def load_vertex_from_files(project_path, config_dict):
     try:
-        vertex_dataframes_path = os.path.join(project_path, config_dict["insight_panels_data_path"])
+        vertex_dataframes_path = _get_vertex_dataframes_path(project_path, config_dict)
         vertex_dataframes = os.listdir(vertex_dataframes_path)
         dictionary = pd.read_csv(
             os.path.join(vertex_dataframes_path, "vertex_dictionary.csv"), dtype={"field_label": "str"}, keep_default_na=False
@@ -278,7 +327,9 @@ def load_vertex_from_files(project_path, config_dict):
             os.path.join(vertex_dataframes_path, "df_map.csv"), dtype=dtype_dict, keep_default_na=False, na_values=na_values
         )
         date_variables = dictionary.loc[(dictionary["field_type"] == "date"), "field_name"].tolist()
-        df_map[date_variables] = df_map[date_variables].apply(lambda x: x.apply(lambda y: pd.to_datetime(y)))
+        date_variables = [col for col in date_variables if col in df_map.columns]
+        if date_variables:
+            df_map[date_variables] = df_map[date_variables].apply(lambda x: x.apply(lambda y: pd.to_datetime(y)))
         quality_report = {}
         exclude_files = ("df_map.csv", "vertex_dictionary.csv")
         vertex_dataframes = [file for file in vertex_dataframes if file.endswith(".csv") and (file not in exclude_files)]
