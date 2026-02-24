@@ -1,4 +1,5 @@
 import logging
+import os
 import sys
 from logging.handlers import TimedRotatingFileHandler
 
@@ -11,5 +12,6 @@ def setup_logger(name: str = None):
         for handler in handlers:
             handler.setFormatter(formatter)
             logger.addHandler(handler)
-        logger.setLevel(logging.INFO)  # TODO: Make configurable
+        configured_level = os.getenv("VERTEX_LOG_LEVEL") or os.getenv("LOG_LEVEL") or "INFO"
+        logger.setLevel(getattr(logging, configured_level.strip().upper(), logging.INFO))
     return logger
