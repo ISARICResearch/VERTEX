@@ -2,7 +2,7 @@
 app.log*
 
 #public project dir
-public-projects/*
+projects/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
