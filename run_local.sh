@@ -38,5 +38,6 @@ docker run \
   -e AWS_SESSION_TOKEN="$AWS_SESSION_TOKEN" \
   -e AWS_REGION="$REGION" \
   -e VERTEX_PROJECTS_DIR="/app/projects" \
+  -e VERTEX_ENABLE_SAVE_OUTPUTS="true" \
   -w /app \
   -t vertex

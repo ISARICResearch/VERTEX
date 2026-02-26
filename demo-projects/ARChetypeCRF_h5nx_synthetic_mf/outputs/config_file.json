@@ -1,13 +1,16 @@
 {
     "project_name": "(Analysis) H5Nx Synthetic data",
-    "project_uuid": null,
-    "project_owner": null,
+    "project_id": "archetypecrf-h5nx-synthetic-mf",
+    "project_owner": "data@isaric.org",
     "is_public": true,
     "map_layout_center_latitude": 15,
     "map_layout_center_longitude": -45,
     "map_layout_zoom": 1.7,
     "runtime_metadata": {
         "user": null,
-        "timestamp": "Fri Feb 20 15:51:59 2026"
-    }
+        "timestamp": "Thu Feb 26 20:09:16 2026",
+        "vertex_commit_sha": null,
+        "vertex_git_dirty": null
+    },
+    "vertex_commit_sha": null
 }

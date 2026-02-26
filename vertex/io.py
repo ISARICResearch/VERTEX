@@ -3,6 +3,7 @@
 import json
 import os
 import shutil
+import subprocess
 import time
 from pathlib import Path
 
@@ -13,6 +14,7 @@ from vertex.layout.insight_panels import get_visuals
 from vertex.logging.logger import setup_logger
 
 logger = setup_logger(__name__)
+_VERTEX_GIT_METADATA = None
 
 config_defaults = {
     "project_name": None,
@@ -70,6 +72,39 @@ def _as_bool(value, default=False):
     if isinstance(value, bool):
         return value
     return str(value).strip().lower() in {"1", "true", "yes", "y"}
+
+
+def _get_vertex_git_metadata():
+    global _VERTEX_GIT_METADATA
+    if _VERTEX_GIT_METADATA is not None:
+        return _VERTEX_GIT_METADATA
+
+    env_sha = (os.getenv("VERTEX_GIT_SHA") or "").strip()
+    metadata = {"commit_sha": env_sha or None, "is_dirty": None}
+    if env_sha:
+        _VERTEX_GIT_METADATA = metadata
+        return metadata
+
+    try:
+        commit_sha = subprocess.check_output(["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL, text=True).strip()
+        dirty_check = subprocess.run(["git", "diff", "--quiet"], stderr=subprocess.DEVNULL, check=False)
+        metadata = {"commit_sha": commit_sha or None, "is_dirty": dirty_check.returncode != 0}
+    except Exception:
+        metadata = {"commit_sha": None, "is_dirty": None}
+
+    _VERTEX_GIT_METADATA = metadata
+    return metadata
+
+
+def _get_vertex_runtime_metadata(config_dict):
+    git_metadata = _get_vertex_git_metadata()
+    latest_sha = git_metadata.get("commit_sha")
+    return {
+        "user": os.environ.get("USER", None),
+        "timestamp": time.ctime(),
+        "vertex_commit_sha": latest_sha,
+        "vertex_git_dirty": git_metadata.get("is_dirty"),
+    }
 
 
 def _validate_project_config(config, project_path, project_type):
@@ -241,6 +276,11 @@ def _save_vertex_data_cache(project_path, config_dict, data):
         json.dump(data.get("quality_report", {}), file, indent=2)
         file.write("\n")
 
+    metadata_path = os.path.join(vertex_dataframes_path, "vertex_runtime_metadata.json")
+    with open(metadata_path, "w") as file:
+        json.dump(_get_vertex_runtime_metadata(config_dict), file, indent=2)
+        file.write("\n")
+
     logger.info(f"Saved API snapshot cache to {vertex_dataframes_path}")
 
 
@@ -410,8 +450,9 @@ def save_public_outputs(
             "map_layout_zoom",
         ]
         save_config_dict = {k: config_dict.get(k) for k in save_config_keys}
-        runtime_metadata = {"user": os.environ.get("USER", None), "timestamp": time.ctime()}
+        runtime_metadata = _get_vertex_runtime_metadata(config_dict)
         save_config_dict["runtime_metadata"] = runtime_metadata
+        save_config_dict["vertex_commit_sha"] = runtime_metadata["vertex_commit_sha"]
         json.dump(save_config_dict, file, indent=4)
         file.write("\n")
     logger.info(f"Public dashboard files saved to {outputs_path}")
