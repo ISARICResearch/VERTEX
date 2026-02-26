@@ -9,8 +9,7 @@ from urllib.parse import parse_qs, quote
 import dash
 import dash_bootstrap_components as dbc
 import pandas as pd
-from dash import callback_context, html, no_update
-from dash.dependencies import ALL, Input, Output, State
+from dash import ALL, Input, Output, State, callback_context, html, no_update
 from dash.exceptions import PreventUpdate
 from flask import request
 from flask_login import current_user, login_user, logout_user
