@@ -79,18 +79,14 @@ def _get_vertex_git_metadata():
     if _VERTEX_GIT_METADATA is not None:
         return _VERTEX_GIT_METADATA
 
-    env_sha = (os.getenv("VERTEX_GIT_SHA") or "").strip()
-    metadata = {"commit_sha": env_sha or None, "is_dirty": None}
-    if env_sha:
-        _VERTEX_GIT_METADATA = metadata
-        return metadata
-
     try:
-        commit_sha = subprocess.check_output(["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL, text=True).strip()
-        dirty_check = subprocess.run(["git", "diff", "--quiet"], stderr=subprocess.DEVNULL, check=False)
-        metadata = {"commit_sha": commit_sha or None, "is_dirty": dirty_check.returncode != 0}
+        commit_sha = subprocess.check_output(
+            ["git", "rev-parse", "--short", "HEAD"], stderr=subprocess.DEVNULL, text=True
+        ).strip()
+        metadata = {"commit_sha": commit_sha or None}
     except Exception:
-        metadata = {"commit_sha": None, "is_dirty": None}
+        env_sha = (os.getenv("VERTEX_GIT_SHA") or "").strip()
+        metadata = {"commit_sha": env_sha or None}
 
     _VERTEX_GIT_METADATA = metadata
     return metadata
@@ -103,7 +99,6 @@ def _get_vertex_runtime_metadata(config_dict):
         "user": os.environ.get("USER", None),
         "timestamp": time.ctime(),
         "vertex_commit_sha": latest_sha,
-        "vertex_git_dirty": git_metadata.get("is_dirty"),
     }
 
 
