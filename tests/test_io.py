@@ -1,5 +1,6 @@
 import json
 
+import pandas as pd
 import pytest
 
 from vertex import descriptive_dashboard as dashboard
@@ -176,6 +177,100 @@ def test_get_project_record_invalid_json_falls_back_to_directory_name(tmp_path):
 
     assert record["name"] == project_dir.name
     assert record["project_type"] == "prebuilt"
+
+
+def test_get_project_name_reads_name_from_valid_config(tmp_path):
+    project_dir = tmp_path / "named-project"
+    project_dir.mkdir()
+    (project_dir / "config_file.json").write_text(json.dumps({"project_name": "Human Friendly Name"}) + "\n")
+
+    assert vertex_io.get_project_name(project_dir) == "Human Friendly Name"
+
+
+def test_get_project_name_defaults_to_folder_name_when_missing_config(tmp_path):
+    project_dir = tmp_path / "no-config-project"
+    project_dir.mkdir()
+
+    assert vertex_io.get_project_name(project_dir) == project_dir.name
+
+
+def test_get_project_name_defaults_to_folder_name_when_config_invalid_json(tmp_path):
+    project_dir = tmp_path / "bad-config-project"
+    project_dir.mkdir()
+    (project_dir / "config_file.json").write_text("{ not json")
+
+    assert vertex_io.get_project_name(project_dir) == project_dir.name
+
+
+def test_get_project_name_defaults_to_folder_name_when_project_name_missing(tmp_path):
+    project_dir = tmp_path / "missing-name-project"
+    project_dir.mkdir()
+    (project_dir / "config_file.json").write_text(json.dumps({"project_owner": "owner@example.com"}) + "\n")
+
+    assert vertex_io.get_project_name(project_dir) == project_dir.name
+
+
+def test_save_public_outputs_writes_expected_files_and_overwrites_existing_outputs(tmp_path, monkeypatch):
+    project_dir = tmp_path / "prebuilt-output-project"
+    project_dir.mkdir()
+    outputs_dir = project_dir / "outputs"
+    outputs_dir.mkdir()
+    (outputs_dir / "stale.txt").write_text("old")
+
+    expected_buttons = [{"suffix": "panel_a", "graph_ids": ["panel_a/fig_text"]}]
+    captured = {}
+
+    def fake_get_visuals(buttons, insight_panels, **kwargs):
+        captured["buttons"] = buttons
+        captured["insight_panels"] = insight_panels
+        captured["filepath"] = kwargs["filepath"]
+        return expected_buttons
+
+    monkeypatch.setattr(vertex_io, "get_visuals", fake_get_visuals)
+    monkeypatch.setenv("USER", "tester")
+    monkeypatch.setattr(vertex_io.time, "ctime", lambda: "Mon Mar  2 12:00:00 2026")
+
+    df_countries = pd.DataFrame([{"country_iso": "GBR", "country": "United Kingdom", "records": 1}])
+
+    config = {
+        "outputs_path": "outputs/",
+        "insight_panels": ["panel_a"],
+        "project_name": "Project",
+        "project_id": "project-id",
+        "project_owner": "owner@example.com",
+        "is_public": True,
+        "map_layout_center_latitude": 6,
+        "map_layout_center_longitude": -75,
+        "map_layout_zoom": 1.7,
+    }
+
+    vertex_io.save_public_outputs(
+        buttons=[{"suffix": "panel_a"}],
+        insight_panels={"panel_a": object()},
+        df_map=pd.DataFrame(),
+        df_countries=df_countries,
+        df_forms_dict={},
+        dictionary=pd.DataFrame(),
+        quality_report={},
+        project_path=str(project_dir),
+        config_dict=config,
+    )
+
+    assert not (outputs_dir / "stale.txt").exists()
+    assert (outputs_dir / "panel_a").is_dir()
+    assert captured["filepath"].endswith("outputs/")
+
+    metadata = json.loads((outputs_dir / "dashboard_metadata.json").read_text())
+    assert metadata == {"insight_panels": expected_buttons}
+
+    countries = pd.read_csv(outputs_dir / "dashboard_data.csv")
+    assert list(countries.columns) == ["country_iso", "country", "records"]
+    assert countries.iloc[0]["country_iso"] == "GBR"
+
+    saved_config = json.loads((outputs_dir / "config_file.json").read_text())
+    assert saved_config["project_name"] == "Project"
+    assert saved_config["project_id"] == "project-id"
+    assert saved_config["runtime_metadata"] == {"user": "tester", "timestamp": "Mon Mar  2 12:00:00 2026"}
 
 
 def test_load_vertex_from_files_missing_dictionary_should_not_crash(copy_fixture_project):
