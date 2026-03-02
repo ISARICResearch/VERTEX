@@ -1,0 +1,5 @@
+field_name,field_type,field_label
+subjid,text,Subject ID
+pres_date,date,Admission Date
+demog_age,numeric,Age
+free_text,freetext,Note

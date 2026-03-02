@@ -1,0 +1,11 @@
+{
+  "insight_panels": [
+    {
+      "suffix": "panel_a",
+      "graph_ids": [
+        "panel_a/fig_text"
+      ],
+      "title": "Panel A"
+    }
+  ]
+}
