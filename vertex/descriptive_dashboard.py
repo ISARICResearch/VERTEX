@@ -764,7 +764,18 @@ def build_project_layout(project_path, project_catalog, login_state):
         },
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
     )
-    fig = create_map(project_data["df_countries"], map_layout_dict)
+    df_countries = project_data["df_countries"]
+    required_columns = {"country_iso", "country_name", "country_count"}
+    if isinstance(df_countries, pd.DataFrame) and not df_countries.empty and required_columns.issubset(df_countries.columns):
+        fig = create_map(df_countries, map_layout_dict)
+    else:
+        logger.warning(f"Project {project_path} has no valid country map data; rendering empty map.")
+        geojson = (
+            "https://raw.githubusercontent.com/"
+            "martynafford/natural-earth-geojson/master/"
+            "50m/cultural/ne_50m_admin_0_map_units.json"
+        )
+        fig = go.Figure(go.Choroplethmap(geojson=geojson, featureidkey="properties.ISO_A3"), layout=map_layout_dict)
     if project_data["mode"] == "analysis":
         filter_options = get_filter_options(project_data["df_map"])
     else:
@@ -819,9 +830,20 @@ def load_project_data(project_path):
         PREBUILT = True
         logger.info(f" Public project detected, using dashboard_metadata.json for {project_path}")
         metadata = load_public_dashboard(project_path, config_dict)
-        insight_panels, buttons = get_public_visuals(project_path, metadata["insight_panels"])
+        buttons_metadata = metadata.get("insight_panels", [])
+        if not isinstance(buttons_metadata, list):
+            logger.error(
+                f"Project metadata insight_panels should be a list for {project_path}; "
+                f"got {type(buttons_metadata).__name__}. Falling back to empty."
+            )
+            buttons_metadata = []
+        insight_panels, buttons = get_public_visuals(project_path, buttons_metadata)
         logger.debug(f"{buttons}")
-        df_countries = get_public_countries(project_path)
+        try:
+            df_countries = get_public_countries(project_path)
+        except Exception as exc:
+            logger.error(f"Could not read dashboard_data.csv for prebuilt project {project_path}: {exc}")
+            df_countries = pd.DataFrame(columns=["country_iso", "country_name", "country_count"])
 
     filter_columns_dict = {
         "subjid": "subjid",
@@ -847,7 +869,10 @@ def load_project_data(project_path):
             form: pd.merge(df_form, df_filters, on="subjid", how="left").reset_index(drop=True)
             for form, df_form in df_forms_dict.items()
         }
-    logger.debug(f"{list(insight_panels)[0]}")
+    if insight_panels:
+        logger.debug(f"{list(insight_panels)[0]}")
+    else:
+        logger.debug("No insight panels loaded for this project.")
     project_data = {
         "mode": "prebuilt" if PREBUILT else "analysis",
         "df_map": df_map if not PREBUILT else None,
