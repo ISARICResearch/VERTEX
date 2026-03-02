@@ -31,6 +31,20 @@ Additionally, if you want to create your own insight panel, please follow our [C
 
 To get started with VERTEX, please refer to our [Getting Started with VERTEX guide](https://isaricresearch.github.io/Training/vertex_starting.html).
 
+## Testing and Coverage
+
+Run tests locally:
+
+```bash
+pip install -e ".[dev]"
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 pytest -p pytest_cov --cov=vertex --cov-report=term-missing --cov-report=xml
+```
+
+GitHub Actions uploads `coverage.xml` to Codecov via `.github/workflows/test-and-coverage.yml`.
+If the repository is private, set the `CODECOV_TOKEN` repository secret.
+The workflow also uploads `coverage.xml` as a GitHub Actions artifact and treats
+Codecov upload as best-effort, so test CI still passes if Codecov is unavailable.
+
 ## Project Sources
 
 VERTEX loads projects from two roots:

@@ -36,6 +36,12 @@ dependencies = [
     "statsmodels==0.14.1",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+]
+
 [project.scripts]
 run-vertex = "descriptive_dashboard:main"
 
@@ -56,3 +62,7 @@ exclude = [
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
