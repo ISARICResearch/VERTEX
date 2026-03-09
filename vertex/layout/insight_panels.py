@@ -47,7 +47,14 @@ def get_visuals(buttons, insight_panels, df_map, df_forms_dict, dictionary, qual
 def get_public_visuals(path, buttons):
     visuals_by_suffix = {}
     for ii in range(len(buttons)):
-        suffix = buttons[ii]["suffix"]
+        button = buttons[ii]
+        if not isinstance(button, dict):
+            logger.warning(f"[get_public_visuals] Invalid button payload type: {type(button).__name__}")
+            continue
+        suffix = button.get("suffix")
+        if not suffix:
+            logger.warning(f"[get_public_visuals] Button payload missing 'suffix': {button}")
+            continue
         logger.debug(f"\n[get_public_visuals] ===== Processing suffix: {suffix} =====")
         metadata_dir = os.path.join(path, suffix)
 
@@ -60,7 +67,13 @@ def get_public_visuals(path, buttons):
         logger.debug(f"[get_public_visuals] All files in {metadata_dir}: {all_files}")
 
         # get graph_ids (may be empty)
-        graph_ids = tuple(x.split("/")[-1] for x in buttons[ii].get("graph_ids", []))
+        raw_graph_ids = button.get("graph_ids", [])
+        if not isinstance(raw_graph_ids, (list, tuple)):
+            logger.warning(
+                f"[get_public_visuals] graph_ids should be list/tuple for suffix={suffix}; got {type(raw_graph_ids)}"
+            )
+            raw_graph_ids = []
+        graph_ids = tuple(str(x).split("/")[-1] for x in raw_graph_ids)
         logger.debug(f"[get_public_visuals] graph_ids from buttons: {graph_ids}")
 
         # select candidate metadata files
@@ -90,6 +103,9 @@ def get_public_visuals(path, buttons):
             fig_name = new_file.get("fig_name")
             fig_args = new_file.get("fig_arguments", {})
             fig_data_files = new_file.get("fig_data", [])
+            if not isinstance(fig_data_files, list):
+                logger.warning(f"[get_public_visuals] fig_data should be list for {fig_id}; got {type(fig_data_files)}")
+                fig_data_files = []
             logger.debug(f"[get_public_visuals] fig_id={fig_id}, fig_name={fig_name}, data_files={fig_data_files}")
             logger.debug(f"[get_public_visuals] fig_args keys={list(fig_args.keys())}")
 
@@ -103,7 +119,7 @@ def get_public_visuals(path, buttons):
                 data = data[0] if len(data) == 1 else data
                 logger.debug(
                     f"[get_public_visuals] Loaded data type={type(data)}, "
-                    f"shape(s)={[getattr(d,'shape',None) for d in (data if isinstance(data,tuple) else [data])]}"
+                    f"shape(s)={[getattr(d, 'shape', None) for d in (data if isinstance(data, tuple) else [data])]}"
                 )
             except Exception as e:
                 logger.error(f"[get_public_visuals] ERROR reading CSVs for {fig_id}: {e}")
@@ -121,7 +137,7 @@ def get_public_visuals(path, buttons):
                 fig_ret = fig_fun(data, **fig_args)
                 logger.debug(
                     f"[get_public_visuals] fig_fun returned type={type(fig_ret)} "
-                    f"len={(len(fig_ret) if hasattr(fig_ret,'__len__') else 'no-len')}"
+                    f"len={(len(fig_ret) if hasattr(fig_ret, '__len__') else 'no-len')}"
                 )
 
                 # Normalize result
@@ -147,7 +163,10 @@ def get_public_visuals(path, buttons):
         visuals_by_suffix[suffix] = StaticInsightPanel(suffix_visuals)
 
     logger.debug(f"[get_public_visuals] ===== Done: suffixes={list(visuals_by_suffix.keys())} =====")
-    logger.debug(list(visuals_by_suffix)[0])
+    if visuals_by_suffix:
+        logger.debug(list(visuals_by_suffix)[0])
+    else:
+        logger.debug("[get_public_visuals] No visuals loaded")
     return visuals_by_suffix, buttons
 
 

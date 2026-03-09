@@ -1,0 +1,15 @@
+name: Validate Analysis Projects
+description: Validate analysis project config, insight panels, and file-backed data requirements
+inputs:
+  root:
+    description: Root directory containing analysis project folders
+    required: false
+    default: demo-projects
+runs:
+  using: composite
+  steps:
+    - name: Validate analysis projects
+      shell: bash
+      run: |
+        python "${{ github.action_path }}/validate_analysis_projects.py" \
+          --root "${{ inputs.root }}"

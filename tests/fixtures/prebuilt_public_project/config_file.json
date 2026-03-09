@@ -1,0 +1,6 @@
+{
+  "project_name": "Prebuilt Public Fixture",
+  "project_id": "prebuilt-public-fixture",
+  "project_owner": "owner@example.com",
+  "is_public": true
+}
