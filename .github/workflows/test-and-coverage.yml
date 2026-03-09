@@ -19,6 +19,11 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Validate analysis project schema
+        uses: ./.github/actions/validate-analysis-projects
+        with:
+          root: demo-projects
+
       - name: Validate demo-project output schema
         uses: ./.github/actions/validate-project-outputs
         with:
