@@ -158,10 +158,16 @@ def main() -> int:
         for err in errors:
             print(f"::error ::{err}")
         print("::endgroup::")
-        print(f"Found {len(errors)} validation error(s).")
+        print(
+            f"Validation failed: checked {len(dashboard_files)} dashboard metadata file(s) under {root} "
+            f"with {len(errors)} error(s) and {len(warnings)} warning(s)."
+        )
         return 1
 
-    print(f"Validation passed: checked {len(dashboard_files)} dashboard metadata file(s) under {root} with no schema errors.")
+    print(
+        f"Validation passed: checked {len(dashboard_files)} dashboard metadata file(s) under {root} "
+        f"with {len(errors)} error(s) and {len(warnings)} warning(s)."
+    )
     return 0
 
 
