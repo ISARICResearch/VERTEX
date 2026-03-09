@@ -1,0 +1,46 @@
+name: Validate Project Outputs
+
+"on":
+  workflow_call:
+    inputs:
+      root:
+        description: Root directory to scan recursively for dashboard metadata
+        required: false
+        default: demo-projects
+        type: string
+      require_project_files:
+        description: Require config_file.json and dashboard_data.csv next to dashboard metadata
+        required: false
+        default: "true"
+        type: string
+  workflow_dispatch:
+    inputs:
+      root:
+        description: Root directory to scan recursively for dashboard metadata
+        required: false
+        default: demo-projects
+        type: string
+      require_project_files:
+        description: Require config_file.json and dashboard_data.csv next to dashboard metadata
+        required: false
+        default: "true"
+        type: string
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Validate output schema
+        uses: ./.github/actions/validate-project-outputs
+        with:
+          root: ${{ inputs.root }}
+          require_project_files: ${{ inputs.require_project_files }}

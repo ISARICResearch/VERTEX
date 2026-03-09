@@ -344,10 +344,13 @@ def register_callbacks(app):
     )
     def update_country_selection(selectall_value, country_value, country_options):
         ctx = dash.callback_context
+        selectall_value = selectall_value or []
+        country_value = country_value or []
+        country_options = country_options or []
 
         if not ctx.triggered:
             # Initial load, no input has triggered the callback yet
-            output = [["all"], [{"label": "Unselect all", "value": "all"}], country_value]
+            return [["all"], [{"label": "Unselect all", "value": "all"}], country_value]
 
         trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
@@ -492,9 +495,12 @@ def register_callbacks(app):
     )
     def update_country_selection_modal(selectall_value, country_value, country_options):
         ctx = dash.callback_context
+        selectall_value = selectall_value or []
+        country_value = country_value or []
+        country_options = country_options or []
         if not ctx.triggered:
             # Initial load, no input has triggered the callback yet
-            output = [["all"], [{"label": "Unselect all", "value": "all"}], country_value]
+            return [["all"], [{"label": "Unselect all", "value": "all"}], country_value]
 
         trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
         #
@@ -584,15 +590,18 @@ def register_callbacks(app):
             if not username or not password:
                 return False, True, "Please enter both username and password."
 
-            with Session(engine) as session:
-                user = session.query(User).filter_by(email=username.strip().lower()).first()
-                logger.debug(f"User found: {user}")
-                if user and verify_and_update_password(password, user):
-                    login_user(user)
-                    return True, False, ""
-                else:
+            try:
+                with Session(engine) as session:
+                    user = session.query(User).filter_by(email=username.strip().lower()).first()
+                    logger.debug(f"User found: {user}")
+                    if user and verify_and_update_password(password, user):
+                        login_user(user)
+                        return True, False, ""
                     logger.debug(f"Invalid login attempt for user: {username}")
                     return False, True, "Invalid username or password."
+            except Exception as exc:
+                logger.exception(f"Login backend error for user {username}: {exc}")
+                return False, True, "Login service unavailable. Please try again."
 
         return dash.no_update, is_open, ""
 
@@ -621,21 +630,25 @@ def register_callbacks(app):
             if password != confirm_password:
                 return "Passwords do not match", True
 
-            with Session(engine) as session:
-                existing = session.query(User).filter_by(email=email.lower()).first()
-                if existing:
-                    return "User already exists", True
+            try:
+                with Session(engine) as session:
+                    existing = session.query(User).filter_by(email=email.lower()).first()
+                    if existing:
+                        return "User already exists", True
 
-                new_user = User(
-                    id=uuid.uuid4(),
-                    email=email.lower(),
-                    password=hash_password(password),
-                    fs_uniquifier=secrets.token_urlsafe(32),
-                    is_admin=False,
-                )
-                session.add(new_user)
-                session.commit()
-                return "", False  # Close modal on success
+                    new_user = User(
+                        id=uuid.uuid4(),
+                        email=email.lower(),
+                        password=hash_password(password),
+                        fs_uniquifier=secrets.token_urlsafe(32),
+                        is_admin=False,
+                    )
+                    session.add(new_user)
+                    session.commit()
+                    return "", False  # Close modal on success
+            except Exception as exc:
+                logger.exception(f"Registration backend error for email {email}: {exc}")
+                return "Registration service unavailable. Please try again.", True
 
         return no_update, is_open
 
@@ -695,11 +708,22 @@ def register_callbacks(app):
         project_data = get_project_data(project_path)
         if not project_data:
             raise PreventUpdate
+        if project_data.get("mode") != "analysis":
+            raise PreventUpdate
 
-        df_map = project_data["df_map"]
-        df_forms_dict = project_data["df_forms_dict"]
-        dictionary = project_data["dictionary"]
-        quality_report = project_data["quality_report"]
+        df_map = project_data.get("df_map")
+        df_forms_dict = project_data.get("df_forms_dict") or {}
+        dictionary = project_data.get("dictionary")
+        quality_report = project_data.get("quality_report", {})
+        if not isinstance(df_map, pd.DataFrame):
+            raise PreventUpdate
+        if not isinstance(df_forms_dict, dict):
+            raise PreventUpdate
+        if not isinstance(dictionary, pd.DataFrame):
+            raise PreventUpdate
+        insight_panel = (project_data.get("insight_panels") or {}).get(suffix)
+        if insight_panel is None:
+            raise PreventUpdate
 
         # Filter the main map
         df_map_filtered = filter_df_map(
@@ -719,7 +743,7 @@ def register_callbacks(app):
             return (), sex_value, age_value, country_value, admdate_value, outcome_value
 
         # Otherwise rebuild visuals
-        visuals = project_data["insight_panels"][suffix].create_visuals(
+        visuals = insight_panel.create_visuals(
             df_map=df_map_filtered.copy(),
             df_forms_dict={k: v.copy() for k, v in df_forms_filtered.items()},
             dictionary=dictionary.copy(),

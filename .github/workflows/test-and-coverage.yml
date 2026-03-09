@@ -1,12 +1,38 @@
 name: Tests and Coverage
 
-on:
+"on":
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
 
 jobs:
+  schema:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Validate demo-project output schema
+        uses: ./.github/actions/validate-project-outputs
+        with:
+          root: demo-projects
+          require_project_files: "true"
+
+      - name: Validate test fixture output schema
+        uses: ./.github/actions/validate-project-outputs
+        with:
+          root: tests/fixtures/prebuilt_public_project
+          require_project_files: "true"
+
   test:
+    needs: schema
     runs-on: ubuntu-latest
 
     steps:
@@ -37,17 +63,7 @@ jobs:
           path: coverage.xml
           if-no-files-found: error
 
-      - name: Upload coverage report to Codecov (tokenless/public, best effort)
-        if: ${{ secrets.CODECOV_TOKEN == '' }}
-        continue-on-error: true
-        uses: codecov/codecov-action@v5
-        with:
-          files: ./coverage.xml
-          fail_ci_if_error: false
-          verbose: true
-
-      - name: Upload coverage report to Codecov (token/private, best effort)
-        if: ${{ secrets.CODECOV_TOKEN != '' }}
+      - name: Upload coverage report to Codecov (best effort)
         continue-on-error: true
         uses: codecov/codecov-action@v5
         with:

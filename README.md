@@ -45,6 +45,16 @@ If the repository is private, set the `CODECOV_TOKEN` repository secret.
 The workflow also uploads `coverage.xml` as a GitHub Actions artifact and treats
 Codecov upload as best-effort, so test CI still passes if Codecov is unavailable.
 
+Validate static output metadata/schema locally:
+
+```bash
+python .github/actions/validate-project-outputs/validate_project_outputs.py --root demo-projects --require-project-files true
+```
+
+Reusable CI workflow for schema checks:
+
+- `.github/workflows/validate-project-outputs.yml` can be called from other repositories to validate dashboard metadata and figure metadata/data references before deployment.
+
 ## Project Sources
 
 VERTEX loads projects from two roots:
