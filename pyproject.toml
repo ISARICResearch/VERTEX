@@ -17,6 +17,7 @@ readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
     "boto3==1.39.1",
+    "click>=8.1",
     "dash==3.4.0",
     "dash-bootstrap-components==2.0.4",
     "Flask==3.1.3",
@@ -24,6 +25,7 @@ dependencies = [
     "Flask-SQLAlchemy==3.0.2",
     "Flask-Security-Too==5.6.2",
     "gunicorn",
+    "kaleido<=0.2.1",  # This pinning is required because Kaleido versions > `0.2.1` require a higher version of Plotly
     "lifelines==0.30.0",
     "numpy==1.26.4",
     "pandas==2.2.1",
@@ -38,6 +40,7 @@ dependencies = [
 
 [project.scripts]
 run-vertex = "descriptive_dashboard:main"
+descriptive-analytics = "vertex.descriptive_analytics:main"
 
 [tool.ruff]
 

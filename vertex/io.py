@@ -4,6 +4,7 @@ import json
 import os
 import shutil
 import time
+import typing
 from pathlib import Path
 
 import pandas as pd
@@ -415,3 +416,40 @@ def save_public_outputs(
         json.dump(save_config_dict, file, indent=4)
         file.write("\n")
     logger.info(f"Public dashboard files saved to {outputs_path}")
+
+
+def save_insight_panel_figures(insight_panels: dict[str, typing.Any], output_path: str | Path) -> None:
+    """:py:class:`NoneType` : Saves/writes all figures/plots in the insight panels to an output folder.
+
+    Parameters
+    ----------
+    insight_panels : dict
+        The insight panels dict.
+
+    output_path : str, pathlib.Path
+        The single parent output folder path to which all the figures will be
+        saved, given as a string or a :py:class:`pathlib.Path` object.
+    """
+    _output_path = output_path
+    if not isinstance(_output_path, Path):
+        _output_path = Path(output_path).resolve()
+
+    # import ipdb; ipdb.set_trace()
+    _output_path = _output_path.joinpath("figures")
+    if _output_path.exists():
+        logger.warning(f'Folder "{_output_path}" already exists, removing this')
+        shutil.rmtree(_output_path)
+    _output_path.mkdir()
+
+    for suffix in insight_panels:
+        suffix_output_path = _output_path.joinpath(suffix)
+        if not suffix_output_path.exists():
+            suffix_output_path.mkdir()
+        logger.info(f'Saving "{suffix}" insight panel figures to "{suffix_output_path}"')
+        for idx in range(len(insight_panels[suffix]._visuals)):
+            fig, fig_text = insight_panels[suffix]._visuals[idx][:2]
+            fig_text = f"{fig_text.split('/')[-1]}.png"
+            filepath = suffix_output_path.joinpath(fig_text)
+            filepath.touch()
+            fig.write_image(filepath, format="png", width=fig.layout.minreducedwidth, height=fig.layout.height, scale=3)
+            logger.info(f'Saved "{fig_text}" to "{filepath}"')
