@@ -110,6 +110,22 @@ def test_analysis_project_loads(vertex_server, page):
     page.locator("#world-map .js-plotly-plot").wait_for(timeout=30000)
 
 
+def test_analysis_project_url_param_persists(vertex_server, page):
+    page.goto(f"{vertex_server}/?project={quote_plus(ANALYSIS_PROJECT_ID)}")
+
+    page.get_by_role("heading", name="(Analysis) ARChetype CRF mpox").wait_for(timeout=30000)
+    page.locator("#world-map .js-plotly-plot").wait_for(timeout=30000)
+    page.wait_for_function(
+        """
+        () => {
+            const heading = document.querySelector('h4');
+            return heading && heading.textContent && heading.textContent.includes('(Analysis) ARChetype CRF mpox');
+        }
+        """,
+        timeout=30000,
+    )
+
+
 def _select_project(page, project_name):
     page.locator("#project-selector").click()
     page.locator("#project-selector input").fill(project_name)
@@ -140,6 +156,13 @@ def test_prebuilt_project_url_param_persists(vertex_server, page):
     )
 
 
+def test_invalid_project_url_falls_back_to_default_analysis(vertex_server, page):
+    page.goto(f"{vertex_server}/?project={quote_plus('does-not-exist')}")
+
+    page.get_by_role("heading", name="(Analysis) ARChetype CRF mpox").wait_for(timeout=30000)
+    page.locator("#world-map .js-plotly-plot").wait_for(timeout=30000)
+
+
 def test_prebuilt_modal_opens(vertex_server, page):
     page.goto(vertex_server)
     _select_project(page, "Prebuilt Public Fixture")
@@ -150,6 +173,16 @@ def test_prebuilt_modal_opens(vertex_server, page):
     page.locator("#modal").wait_for(timeout=30000)
     page.get_by_text("Insights: Panel A").wait_for(timeout=30000)
     page.get_by_text("Test graph").wait_for(timeout=30000)
+
+
+def test_project_selector_updates_url(vertex_server, page):
+    page.goto(vertex_server)
+    _select_project(page, "Prebuilt Public Fixture")
+
+    page.wait_for_function(
+        f"() => window.location.search.includes('{PREBUILT_PROJECT_ID}')",
+        timeout=30000,
+    )
 
 
 def test_analysis_filter_interaction_updates_country_display(vertex_server, page):

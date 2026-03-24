@@ -85,6 +85,62 @@ def test_update_url_for_project_uses_project_id(monkeypatch):
     assert url_query == "?project=analysis-a"
 
 
+def test_sync_project_options_prefers_selected_project(monkeypatch):
+    callback = _get_wrapped_callback("sync_project_options")
+    catalog = [
+        {
+            "path": "/tmp/analysis-a/",
+            "name": "Analysis A",
+            "project_id": "analysis-a",
+            "project_type": "analysis",
+            "data_source": "files",
+            "is_public": True,
+        },
+        {
+            "path": "/tmp/prebuilt-a/",
+            "name": "Prebuilt A",
+            "project_id": "prebuilt-a",
+            "project_type": "prebuilt",
+            "data_source": "files",
+            "is_public": True,
+        },
+    ]
+    monkeypatch.setattr(dashboard, "get_projects_catalog", lambda: catalog)
+
+    options, selected = callback(True, "/tmp/prebuilt-a/")
+
+    assert len(options) == 2
+    assert selected == "prebuilt-a"
+
+
+def test_sync_project_options_falls_back_to_default_visible_project(monkeypatch):
+    callback = _get_wrapped_callback("sync_project_options")
+    catalog = [
+        {
+            "path": "/tmp/analysis-a/",
+            "name": "Analysis A",
+            "project_id": "analysis-a",
+            "project_type": "analysis",
+            "data_source": "files",
+            "is_public": True,
+        },
+        {
+            "path": "/tmp/prebuilt-a/",
+            "name": "Prebuilt A",
+            "project_id": "prebuilt-a",
+            "project_type": "prebuilt",
+            "data_source": "files",
+            "is_public": True,
+        },
+    ]
+    monkeypatch.setattr(dashboard, "get_projects_catalog", lambda: catalog)
+
+    options, selected = callback(True, "/tmp/missing/")
+
+    assert len(options) == 2
+    assert selected == "analysis-a"
+
+
 def test_update_country_selection_select_all(monkeypatch):
     callback = _get_wrapped_callback("update_country_selection")
     monkeypatch.setattr(
