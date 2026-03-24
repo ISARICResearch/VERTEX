@@ -124,6 +124,22 @@ def test_prebuilt_project_loads(vertex_server, page):
     page.locator("#world-map .js-plotly-plot").wait_for(timeout=30000)
 
 
+def test_prebuilt_project_url_param_persists(vertex_server, page):
+    page.goto(f"{vertex_server}/?project={quote_plus(PREBUILT_PROJECT_ID)}")
+
+    page.get_by_role("heading", name="Prebuilt Public Fixture").wait_for(timeout=30000)
+    page.locator("#world-map .js-plotly-plot").wait_for(timeout=30000)
+    page.wait_for_function(
+        """
+        () => {
+            const heading = document.querySelector('h4');
+            return heading && heading.textContent && heading.textContent.includes('Prebuilt Public Fixture');
+        }
+        """,
+        timeout=30000,
+    )
+
+
 def test_prebuilt_modal_opens(vertex_server, page):
     page.goto(vertex_server)
     _select_project(page, "Prebuilt Public Fixture")

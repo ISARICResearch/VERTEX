@@ -290,6 +290,7 @@ def register_callbacks(app):
         Output("project-selector", "value"),
         Input("login-state", "data"),
         State("selected-project-path", "data"),
+        prevent_initial_call=True,
     )
     def sync_project_options(login_state, selected_project_path):
         _, visible_projects = current_visible_projects(login_state)
