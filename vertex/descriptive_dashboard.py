@@ -136,6 +136,25 @@ def find_project_by_path(project_catalog, project_path):
     return None
 
 
+def normalise_buttons(buttons):
+    normalised = []
+    for button in buttons or []:
+        if not isinstance(button, dict):
+            continue
+        suffix = button.get("suffix")
+        if not suffix:
+            continue
+        normalised.append(
+            {
+                **button,
+                "suffix": suffix,
+                "item": button.get("item") or "Insights",
+                "label": button.get("label") or button.get("title") or suffix,
+            }
+        )
+    return normalised
+
+
 def resolve_project_value(selected_value, project_catalog):
     if not selected_value:
         return None
@@ -396,11 +415,15 @@ def register_callbacks(app):
                 ]
             )
         else:
-            # Create a dictionary to map values to labels
-            value_label_map = {option["value"]: option["label"] for option in country_options}
+            country_options = country_options or []
+            value_label_map = {
+                option.get("value"): option.get("label")
+                for option in country_options
+                if isinstance(option, dict) and "value" in option and "label" in option
+            }
 
             # Build the display string
-            selected_labels = [value_label_map[val] for val in country_value if val in value_label_map]
+            selected_labels = [value_label_map.get(val, val) for val in country_value]
             display_text = ", ".join(selected_labels)
 
             if len(display_text) > 35:  # Adjust character limit as needed
@@ -438,10 +461,16 @@ def register_callbacks(app):
         prevent_initial_call=True,
     )
     def open_and_load_modal(n_clicks, project_path):
-        if not any(n_clicks):
+        if not n_clicks or not any(n_clicks):
             raise PreventUpdate
 
-        suffix = json.loads(callback_context.triggered[0]["prop_id"].split(".")[0])["index"]
+        try:
+            triggered = callback_context.triggered or []
+            prop_id = triggered[0]["prop_id"].split(".")[0]
+            suffix = json.loads(prop_id)["index"]
+        except (IndexError, KeyError, TypeError, json.JSONDecodeError):
+            logger.warning("open_and_load_modal received malformed callback trigger payload")
+            raise PreventUpdate
 
         project_data = get_project_data(project_path)
         if not project_data:
@@ -662,10 +691,15 @@ def register_callbacks(app):
             return "Country:"
 
         # Create a dictionary to map values to labels
-        value_label_map = {option["value"]: option["label"] for option in country_options}
+        country_options = country_options or []
+        value_label_map = {
+            option.get("value"): option.get("label")
+            for option in country_options
+            if isinstance(option, dict) and "value" in option and "label" in option
+        }
 
         # Build the display string
-        selected_labels = [value_label_map[val] for val in country_value if val in value_label_map]
+        selected_labels = [value_label_map.get(val, val) for val in country_value]
         display_text = ", ".join(selected_labels)
 
         if len(display_text) > 20:  # Adjust character limit as needed
@@ -904,7 +938,7 @@ def load_project_data(project_path):
         "dictionary": dictionary if not PREBUILT else None,
         "quality_report": quality_report if not PREBUILT else None,
         "insight_panels": insight_panels,
-        "buttons": buttons,
+        "buttons": normalise_buttons(buttons),
         "config_dict": config_dict,
         "df_countries": df_countries,
     }

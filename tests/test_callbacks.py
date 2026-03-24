@@ -2,6 +2,7 @@ from types import SimpleNamespace
 
 import pandas as pd
 import pytest
+from dash import html
 from dash.exceptions import PreventUpdate
 from plotly.graph_objs import Figure
 
@@ -190,6 +191,18 @@ def test_open_and_load_modal_prebuilt_uses_cached_button(monkeypatch):
     assert captured["filter_options"] is None
 
 
+def test_open_and_load_modal_malformed_trigger_payload_prevent_update(monkeypatch):
+    callback = _get_wrapped_callback("open_and_load_modal")
+    monkeypatch.setattr(
+        dashboard,
+        "callback_context",
+        SimpleNamespace(triggered=[{"prop_id": "not-json.n_clicks"}]),
+    )
+
+    with pytest.raises(PreventUpdate):
+        callback([1], "/tmp/prebuilt-a/")
+
+
 def test_update_country_selection_modal_handles_initial_empty_trigger(monkeypatch):
     callback = _get_wrapped_callback("update_country_selection_modal")
     monkeypatch.setattr(
@@ -366,3 +379,20 @@ def test_handle_register_db_error_returns_graceful_message(monkeypatch):
     result = callback(0, 1, True, "user@example.com", "secret", "secret")
 
     assert result == ("Registration service unavailable. Please try again.", True)
+
+
+def test_update_country_display_handles_missing_options():
+    callback = _get_wrapped_callback("update_country_display")
+
+    result = callback(["GBR"], None)
+
+    assert isinstance(result, html.Div)
+    assert result.children[-1] == "GBR"
+
+
+def test_update_country_display_modal_handles_missing_options():
+    callback = _get_wrapped_callback("update_country_display_modal")
+
+    result = callback(["GBR"], None)
+
+    assert result == "Country: GBR"

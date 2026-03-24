@@ -137,7 +137,12 @@ def get_config(project_path, config_defaults):
                     "please define insight_panels_path for data processing or "
                     "add a dashboard_metadata.json file for static projects."
                 )
-            return config_dict
+            static_defaults = {
+                k: v
+                for k, v in local_defaults.items()
+                if k not in {"insight_panels_path", "insight_panels", "insight_panels_data_path", "write_api_cache"}
+            }
+            return {**static_defaults, **config_dict}
 
     insight_panels_path = os.path.join(project_path, config_dict["insight_panels_path"])
     insight_panels = []
