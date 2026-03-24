@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import socket
 import subprocess
@@ -21,12 +22,25 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 FIXTURES_ROOT = Path(__file__).resolve().parent / "fixtures"
 ANALYSIS_PROJECT_ID = "archetypecrf-mpox-synthetic"
 PREBUILT_PROJECT_ID = "prebuilt-public-fixture"
+PLAYWRIGHT_ARTIFACTS_DIR = Path(os.getenv("PLAYWRIGHT_ARTIFACTS_DIR", "test-results/playwright"))
 
 
 def _free_port():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.bind(("127.0.0.1", 0))
         return sock.getsockname()[1]
+
+
+def _artifact_dir_for(nodeid):
+    safe_name = re.sub(r"[^A-Za-z0-9._-]+", "-", nodeid).strip("-")
+    return PLAYWRIGHT_ARTIFACTS_DIR / safe_name
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    report = outcome.get_result()
+    setattr(item, f"rep_{report.when}", report)
 
 
 @pytest.fixture(scope="module")
@@ -90,16 +104,31 @@ def vertex_server(prebuilt_projects_root):
 
 
 @pytest.fixture()
-def page():
+def page(request):
     with sync_playwright() as playwright_context:
         try:
             browser = playwright_context.chromium.launch(headless=True)
         except Error as exc:
             pytest.skip(f"Playwright Chromium browser unavailable: {exc}")
-        page = browser.new_page()
+        context = browser.new_context()
+        context.tracing.start(screenshots=True, snapshots=True)
+        page = context.new_page()
         try:
             yield page
         finally:
+            artifact_dir = _artifact_dir_for(request.node.nodeid)
+            failed = any(
+                getattr(request.node, report_name, None) and getattr(request.node, report_name).failed
+                for report_name in ("rep_setup", "rep_call")
+            )
+            if failed:
+                artifact_dir.mkdir(parents=True, exist_ok=True)
+                page.screenshot(path=artifact_dir / "failure.png", full_page=True)
+                (artifact_dir / "page.html").write_text(page.content(), encoding="utf-8")
+                context.tracing.stop(path=str(artifact_dir / "trace.zip"))
+            else:
+                context.tracing.stop()
+            context.close()
             browser.close()
 
 
