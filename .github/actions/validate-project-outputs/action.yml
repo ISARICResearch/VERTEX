@@ -1,0 +1,20 @@
+name: Validate Project Outputs Schema
+description: Validate dashboard metadata and figure metadata/data references for project outputs
+inputs:
+  root:
+    description: Root directory to scan recursively for dashboard_metadata.json files
+    required: false
+    default: demo-projects
+  require_project_files:
+    description: Require config_file.json and dashboard_data.csv beside dashboard_metadata.json
+    required: false
+    default: "true"
+runs:
+  using: composite
+  steps:
+    - name: Validate project outputs schema
+      shell: bash
+      run: |
+        python "${{ github.action_path }}/validate_project_outputs.py" \
+          --root "${{ inputs.root }}" \
+          --require-project-files "${{ inputs.require_project_files }}"

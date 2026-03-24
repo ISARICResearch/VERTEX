@@ -1,0 +1,3 @@
+subjid,pres_date,demog_age,demog_sex,country_iso,outco_binary_outcome,free_text
+A,2024-01-15,32,Female,GBR,Discharged,abc
+B,2024-02-01,45,Male,USA,Death,def

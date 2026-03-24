@@ -136,6 +136,25 @@ def find_project_by_path(project_catalog, project_path):
     return None
 
 
+def normalise_buttons(buttons):
+    normalised = []
+    for button in buttons or []:
+        if not isinstance(button, dict):
+            continue
+        suffix = button.get("suffix")
+        if not suffix:
+            continue
+        normalised.append(
+            {
+                **button,
+                "suffix": suffix,
+                "item": button.get("item") or "Insights",
+                "label": button.get("label") or button.get("title") or suffix,
+            }
+        )
+    return normalised
+
+
 def resolve_project_value(selected_value, project_catalog):
     if not selected_value:
         return None
@@ -271,6 +290,7 @@ def register_callbacks(app):
         Output("project-selector", "value"),
         Input("login-state", "data"),
         State("selected-project-path", "data"),
+        prevent_initial_call=True,
     )
     def sync_project_options(login_state, selected_project_path):
         _, visible_projects = current_visible_projects(login_state)
@@ -344,10 +364,13 @@ def register_callbacks(app):
     )
     def update_country_selection(selectall_value, country_value, country_options):
         ctx = dash.callback_context
+        selectall_value = selectall_value or []
+        country_value = country_value or []
+        country_options = country_options or []
 
         if not ctx.triggered:
             # Initial load, no input has triggered the callback yet
-            output = [["all"], [{"label": "Unselect all", "value": "all"}], country_value]
+            return [["all"], [{"label": "Unselect all", "value": "all"}], country_value]
 
         trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
@@ -393,11 +416,15 @@ def register_callbacks(app):
                 ]
             )
         else:
-            # Create a dictionary to map values to labels
-            value_label_map = {option["value"]: option["label"] for option in country_options}
+            country_options = country_options or []
+            value_label_map = {
+                option.get("value"): option.get("label")
+                for option in country_options
+                if isinstance(option, dict) and "value" in option and "label" in option
+            }
 
             # Build the display string
-            selected_labels = [value_label_map[val] for val in country_value if val in value_label_map]
+            selected_labels = [value_label_map.get(val, val) for val in country_value]
             display_text = ", ".join(selected_labels)
 
             if len(display_text) > 35:  # Adjust character limit as needed
@@ -435,10 +462,16 @@ def register_callbacks(app):
         prevent_initial_call=True,
     )
     def open_and_load_modal(n_clicks, project_path):
-        if not any(n_clicks):
+        if not n_clicks or not any(n_clicks):
             raise PreventUpdate
 
-        suffix = json.loads(callback_context.triggered[0]["prop_id"].split(".")[0])["index"]
+        try:
+            triggered = callback_context.triggered or []
+            prop_id = triggered[0]["prop_id"].split(".")[0]
+            suffix = json.loads(prop_id)["index"]
+        except (IndexError, KeyError, TypeError, json.JSONDecodeError):
+            logger.warning("open_and_load_modal received malformed callback trigger payload")
+            raise PreventUpdate
 
         project_data = get_project_data(project_path)
         if not project_data:
@@ -492,9 +525,12 @@ def register_callbacks(app):
     )
     def update_country_selection_modal(selectall_value, country_value, country_options):
         ctx = dash.callback_context
+        selectall_value = selectall_value or []
+        country_value = country_value or []
+        country_options = country_options or []
         if not ctx.triggered:
             # Initial load, no input has triggered the callback yet
-            output = [["all"], [{"label": "Unselect all", "value": "all"}], country_value]
+            return [["all"], [{"label": "Unselect all", "value": "all"}], country_value]
 
         trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
         #
@@ -584,15 +620,18 @@ def register_callbacks(app):
             if not username or not password:
                 return False, True, "Please enter both username and password."
 
-            with Session(engine) as session:
-                user = session.query(User).filter_by(email=username.strip().lower()).first()
-                logger.debug(f"User found: {user}")
-                if user and verify_and_update_password(password, user):
-                    login_user(user)
-                    return True, False, ""
-                else:
+            try:
+                with Session(engine) as session:
+                    user = session.query(User).filter_by(email=username.strip().lower()).first()
+                    logger.debug(f"User found: {user}")
+                    if user and verify_and_update_password(password, user):
+                        login_user(user)
+                        return True, False, ""
                     logger.debug(f"Invalid login attempt for user: {username}")
                     return False, True, "Invalid username or password."
+            except Exception as exc:
+                logger.exception(f"Login backend error for user {username}: {exc}")
+                return False, True, "Login service unavailable. Please try again."
 
         return dash.no_update, is_open, ""
 
@@ -621,21 +660,25 @@ def register_callbacks(app):
             if password != confirm_password:
                 return "Passwords do not match", True
 
-            with Session(engine) as session:
-                existing = session.query(User).filter_by(email=email.lower()).first()
-                if existing:
-                    return "User already exists", True
+            try:
+                with Session(engine) as session:
+                    existing = session.query(User).filter_by(email=email.lower()).first()
+                    if existing:
+                        return "User already exists", True
 
-                new_user = User(
-                    id=uuid.uuid4(),
-                    email=email.lower(),
-                    password=hash_password(password),
-                    fs_uniquifier=secrets.token_urlsafe(32),
-                    is_admin=False,
-                )
-                session.add(new_user)
-                session.commit()
-                return "", False  # Close modal on success
+                    new_user = User(
+                        id=uuid.uuid4(),
+                        email=email.lower(),
+                        password=hash_password(password),
+                        fs_uniquifier=secrets.token_urlsafe(32),
+                        is_admin=False,
+                    )
+                    session.add(new_user)
+                    session.commit()
+                    return "", False  # Close modal on success
+            except Exception as exc:
+                logger.exception(f"Registration backend error for email {email}: {exc}")
+                return "Registration service unavailable. Please try again.", True
 
         return no_update, is_open
 
@@ -649,10 +692,15 @@ def register_callbacks(app):
             return "Country:"
 
         # Create a dictionary to map values to labels
-        value_label_map = {option["value"]: option["label"] for option in country_options}
+        country_options = country_options or []
+        value_label_map = {
+            option.get("value"): option.get("label")
+            for option in country_options
+            if isinstance(option, dict) and "value" in option and "label" in option
+        }
 
         # Build the display string
-        selected_labels = [value_label_map[val] for val in country_value if val in value_label_map]
+        selected_labels = [value_label_map.get(val, val) for val in country_value]
         display_text = ", ".join(selected_labels)
 
         if len(display_text) > 20:  # Adjust character limit as needed
@@ -695,11 +743,22 @@ def register_callbacks(app):
         project_data = get_project_data(project_path)
         if not project_data:
             raise PreventUpdate
+        if project_data.get("mode") != "analysis":
+            raise PreventUpdate
 
-        df_map = project_data["df_map"]
-        df_forms_dict = project_data["df_forms_dict"]
-        dictionary = project_data["dictionary"]
-        quality_report = project_data["quality_report"]
+        df_map = project_data.get("df_map")
+        df_forms_dict = project_data.get("df_forms_dict") or {}
+        dictionary = project_data.get("dictionary")
+        quality_report = project_data.get("quality_report", {})
+        if not isinstance(df_map, pd.DataFrame):
+            raise PreventUpdate
+        if not isinstance(df_forms_dict, dict):
+            raise PreventUpdate
+        if not isinstance(dictionary, pd.DataFrame):
+            raise PreventUpdate
+        insight_panel = (project_data.get("insight_panels") or {}).get(suffix)
+        if insight_panel is None:
+            raise PreventUpdate
 
         # Filter the main map
         df_map_filtered = filter_df_map(
@@ -719,7 +778,7 @@ def register_callbacks(app):
             return (), sex_value, age_value, country_value, admdate_value, outcome_value
 
         # Otherwise rebuild visuals
-        visuals = project_data["insight_panels"][suffix].create_visuals(
+        visuals = insight_panel.create_visuals(
             df_map=df_map_filtered.copy(),
             df_forms_dict={k: v.copy() for k, v in df_forms_filtered.items()},
             dictionary=dictionary.copy(),
@@ -764,7 +823,18 @@ def build_project_layout(project_path, project_catalog, login_state):
         },
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
     )
-    fig = create_map(project_data["df_countries"], map_layout_dict)
+    df_countries = project_data["df_countries"]
+    required_columns = {"country_iso", "country_name", "country_count"}
+    if isinstance(df_countries, pd.DataFrame) and not df_countries.empty and required_columns.issubset(df_countries.columns):
+        fig = create_map(df_countries, map_layout_dict)
+    else:
+        logger.warning(f"Project {project_path} has no valid country map data; rendering empty map.")
+        geojson = (
+            "https://raw.githubusercontent.com/"
+            "martynafford/natural-earth-geojson/master/"
+            "50m/cultural/ne_50m_admin_0_map_units.json"
+        )
+        fig = go.Figure(go.Choroplethmap(geojson=geojson, featureidkey="properties.ISO_A3"), layout=map_layout_dict)
     if project_data["mode"] == "analysis":
         filter_options = get_filter_options(project_data["df_map"])
     else:
@@ -819,9 +889,20 @@ def load_project_data(project_path):
         PREBUILT = True
         logger.info(f" Public project detected, using dashboard_metadata.json for {project_path}")
         metadata = load_public_dashboard(project_path, config_dict)
-        insight_panels, buttons = get_public_visuals(project_path, metadata["insight_panels"])
+        buttons_metadata = metadata.get("insight_panels", [])
+        if not isinstance(buttons_metadata, list):
+            logger.error(
+                f"Project metadata insight_panels should be a list for {project_path}; "
+                f"got {type(buttons_metadata).__name__}. Falling back to empty."
+            )
+            buttons_metadata = []
+        insight_panels, buttons = get_public_visuals(project_path, buttons_metadata)
         logger.debug(f"{buttons}")
-        df_countries = get_public_countries(project_path)
+        try:
+            df_countries = get_public_countries(project_path)
+        except Exception as exc:
+            logger.error(f"Could not read dashboard_data.csv for prebuilt project {project_path}: {exc}")
+            df_countries = pd.DataFrame(columns=["country_iso", "country_name", "country_count"])
 
     filter_columns_dict = {
         "subjid": "subjid",
@@ -847,7 +928,10 @@ def load_project_data(project_path):
             form: pd.merge(df_form, df_filters, on="subjid", how="left").reset_index(drop=True)
             for form, df_form in df_forms_dict.items()
         }
-    logger.debug(f"{list(insight_panels)[0]}")
+    if insight_panels:
+        logger.debug(f"{list(insight_panels)[0]}")
+    else:
+        logger.debug("No insight panels loaded for this project.")
     project_data = {
         "mode": "prebuilt" if PREBUILT else "analysis",
         "df_map": df_map if not PREBUILT else None,
@@ -855,7 +939,7 @@ def load_project_data(project_path):
         "dictionary": dictionary if not PREBUILT else None,
         "quality_report": quality_report if not PREBUILT else None,
         "insight_panels": insight_panels,
-        "buttons": buttons,
+        "buttons": normalise_buttons(buttons),
         "config_dict": config_dict,
         "df_countries": df_countries,
     }
