@@ -17,7 +17,7 @@ from vertex.io import (
     config_defaults,
     get_config,
     load_vertex_data,
-    save_insight_panel_figures,
+    save_insight_panel_visuals,
     save_public_outputs,
 )
 from vertex.layout.insight_panels import (
@@ -140,12 +140,11 @@ def main(project_path: str | pathlib.Path) -> None:
     logger.info(f'Loading project data from project path: "{project_path}"')
     project_data = get_project_data(project_path)
 
-    # 2. Save the analytics outputs to file (to an outputs folder inside
+    # 2. Save the analytics outputs to file (to an outputs subfolder inside
     #    the project path)
-    outputs_path = project_path.joinpath(project_data["config_dict"]["outputs_path"])
-    logger.info(f'Saving outputs to "{outputs_path}"')
+    project_outputs_path = project_path.joinpath(project_data["config_dict"]["outputs_path"])
+    logger.info(f'Saving outputs to "{project_outputs_path}"')
     save_public_outputs(**project_data)
-    logger.info(f'Saving insight panel figures to "{outputs_path}"')
-    insight_panels, _ = get_public_visuals(project_path.joinpath("outputs"), project_data["buttons"])
-    # import ipdb; ipdb.set_trace()
-    save_insight_panel_figures(insight_panels, outputs_path)
+    logger.info(f'Saving insight panel figures to "{project_outputs_path}"')
+    insight_panels, _ = get_public_visuals(project_outputs_path, project_data["buttons"])
+    save_insight_panel_visuals(insight_panels, project_outputs_path, project_outputs_path.joinpath("visuals"))

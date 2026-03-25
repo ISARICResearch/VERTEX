@@ -1,7 +1,9 @@
 """io.py"""
 
+import glob
 import json
 import os
+import re
 import shutil
 import time
 import typing
@@ -418,7 +420,9 @@ def save_public_outputs(
     logger.info(f"Public dashboard files saved to {outputs_path}")
 
 
-def save_insight_panel_figures(insight_panels: dict[str, typing.Any], output_path: str | Path) -> None:
+def save_insight_panel_visuals(
+    insight_panels: dict[str, typing.Any], public_outputs_path: str | Path, visual_outputs_path: str | Path
+) -> None:
     """:py:class:`NoneType` : Saves/writes all figures/plots in the insight panels to an output folder.
 
     Parameters
@@ -426,30 +430,150 @@ def save_insight_panel_figures(insight_panels: dict[str, typing.Any], output_pat
     insight_panels : dict
         The insight panels dict.
 
-    output_path : str, pathlib.Path
-        The single parent output folder path to which all the figures will be
-        saved, given as a string or a :py:class:`pathlib.Path` object.
-    """
-    _output_path = output_path
-    if not isinstance(_output_path, Path):
-        _output_path = Path(output_path).resolve()
+    public_outputs_path : str, pathlib.Path
+        The project public outputs path where the CSVs are stored.
 
-    # import ipdb; ipdb.set_trace()
-    _output_path = _output_path.joinpath("figures")
-    if _output_path.exists():
-        logger.warning(f'Folder "{_output_path}" already exists, removing this')
-        shutil.rmtree(_output_path)
-    _output_path.mkdir()
+    visual_outputs_path : str, pathlib.Path
+        The output folder path to which all the visual artifacts,
+        currently, just figures, will be saved/exported. This will
+        usually be in a `visuals` subfolder within the project
+        public outputs path.
+    """
+    _public_outputs_path = public_outputs_path
+    if not isinstance(_public_outputs_path, Path):
+        _public_outputs_path = Path(public_outputs_path).resolve()
+
+    _visual_outputs_path = visual_outputs_path
+    if not isinstance(_visual_outputs_path, Path):
+        _visual_outputs_path = Path(_visual_outputs_path).resolve()
+    if _visual_outputs_path.exists():
+        logger.warning(f'Clearing pre-existing visual outputs folder "{_visual_outputs_path}"')
+        shutil.rmtree(_visual_outputs_path)
+    _visual_outputs_path.mkdir()
 
     for suffix in insight_panels:
-        suffix_output_path = _output_path.joinpath(suffix)
-        if not suffix_output_path.exists():
-            suffix_output_path.mkdir()
-        logger.info(f'Saving "{suffix}" insight panel figures to "{suffix_output_path}"')
-        for idx in range(len(insight_panels[suffix]._visuals)):
-            fig, fig_text = insight_panels[suffix]._visuals[idx][:2]
+        suffix_visuals_path = _visual_outputs_path.joinpath(suffix)
+        if not suffix_visuals_path.exists():
+            suffix_visuals_path.mkdir()
+
+        logger.info(f'Saving "{suffix}" insight panel non-table figures to "{suffix_visuals_path}"')
+        suffix_visuals = insight_panels[suffix].create_visuals()
+        for idx in range(len(suffix_visuals)):
+            fig, fig_text = suffix_visuals[idx][:2]
+            if "table" in fig_text:
+                continue
             fig_text = f"{fig_text.split('/')[-1]}.png"
-            filepath = suffix_output_path.joinpath(fig_text)
+            filepath = suffix_visuals_path.joinpath(fig_text)
             filepath.touch()
-            fig.write_image(filepath, format="png", width=fig.layout.minreducedwidth, height=fig.layout.height, scale=3)
+            fig.write_image(
+                filepath, format="png", width=(fig.layout.minreducedwidth * 2.25), height=fig.layout.height, scale=3
+            )
             logger.info(f'Saved "{fig_text}" to "{filepath}"')
+
+        suffix_csv_source_path = _public_outputs_path.joinpath(suffix)
+        logger.info(f'Copying "{suffix}" table CSVs from CSV output subfolder "{suffix_csv_source_path}"')
+        table_csvs = copy_figure_table_csvs(suffix_csv_source_path, suffix_visuals_path)
+        logger.info("Cleaning figure table CSVs")
+        for csv in table_csvs:
+            logger.info(f"Cleaning figure table CSV {csv}")
+            clean_figure_table(pd.read_csv(csv)).to_csv(suffix_visuals_path.joinpath(csv.name), index=False)
+
+
+def copy_figure_table_csvs(source_path: str | Path, target_path: str | Path) -> tuple[Path]:
+    """:py:class:`tuple` : Copies figure table CSV filepaths found in the source folder to the target folder.
+
+    The source and target folders must exist, as it is not within the function
+    scope to create new folders, but simply to copy files between preexisting
+    folders.
+
+    The copied file retains the same name as the original, the copy method
+    used is :py:func:`shutil.copy2`, which attempts to preserve file metadata,
+    and nothing is copied if the source folder does not contain any figure
+    table CSVs.
+
+    Returns a tuple of copied CSV filepaths for reference.
+
+    Parameters
+    ----------
+    source_path : str, pathlib.Path
+        The souce folder path from which to copy figure table CSVs, if they
+        exist.
+    target_path : str, pathlib.Path
+        The copy target folder path.
+
+    Raises
+    ------
+    FileNotFoundError
+        If either the source or target folder does not exist.
+
+    Returns
+    -------
+    tuple
+        A tuple of copied CSV filepaths.
+    """
+    _source_path = Path(source_path).resolve()
+    if not _source_path.exists():
+        raise FileNotFoundError(f'The source folder "{_source_path}" does not exist!')
+
+    _target_path = Path(target_path).resolve()
+    if not _target_path.exists():
+        raise FileNotFoundError(f'The target folder "{_target_path}" does not exist!')
+
+    copies = []
+
+    logger.info(f'Copying figure table CSVs from "{_source_path}" to "{_target_path}"')
+    for i, source_csv_path in enumerate(map(Path, glob.glob(f"{_source_path.joinpath('fig_table*.csv')}"))):
+        logger.info(f'Copying "{source_csv_path}" to "{_target_path}"')
+        shutil.copy2(source_csv_path, _target_path)
+        copies.append(_target_path.joinpath(source_csv_path.name))
+
+    if len(copies) == 0:
+        logger.warning(f'No figure table CSVs found in "{_source_path}"')
+    else:
+        logger.info(f'{len(copies)} figure table CSVs copied to "{_target_path}"')
+
+    return tuple(copies)
+
+
+def strip_html(value: typing.Any) -> str | typing.Any:
+    """:py:class:`typing.Any` : Strip HTML elements from a string value, otherwise return the original value.
+
+    Parameters
+    ----------
+    value : typing.Any
+        A value.
+
+    Returns
+    -------
+    str, typing.Any
+        Either a string stripped of all HTML elements, or the original non-
+        string value.
+    """
+    if isinstance(value, str):
+        return re.sub(r"<.*?>", "", value)
+    return value
+
+
+def clean_figure_table(figure_table: pd.DataFrame) -> pd.DataFrame:
+    """:py:class:pandas.DataFrame : A cleaned figure table dataframe.
+
+    The cleaning steps are unique to the Plotly graph object table format from
+    which the table CSVs were originally, which contains HTML styling elements,
+    the cleaning is essentially the removal of these HTML elements to create
+    a plaintext CSV of the original.
+
+    Parameters
+    ----------
+    figure_table : pandas.DataFrame
+        The original figure table as a Pandas dataframe.
+
+    Returns
+    -------
+    pandas.DataFrame
+        The cleaned figure table.
+    """
+    # The use of `pandas.DataFrame.map` here is not absolutely optimal, as
+    # `map` applies changes across the dataframe element-wise, but is the
+    # safer choice given that the dataframe may contain a number of non-string
+    # columns, while the cleaning steps currently only apply to string values.
+    return figure_table.map(strip_html)
