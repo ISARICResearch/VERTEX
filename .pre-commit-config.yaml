@@ -1,4 +1,4 @@
-exclude: ".*/outputs/.*" # exclude outputs and other generated files in the PUBLIC directory
+exclude: "(.*/PUBLIC/.*|.*/outputs/.*)"
 
 repos:
   # Ruff: linting and formatting

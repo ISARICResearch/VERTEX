@@ -42,6 +42,7 @@ def save_inputs_to_file(local_args):
     metadata_json_file = os.path.join(path, graph_id + "_metadata.json")
     with open(metadata_json_file, "w") as file:
         json.dump(metadata, file, indent=4)
+        file.write("\n")
     for ii in range(len(data)):
         data[ii].to_csv(os.path.join(path, graph_id + "_data___" + str(ii) + ".csv"), index=False)
     return data, metadata
