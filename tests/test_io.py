@@ -227,6 +227,8 @@ def test_save_public_outputs_writes_expected_files_and_overwrites_existing_outpu
         return expected_buttons
 
     monkeypatch.setattr(vertex_io, "get_visuals", fake_get_visuals)
+    monkeypatch.setattr(vertex_io, "_VERTEX_GIT_METADATA", None)
+    monkeypatch.setattr(vertex_io.subprocess, "check_output", lambda *args, **kwargs: "abcd1234\n")
     monkeypatch.setenv("USER", "tester")
     monkeypatch.setattr(vertex_io.time, "ctime", lambda: "Mon Mar  2 12:00:00 2026")
 
@@ -270,7 +272,23 @@ def test_save_public_outputs_writes_expected_files_and_overwrites_existing_outpu
     saved_config = json.loads((outputs_dir / "config_file.json").read_text())
     assert saved_config["project_name"] == "Project"
     assert saved_config["project_id"] == "project-id"
-    assert saved_config["runtime_metadata"] == {"user": "tester", "timestamp": "Mon Mar  2 12:00:00 2026"}
+    assert saved_config["runtime_metadata"] == {
+        "user": "tester",
+        "timestamp": "Mon Mar  2 12:00:00 2026",
+        "vertex_commit_sha": "abcd1234",
+    }
+    assert saved_config["vertex_commit_sha"] == "abcd1234"
+
+
+def test_get_vertex_git_metadata_falls_back_to_env_sha(monkeypatch):
+    def raise_git_error(*args, **kwargs):
+        raise OSError("git unavailable")
+
+    monkeypatch.setattr(vertex_io, "_VERTEX_GIT_METADATA", None)
+    monkeypatch.setattr(vertex_io.subprocess, "check_output", raise_git_error)
+    monkeypatch.setenv("VERTEX_GIT_SHA", "abcd1234")
+
+    assert vertex_io._get_vertex_git_metadata() == {"commit_sha": "abcd1234"}
 
 
 def test_load_vertex_from_files_missing_dictionary_should_not_crash(copy_fixture_project):
