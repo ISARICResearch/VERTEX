@@ -1,0 +1,16 @@
+{
+  "fig_id": "panel_a/fig_text",
+  "fig_name": "fig_text",
+  "fig_arguments": {
+    "height": 430,
+    "suffix": "panel_a",
+    "filepath": "",
+    "save_inputs": false,
+    "graph_id": "fig_text",
+    "graph_label": "Test graph",
+    "graph_about": "Test graph about text."
+  },
+  "fig_data": [
+    "panel_a/fig_text_data___0.csv"
+  ]
+}

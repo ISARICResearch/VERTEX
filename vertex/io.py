@@ -1,10 +1,13 @@
 """io.py"""
 
+import glob
 import json
 import os
+import re
 import shutil
 import subprocess
 import time
+import typing
 from pathlib import Path
 
 import pandas as pd
@@ -140,12 +143,13 @@ def should_save_outputs(config_dict):
 
 
 def get_config(project_path, config_defaults):
+    local_defaults = dict(config_defaults)
     config_file = os.path.join(project_path, "config_file.json")
     config_dict = {}
     try:
         with open(config_file, "r") as json_data:
             config_dict = json.load(json_data)
-    except IOError as e:
+    except (IOError, json.JSONDecodeError) as e:
         logger.error(f"Could not read config_file.json: {e}, using defaults")
 
     if "project_owner" not in config_dict and "owner_email" in config_dict:
@@ -154,21 +158,42 @@ def get_config(project_path, config_defaults):
 
     # If no insight_panels_path is specified, then this is a static project which requires dashboard_metadata.json.
     if "insight_panels_path" not in config_dict.keys():
-        if not os.path.exists(os.path.join(project_path, "dashboard_metadata.json")):
-            logger.error("Could not read dashboard_metadata.json in static project, cannot proceed.")
-            logger.error(
-                "please define insight_panels_path for data processing or "
-                "add a dashboard_metadata.json file for static projects."
-            )
-        return config_dict
+        default_insight_panels_path = local_defaults.get("insight_panels_path", "insight_panels/")
+        guessed_insight_panels_path = os.path.join(project_path, default_insight_panels_path)
+        if os.path.isdir(guessed_insight_panels_path):
+            logger.warning(f"Config for {project_path} has no insight_panels_path; defaulting to {default_insight_panels_path}")
+            config_dict["insight_panels_path"] = default_insight_panels_path
+        else:
+            if not os.path.exists(os.path.join(project_path, "dashboard_metadata.json")):
+                logger.error("Could not read dashboard_metadata.json in static project, cannot proceed.")
+                logger.error(
+                    "please define insight_panels_path for data processing or "
+                    "add a dashboard_metadata.json file for static projects."
+                )
+            static_defaults = {
+                k: v
+                for k, v in local_defaults.items()
+                if k not in {"insight_panels_path", "insight_panels", "insight_panels_data_path", "write_api_cache"}
+            }
+            return {**static_defaults, **config_dict}
 
     insight_panels_path = os.path.join(project_path, config_dict["insight_panels_path"])
-    for _, _, filenames in os.walk(insight_panels_path):
-        insight_panels = [file.split(".py")[0] for file in filenames if file.endswith(".py") and not file.startswith("_")]
-        break
-    config_defaults["insight_panels"] = insight_panels
-    config_defaults = {k: v for k, v in config_defaults.items() if k not in config_dict.keys()}
-    config_dict = {**config_dict, **config_defaults}
+    insight_panels = []
+    if not os.path.isdir(insight_panels_path):
+        logger.error(f"Insight panels path does not exist: {insight_panels_path}")
+    else:
+        for _, _, filenames in os.walk(insight_panels_path):
+            insight_panels = [file.split(".py")[0] for file in filenames if file.endswith(".py") and not file.startswith("_")]
+            break
+    local_defaults["insight_panels"] = insight_panels
+    missing_defaults = {k: v for k, v in local_defaults.items() if k not in config_dict.keys()}
+    config_dict = {**config_dict, **missing_defaults}
+    if not isinstance(config_dict.get("insight_panels"), list):
+        logger.warning(
+            f"Config field insight_panels should be a list in {project_path}; "
+            f"got {type(config_dict.get('insight_panels')).__name__}, defaulting to []"
+        )
+        config_dict["insight_panels"] = []
 
     if any([x not in insight_panels for x in config_dict["insight_panels"]]):
         missing_insight_panels = [x for x in config_dict["insight_panels"] if x not in insight_panels]
@@ -304,8 +329,15 @@ def load_vertex_data(project_path, config_dict):
 
 def load_public_dashboard(project_path, config_dict):
     metadata_file = os.path.join(project_path, config_dict.get("dashboard_metadata") or "dashboard_metadata.json")
-    with open(metadata_file, "r") as file:
-        metadata = json.load(file)
+    try:
+        with open(metadata_file, "r") as file:
+            metadata = json.load(file)
+    except Exception as exc:
+        logger.error(f"Could not read dashboard metadata from {metadata_file}: {exc}")
+        metadata = {"insight_panels": []}
+    if not isinstance(metadata, dict):
+        logger.error(f"Dashboard metadata in {metadata_file} must be a JSON object; got {type(metadata).__name__}")
+        return {"insight_panels": []}
     return metadata
 
 
@@ -324,69 +356,94 @@ def load_vertex_from_api(api_url, api_key, config_dict):
 
 
 def load_vertex_from_files(project_path, config_dict):
-    try:
-        vertex_dataframes_path = _get_vertex_dataframes_path(project_path, config_dict)
-        vertex_dataframes = os.listdir(vertex_dataframes_path)
-        dictionary = pd.read_csv(
-            os.path.join(vertex_dataframes_path, "vertex_dictionary.csv"), dtype={"field_label": "str"}, keep_default_na=False
-        )
-        str_ind = dictionary["field_type"].isin(["freetext", "categorical"])
-        str_columns = dictionary.loc[str_ind, "field_name"].tolist()
-        non_str_columns = dictionary.loc[(str_ind == 0), "field_name"].tolist()
-        dtype_dict = {**{x: "str" for x in str_columns}}
+    vertex_dataframes_path = _get_vertex_dataframes_path(project_path, config_dict)
+    dictionary_columns = ["field_name", "field_type", "field_label", "form_name", "parent", "branching_logic"]
+    if not os.path.isdir(vertex_dataframes_path):
+        logger.error(f"Could not load VERTEX dataframes path: {vertex_dataframes_path}")
+        return {
+            "df_map": pd.DataFrame(),
+            "dictionary": pd.DataFrame(columns=dictionary_columns),
+            "df_forms_dict": {},
+            "quality_report": {},
+        }
 
-        pandas_default_na_values = [
-            "",
-            " ",
-            "#N/A",
-            "#N/A N/A",
-            "#NA",
-            "-1.#IND",
-            "-1.#QNAN",
-            "-NaN",
-            "-nan",
-            "1.#IND",
-            "1.#QNAN",
-            "<NA>",
-            "N/A",
-            "NA",
-            "NULL",
-            "NaN",
-            "None",
-            "n/a",
-            "nan",
-            "null",
-        ]
-        na_values = {**{x: pandas_default_na_values for x in non_str_columns}, **{x: "" for x in str_columns}}
-        df_map = pd.read_csv(
-            os.path.join(vertex_dataframes_path, "df_map.csv"), dtype=dtype_dict, keep_default_na=False, na_values=na_values
-        )
+    vertex_dataframes = os.listdir(vertex_dataframes_path)
+    dictionary_path = os.path.join(vertex_dataframes_path, "vertex_dictionary.csv")
+    try:
+        dictionary = pd.read_csv(dictionary_path, dtype={"field_label": "str"}, keep_default_na=False)
+    except Exception as exc:
+        logger.error(f"Could not read vertex dictionary at {dictionary_path}: {exc}")
+        dictionary = pd.DataFrame(columns=dictionary_columns)
+
+    for required_col in ("field_name", "field_type", "field_label"):
+        if required_col not in dictionary.columns:
+            logger.error(f"Dictionary missing required column '{required_col}' at {dictionary_path}; applying fallback.")
+            dictionary[required_col] = ""
+
+    str_ind = dictionary["field_type"].isin(["freetext", "categorical"])
+    str_columns = dictionary.loc[str_ind, "field_name"].dropna().astype(str).tolist()
+    non_str_columns = dictionary.loc[(str_ind == 0), "field_name"].dropna().astype(str).tolist()
+    dtype_dict = {**{x: "str" for x in str_columns}}
+
+    pandas_default_na_values = [
+        "",
+        " ",
+        "#N/A",
+        "#N/A N/A",
+        "#NA",
+        "-1.#IND",
+        "-1.#QNAN",
+        "-NaN",
+        "-nan",
+        "1.#IND",
+        "1.#QNAN",
+        "<NA>",
+        "N/A",
+        "NA",
+        "NULL",
+        "NaN",
+        "None",
+        "n/a",
+        "nan",
+        "null",
+    ]
+    na_values = {**{x: pandas_default_na_values for x in non_str_columns}, **{x: "" for x in str_columns}}
+
+    df_map_path = os.path.join(vertex_dataframes_path, "df_map.csv")
+    try:
+        df_map = pd.read_csv(df_map_path, dtype=dtype_dict, keep_default_na=False, na_values=na_values)
+    except Exception as exc:
+        logger.error(f"Could not read df_map at {df_map_path}: {exc}")
+        df_map = pd.DataFrame()
+
+    if not df_map.empty:
         date_variables = dictionary.loc[(dictionary["field_type"] == "date"), "field_name"].tolist()
         date_variables = [col for col in date_variables if col in df_map.columns]
         if date_variables:
             df_map[date_variables] = df_map[date_variables].apply(lambda x: x.apply(lambda y: pd.to_datetime(y)))
-        quality_report = {}
-        exclude_files = ("df_map.csv", "vertex_dictionary.csv")
-        vertex_dataframes = [file for file in vertex_dataframes if file.endswith(".csv") and (file not in exclude_files)]
-        df_forms_dict = {}
-        for file in vertex_dataframes:
-            df_form = pd.read_csv(
-                os.path.join(vertex_dataframes_path, file), dtype=dtype_dict, keep_default_na=False, na_values=na_values
-            )
-            if "subjid" in df_form.columns:
-                key = file.split(".csv")[0]
-                df_forms_dict[key] = df_form
-            else:
-                logger.warning(f"{file} does not include subjid, ignoring.")
-        return {
-            "df_map": df_map,
-            "dictionary": dictionary,
-            "df_forms_dict": df_forms_dict,
-            "quality_report": quality_report,
-        }
-    except Exception:
-        logger.error("Could not load the VERTEX dataframes.")
-        raise
+
+    quality_report = {}
+    exclude_files = ("df_map.csv", "vertex_dictionary.csv")
+    vertex_dataframes = [file for file in vertex_dataframes if file.endswith(".csv") and (file not in exclude_files)]
+    df_forms_dict = {}
+    for file in vertex_dataframes:
+        file_path = os.path.join(vertex_dataframes_path, file)
+        try:
+            df_form = pd.read_csv(file_path, dtype=dtype_dict, keep_default_na=False, na_values=na_values)
+        except Exception as exc:
+            logger.warning(f"Could not read form data from {file_path}: {exc}")
+            continue
+        if "subjid" in df_form.columns:
+            key = file.split(".csv")[0]
+            df_forms_dict[key] = df_form
+        else:
+            logger.warning(f"{file} does not include subjid, ignoring.")
+    return {
+        "df_map": df_map,
+        "dictionary": dictionary,
+        "df_forms_dict": df_forms_dict,
+        "quality_report": quality_report,
+    }
 
 
 def get_project_name(project_path):
@@ -451,3 +508,162 @@ def save_public_outputs(
         json.dump(save_config_dict, file, indent=4)
         file.write("\n")
     logger.info(f"Public dashboard files saved to {outputs_path}")
+
+
+def save_insight_panel_visuals(
+    insight_panels: dict[str, typing.Any], public_outputs_path: str | Path, visual_outputs_path: str | Path
+) -> None:
+    """:py:class:`NoneType` : Saves/writes all figures/plots in the insight panels to an output folder.
+
+    Parameters
+    ----------
+    insight_panels : dict
+        The insight panels dict.
+
+    public_outputs_path : str, pathlib.Path
+        The project public outputs path where the CSVs are stored.
+
+    visual_outputs_path : str, pathlib.Path
+        The output folder path to which all the visual artifacts,
+        currently, just figures, will be saved/exported. This will
+        usually be in a `visuals` subfolder within the project
+        public outputs path.
+    """
+    _public_outputs_path = public_outputs_path
+    if not isinstance(_public_outputs_path, Path):
+        _public_outputs_path = Path(public_outputs_path).resolve()
+
+    _visual_outputs_path = visual_outputs_path
+    if not isinstance(_visual_outputs_path, Path):
+        _visual_outputs_path = Path(_visual_outputs_path).resolve()
+    if _visual_outputs_path.exists():
+        logger.warning(f'Clearing pre-existing visual outputs folder "{_visual_outputs_path}"')
+        shutil.rmtree(_visual_outputs_path)
+    _visual_outputs_path.mkdir()
+
+    for suffix in insight_panels:
+        suffix_visuals_path = _visual_outputs_path.joinpath(suffix)
+        if not suffix_visuals_path.exists():
+            suffix_visuals_path.mkdir()
+
+        logger.info(f'Saving "{suffix}" insight panel non-table figures to "{suffix_visuals_path}"')
+        suffix_visuals = insight_panels[suffix].create_visuals()
+        for idx in range(len(suffix_visuals)):
+            fig, fig_text = suffix_visuals[idx][:2]
+            if "table" in fig_text:
+                continue
+            fig_text = f"{fig_text.split('/')[-1]}.png"
+            filepath = suffix_visuals_path.joinpath(fig_text)
+            filepath.touch()
+            fig.write_image(
+                filepath, format="png", width=(fig.layout.minreducedwidth * 2.25), height=fig.layout.height, scale=3
+            )
+            logger.info(f'Saved "{fig_text}" to "{filepath}"')
+
+        suffix_csv_source_path = _public_outputs_path.joinpath(suffix)
+        logger.info(f'Copying "{suffix}" table CSVs from CSV output subfolder "{suffix_csv_source_path}"')
+        table_csvs = copy_figure_table_csvs(suffix_csv_source_path, suffix_visuals_path)
+        logger.info("Cleaning figure table CSVs")
+        for csv in table_csvs:
+            logger.info(f"Cleaning figure table CSV {csv}")
+            clean_figure_table(pd.read_csv(csv)).to_csv(suffix_visuals_path.joinpath(csv.name), index=False)
+
+
+def copy_figure_table_csvs(source_path: str | Path, target_path: str | Path) -> tuple[Path]:
+    """:py:class:`tuple` : Copies figure table CSV filepaths found in the source folder to the target folder.
+
+    The source and target folders must exist, as it is not within the function
+    scope to create new folders, but simply to copy files between preexisting
+    folders.
+
+    The copied file retains the same name as the original, the copy method
+    used is :py:func:`shutil.copy2`, which attempts to preserve file metadata,
+    and nothing is copied if the source folder does not contain any figure
+    table CSVs.
+
+    Returns a tuple of copied CSV filepaths for reference.
+
+    Parameters
+    ----------
+    source_path : str, pathlib.Path
+        The souce folder path from which to copy figure table CSVs, if they
+        exist.
+    target_path : str, pathlib.Path
+        The copy target folder path.
+
+    Raises
+    ------
+    FileNotFoundError
+        If either the source or target folder does not exist.
+
+    Returns
+    -------
+    tuple
+        A tuple of copied CSV filepaths.
+    """
+    _source_path = Path(source_path).resolve()
+    if not _source_path.exists():
+        raise FileNotFoundError(f'The source folder "{_source_path}" does not exist!')
+
+    _target_path = Path(target_path).resolve()
+    if not _target_path.exists():
+        raise FileNotFoundError(f'The target folder "{_target_path}" does not exist!')
+
+    copies = []
+
+    logger.info(f'Copying figure table CSVs from "{_source_path}" to "{_target_path}"')
+    for i, source_csv_path in enumerate(map(Path, glob.glob(f"{_source_path.joinpath('fig_table*.csv')}"))):
+        logger.info(f'Copying "{source_csv_path}" to "{_target_path}"')
+        shutil.copy2(source_csv_path, _target_path)
+        copies.append(_target_path.joinpath(source_csv_path.name))
+
+    if len(copies) == 0:
+        logger.warning(f'No figure table CSVs found in "{_source_path}"')
+    else:
+        logger.info(f'{len(copies)} figure table CSVs copied to "{_target_path}"')
+
+    return tuple(copies)
+
+
+def strip_html(value: typing.Any) -> str | typing.Any:
+    """:py:class:`typing.Any` : Strip HTML elements from a string value, otherwise return the original value.
+
+    Parameters
+    ----------
+    value : typing.Any
+        A value.
+
+    Returns
+    -------
+    str, typing.Any
+        Either a string stripped of all HTML elements, or the original non-
+        string value.
+    """
+    if isinstance(value, str):
+        return re.sub(r"<.*?>", "", value)
+    return value
+
+
+def clean_figure_table(figure_table: pd.DataFrame) -> pd.DataFrame:
+    """:py:class:pandas.DataFrame : A cleaned figure table dataframe.
+
+    The cleaning steps are unique to the Plotly graph object table format from
+    which the table CSVs were originally, which contains HTML styling elements,
+    the cleaning is essentially the removal of these HTML elements to create
+    a plaintext CSV of the original.
+
+    Parameters
+    ----------
+    figure_table : pandas.DataFrame
+        The original figure table as a Pandas dataframe.
+
+    Returns
+    -------
+    pandas.DataFrame
+        The cleaned figure table.
+    """
+    # The use of `pandas.DataFrame.map` here is not absolutely optimal, as
+    # `map` applies changes across the dataframe element-wise, but is the
+    # safer choice given that the dataframe may contain a number of non-string
+    # columns, while the cleaning steps currently only apply to string values.
+    return figure_table.map(strip_html)

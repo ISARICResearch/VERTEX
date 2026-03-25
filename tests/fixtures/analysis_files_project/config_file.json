@@ -1,0 +1,11 @@
+{
+  "project_name": "Analysis Files Fixture",
+  "project_id": "analysis-files-fixture",
+  "project_owner": "owner@example.com",
+  "is_public": true,
+  "insight_panels_path": "insight_panels/",
+  "insight_panels_data_path": "analysis_data/",
+  "insight_panels": [
+    "presentation"
+  ]
+}

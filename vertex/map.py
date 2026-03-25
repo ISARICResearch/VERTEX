@@ -1,10 +1,13 @@
 import json
+import logging
 import os
 
 import numpy as np
 import pandas as pd
 import plotly.graph_objs as go
 import requests
+
+logger = logging.getLogger(__name__)
 
 
 def merge_data_with_countries(df_map, add_capital_location=False):
@@ -17,14 +20,20 @@ def merge_data_with_countries(df_map, add_capital_location=False):
         "martynafford/natural-earth-geojson/master/",
         "50m/cultural/ne_50m_populated_places_simple.json",
     )
-    capitals = json.loads(requests.get(geojson).text)
-    features = ["adm0_a3", "latitude", "longitude", "featurecla"]
-    capitals = [{k: x["properties"][k] for k in features} for x in capitals["features"]]
-    capitals = pd.DataFrame.from_dict(capitals)
-    capitals = capitals.sort_values(by=["adm0_a3", "featurecla"])
-    capitals = capitals.drop_duplicates(["adm0_a3"]).reset_index(drop=True)
-    capitals.drop(columns=["featurecla"], inplace=True)
-    capitals.rename(columns={"adm0_a3": "Code"}, inplace=True)
+    try:
+        response = requests.get(geojson, timeout=10)
+        response.raise_for_status()
+        capitals = json.loads(response.text)
+        features = ["adm0_a3", "latitude", "longitude", "featurecla"]
+        capitals = [{k: x["properties"][k] for k in features} for x in capitals["features"]]
+        capitals = pd.DataFrame.from_dict(capitals)
+        capitals = capitals.sort_values(by=["adm0_a3", "featurecla"])
+        capitals = capitals.drop_duplicates(["adm0_a3"]).reset_index(drop=True)
+        capitals.drop(columns=["featurecla"], inplace=True)
+        capitals.rename(columns={"adm0_a3": "Code"}, inplace=True)
+    except Exception as exc:
+        logger.warning(f"Could not retrieve capitals geojson; falling back to countries metadata only: {exc}")
+        capitals = pd.DataFrame(columns=["Code", "latitude", "longitude"])
 
     countries = pd.merge(countries, capitals, how="left", on="Code")
 

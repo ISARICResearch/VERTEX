@@ -1,0 +1,116 @@
+name: Tests and Coverage
+
+"on":
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  schema:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Validate analysis project schema
+        uses: ./.github/actions/validate-analysis-projects
+        with:
+          root: demo-projects
+
+      - name: Validate demo-project output schema
+        uses: ./.github/actions/validate-project-outputs
+        with:
+          root: demo-projects
+          require_project_files: "true"
+
+      - name: Validate test fixture output schema
+        uses: ./.github/actions/validate-project-outputs
+        with:
+          root: tests/fixtures/prebuilt_public_project
+          require_project_files: "true"
+
+  test:
+    needs: schema
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install project and test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run pytest with coverage
+        env:
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
+        run: |
+          pytest -m "not e2e" -p pytest_cov --cov=vertex --cov-report=term-missing --cov-report=xml
+
+      - name: Upload coverage.xml artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml
+          path: coverage.xml
+          if-no-files-found: error
+
+      - name: Upload coverage report to Codecov (best effort)
+        continue-on-error: true
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+          verbose: true
+
+  frontend-smoke:
+    needs: schema
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install project and test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Install Playwright Chromium browser
+        run: |
+          python -m playwright install --with-deps chromium
+
+      - name: Run Playwright smoke tests
+        env:
+          PLAYWRIGHT_ARTIFACTS_DIR: test-results/playwright
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
+        run: |
+          pytest tests/test_playwright_smoke.py
+
+      - name: Upload Playwright artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts
+          path: test-results/playwright
+          if-no-files-found: ignore
