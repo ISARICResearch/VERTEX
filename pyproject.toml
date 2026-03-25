@@ -35,7 +35,7 @@ dependencies = [
     "scikit-learn==1.5.2",
     "scipy==1.17.1",
     "SQLAlchemy==2.0.43",
-    "statsmodels>=0.14.4,<0.15",
+    "statsmodels==0.14.6",
 ]
 
 [project.optional-dependencies]
