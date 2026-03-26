@@ -1,6 +1,5 @@
 import json
 import os
-import secrets
 import uuid
 import webbrowser
 from urllib.parse import parse_qs, quote
@@ -19,6 +18,7 @@ from plotly import graph_objs as go
 from sqlalchemy import MetaData, create_engine
 from sqlalchemy.orm import Session
 
+import vertex.vertex_secrets as vertex_secrets
 from vertex.io import (
     config_defaults,
     get_config,
@@ -35,7 +35,7 @@ from vertex.layout.modals import create_modal
 from vertex.logging.logger import setup_logger
 from vertex.map import create_map, filter_df_map, get_countries, get_public_countries, merge_data_with_countries
 from vertex.models import User
-from vertex.secrets import get_database_url, get_flask_auth_secrets
+from vertex.vertex_secrets import get_database_url, get_flask_auth_secrets
 
 logger = setup_logger(__name__)
 
@@ -670,7 +670,7 @@ def register_callbacks(app):
                         id=uuid.uuid4(),
                         email=email.lower(),
                         password=hash_password(password),
-                        fs_uniquifier=secrets.token_urlsafe(32),
+                        fs_uniquifier=vertex_secrets.token_urlsafe(32),
                         is_admin=False,
                     )
                     session.add(new_user)
