@@ -346,3 +346,30 @@ def test_load_project_data_analysis_without_insight_panels_path_should_remain_an
 
     # Desired behavior once hardened:
     assert loaded["mode"] == "analysis"
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        (-1, -1),
+        (True, True),
+        ("<b>Value</b>", "Value"),
+        ("<b><i>Value</i></b>", "Value"),
+    ],
+)
+def test_strip_html(value, expected):
+    assert vertex_io.strip_html(value) == expected
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        (-1, -1),
+        (True, True),
+        ("<b>Value</b>", "<b>Value</b>"),
+        ("<b><i>Value</i></b>", "<b><i>Value</i></b>"),
+        ("↳ Value", " Value"),
+    ],
+)
+def test_strip_nonstandard_unicode_chars(value, expected):
+    assert vertex_io.strip_nonstandard_unicode_chars(value) == expected
