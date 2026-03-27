@@ -298,7 +298,7 @@ def get_filter_options(df_map):
         "width": "70px",
     }
 
-    max_age = max((100, df_map["demog_age"].max()))
+    max_age = int(max((100, df_map["demog_age"].max())))
     age_options = {
         "min": 0,
         "max": max_age,

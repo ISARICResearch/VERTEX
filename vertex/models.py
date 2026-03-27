@@ -1,7 +1,6 @@
 from __future__ import annotations  # py311 does not need
 
 import datetime
-import secrets
 import uuid
 from typing import List, Optional
 
@@ -24,6 +23,8 @@ from sqlalchemy.orm import (
     mapped_column,
     relationship,
 )
+
+import vertex.vertex_secrets as vertex_secrets
 
 
 class Base(DeclarativeBase):
@@ -85,7 +86,7 @@ class User(Base, UserMixin):
 
     # Required by Flask-Security-Too 4.x
     fs_uniquifier: Mapped[str] = mapped_column(
-        String(length=255), unique=True, default=lambda: secrets.token_urlsafe(32), nullable=False
+        String(length=255), unique=True, default=lambda: vertex_secrets.token_urlsafe(32), nullable=False
     )
     # required by flask-login
     active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
