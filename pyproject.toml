@@ -8,7 +8,7 @@ packages = ["vertex"]
 
 [project]
 name = "isaric-vertex"
-version = "1.0.0"
+dynamic = ["version"]
 description = "Dash-based VERTEX dashboard for ISARIC"
 authors = [
     { name = "Your Name", email = "you@example.com" }
@@ -61,6 +61,9 @@ docs = [
 [project.scripts]
 run-vertex = "descriptive_dashboard:main"
 descriptive-analytics = "vertex.descriptive_analytics:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "vertex.__version__"}
 
 [tool.ruff]
 
