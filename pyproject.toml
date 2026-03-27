@@ -10,9 +10,30 @@ packages = ["vertex"]
 name = "isaric-vertex"
 dynamic = ["version"]
 description = "Dash-based VERTEX dashboard for ISARIC"
+
+# All current contributors
 authors = [
-    { name = "Your Name", email = "you@example.com" }
+    { name = "Esteban Garcia-Gallo", email = "esteban.garcia@ndm.ox.ac.uk" },
+    { name = "Alasdair Wilson", email = "alasdair.wilson@ndm.ox.ac.uk" },
+    { name = "Tom Edinburgh", email = "tom.edinburgh@ndm.ox.ac.uk" },
+    { name = "Leonardo Bastos",  email = "lslbastos@puc-rio.br" },
+    { name = "Igor Peres", email = "igor.peres@puc-rio.br" },
+    { name = "Luiz Eduardo Raffaini", email = "lemraffaini@gmail.com" },
+    { name = "Sara Duque-Vallejo", email = "sara.duquevallejo@ndm.ox.ac.uk" },
+    { name = "Laura Merson", email = "laura.merson@ndm.ox.ac.uk" },
+    { name = "Elise Pesonel", email = "elise.pesonel@ndm.ox.ac.uk" },
+    { name = "Sandeep Murthy", email = "sandeep.murthy@ndm.ox.ac.uk" }
 ]
+
+# All current project admins
+maintainers = [
+    { name = "Esteban Garcia-Gallo", email = "esteban.garcia@ndm.ox.ac.uk" },
+    { name = "Alasdair Wilson", email = "alasdair.wilson@ndm.ox.ac.uk" },
+    { name = "Tom Edinburgh", email = "tom.edinburgh@ndm.ox.ac.uk" },
+    { name = "Sara Duque-Vallejo", email = "sara.duquevallejo@ndm.ox.ac.uk" },
+    { name = "Sandeep Murthy", email = "sandeep.murthy@ndm.ox.ac.uk" }
+]
+
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
