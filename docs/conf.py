@@ -23,7 +23,6 @@ from datetime import datetime
 #
 sys.path.insert(0, os.path.abspath("."))
 sys.path.insert(0, os.path.dirname(os.path.abspath(".")))
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(".")), "src"))
 
 import vertex
 from vertex import __version__
@@ -119,8 +118,22 @@ numpydoc_class_members_toctree = False
 numpydoc_attributes_as_param_list = False
 numpydoc_xref_param_type = False
 
-# Intersphinx mappings to reference external documentation domains - none required.
-intersphinx_mapping = {}
+# Intersphinx mappings to reference external documentation domains - no
+# current references, but these have been listed in case relevant new
+# new references are added.
+intersphinx_mapping = {
+	'dash': ('https://dash.plotly.com/', None),
+    'matplotlib': ('https://matplotlib.org/stable/', None),
+    'networkx': ('https://networkx.org/documentation/stable/', None),
+    'numpy':  ('https://numpy.org/doc/stable/', None),
+    'pandas': ('https://pandas.pydata.org/pandas-docs/stable/', None),
+    'plotly': ('https://docs.plotly.com/', None),
+    'python': ('https://docs.python.org/3', None),
+    'scikit-learn': ('https://scikit-learn.org/stable/', None),
+    'scipy': ('https://docs.scipy.org/doc/scipy/', None),
+    'sphinx': ('https://www.sphinx-doc.org/en/master/', None),
+    'statsmodels': ('https://www.statsmodels.org/stable/index.html', None),
+}
 
 # Static template paths
 templates_path = ["_templates"]

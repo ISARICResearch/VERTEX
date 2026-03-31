@@ -28,6 +28,7 @@ Introduction
 VERTEX is a web-based Python application that presents graphs and tables relating to research questions that need to be quickly answered during an outbreak. This helps identification of key epidemiological factors and supports data-driven decision-making.
 
 |VERTEX|
+
 VERTEX is open-source, which means that you can access and download the codebase from GitHub\ :sup:`1`, and create new analysis projects for your analysis. At the moment, the VERTEX dashboard can display two types of projects.
 
 **Analysis projects** retrieve data from a REDCap database using the API, preprocess this patient-level data\ :sup:`2` and execute analysis code to answer research questions from a statistical analysis plan. The output of this analysis code is a series of figures and tables, which are presented in the dashboard, grouped together in **insight panels**.
@@ -108,6 +109,7 @@ Once the application is running at the terminal or in VSCode, you will be able t
 http://127.0.0.1:8050. You will see a menu on the left, and a world map with a colorbar.
 
 |VERTEX dashboard|
+
 At the top of the menu is listed the current open project. You can switch between active projects using the dropdown immediately below. The current active projects are **analysis projects** that use low-fidelity synthetic datasets and **static projects** showing the results from completed ISARIC analyses.
 
 The map shows the number of participants that were enrolled in this project by country. You can hover over each country for a more precise count of the number of participants.
