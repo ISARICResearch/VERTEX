@@ -122,17 +122,14 @@ numpydoc_xref_param_type = False
 # current references, but these have been listed in case relevant new
 # new references are added.
 intersphinx_mapping = {
-	'dash': ('https://dash.plotly.com/', None),
-    'matplotlib': ('https://matplotlib.org/stable/', None),
-    'networkx': ('https://networkx.org/documentation/stable/', None),
+    #'dash': ('https://dash.plotly.com/', None),
     'numpy':  ('https://numpy.org/doc/stable/', None),
     'pandas': ('https://pandas.pydata.org/pandas-docs/stable/', None),
-    'plotly': ('https://docs.plotly.com/', None),
-    'python': ('https://docs.python.org/3', None),
+    'Python': ('https://docs.python.org/3', None),
     'scikit-learn': ('https://scikit-learn.org/stable/', None),
     'scipy': ('https://docs.scipy.org/doc/scipy/', None),
-    'sphinx': ('https://www.sphinx-doc.org/en/master/', None),
-    'statsmodels': ('https://www.statsmodels.org/stable/index.html', None),
+    #'sphinx': ('https://www.sphinx-doc.org/en/master/', None),
+    'statsmodels': ('https://www.statsmodels.org/stable', None),
 }
 
 # Static template paths
