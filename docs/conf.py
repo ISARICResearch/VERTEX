@@ -123,13 +123,13 @@ numpydoc_xref_param_type = False
 # new references are added.
 intersphinx_mapping = {
     #'dash': ('https://dash.plotly.com/', None),
-    'numpy':  ('https://numpy.org/doc/stable/', None),
-    'pandas': ('https://pandas.pydata.org/pandas-docs/stable/', None),
-    'Python': ('https://docs.python.org/3', None),
-    'scikit-learn': ('https://scikit-learn.org/stable/', None),
-    'scipy': ('https://docs.scipy.org/doc/scipy/', None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
+    "Python": ("https://docs.python.org/3", None),
+    "scikit-learn": ("https://scikit-learn.org/stable/", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/", None),
     #'sphinx': ('https://www.sphinx-doc.org/en/master/', None),
-    'statsmodels': ('https://www.statsmodels.org/stable', None),
+    "statsmodels": ("https://www.statsmodels.org/stable", None),
 }
 
 # Static template paths
