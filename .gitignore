@@ -170,4 +170,5 @@ cython_debug/
 .DS_Store
 **/.DS_Store
 
-demo-projects/*/outputs
+outputs/
+docs/_build

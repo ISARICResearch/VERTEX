@@ -8,13 +8,34 @@ packages = ["vertex"]
 
 [project]
 name = "isaric-vertex"
-version = "1.0.0"
+dynamic = ["version"]
 description = "Dash-based VERTEX dashboard for ISARIC"
+
+# All current contributors
 authors = [
-    { name = "Your Name", email = "you@example.com" }
+    { name = "Esteban Garcia-Gallo", email = "esteban.garcia@ndm.ox.ac.uk" },
+    { name = "Alasdair Wilson", email = "alasdair.wilson@ndm.ox.ac.uk" },
+    { name = "Tom Edinburgh", email = "tom.edinburgh@ndm.ox.ac.uk" },
+    { name = "Leonardo Bastos",  email = "lslbastos@puc-rio.br" },
+    { name = "Igor Peres", email = "igor.peres@puc-rio.br" },
+    { name = "Luiz Eduardo Raffaini", email = "lemraffaini@gmail.com" },
+    { name = "Sara Duque-Vallejo", email = "sara.duquevallejo@ndm.ox.ac.uk" },
+    { name = "Laura Merson", email = "laura.merson@ndm.ox.ac.uk" },
+    { name = "Elise Pesonel", email = "elise.pesonel@ndm.ox.ac.uk" },
+    { name = "Sandeep Murthy", email = "sandeep.murthy@ndm.ox.ac.uk" }
 ]
+
+# All current project admins
+maintainers = [
+    { name = "Esteban Garcia-Gallo", email = "esteban.garcia@ndm.ox.ac.uk" },
+    { name = "Alasdair Wilson", email = "alasdair.wilson@ndm.ox.ac.uk" },
+    { name = "Tom Edinburgh", email = "tom.edinburgh@ndm.ox.ac.uk" },
+    { name = "Sara Duque-Vallejo", email = "sara.duquevallejo@ndm.ox.ac.uk" },
+    { name = "Sandeep Murthy", email = "sandeep.murthy@ndm.ox.ac.uk" }
+]
+
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 dependencies = [
     "boto3==1.39.1",
     "click>=8.1",
@@ -45,9 +66,26 @@ dev = [
     "playwright>=1.58.0",
 ]
 
+docs = [
+    "Sphinx",
+    "sphinx-autobuild",
+    "sphinx-copybutton",
+    "sphinx-gallery",
+    "sphinx-design",
+    "myst-parser",
+    "pylint",
+    "furo",
+    "numpydoc",
+    "nb2plots",
+    "jupyter-sphinx"
+]
+
 [project.scripts]
 run-vertex = "descriptive_dashboard:main"
 descriptive-analytics = "vertex.descriptive_analytics:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "vertex.__version__"}
 
 [tool.ruff]
 
