@@ -115,6 +115,16 @@ $ descriptive-analytics demo-projects/ARChetypeCRF_dengue_synthetic/
 The `descriptive-analytics` tool requires Google Chrome to be installed as some Chrome imaging functionality is used by the [`kaleido`](https://plotly.com/python/static-image-export/#kaleido) dependency when exporting/saving
 images - see [this](https://plotly.com/python/static-image-export/) for further information.
 
+## Documentation
+
+VERTEX project documentation is built with [Sphinx](https://www.sphinx-doc.org/en/) from content and configuration defined in the [`docs`](https://github.com/ISARICResearch/VERTEX/tree/main/docs) subfolder. Deployment will be to [ReadTheDocs](https://readthedocs.org) on a custom ISARIC domain, and is the process of being implemented.
+
+The documentation can be built locally by running:
+```shell
+make -C docs html
+```
+from the project root and then using a browser to open the `index.html` page in `docs/_build`. Changes to content can be made in the `docs/.rst` or `docs/sources/*.rst` files, and changes in configuration can be made in the `docs/conf.py` file. Any changes should be staged and version controlled in the normal way as with changes to code.
+
 ## Contributors
 
 - Esteban Garcia-Gallo - [esteban.garcia@ndm.ox.ac.uk](mailto:esteban.garcia@ndm.ox.ac.uk)
