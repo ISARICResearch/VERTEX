@@ -6,30 +6,20 @@ __all__ = [
 
 # -- Standard libraries --
 import pathlib
-import typing
 
 # -- 3rd party libraries --
 import click
-import pandas as pd
 
 # -- Internal libraries --
 from vertex.io import (
-    config_defaults,
-    get_config,
     get_project_data,
-    load_vertex_data,
     save_insight_panel_visuals,
     save_public_outputs,
 )
 from vertex.layout.insight_panels import (
-    get_insight_panels,
     get_public_visuals,
 )
 from vertex.logging.logger import setup_logger
-from vertex.map import (
-    get_countries,
-    merge_data_with_countries,
-)
 
 logger = setup_logger(__name__)
 
@@ -59,7 +49,7 @@ def main(project_path: str | pathlib.Path) -> None:
     project_outputs_path = project_path.joinpath(project_data["config_dict"]["outputs_path"])
     logger.info(f'Saving public outputs to "{project_outputs_path}"')
     save_public_outputs(**project_data)
-    
+
     logger.info(f'Saving all figures to "{project_outputs_path}"')
     insight_panels, _ = get_public_visuals(project_outputs_path, project_data["buttons"])
     save_insight_panel_visuals(insight_panels, project_outputs_path, project_outputs_path.joinpath("visuals"))

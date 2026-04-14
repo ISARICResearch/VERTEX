@@ -153,7 +153,7 @@ def convert_categorical_to_onehot(df, dictionary, categorical_columns, sep="___"
             df = df.drop(columns=[categorical_column + sep + missing_val])
         elif drop_first and isinstance(dictionary, pd.DataFrame) and "field_name" in dictionary.columns:
             drop_column_ind = dictionary.apply(
-                lambda x: ((x["parent"] == categorical_column) & (x["field_name"].split(sep)[0] == categorical_column)), axis=1
+                lambda x: (x["parent"] == categorical_column) & (x["field_name"].split(sep)[0] == categorical_column), axis=1
             )
             if drop_column_ind.any():
                 df = df.drop(columns=[dictionary.loc[drop_column_ind, "field_name"].values[0]])
@@ -879,12 +879,14 @@ def regression_summary_table(
 
     for reg_type in ["multi", "uni"]:
         table[f"{result_type} ({reg_type})"] = table.apply(
-            lambda x: "%.2f" % x[f"{result_type} ({reg_type})"]
-            + " ("
-            + "%.2f" % x[f"LowerCI ({reg_type})"]
-            + ", "
-            + "%.2f" % x[f"UpperCI ({reg_type})"]
-            + ")",
+            lambda x: (
+                "%.2f" % x[f"{result_type} ({reg_type})"]
+                + " ("
+                + "%.2f" % x[f"LowerCI ({reg_type})"]
+                + ", "
+                + "%.2f" % x[f"UpperCI ({reg_type})"]
+                + ")"
+            ),
             axis=1,
         )
 
@@ -1637,8 +1639,10 @@ def rmv_high_corr(df, dictionary, outcome_column="outco_binary_outcome", correla
 
     if verbose:
         print("\nCORR Summary")
-        print(f"Columns removed due to high correlation: \
-{len(exclude_columns)}")
+        print(
+            f"Columns removed due to high correlation: \
+{len(exclude_columns)}"
+        )
     return df
 
 

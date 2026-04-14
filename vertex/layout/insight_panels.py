@@ -37,10 +37,7 @@ def get_insight_panels(config_dict, insight_panels_path):
         buttons = [{**ip.define_button(), **{"suffix": suffix}} for suffix, ip in insight_panels.items()]
     except AttributeError:
         buttons = [
-            {
-                **{"item": ip.RESEARCH_QUESTION_ITEM, "label": ip.RESEARCH_QUESTION_ITEM_LABEL},
-                **{"suffix": suffix}
-            }
+            {**{"item": ip.RESEARCH_QUESTION_ITEM, "label": ip.RESEARCH_QUESTION_ITEM_LABEL}, **{"suffix": suffix}}
             for suffix, ip in insight_panels.items()
         ]
 
@@ -76,7 +73,7 @@ def get_visuals(buttons, insight_panels, df_map, df_forms_dict, dictionary, qual
                 dictionary=dictionary.copy(),
                 suffix=suffix,
                 filepath=filepath,
-                save_inputs=True
+                save_inputs=True,
             )
 
         buttons[ii]["graph_ids"] = [id for _, id, _, _ in visuals]

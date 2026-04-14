@@ -563,7 +563,7 @@ def initial_data_processing(data, dictionary, missing_data_codes):
     # (or missing answer)
     remove_values = ["", "no", "never smoked", "unchecked", "nan"]
     remove_values += [x.lower() for x in missing_data_codes.keys()]
-    remove_columns = data.columns[data.astype(str).map(lambda x: (x.lower().strip() in remove_values)).all(axis=0)]
+    remove_columns = data.columns[data.astype(str).map(lambda x: x.lower().strip() in remove_values).all(axis=0)]
     data = data[[col for col in data.columns if col not in remove_columns]]
 
     # Convert 'Unchecked' to NaN when a checkbox question wasn't asked
