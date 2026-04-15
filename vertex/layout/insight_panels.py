@@ -71,9 +71,6 @@ def get_visuals(buttons, insight_panels, df_map, df_forms_dict, dictionary, qual
                 df_map=df_map.copy(),
                 df_forms_dict={k: v.copy() for k, v in df_forms_dict.items()},
                 dictionary=dictionary.copy(),
-                suffix=suffix,
-                filepath=filepath,
-                save_inputs=True,
             )
 
         buttons[ii]["graph_ids"] = [id for _, id, _, _ in visuals]
@@ -163,7 +160,7 @@ def get_public_visuals(path, buttons):
 
             # Now call figure builder
             try:
-                import vertex.IsaricDraw as idw
+                import isaricanalytics.IsaricDraw as idw
 
                 if not hasattr(idw, fig_name):
                     logger.error(f"[get_public_visuals] Draw function not found: idw.{fig_name}")

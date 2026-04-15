@@ -10,9 +10,9 @@ import time
 import typing
 from pathlib import Path
 
+import isaricanalytics.getREDCapData as getRC
 import pandas as pd
 
-import vertex.getREDCapData as getRC
 from vertex.layout.insight_panels import get_insight_panels, get_visuals
 from vertex.logging.logger import setup_logger
 from vertex.map import get_countries, merge_data_with_countries
