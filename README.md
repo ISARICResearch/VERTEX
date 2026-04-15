@@ -22,9 +22,9 @@ VERTEX has three main elements:
 
 VERTEX processes and visualizes data using the concept of **Reproducible Analytical Pipelines (RAPs)**. RAPs are a set of resuable functions or blocks of code that can request specific variables from an [ISARIC ARC](https://github.com/ISARICResearch/ARC)-formatted REDCap database. These functions then process the data to generate dataframes, which can then be visualized interactively through a Plotly Dash app.
 
-## VERTEX Version 1.0
+## VERTEX Version 2.0.0
 
-**VERTEX Version 1.0** includes insight panels developed for the following research questions:
+**VERTEX Version 2.0.0** includes insight panels developed for the following research questions:
 - Clinical characterization of on presentation, including:
      - demographics and comorbidities
      - pregnancy
@@ -97,7 +97,7 @@ pip install -e .
 ```
 Any changes to the entrypoint definition or function implementing the entrypoint logic requires a re-installation (`pip uninstall -y isaric-vertex` and `pip install -e .`). The entrypoints currently include:
 
-* `descriptive-analytics` - generates analytics outputs from a given project source folder and saving them to local folder (within the project folder), e.g. for the Dengue synthetic demo project
+* `descriptive-analytics` - generates analytics outputs from a given project source folder and saving them to local folder (in an `outputs` subfolder of the project source folder), e.g. for the Dengue synthetic demo project
 ```shell
 $ descriptive-analytics demo-projects/ARChetypeCRF_dengue_synthetic/
 2026-03-26 10:00:05 [INFO] vertex.descriptive_analytics: Loading project data from project path: "/Users/smurthy/Documents/srm/dev/VERTEX/demo-projects/ARChetypeCRF_dengue_synthetic"
