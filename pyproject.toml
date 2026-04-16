@@ -14,7 +14,7 @@ description = "Dash-based VERTEX dashboard for ISARIC"
 # All current contributors
 authors = [
     { name = "Esteban Garcia-Gallo", email = "esteban.garcia@ndm.ox.ac.uk" },
-    { name = "Alasdair Wilson", email = "alasdair.wilson@ndm.ox.ac.uk" },
+    { name = "Alasdair Wilson", email = "alasdair.wilson@dtc.ox.ac.uk" },
     { name = "Tom Edinburgh", email = "tom.edinburgh@ndm.ox.ac.uk" },
     { name = "Leonardo Bastos",  email = "lslbastos@puc-rio.br" },
     { name = "Igor Peres", email = "igor.peres@puc-rio.br" },
