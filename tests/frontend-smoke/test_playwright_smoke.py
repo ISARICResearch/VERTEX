@@ -19,7 +19,7 @@ sync_playwright = playwright_sync_api.sync_playwright
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-FIXTURES_ROOT = Path(__file__).resolve().parent / "fixtures"
+FIXTURES_ROOT = Path(__file__).resolve().parent.parent / "fixtures"
 ANALYSIS_PROJECT_ID = "archetypecrf-mpox-synthetic"
 PREBUILT_PROJECT_ID = "prebuilt-public-fixture"
 PLAYWRIGHT_ARTIFACTS_DIR = Path(os.getenv("PLAYWRIGHT_ARTIFACTS_DIR", "test-results/playwright"))

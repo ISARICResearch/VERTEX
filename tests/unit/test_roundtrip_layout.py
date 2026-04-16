@@ -9,7 +9,7 @@ def _write_roundtrip_panel(project_dir):
     panel_code = """
 import pandas as pd
 
-import vertex.IsaricDraw as idw
+import isaricanalytics.IsaricDraw as idw
 
 
 def define_button():

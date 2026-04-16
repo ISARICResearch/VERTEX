@@ -3,6 +3,9 @@ FROM python:3.11-slim
 # Set the working directory
 WORKDIR /app
 
+# Install Git
+RUN apt update && apt install -y git
+
 # Upgrade pip and install pip-tools first
 RUN pip install "pip<25" "setuptools<80" wheel
 RUN pip install "pip-tools==7.5.1"
