@@ -36,7 +36,7 @@ jobs:
           root: tests/fixtures/prebuilt_public_project
           require_project_files: "true"
 
-  test:
+  unit-test:
     needs: schema
     runs-on: ubuntu-latest
 
