@@ -20,7 +20,7 @@ def import_from_path(module_name, filepath):
 
 
 def get_insight_panels(config_dict, insight_panels_path):
-    # Import insight panels scripts
+    # Import insight panels modules
     insight_panels = {
         x: import_from_path(x, os.path.join(insight_panels_path, x + ".py")) for x in config_dict["insight_panels"]
     }
@@ -28,35 +28,66 @@ def get_insight_panels(config_dict, insight_panels_path):
     # This is refactoring to allow insight panels and buttons to also be loaded
     # from modules that do not have the `define_button` and `create_visuals`
     # functions - modules in the existing format that do define these functions
-    # will still continue to work as before.
+    # will still continue to work as before, but their use is intended to be
+    # deprecated.
     #
     # See GitHub issue #81 for more information:
     #
     #     https://github.com/ISARICResearch/VERTEX/issues/81
-    try:
-        buttons = [{**ip.define_button(), **{"suffix": suffix}} for suffix, ip in insight_panels.items()]
-    except AttributeError:
-        buttons = [
-            {**{"item": ip.RESEARCH_QUESTION_ITEM, "label": ip.RESEARCH_QUESTION_ITEM_LABEL}, **{"suffix": suffix}}
-            for suffix, ip in insight_panels.items()
-        ]
+    buttons = []
+    warning_logged = False
+
+    for suffix, ip in insight_panels.items():
+        if hasattr(ip, "define_button"):
+            if not warning_logged:
+                logger.warning(
+                    "The `define_button` function will not be supported in "
+                    "future VERTEX releases. Please use "
+                    "`RESEARCH_QUESTION_ITEM` and "
+                    "`RESEARCH_QUESTION_ITEM_LABEL` attributes to define the "
+                    "button instead."
+                )
+                warning_logged = True
+            buttons.append({**ip.define_button(), **{"suffix": suffix}})
+        elif hasattr(ip, "RESEARCH_QUESTION_ITEM") and hasattr(ip, "RESEARCH_QUESTION_ITEM_LABEL"):
+            buttons.append(
+                {**{"item": ip.RESEARCH_QUESTION_ITEM, "label": ip.RESEARCH_QUESTION_ITEM_LABEL}, **{"suffix": suffix}}
+            )
+        else:
+            raise Exception(
+                f"{suffix}.py must define either a `define_button` function "
+                "or the `RESEARCH_QUESTION_ITEM` and "
+                "`RESEARCH_QUESTION_ITEM_LABEL` attributes."
+            )
 
     return insight_panels, buttons
 
 
 def get_visuals(buttons, insight_panels, df_map, df_forms_dict, dictionary, quality_report, filepath):
+    warning_logged = False
+
     for ii in range(len(buttons)):
         suffix = buttons[ii]["suffix"]
 
         # This is refactoring to allow insight panels and buttons to also be loaded
         # from modules that do not have the `define_button` and `create_visuals`
         # functions - modules in the existing format that do define these functions
-        # will still continue to work as before.
+        # will still continue to work as before, but their use is intended to be
+        # deprecated.
         #
         # See GitHub issue #81 for more information:
         #
         #     https://github.com/ISARICResearch/VERTEX/issues/81
-        try:
+
+        if hasattr(insight_panels[suffix], "create_visuals"):
+            if not warning_logged:
+                logger.warning(
+                    "The `create_visuals` function will not be supported in "
+                    "future VERTEX releases. Please use a `main` function "
+                    "instead."
+                )
+                warning_logged = True
+
             visuals = insight_panels[suffix].create_visuals(
                 df_map=df_map.copy(),
                 df_forms_dict={k: v.copy() for k, v in df_forms_dict.items()},
@@ -66,14 +97,20 @@ def get_visuals(buttons, insight_panels, df_map, df_forms_dict, dictionary, qual
                 filepath=filepath,
                 save_inputs=True,
             )
-        except AttributeError:
+        elif hasattr(insight_panels[suffix], "main"):
             visuals = insight_panels[suffix].main(
                 df_map=df_map.copy(),
                 df_forms_dict={k: v.copy() for k, v in df_forms_dict.items()},
                 dictionary=dictionary.copy(),
             )
+        else:
+            raise Exception(
+                f"{suffix}.py must define either a `create_visuals` or a "
+                "`main` function for generating insight panel figures."
+            )
 
-        buttons[ii]["graph_ids"] = [id for _, id, _, _ in visuals]
+        buttons[ii]["graph_ids"] = [_id for _, _id, _, _ in visuals]
+
     return buttons
 
 
