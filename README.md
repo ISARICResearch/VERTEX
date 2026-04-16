@@ -2,7 +2,7 @@
 
 [![CodeQL](https://github.com/ISARICResearch/VERTEX/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/ISARICResearch/VERTEX/actions/workflows/github-code-scanning/codeql)
 [![pre-commit](https://github.com/ISARICResearch/VERTEX/actions/workflows/lint.yml/badge.svg)](https://github.com/ISARICResearch/VERTEX/actions/workflows/lint.yml)
-[![Tests and Coverage](https://github.com/ISARICResearch/VERTEX/actions/workflows/test-and-coverage.yml/badge.svg)](https://github.com/ISARICResearch/VERTEX/actions/workflows/test-and-coverage.yml)
+[![Tests and Coverage](https://github.com/ISARICResearch/VERTEX/actions/workflows/test.yml/badge.svg)](https://github.com/ISARICResearch/VERTEX/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/ISARICResearch/VERTEX/graph/badge.svg?token=K68GVC44SJ)](https://codecov.io/gh/ISARICResearch/VERTEX)
 [![Docker Build and Test](https://github.com/ISARICResearch/VERTEX/actions/workflows/build.yaml/badge.svg)](https://github.com/ISARICResearch/VERTEX/actions/workflows/build.yaml)
 [![License: CC BY-SA 4.0](https://img.shields.io/badge/License-CC%20BY--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
