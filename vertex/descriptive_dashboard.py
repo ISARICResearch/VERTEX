@@ -7,9 +7,10 @@ from urllib.parse import parse_qs, quote
 import dash
 import dash_bootstrap_components as dbc
 import pandas as pd
+import requests
 from dash import ALL, Input, Output, State, callback_context, html, no_update
 from dash.exceptions import PreventUpdate
-from flask import request
+from flask import redirect, request
 from flask_login import current_user, login_user, logout_user
 from flask_security import Security, SQLAlchemyUserDatastore
 from flask_security.utils import hash_password, verify_and_update_password
@@ -35,7 +36,7 @@ from vertex.layout.modals import create_modal
 from vertex.logging.logger import setup_logger
 from vertex.map import create_map, filter_df_map, get_countries, get_public_countries, merge_data_with_countries
 from vertex.models import User
-from vertex.vertex_secrets import get_database_url, get_flask_auth_secrets
+from vertex.vertex_secrets import ACCOUNTS_BASE_URL, get_database_url, get_flask_auth_secrets
 
 logger = setup_logger(__name__)
 
@@ -956,6 +957,18 @@ def load_project_data(project_path):
     return project_data
 
 
+def accounts_session_ok() -> bool:
+    try:
+        r = requests.get(
+            f"{ACCOUNTS_BASE_URL}/api/session",
+            cookies=request.cookies,
+            timeout=2,
+        )
+        return r.status_code == 200 and r.json().get("authenticated", False)
+    except requests.RequestException:
+        return False
+
+
 def main():
     logger.info("Starting VERTEX")
     app = dash.Dash(
@@ -1015,6 +1028,18 @@ def main():
 
     app.layout = serve_layout
 
+    @app.server.before_request
+    def require_accounts_login():
+        path = request.path
+
+        if path.startswith(("/assets/", "/static/", "/favicon.ico")):
+            return None
+
+        if not accounts_session_ok():
+            if path.startswith("/_dash"):
+                return ("Unauthorized", 401)
+            return redirect(f"{ACCOUNTS_BASE_URL}/login?next={request.url}")
+
     register_callbacks(app)
 
     return app
@@ -1022,8 +1047,8 @@ def main():
 
 if __name__ == "__main__":
     app = main()
-    webbrowser.open("http://127.0.0.1:8050", new=2, autoraise=True)
-    app.run(debug=True, host="0.0.0.0", port=8050, use_reloader=False)
+    webbrowser.open("http://localhost:8051", new=2, autoraise=True)
+    app.run(debug=True, host="localhost", port=8051, use_reloader=False)
 else:
     app = main()
     server = app.server

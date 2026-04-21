@@ -8,6 +8,8 @@ from vertex.logging.logger import setup_logger
 
 logger = setup_logger(__name__)
 
+ACCOUNTS_BASE_URL = os.getenv("ACCOUNTS_BASE_URL", "http://localhost:8050")
+
 
 def get_database_url():
     env = os.getenv("APP_ENV", "local")
