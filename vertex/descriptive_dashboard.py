@@ -1,21 +1,22 @@
 import json
 import os
-import time
 import uuid
-import webbrowser
+from functools import lru_cache
 from urllib.parse import parse_qs, quote
 
 import dash
 import dash_bootstrap_components as dbc
+import jwt
 import pandas as pd
 import requests
 from dash import ALL, Input, Output, State, callback_context, html, no_update
 from dash.exceptions import PreventUpdate
-from flask import redirect, request
+from flask import current_app, redirect, request
 from flask_login import current_user, login_user, logout_user
 from flask_security import Security, SQLAlchemyUserDatastore
 from flask_security.utils import hash_password, verify_and_update_password
 from flask_sqlalchemy import SQLAlchemy
+from jwt import PyJWKClient
 from plotly import graph_objs as go
 from sqlalchemy import MetaData, create_engine
 from sqlalchemy.orm import Session
@@ -194,6 +195,32 @@ def resolve_project_request(query_value, project_catalog):
             return project["path"]
 
     return None
+
+
+############################################
+# Accounts
+############################################
+
+
+@lru_cache(maxsize=8)
+def _jwks_client_for_issuer(issuer: str) -> PyJWKClient:
+    discovery = requests.get(f"{issuer}/.well-known/openid-configuration", timeout=2).json()
+    return PyJWKClient(discovery["jwks_uri"])
+
+
+def verify_id_token(token: str) -> dict:
+    unverified = jwt.decode(token, options={"verify_signature": False, "verify_aud": False})
+    issuer = unverified["iss"]
+
+    signing_key = _jwks_client_for_issuer(issuer).get_signing_key_from_jwt(token)
+
+    return jwt.decode(
+        token,
+        signing_key.key,
+        algorithms=["RS256"],
+        audience=current_app.config["COGNITO_CLIENT_ID"],
+        issuer=issuer,
+    )
 
 
 ############################################
@@ -961,24 +988,6 @@ def load_project_data(project_path):
     return project_data
 
 
-def accounts_session_ok() -> bool:
-    now = time.time()
-
-    # cache for 5 seconds
-    if now - _last_check["time"] < 5:
-        return _last_check["ok"]
-
-    try:
-        r = requests.get(f"{ACCOUNTS_BASE_URL}/api/session", cookies=request.cookies, timeout=2)
-        ok = r.status_code == 200 and r.json().get("authenticated", False)
-    except requests.RequestException:
-        ok = False
-
-    _last_check["time"] = now
-    _last_check["ok"] = ok
-    return ok
-
-
 def main():
     logger.info("Starting VERTEX")
     app = dash.Dash(
@@ -997,7 +1006,7 @@ def main():
             "SECRET_KEY": flask_auth_secrets.get("SECRET_KEY"),
             "SECURITY_PASSWORD_HASH": "bcrypt",
             "SECURITY_PASSWORD_SALT": flask_auth_secrets.get("SECURITY_PASSWORD_SALT"),
-            "SECURITY_USER_IDENTITY_ATTRIBUTES": [{"email": {"mapper": "email", "case_insensitive": True}}],
+            "COGNITO_CLIENT_ID": flask_auth_secrets.get("COGNITO_CLIENT_ID"),
         }
     )
     if AUTH_ENABLED:
@@ -1039,13 +1048,22 @@ def main():
     def require_accounts_login():
         path = request.path
 
-        if path.startswith(("/assets/", "/static/", "/favicon.ico")):
+        if path.startswith(("/assets/", "/static/", "/favicon.ico", "/_reload-hash")):
             return None
 
-        if not accounts_session_ok():
-            if path.startswith("/_dash"):
-                return ("Unauthorized", 401)
+        if not AUTH_ENABLED:
+            return None
+
+        token = request.cookies.get("vertex_id_token")
+        if not token:
             return redirect(f"{ACCOUNTS_BASE_URL}/login?next={request.url}")
+
+        try:
+            verify_id_token(token)
+        except jwt.ExpiredSignatureError:
+            return redirect(f"{ACCOUNTS_BASE_URL}/login?next={request.url}")
+
+        return None
 
     register_callbacks(app)
 
@@ -1054,7 +1072,6 @@ def main():
 
 if __name__ == "__main__":
     app = main()
-    webbrowser.open("http://localhost:8051", new=2, autoraise=True)
     app.run(debug=True, host="localhost", port=8051, use_reloader=False)
 else:
     app = main()

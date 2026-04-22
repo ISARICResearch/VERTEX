@@ -49,6 +49,7 @@ def get_flask_auth_secrets():
         return {
             "SECRET_KEY": "local_dev_secret_key_mouse_trap",
             "SECURITY_PASSWORD_SALT": "local_dev_password_salt_host_place",
+            "COGNITO_CLIENT_ID": os.getenv("COGNITO_CLIENT_ID"),
         }
     secret_name = os.getenv("FLASK_AUTH_SECRETS")
     region_name = os.getenv("AWS_REGION", "eu-west-2")
