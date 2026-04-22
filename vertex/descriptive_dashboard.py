@@ -1,5 +1,6 @@
 import json
 import os
+import time
 import uuid
 import webbrowser
 from urllib.parse import parse_qs, quote
@@ -39,6 +40,9 @@ from vertex.models import User
 from vertex.vertex_secrets import ACCOUNTS_BASE_URL, get_database_url, get_flask_auth_secrets
 
 logger = setup_logger(__name__)
+
+# Accounts session check
+_last_check = {"time": 0, "ok": False}
 
 # are we running locally, i.e. no db:
 APP_ENV = os.getenv("APP_ENV")
@@ -958,15 +962,21 @@ def load_project_data(project_path):
 
 
 def accounts_session_ok() -> bool:
+    now = time.time()
+
+    # cache for 5 seconds
+    if now - _last_check["time"] < 5:
+        return _last_check["ok"]
+
     try:
-        r = requests.get(
-            f"{ACCOUNTS_BASE_URL}/api/session",
-            cookies=request.cookies,
-            timeout=2,
-        )
-        return r.status_code == 200 and r.json().get("authenticated", False)
+        r = requests.get(f"{ACCOUNTS_BASE_URL}/api/session", cookies=request.cookies, timeout=2)
+        ok = r.status_code == 200 and r.json().get("authenticated", False)
     except requests.RequestException:
-        return False
+        ok = False
+
+    _last_check["time"] = now
+    _last_check["ok"] = ok
+    return ok
 
 
 def main():
@@ -1021,10 +1031,7 @@ def main():
             logger.debug(f"Unable to read request args for project selection: {exc}")
 
         active_project = requested_project or default_project
-        initial_layout = (
-            build_project_layout(active_project, project_catalog, login_state) if active_project is not None else None
-        )
-        return define_shell_layout(active_project, initial_body=initial_layout)
+        return define_shell_layout(active_project, initial_body=html.Div("Loading VERTEX..."))
 
     app.layout = serve_layout
 

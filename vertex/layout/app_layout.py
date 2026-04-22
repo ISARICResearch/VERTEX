@@ -25,7 +25,11 @@ def define_shell_layout(init_project_path, initial_body=None):
                 style={"position": "absolute", "top": 0, "left": 10, "zIndex": 1000},
             ),
             # Main content area
-            html.Div(id="project-body", children=initial_body),
+            dcc.Loading(
+                id="loading-project",
+                type="default",  # or "circle", "dot"
+                children=html.Div(id="project-body", children=initial_body),
+            ),
             # Footer
             footer,
             # Modals
