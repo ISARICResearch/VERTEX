@@ -1,4 +1,4 @@
-import isaricanalytics.IsaricDraw as idw
+import isaricanalytics.analytics as idw
 import pandas as pd
 
 
