@@ -2,7 +2,7 @@ from_unit,to_unit,variable,variable_unit,conversion_factor,conversion_offset
 umol/L,mg/dL,labs_creatinine,labs_creatinine_units,88.4,0
 mmol/L,mg/dL,labs_ureanitro,labs_ureanitro_units,0.357,0
 10^9/L,%,labs_neutrophil,labs_neutrophil_units,,
-C,F,vital_highesttem,vital_highesttem_units,1.8,32
+F,C,vital_highesttem,vital_highesttem_units,0.5556,-17.7778
 umol/L,mg/dL,labs_bilirubin,labs_bilirubin_units,17.1,0
 10^9/L,%,labs_lymphocyte,labs_lymphocyte_units,,
 "Fraction, 0.21-1.0","%, 21-100",vital_fio2spo2,vital_fio2spo2_units,100.0,0
