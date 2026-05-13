@@ -256,11 +256,6 @@ html_context = {
 # General (non-theme) HTML output options
 # Custom deployment domain required here
 # html_baseurl = ''
-
-# HTML theme options
-html_theme = "furo"
-html_theme_options = {}
-
 html_logo = "_static/isaric-logo.png"
 
 # Relative path (from the ``docs`` folder) to the static files folder - so
