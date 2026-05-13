@@ -267,12 +267,10 @@ html_logo = '_static/isaric-logo.png'
 # ``_static`` should be one level below ``docs``.
 html_static_path = ["_static"]
 
-# Custom CSS file(s) - currently source the Font Awesome CSS classes to support
-# Font Awesome icons. for more information see:
-#
-#     https://sphinx-design.readthedocs.io/en/latest/badges_buttons.html#fontawesome-icons
-#
-# html_css_files = []
+# Custom CSS file(s)
+html_css_files = [
+    "css/custom.css",
+]
 
 # Timestamp format for the last page updated time
 html_last_updated_fmt = "%b %d, %Y"
