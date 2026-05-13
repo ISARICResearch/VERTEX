@@ -47,7 +47,6 @@ jobs:
           PROJECTS_REPO_BRANCH: ${{ vars.PROJECTS_REPO_BRANCH }}
           PROJECTS_GIT_SSH_KEY_PATH: ${{ vars.PROJECTS_GIT_SSH_KEY_PATH }}
           PROJECTS_GIT_KNOWN_HOSTS_PATH: ${{ vars.PROJECTS_GIT_KNOWN_HOSTS_PATH }}
-          VERTEX_BASE_URL: ${{ vars.VERTEX_BASE_URL }}
         run: |
           set -euo pipefail
 
@@ -139,11 +138,6 @@ jobs:
 
               # pull and run the new image
               docker pull "${ECR_REPO}:latest"
-
-              # Inject deployment-time env vars into /etc/environment (read by --env-file)
-              # Remove stale values first, then append current ones
-              sed -i '/^VERTEX_BASE_URL=/d' /etc/environment
-              echo "VERTEX_BASE_URL=${VERTEX_BASE_URL}" >> /etc/environment
 
               docker run -d --restart unless-stopped \
                 --env-file /etc/environment \
