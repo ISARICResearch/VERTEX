@@ -134,6 +134,7 @@ intersphinx_mapping = {
 
 # HTML theme options
 html_theme = "furo"
+
 html_theme_options = {
     # Customisation to make the site light-only (disable dark mode).
     "dark_css_variables": {
