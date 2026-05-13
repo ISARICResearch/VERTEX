@@ -17,7 +17,7 @@ VERTEX has three main elements:
 
 VERTEX processes and visualizes data using the concept of **Reproducible Analytical Pipelines (RAPs)**. RAPs are a set of resusable functions or blocks of code that can request specific variables from an `ARC <https://github.com/ISARICResearch/ARC>`_-formatted REDCap database. These functions then process the data to generate dataframes, which can then be visualized interactively through a Plotly Dash app.
 
-For more detailed instructions on how to use VERTEX please refer to the linked pages below.
+For more detailed instructions on how to use VERTEX please refer to the linked pages below. The documentation will be updated over time to add information on topics of relevance or interest.
 
 VERTEX is licensed under the open source compliant `MIT license <https://opensource.org/license/mit>`_.
 
