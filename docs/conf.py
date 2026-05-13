@@ -103,9 +103,9 @@ extensions = [
 #         https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html#confval-autodoc_default_options
 autodoc_default_options = {
     "exclude-members": "",
-    "member-order": "bysource",
+    "member-order": "alphabetical",
     "private-members": False,
-    "special-members": "__init__,__new__",
+    "special-members": "",
 }
 
 # Sphinx autodoc autosummary settings
