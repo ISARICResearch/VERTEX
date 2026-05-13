@@ -27,7 +27,7 @@ VERTEX is licensed under the open source compliant `MIT license <https://opensou
    :width:  200px
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
    sources/getting-started
