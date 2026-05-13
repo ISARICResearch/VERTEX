@@ -50,7 +50,7 @@ dependencies = [
     "kaleido==1.0.0", # Kaleido v1.0.0 fixes an issue with image exports on Windows (see https://github.com/plotly/Kaleido/issues/300)
     "lifelines==0.30.0",
     "numpy==1.26.4",
-    "pandas==2.2.1",
+    "pandas>=2.2.1",
     "plotly==6.1.1",
     "psycopg2-binary==2.9.10",
     "requests>=2.32.4",

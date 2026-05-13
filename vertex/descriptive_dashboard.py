@@ -1,6 +1,5 @@
 import json
 import os
-import uuid
 from functools import lru_cache
 from urllib.parse import parse_qs, quote
 
@@ -9,19 +8,13 @@ import dash_bootstrap_components as dbc
 import jwt
 import pandas as pd
 import requests
-from dash import ALL, Input, Output, State, callback_context, html, no_update
+from dash import ALL, Input, Output, State, callback_context, html
 from dash.exceptions import PreventUpdate
-from flask import current_app, redirect, request
-from flask_login import current_user, login_user, logout_user
-from flask_security import Security, SQLAlchemyUserDatastore
-from flask_security.utils import hash_password, verify_and_update_password
-from flask_sqlalchemy import SQLAlchemy
+from flask import current_app, redirect, request, session, url_for
 from jwt import PyJWKClient
 from plotly import graph_objs as go
 from sqlalchemy import MetaData, create_engine
-from sqlalchemy.orm import Session
 
-import vertex.vertex_secrets as vertex_secrets
 from vertex.io import (
     config_defaults,
     get_config,
@@ -37,17 +30,29 @@ from vertex.layout.insight_panels import get_insight_panels, get_public_visuals
 from vertex.layout.modals import create_modal
 from vertex.logging.logger import setup_logger
 from vertex.map import create_map, filter_df_map, get_countries, get_public_countries, merge_data_with_countries
-from vertex.models import User
-from vertex.vertex_secrets import ACCOUNTS_BASE_URL, get_database_url, get_flask_auth_secrets
+from vertex.vertex_secrets import get_database_url, get_flask_auth_secrets
 
 logger = setup_logger(__name__)
 
 # Accounts session check
 _last_check = {"time": 0, "ok": False}
 
-# are we running locally, i.e. no db:
-APP_ENV = os.getenv("APP_ENV")
-AUTH_ENABLED = bool(APP_ENV)
+AUTH_ENABLED = False
+
+
+def _is_truthy(value):
+    return str(value).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def should_enable_auth(auth_settings: dict) -> bool:
+    # Optional explicit override for local troubleshooting.
+    explicit_toggle = os.getenv("VERTEX_ENABLE_AUTH")
+    if explicit_toggle is not None:
+        return _is_truthy(explicit_toggle)
+
+    return bool(auth_settings.get("VERTEX_BASE_URL") and auth_settings.get("COGNITO_CLIENT_ID"))
+
+
 ############################################
 # DATABASE SETUP
 ############################################
@@ -55,11 +60,6 @@ AUTH_ENABLED = bool(APP_ENV)
 DATABASE_URL = get_database_url()
 engine = create_engine(DATABASE_URL)
 metadata = MetaData()
-
-# Flask login
-
-db = SQLAlchemy()  # we will bind these to the app later
-security = Security()
 
 ############################################
 # CACHE DATA
@@ -220,7 +220,63 @@ def verify_id_token(token: str) -> dict:
         algorithms=["RS256"],
         audience=current_app.config["COGNITO_CLIENT_ID"],
         issuer=issuer,
+        leeway=30,  # allow 30 seconds of leeway to prevent slow clock skew from breaking token validation
     )
+
+
+def get_accounts_login_url(next_url: str | None = None) -> str:
+    vertex_base_url = current_app.config["VERTEX_BASE_URL"].rstrip("/")
+    login_url = f"{vertex_base_url}/login"
+    if not next_url:
+        return login_url
+    return f"{login_url}?next={quote(next_url, safe='')}"
+
+
+def get_accounts_logout_url(next_url: str | None = None) -> str:
+    vertex_base_url = current_app.config["VERTEX_BASE_URL"].rstrip("/")
+    logout_url = f"{vertex_base_url}/logout"
+    if not next_url:
+        return logout_url
+    return f"{logout_url}?next={quote(next_url, safe='')}"
+
+
+def get_request_login_state() -> bool:
+    if not AUTH_ENABLED:
+        return True
+
+    token = request.cookies.get("vertex_id_token")
+    if not token:
+        return False
+
+    try:
+        verify_id_token(token)
+    except jwt.PyJWTError as exc:
+        unverified = jwt.decode(token, options={"verify_signature": False, "verify_aud": False, "verify_exp": False})
+        logger.warning(
+            f"Token verification failed: {exc}\n"
+            f"  iss:  {unverified.get('iss')}\n"
+            f"  aud:  {unverified.get('aud')}\n"
+            f"  exp:  {unverified.get('exp')}\n"
+            f"  configured COGNITO_CLIENT_ID: {current_app.config.get('COGNITO_CLIENT_ID')}"
+        )
+        return False
+
+    return True
+
+
+def build_auth_controls(is_logged_in: bool):
+    if not AUTH_ENABLED:
+        return html.Div()
+
+    # Avoid capturing Dash-internal endpoints as the post-login redirect target
+    _dash_internal = ("/_dash-", "/_reload-", "/auth/")
+    raw_url = request.url
+    next_url = "/" if any(request.path.startswith(p) for p in _dash_internal) else raw_url
+
+    if is_logged_in:
+        return html.A("Logout", href=get_accounts_logout_url(next_url), className="btn btn-danger btn-md")
+
+    return html.A("Login", href=get_accounts_login_url(next_url), className="btn btn-primary btn-md")
 
 
 ############################################
@@ -595,125 +651,6 @@ def register_callbacks(app):
             state = not is_in
         return state
 
-    @app.callback(Output("auth-button-container", "children"), Input("login-state", "data"))
-    def render_auth_button(is_logged_in):
-        if not AUTH_ENABLED:
-            return html.Div()  # No auth in local mode
-        return html.Div(
-            [
-                dbc.Button(
-                    "Login",
-                    id="open-login",
-                    color="primary",
-                    size="md",
-                    style={"display": "inline-block" if not is_logged_in else "none"},
-                ),
-                dbc.Button(
-                    "Logout",
-                    id="logout-button",
-                    color="danger",
-                    size="md",
-                    style={"display": "inline-block" if is_logged_in else "none"},
-                ),
-            ]
-        )
-
-    @app.callback(
-        Output("login-state", "data"),
-        Output("login-modal", "is_open"),
-        Output("login-output", "children"),
-        Input("open-login", "n_clicks"),
-        Input("login-submit", "n_clicks"),
-        Input("logout-button", "n_clicks"),
-        State("login-modal", "is_open"),
-        State("username", "value"),
-        State("password", "value"),
-        prevent_initial_call=True,
-    )
-    def handle_login_logout(open_clicks, submit_clicks, logout_clicks, is_open, username, password):
-        ctx = callback_context
-
-        if not ctx.triggered:
-            raise PreventUpdate
-
-        if (open_clicks == 0 or open_clicks is None) and (logout_clicks == 0 or logout_clicks is None):
-            return dash.no_update, False, ""
-
-        trigger = ctx.triggered[0]["prop_id"].split(".")[0]
-
-        if trigger == "open-login":
-            return dash.no_update, True, ""
-
-        if trigger == "logout-button":
-            logout_user()
-            return False, dash.no_update, ""
-
-        if trigger == "login-submit":
-            if not username or not password:
-                return False, True, "Please enter both username and password."
-
-            try:
-                with Session(engine) as session:
-                    user = session.query(User).filter_by(email=username.strip().lower()).first()
-                    logger.debug(f"User found: {user}")
-                    if user and verify_and_update_password(password, user):
-                        login_user(user)
-                        return True, False, ""
-                    logger.debug(f"Invalid login attempt for user: {username}")
-                    return False, True, "Invalid username or password."
-            except Exception as exc:
-                logger.exception(f"Login backend error for user {username}: {exc}")
-                return False, True, "Login service unavailable. Please try again."
-
-        return dash.no_update, is_open, ""
-
-    @app.callback(
-        Output("register-output", "children"),
-        Output("register-modal", "is_open"),
-        Input("open-register", "n_clicks"),
-        Input("register-submit", "n_clicks"),
-        State("register-modal", "is_open"),
-        State("register-email", "value"),
-        State("register-password", "value"),
-        State("register-confirm-password", "value"),
-        prevent_initial_call=True,
-    )
-    def handle_register(open_clicks, submit_clicks, is_open, email, password, confirm_password):
-        ctx = callback_context
-        triggered = ctx.triggered_id
-
-        if triggered == "open-register":
-            return no_update, True  # Open the modal
-
-        elif triggered == "register-submit":
-            if not email or not password or not confirm_password:
-                return "Please fill in all fields", True
-
-            if password != confirm_password:
-                return "Passwords do not match", True
-
-            try:
-                with Session(engine) as session:
-                    existing = session.query(User).filter_by(email=email.lower()).first()
-                    if existing:
-                        return "User already exists", True
-
-                    new_user = User(
-                        id=uuid.uuid4(),
-                        email=email.lower(),
-                        password=hash_password(password),
-                        fs_uniquifier=vertex_secrets.token_urlsafe(32),
-                        is_admin=False,
-                    )
-                    session.add(new_user)
-                    session.commit()
-                    return "", False  # Close modal on success
-            except Exception as exc:
-                logger.exception(f"Registration backend error for email {email}: {exc}")
-                return "Registration service unavailable. Please try again.", True
-
-        return no_update, is_open
-
     @app.callback(
         Output("country-display-modal", "children"),
         [Input("country-checkboxes-modal", "value")],
@@ -989,6 +926,8 @@ def load_project_data(project_path):
 
 
 def main():
+    global AUTH_ENABLED
+
     logger.info("Starting VERTEX")
     app = dash.Dash(
         __name__,
@@ -1000,21 +939,21 @@ def main():
 
     # Flask / DB config
     flask_auth_secrets = get_flask_auth_secrets()
+    AUTH_ENABLED = should_enable_auth(flask_auth_secrets)
+    logger.info(f"Authentication enabled: {AUTH_ENABLED}")
+
     app.server.config.update(
         {
             "SQLALCHEMY_DATABASE_URI": DATABASE_URL if AUTH_ENABLED else None,
             "SECRET_KEY": flask_auth_secrets.get("SECRET_KEY"),
-            "SECURITY_PASSWORD_HASH": "bcrypt",
-            "SECURITY_PASSWORD_SALT": flask_auth_secrets.get("SECURITY_PASSWORD_SALT"),
             "COGNITO_CLIENT_ID": flask_auth_secrets.get("COGNITO_CLIENT_ID"),
+            "COGNITO_CLIENT_SECRET": flask_auth_secrets.get("COGNITO_CLIENT_SECRET"),
+            "COGNITO_USER_POOL_ID": flask_auth_secrets.get("COGNITO_USER_POOL_ID"),
+            "COGNITO_DOMAIN": flask_auth_secrets.get("COGNITO_DOMAIN"),
+            "VERTEX_BASE_URL": flask_auth_secrets.get("VERTEX_BASE_URL"),
+            "AWS_REGION": flask_auth_secrets.get("AWS_REGION"),
         }
     )
-    if AUTH_ENABLED:
-        db.init_app(app.server)
-        with app.server.app_context():
-            global user_datastore
-            user_datastore = SQLAlchemyUserDatastore(db, User, None)
-            security.init_app(app.server, user_datastore)
 
     project_catalog = get_projects_catalog()
     sync_project_type_map(project_catalog)
@@ -1025,7 +964,7 @@ def main():
         # Prefer project= for new links, but keep param= for legacy one-off deployments.
         project_catalog = get_projects_catalog()
         sync_project_type_map(project_catalog)
-        login_state = current_user.is_authenticated if AUTH_ENABLED else True
+        login_state = get_request_login_state()
         visible_projects = get_visible_projects(project_catalog, login_state)
         default_project = get_default_project_path(visible_projects)
         requested_project = None
@@ -1040,15 +979,115 @@ def main():
             logger.debug(f"Unable to read request args for project selection: {exc}")
 
         active_project = requested_project or default_project
-        return define_shell_layout(active_project, initial_body=html.Div("Loading VERTEX..."))
+        return define_shell_layout(
+            active_project,
+            initial_body=html.Div("Loading VERTEX..."),
+            auth_controls=build_auth_controls(login_state),
+            initial_login_state=login_state,
+        )
 
     app.layout = serve_layout
 
+    # ---------------------------------------------------------------------------
+    # Built-in auth routes – used when VERTEX_BASE_URL points at this server
+    # (i.e. local dev).  Production deployments delegate to account.isaric.org.
+    # ---------------------------------------------------------------------------
+
+    @app.server.route("/auth/login")
+    def auth_login():
+        next_url = request.args.get("next", request.url_root)
+        cognito_domain = current_app.config.get("COGNITO_DOMAIN", "").rstrip("/")
+        client_id = current_app.config.get("COGNITO_CLIENT_ID")
+
+        if not cognito_domain or not client_id:
+            logger.error("COGNITO_DOMAIN or COGNITO_CLIENT_ID not configured – cannot initiate login")
+            return "Auth not configured", 500
+
+        callback_uri = url_for("auth_callback", _external=True)
+        session["auth_next"] = next_url
+
+        authorize_url = (
+            f"{cognito_domain}/oauth2/authorize"
+            f"?response_type=code"
+            f"&client_id={client_id}"
+            f"&redirect_uri={quote(callback_uri, safe='')}"
+            f"&scope=openid%20email%20profile"
+        )
+        return redirect(authorize_url)
+
+    @app.server.route("/auth/callback")
+    def auth_callback():
+        code = request.args.get("code")
+        if not code:
+            logger.warning("auth_callback called without code param")
+            return redirect("/")
+
+        cognito_domain = current_app.config.get("COGNITO_DOMAIN", "").rstrip("/")
+        client_id = current_app.config.get("COGNITO_CLIENT_ID")
+        client_secret = current_app.config.get("COGNITO_CLIENT_SECRET")
+        callback_uri = url_for("auth_callback", _external=True)
+
+        token_resp = requests.post(
+            f"{cognito_domain}/oauth2/token",
+            data={
+                "grant_type": "authorization_code",
+                "client_id": client_id,
+                "code": code,
+                "redirect_uri": callback_uri,
+            },
+            auth=(client_id, client_secret) if client_secret else None,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            timeout=10,
+        )
+
+        token_data = token_resp.json()
+        id_token = token_data.get("id_token")
+
+        if not id_token:
+            logger.error(f"Token exchange failed: {token_data.get('error', token_data)}")
+            return "Login failed – could not obtain token", 502
+
+        # Decode without verification just to log claims (signature already verified on each request)
+        claims = jwt.decode(id_token, options={"verify_signature": False, "verify_aud": False})
+        logger.info(
+            "=== USER SESSION ===\n"
+            f"  sub:            {claims.get('sub')}\n"
+            f"  email:          {claims.get('email')}\n"
+            f"  name:           {claims.get('name')}\n"
+            f"  cognito:groups: {claims.get('cognito:groups')}\n"
+            f"  exp:            {claims.get('exp')}\n"
+            "==================="
+        )
+
+        next_url = session.pop("auth_next", "/")
+        resp = redirect(next_url)
+        resp.set_cookie("vertex_id_token", id_token, httponly=True, samesite="Lax")
+        return resp
+
+    @app.server.route("/auth/logout")
+    def auth_logout():
+        cognito_domain = current_app.config.get("COGNITO_DOMAIN", "").rstrip("/")
+        client_id = current_app.config.get("COGNITO_CLIENT_ID")
+        # logout_uri must be an absolute URL registered in the Cognito app client
+        app_root = request.url_root.rstrip("/")  # e.g. http://localhost:8050
+        next_url = request.args.get("next", "")
+        # Strip Dash-internal paths; always land on app root after logout
+        _dash_internal = ("/_dash-", "/_reload-", "/auth/")
+        if not next_url or any(p in next_url for p in _dash_internal):
+            next_url = app_root
+        # Ensure absolute URL
+        if next_url.startswith("/"):
+            next_url = app_root + next_url
+
+        resp = redirect(f"{cognito_domain}/logout" f"?client_id={client_id}" f"&logout_uri={quote(next_url, safe='')}")
+        resp.delete_cookie("vertex_id_token")
+        return resp
+
     @app.server.before_request
-    def require_accounts_login():
+    def validate_accounts_session():
         path = request.path
 
-        if path.startswith(("/assets/", "/static/", "/favicon.ico", "/_reload-hash")):
+        if path.startswith(("/assets/", "/static/", "/favicon.ico", "/_reload-hash", "/auth/")):
             return None
 
         if not AUTH_ENABLED:
@@ -1056,12 +1095,13 @@ def main():
 
         token = request.cookies.get("vertex_id_token")
         if not token:
-            return redirect(f"{ACCOUNTS_BASE_URL}/login?next={request.url}")
+            return None
 
         try:
             verify_id_token(token)
-        except jwt.ExpiredSignatureError:
-            return redirect(f"{ACCOUNTS_BASE_URL}/login?next={request.url}")
+        except jwt.PyJWTError as exc:
+            logger.info(f"Invalid vertex_id_token cookie ({exc}), continuing as logged out")
+            return None
 
         return None
 

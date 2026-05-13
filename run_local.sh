@@ -1,9 +1,18 @@
 #!/bin/bash
 # set -euo pipefail
 
+# === Load local env vars ===
+if [[ -f "$(dirname "$0")/.env" ]]; then
+  set -a
+  # shellcheck source=.env
+  source "$(dirname "$0")/.env"
+  set +a
+fi
+
 # === CONFIGURATION ===
-# AWS_PROFILE=$AWS_PROFILE_ISARIC # Your SSO profile name
-# ROLE_ARN=$ROLE_ARN_ISARIC # the isaric auth arn
+# Prefer _ISARIC-suffixed vars from .env so they don't clobber the host AWS env
+AWS_PROFILE="${AWS_PROFILE:-$AWS_PROFILE_ISARIC}"
+ROLE_ARN="${ROLE_ARN:-$ROLE_ARN_ISARIC}"
 SESSION_NAME="local-dev"
 REGION="eu-west-2"
 IMAGE_NAME="my-app-image"
@@ -34,11 +43,19 @@ docker run \
   -v "$(pwd)/demo-projects:/app/demo-projects" \
   -v "$(pwd)/projects:/app/projects" \
   -p 8050:8050 \
+  -e APP_ENV="dev" \
   -e VERTEX_GIT_SHA="$(git rev-parse HEAD)" \
   -e AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" \
   -e AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" \
   -e AWS_SESSION_TOKEN="$AWS_SESSION_TOKEN" \
   -e AWS_REGION="$REGION" \
+  -e COGNITO_CLIENT_ID="$COGNITO_CLIENT_ID" \
+  -e COGNITO_CLIENT_SECRET="$COGNITO_CLIENT_SECRET" \
+  -e COGNITO_USER_POOL_ID="$COGNITO_USER_POOL_ID" \
+  -e COGNITO_DOMAIN="$COGNITO_DOMAIN" \
+  -e VERTEX_BASE_URL="http://localhost:8050/auth" \
+  -e FLASK_AUTH_SECRETS="arn:aws:secretsmanager:eu-west-2:891612573996:secret:isaric/flask-auth-secrets-5Iz1xn" \
+  -e VERTEX_ENABLE_AUTH="True" \
   -e VERTEX_PROJECTS_DIR="/app/projects" \
   -e VERTEX_ENABLE_SAVE_OUTPUTS="true" \
   -w /app \
