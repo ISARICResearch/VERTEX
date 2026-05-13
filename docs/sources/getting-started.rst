@@ -145,8 +145,6 @@ For more information about creating a new project in VERTEX, please refer to the
 
 .. container:: footer
 
-   Licensed under a `Creative Commons Attribution-ShareAlike 4.0 <https://creativecommons.org/licenses/by-sa/4.0/>`__ International License by `ISARIC <https://isaric.org/>`__ on behalf of Oxford University.
-
 .. |VERTEX| image:: https://github.com/ISARICResearch/Training/raw/main/docs/assets/vertex_starting-insight-panel.png
 .. |VERTEX dashboard| image:: https://github.com/ISARICResearch/Training/raw/main/docs/assets/vertex_starting-dashboard.png
 .. |Insight panels| image:: https://github.com/ISARICResearch/Training/raw/main/docs/assets/vertex_starting-insight-panel.png
