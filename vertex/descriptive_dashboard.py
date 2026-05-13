@@ -1,20 +1,24 @@
 import json
 import os
-from functools import lru_cache
 from urllib.parse import parse_qs, quote
 
 import dash
 import dash_bootstrap_components as dbc
-import jwt
 import pandas as pd
-import requests
 from dash import ALL, Input, Output, State, callback_context, html
 from dash.exceptions import PreventUpdate
-from flask import current_app, redirect, request, session, url_for
-from jwt import PyJWKClient
+from flask import g
 from plotly import graph_objs as go
-from sqlalchemy import MetaData, create_engine
 
+from vertex.auth import (
+    build_auth_controls,
+    configure_auth,
+    get_request_is_logged_in,
+    get_request_login_state,
+)
+from vertex.auth import (
+    should_enable_auth as check_auth_enabled,
+)
 from vertex.io import (
     config_defaults,
     get_config,
@@ -30,7 +34,16 @@ from vertex.layout.insight_panels import get_insight_panels, get_public_visuals
 from vertex.layout.modals import create_modal
 from vertex.logging.logger import setup_logger
 from vertex.map import create_map, filter_df_map, get_countries, get_public_countries, merge_data_with_countries
-from vertex.vertex_secrets import get_database_url, get_flask_auth_secrets
+from vertex.project_access import (
+    find_project_by_path,
+    get_default_project_path,
+    get_project_value,
+    get_visible_projects,
+    normalise_buttons,
+    resolve_project_request,
+    resolve_project_value,
+)
+from vertex.vertex_secrets import get_flask_auth_secrets
 
 logger = setup_logger(__name__)
 
@@ -38,28 +51,6 @@ logger = setup_logger(__name__)
 _last_check = {"time": 0, "ok": False}
 
 AUTH_ENABLED = False
-
-
-def _is_truthy(value):
-    return str(value).strip().lower() in {"1", "true", "yes", "on"}
-
-
-def should_enable_auth(auth_settings: dict) -> bool:
-    # Optional explicit override for local troubleshooting.
-    explicit_toggle = os.getenv("VERTEX_ENABLE_AUTH")
-    if explicit_toggle is not None:
-        return _is_truthy(explicit_toggle)
-
-    return bool(auth_settings.get("VERTEX_BASE_URL") and auth_settings.get("COGNITO_CLIENT_ID"))
-
-
-############################################
-# DATABASE SETUP
-############################################
-
-DATABASE_URL = get_database_url()
-engine = create_engine(DATABASE_URL)
-metadata = MetaData()
 
 ############################################
 # CACHE DATA
@@ -100,183 +91,8 @@ def sync_project_type_map(project_catalog):
     PROJECT_TYPE_BY_PATH = {project["path"]: project.get("project_type") for project in project_catalog}
 
 
-def is_logged_in_session(login_state):
-    if not AUTH_ENABLED:
-        return True
-    return bool(login_state)
-
-
-def is_project_visible(project, login_state):
-    if project.get("project_type") == "analysis":
-        return True
-    if is_logged_in_session(login_state):
-        return True
-    return bool(project.get("is_public", False))
-
-
-def get_visible_projects(project_catalog, login_state):
-    return [project for project in project_catalog if is_project_visible(project, login_state)]
-
-
-def get_default_project_path(visible_projects):
-    for project in visible_projects:
-        if project.get("project_type") == "analysis" and project.get("data_source") == "files":
-            return project["path"]
-    for project in visible_projects:
-        if project.get("project_type") == "analysis":
-            return project["path"]
-    for project in visible_projects:
-        if project.get("project_type") == "prebuilt":
-            return project["path"]
-    return visible_projects[0]["path"] if visible_projects else None
-
-
-def get_project_value(project):
-    return project.get("project_id") or project["path"]
-
-
-def find_project_by_path(project_catalog, project_path):
-    for project in project_catalog:
-        if project["path"] == project_path:
-            return project
-    return None
-
-
-def normalise_buttons(buttons):
-    normalised = []
-    for button in buttons or []:
-        if not isinstance(button, dict):
-            continue
-        suffix = button.get("suffix")
-        if not suffix:
-            continue
-        normalised.append(
-            {
-                **button,
-                "suffix": suffix,
-                "item": button.get("item") or "Insights",
-                "label": button.get("label") or button.get("title") or suffix,
-            }
-        )
-    return normalised
-
-
-def resolve_project_value(selected_value, project_catalog):
-    if not selected_value:
-        return None
-    selected_norm = selected_value.rstrip("/")
-    for project in project_catalog:
-        if selected_norm == get_project_value(project).rstrip("/"):
-            return project["path"]
-        if selected_norm == project["path"].rstrip("/"):
-            return project["path"]
-    return None
-
-
-def resolve_project_request(query_value, project_catalog):
-    if not query_value:
-        return None
-
-    requested = query_value.strip()
-    if not requested:
-        return None
-
-    requested_norm = requested.rstrip("/")
-
-    requested_lower = requested_norm.lower()
-    for project in project_catalog:
-        if requested_norm == project["path"].rstrip("/"):
-            return project["path"]
-        if requested_norm == os.path.basename(os.path.normpath(project["path"])):
-            return project["path"]
-        if project.get("project_id") and requested_norm == project["project_id"]:
-            return project["path"]
-        if requested_lower == str(project["name"]).strip().lower():
-            return project["path"]
-
-    return None
-
-
-############################################
-# Accounts
-############################################
-
-
-@lru_cache(maxsize=8)
-def _jwks_client_for_issuer(issuer: str) -> PyJWKClient:
-    discovery = requests.get(f"{issuer}/.well-known/openid-configuration", timeout=2).json()
-    return PyJWKClient(discovery["jwks_uri"])
-
-
-def verify_id_token(token: str) -> dict:
-    unverified = jwt.decode(token, options={"verify_signature": False, "verify_aud": False})
-    issuer = unverified["iss"]
-
-    signing_key = _jwks_client_for_issuer(issuer).get_signing_key_from_jwt(token)
-
-    return jwt.decode(
-        token,
-        signing_key.key,
-        algorithms=["RS256"],
-        audience=current_app.config["COGNITO_CLIENT_ID"],
-        issuer=issuer,
-        leeway=30,  # allow 30 seconds of leeway to prevent slow clock skew from breaking token validation
-    )
-
-
-def get_accounts_login_url(next_url: str | None = None) -> str:
-    vertex_base_url = current_app.config["VERTEX_BASE_URL"].rstrip("/")
-    login_url = f"{vertex_base_url}/login"
-    if not next_url:
-        return login_url
-    return f"{login_url}?next={quote(next_url, safe='')}"
-
-
-def get_accounts_logout_url(next_url: str | None = None) -> str:
-    vertex_base_url = current_app.config["VERTEX_BASE_URL"].rstrip("/")
-    logout_url = f"{vertex_base_url}/logout"
-    if not next_url:
-        return logout_url
-    return f"{logout_url}?next={quote(next_url, safe='')}"
-
-
-def get_request_login_state() -> bool:
-    if not AUTH_ENABLED:
-        return True
-
-    token = request.cookies.get("vertex_id_token")
-    if not token:
-        return False
-
-    try:
-        verify_id_token(token)
-    except jwt.PyJWTError as exc:
-        unverified = jwt.decode(token, options={"verify_signature": False, "verify_aud": False, "verify_exp": False})
-        logger.warning(
-            f"Token verification failed: {exc}\n"
-            f"  iss:  {unverified.get('iss')}\n"
-            f"  aud:  {unverified.get('aud')}\n"
-            f"  exp:  {unverified.get('exp')}\n"
-            f"  configured COGNITO_CLIENT_ID: {current_app.config.get('COGNITO_CLIENT_ID')}"
-        )
-        return False
-
-    return True
-
-
-def build_auth_controls(is_logged_in: bool):
-    if not AUTH_ENABLED:
-        return html.Div()
-
-    # Avoid capturing Dash-internal endpoints as the post-login redirect target
-    _dash_internal = ("/_dash-", "/_reload-", "/auth/")
-    raw_url = request.url
-    next_url = "/" if any(request.path.startswith(p) for p in _dash_internal) else raw_url
-
-    if is_logged_in:
-        return html.A("Logout", href=get_accounts_logout_url(next_url), className="btn btn-danger btn-md")
-
-    return html.A("Login", href=get_accounts_login_url(next_url), className="btn btn-primary btn-md")
+def _get_visible_projects_with_auth(project_catalog, login_state):
+    return get_visible_projects(project_catalog, AUTH_ENABLED, login_state)
 
 
 ############################################
@@ -284,12 +100,41 @@ def build_auth_controls(is_logged_in: bool):
 ############################################
 
 
-def register_callbacks(app):
-    def current_visible_projects(login_state):
+def _get_project_context_for_request():
+    """Compute and cache project context for the current Flask request only.
+
+    This cache lives in Flask ``g`` and is scoped to a single HTTP request.
+    It does not persist across callback requests.
+    """
+    cache_key = "_project_context"
+    if cache_key not in g:
+        auth_state = get_request_login_state(AUTH_ENABLED)
         catalog = get_projects_catalog()
         sync_project_type_map(catalog)
-        visible = get_visible_projects(catalog, login_state)
-        return catalog, visible
+        visible = _get_visible_projects_with_auth(catalog, auth_state)
+        g._project_context = {"catalog": catalog, "visible": visible, "auth_state": auth_state}
+    return g._project_context
+
+
+def _cached_visible_projects():
+    """Get projects visible to the current user."""
+    return _get_project_context_for_request()["visible"]
+
+
+def _cached_project_catalog():
+    """Get full project catalog."""
+    return _get_project_context_for_request()["catalog"]
+
+
+def register_callbacks(app):
+    @app.callback(
+        Output("login-state", "data"),
+        Input("url", "pathname"),
+        prevent_initial_call=False,
+    )
+    def refresh_login_state(pathname):
+        """Update login state from server on each page load/navigation."""
+        return get_request_is_logged_in(AUTH_ENABLED)
 
     @app.callback(
         Output("selected-project-path", "data", allow_duplicate=True),
@@ -307,7 +152,7 @@ def register_callbacks(app):
         if not query_project:
             raise PreventUpdate
 
-        _, visible_projects = current_visible_projects(login_state)
+        visible_projects = _cached_visible_projects()
         requested_project = resolve_project_request(query_project, visible_projects)
         if not requested_project or requested_project == current_project:
             raise PreventUpdate
@@ -323,14 +168,15 @@ def register_callbacks(app):
         if not project_path:
             raise PreventUpdate
 
-        project_catalog, visible_projects = current_visible_projects(login_state)
+        catalog = _cached_project_catalog()
+        visible_projects = _cached_visible_projects()
         if project_path not in [project["path"] for project in visible_projects]:
             if not visible_projects:
                 return html.Div([html.H4("No projects available")])
             project_path = get_default_project_path(visible_projects)
 
         try:
-            layout = build_project_layout(project_path, project_catalog, login_state)
+            layout = build_project_layout(project_path, catalog, visible_projects)
         except Exception as e:
             layout = html.Div([html.H4("Error loading project"), html.Pre(str(e))])
 
@@ -345,7 +191,7 @@ def register_callbacks(app):
     )
     def set_project_path(selected_value, login_state):
         logger.info(f"Selected project is: {selected_value}")
-        _, visible_projects = current_visible_projects(login_state)
+        visible_projects = _cached_visible_projects()
         project_value = resolve_project_value(selected_value, visible_projects)
         logger.debug(f"Mapped selected project to folder: {project_value}")
         if not selected_value or not project_value:
@@ -362,12 +208,13 @@ def register_callbacks(app):
         if not selected_value:
             raise PreventUpdate
 
-        project_catalog, visible_projects = current_visible_projects(login_state)
+        catalog = _cached_project_catalog()
+        visible_projects = _cached_visible_projects()
         project_path = resolve_project_value(selected_value, visible_projects)
         if not project_path:
             raise PreventUpdate
 
-        project = find_project_by_path(project_catalog, project_path)
+        project = find_project_by_path(catalog, project_path)
         project_key = project.get("project_id") if project else None
         if not project_key:
             project_key = os.path.basename(os.path.normpath(project_path))
@@ -381,10 +228,16 @@ def register_callbacks(app):
         prevent_initial_call=True,
     )
     def sync_project_options(login_state, selected_project_path):
-        _, visible_projects = current_visible_projects(login_state)
+        visible_projects = _cached_visible_projects()
         options = [{"label": project["name"], "value": get_project_value(project)} for project in visible_projects]
         if not options:
             return [], None
+
+        # On first render, selected-project-path can be briefly unset while URL-based
+        # resolution is still being applied. Avoid forcing a default selection that can
+        # overwrite the requested project.
+        if not selected_project_path:
+            return options, None
 
         selected_project = find_project_by_path(visible_projects, selected_project_path)
         if selected_project:
@@ -397,11 +250,22 @@ def register_callbacks(app):
         Output("selected-project-path", "data", allow_duplicate=True),
         Input("login-state", "data"),
         State("selected-project-path", "data"),
+        State("url", "search"),
         prevent_initial_call=True,
     )
-    def ensure_visible_project(login_state, selected_project_path):
-        _, visible_projects = current_visible_projects(login_state)
+    def ensure_visible_project(login_state, selected_project_path, search):
+        visible_projects = _cached_visible_projects()
         visible_paths = [project["path"] for project in visible_projects]
+
+        # If URL specifies a project, resolve that first and avoid overwriting it with defaults.
+        if search:
+            query = parse_qs(search.lstrip("?"))
+            query_project = (query.get("project") or query.get("param") or [None])[0]
+            if query_project:
+                requested_project = resolve_project_request(query_project, visible_projects)
+                if requested_project and requested_project != selected_project_path:
+                    return requested_project
+
         if selected_project_path in visible_paths:
             raise PreventUpdate
         if not visible_projects:
@@ -778,9 +642,8 @@ def register_callbacks(app):
 ############################################
 
 
-def build_project_layout(project_path, project_catalog, login_state):
+def build_project_layout(project_path, project_catalog, visible_projects):
     project_data = load_project_data(project_path)
-    visible_projects = get_visible_projects(project_catalog, login_state)
     project_options = [{"label": project["name"], "value": get_project_value(project)} for project in visible_projects]
     selected_project = find_project_by_path(project_catalog, project_path)
     map_layout_dict = dict(
@@ -939,21 +802,9 @@ def main():
 
     # Flask / DB config
     flask_auth_secrets = get_flask_auth_secrets()
-    AUTH_ENABLED = should_enable_auth(flask_auth_secrets)
+    AUTH_ENABLED = check_auth_enabled(flask_auth_secrets)
     logger.info(f"Authentication enabled: {AUTH_ENABLED}")
-
-    app.server.config.update(
-        {
-            "SQLALCHEMY_DATABASE_URI": DATABASE_URL if AUTH_ENABLED else None,
-            "SECRET_KEY": flask_auth_secrets.get("SECRET_KEY"),
-            "COGNITO_CLIENT_ID": flask_auth_secrets.get("COGNITO_CLIENT_ID"),
-            "COGNITO_CLIENT_SECRET": flask_auth_secrets.get("COGNITO_CLIENT_SECRET"),
-            "COGNITO_USER_POOL_ID": flask_auth_secrets.get("COGNITO_USER_POOL_ID"),
-            "COGNITO_DOMAIN": flask_auth_secrets.get("COGNITO_DOMAIN"),
-            "VERTEX_BASE_URL": flask_auth_secrets.get("VERTEX_BASE_URL"),
-            "AWS_REGION": flask_auth_secrets.get("AWS_REGION"),
-        }
-    )
+    configure_auth(app, AUTH_ENABLED, flask_auth_secrets)
 
     project_catalog = get_projects_catalog()
     sync_project_type_map(project_catalog)
@@ -961,149 +812,17 @@ def main():
     logger.debug(f" Found {len(project_paths)} projects: {project_paths}")
 
     def serve_layout():
-        # Prefer project= for new links, but keep param= for legacy one-off deployments.
-        project_catalog = get_projects_catalog()
-        sync_project_type_map(project_catalog)
-        login_state = get_request_login_state()
-        visible_projects = get_visible_projects(project_catalog, login_state)
-        default_project = get_default_project_path(visible_projects)
-        requested_project = None
-
-        try:
-            query_project = request.args.get("project") or request.args.get("param")
-            if query_project:
-                requested_project = resolve_project_request(query_project, visible_projects)
-                if requested_project is None:
-                    logger.warning(f"Unknown project requested via query string: {query_project}")
-        except Exception as exc:
-            logger.debug(f"Unable to read request args for project selection: {exc}")
-
-        active_project = requested_project or default_project
+        # Project selection is resolved by callbacks from url.search, not request.args.
+        auth_state = get_request_login_state(AUTH_ENABLED)
+        is_logged_in = auth_state.get("is_logged_in", False)
         return define_shell_layout(
-            active_project,
+            None,
             initial_body=html.Div("Loading VERTEX..."),
-            auth_controls=build_auth_controls(login_state),
-            initial_login_state=login_state,
+            auth_controls=build_auth_controls(AUTH_ENABLED, is_logged_in),
+            initial_login_state=is_logged_in,
         )
 
     app.layout = serve_layout
-
-    # ---------------------------------------------------------------------------
-    # Built-in auth routes – used when VERTEX_BASE_URL points at this server
-    # (i.e. local dev).  Production deployments delegate to account.isaric.org.
-    # ---------------------------------------------------------------------------
-
-    @app.server.route("/auth/login")
-    def auth_login():
-        next_url = request.args.get("next", request.url_root)
-        cognito_domain = current_app.config.get("COGNITO_DOMAIN", "").rstrip("/")
-        client_id = current_app.config.get("COGNITO_CLIENT_ID")
-
-        if not cognito_domain or not client_id:
-            logger.error("COGNITO_DOMAIN or COGNITO_CLIENT_ID not configured – cannot initiate login")
-            return "Auth not configured", 500
-
-        callback_uri = url_for("auth_callback", _external=True)
-        session["auth_next"] = next_url
-
-        authorize_url = (
-            f"{cognito_domain}/oauth2/authorize"
-            f"?response_type=code"
-            f"&client_id={client_id}"
-            f"&redirect_uri={quote(callback_uri, safe='')}"
-            f"&scope=openid%20email%20profile"
-        )
-        return redirect(authorize_url)
-
-    @app.server.route("/auth/callback")
-    def auth_callback():
-        code = request.args.get("code")
-        if not code:
-            logger.warning("auth_callback called without code param")
-            return redirect("/")
-
-        cognito_domain = current_app.config.get("COGNITO_DOMAIN", "").rstrip("/")
-        client_id = current_app.config.get("COGNITO_CLIENT_ID")
-        client_secret = current_app.config.get("COGNITO_CLIENT_SECRET")
-        callback_uri = url_for("auth_callback", _external=True)
-
-        token_resp = requests.post(
-            f"{cognito_domain}/oauth2/token",
-            data={
-                "grant_type": "authorization_code",
-                "client_id": client_id,
-                "code": code,
-                "redirect_uri": callback_uri,
-            },
-            auth=(client_id, client_secret) if client_secret else None,
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-            timeout=10,
-        )
-
-        token_data = token_resp.json()
-        id_token = token_data.get("id_token")
-
-        if not id_token:
-            logger.error(f"Token exchange failed: {token_data.get('error', token_data)}")
-            return "Login failed – could not obtain token", 502
-
-        # Decode without verification just to log claims (signature already verified on each request)
-        claims = jwt.decode(id_token, options={"verify_signature": False, "verify_aud": False})
-        logger.info(
-            "=== USER SESSION ===\n"
-            f"  sub:            {claims.get('sub')}\n"
-            f"  email:          {claims.get('email')}\n"
-            f"  name:           {claims.get('name')}\n"
-            f"  cognito:groups: {claims.get('cognito:groups')}\n"
-            f"  exp:            {claims.get('exp')}\n"
-            "==================="
-        )
-
-        next_url = session.pop("auth_next", "/")
-        resp = redirect(next_url)
-        resp.set_cookie("vertex_id_token", id_token, httponly=True, samesite="Lax")
-        return resp
-
-    @app.server.route("/auth/logout")
-    def auth_logout():
-        cognito_domain = current_app.config.get("COGNITO_DOMAIN", "").rstrip("/")
-        client_id = current_app.config.get("COGNITO_CLIENT_ID")
-        # logout_uri must be an absolute URL registered in the Cognito app client
-        app_root = request.url_root.rstrip("/")  # e.g. http://localhost:8050
-        next_url = request.args.get("next", "")
-        # Strip Dash-internal paths; always land on app root after logout
-        _dash_internal = ("/_dash-", "/_reload-", "/auth/")
-        if not next_url or any(p in next_url for p in _dash_internal):
-            next_url = app_root
-        # Ensure absolute URL
-        if next_url.startswith("/"):
-            next_url = app_root + next_url
-
-        resp = redirect(f"{cognito_domain}/logout" f"?client_id={client_id}" f"&logout_uri={quote(next_url, safe='')}")
-        resp.delete_cookie("vertex_id_token")
-        return resp
-
-    @app.server.before_request
-    def validate_accounts_session():
-        path = request.path
-
-        if path.startswith(("/assets/", "/static/", "/favicon.ico", "/_reload-hash", "/auth/")):
-            return None
-
-        if not AUTH_ENABLED:
-            return None
-
-        token = request.cookies.get("vertex_id_token")
-        if not token:
-            return None
-
-        try:
-            verify_id_token(token)
-        except jwt.PyJWTError as exc:
-            logger.info(f"Invalid vertex_id_token cookie ({exc}), continuing as logged out")
-            return None
-
-        return None
 
     register_callbacks(app)
 

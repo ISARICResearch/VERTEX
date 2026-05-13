@@ -39,6 +39,7 @@ AWS_SESSION_TOKEN=$(echo "$CREDS_JSON" | jq -r '.Credentials.SessionToken')
 # === Run the Docker container ===
 echo "Launching Docker container..."
 docker run \
+  --add-host=host.docker.internal:host-gateway \
   -v "$(pwd)":/app \
   -v "$(pwd)/demo-projects:/app/demo-projects" \
   -v "$(pwd)/projects:/app/projects" \
@@ -49,6 +50,8 @@ docker run \
   -e AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" \
   -e AWS_SESSION_TOKEN="$AWS_SESSION_TOKEN" \
   -e AWS_REGION="$REGION" \
+  -e AWS_SECRET_NAME="$AWS_SECRET_NAME" \
+  -e DATABASE_URL="$DATABASE_URL" \
   -e COGNITO_CLIENT_ID="$COGNITO_CLIENT_ID" \
   -e COGNITO_CLIENT_SECRET="$COGNITO_CLIENT_SECRET" \
   -e COGNITO_USER_POOL_ID="$COGNITO_USER_POOL_ID" \
@@ -56,6 +59,8 @@ docker run \
   -e VERTEX_BASE_URL="http://localhost:8050/auth" \
   -e FLASK_AUTH_SECRETS="arn:aws:secretsmanager:eu-west-2:891612573996:secret:isaric/flask-auth-secrets-5Iz1xn" \
   -e VERTEX_ENABLE_AUTH="True" \
+  -e DATABASE_HOST="$DATABASE_HOST" \
+  -e DATABASE_PORT="$DATABASE_PORT" \
   -e VERTEX_PROJECTS_DIR="/app/projects" \
   -e VERTEX_ENABLE_SAVE_OUTPUTS="true" \
   -w /app \
