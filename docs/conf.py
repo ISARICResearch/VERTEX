@@ -132,6 +132,74 @@ intersphinx_mapping = {
     "statsmodels": ("https://www.statsmodels.org/stable", None),
 }
 
+# HTML theme options
+html_theme = "furo"
+html_theme_options = {
+    # Customisation to make the site light-only (disable dark mode).
+    "dark_css_variables": {
+        # Taken from: https://github.com/pradyunsg/furo/blob/c682d5d3502f3fa713c909eebbf9f3afa0f469d9/src/furo/assets/styles/variables/_colors.scss
+        "color-problematic": "#b30000",
+        # Base Colors
+        "color-foreground-primary": "black",  # for main text and headings
+        "color-foreground-secondary": "#5a5c63",  # for secondary text
+        "color-foreground-muted": "#646776",  # for muted text
+        "color-foreground-border": "#878787",  # for content borders
+        "color-background-primary": "white",  # for content
+        "color-background-secondary": "#f8f9fb",  # for navigation + ToC
+        "color-background-hover": "#efeff4ff",  # for navigation-item hover
+        "color-background-hover--transparent": "#efeff400",
+        "color-background-border": "#eeebee",  # for UI borders
+        "color-background-item": "#ccc",  # for "background" items (eg: copybutton)
+        # Announcements
+        "color-announcement-background": "#000000dd",
+        "color-announcement-text": "#eeebee",
+        # Brand colors
+        "color-brand-primary": "#2962ff",
+        "color-brand-content": "#2a5adf",
+        # Highlighted text (search)
+        "color-highlighted-background": "#ddeeff",
+        # GUI Labels
+        "color-guilabel-background": "#ddeeff80",
+        "color-guilabel-border": "#bedaf580",
+        # API documentation
+        "color-api-keyword": "var(--color-foreground-secondary)",
+        "color-highlight-on-target": "#ffffcc",
+        # Admonitions
+        "color-admonition-background": "transparent",
+        # Cards
+        "color-card-border": "var(--color-background-secondary)",
+        "color-card-background": "transparent",
+        "color-card-marginals-background": "var(--color-background-hover)",
+        # Code blocks
+        "color-code-foreground": "black",
+        "color-code-background": "#f8f9fb",
+    },
+    "footer_icons": [
+        {
+            "name": "VERTEX@GitHub",
+            "url": "https://github.com/ISARICResearch/VERTEX",
+            "html": """
+                <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
+                </svg>
+            """,
+            "class": "",
+        },
+    ],
+}
+
+# Override the default sidebar listing by commenting out the ethical ads sidebar.
+html_sidebars = {
+    "**": [
+        "sidebar/scroll-start.html",
+        "sidebar/brand.html",
+        "sidebar/search.html",
+        "sidebar/navigation.html",
+        # "sidebar/ethical-ads.html",
+        "sidebar/scroll-end.html",
+    ]
+}
+
 # Static template paths
 templates_path = ["_templates"]
 
@@ -193,7 +261,7 @@ html_context = {
 html_theme = "furo"
 html_theme_options = {}
 
-# html_logo = '_static/logo.png'
+html_logo = '_static/isaric-logo.png'
 
 # Relative path (from the ``docs`` folder) to the static files folder - so
 # ``_static`` should be one level below ``docs``.
