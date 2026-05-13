@@ -1,4 +1,4 @@
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 
 import jwt
 import requests
@@ -115,12 +115,18 @@ def configure_auth(app, auth_enabled: bool, auth_settings: dict) -> None:
         app_root = request.url_root.rstrip("/")
         next_url = request.args.get("next", "")
         dash_internal = ("/_dash-", "/_reload-", "/auth/")
-        if not next_url or any(prefix in next_url for prefix in dash_internal):
-            next_url = app_root
-        if next_url.startswith("/"):
-            next_url = app_root + next_url
 
-        resp = redirect(f"{cognito_domain}/logout" f"?client_id={client_id}" f"&logout_uri={quote(next_url, safe='')}")
+        if not next_url or any(prefix in next_url for prefix in dash_internal):
+            safe_next_url = app_root
+        elif next_url.startswith("/"):
+            safe_next_url = app_root + next_url
+        else:
+            parsed = urlparse(next_url)
+            base = urlparse(app_root)
+            same_origin = parsed.scheme == base.scheme and parsed.netloc == base.netloc
+            safe_next_url = next_url if same_origin else app_root
+
+        resp = redirect(f"{cognito_domain}/logout" f"?client_id={client_id}" f"&logout_uri={quote(safe_next_url, safe='')}")
         resp.delete_cookie("vertex_id_token")
         return resp
 

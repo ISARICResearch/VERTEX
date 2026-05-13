@@ -47,9 +47,6 @@ from vertex.vertex_secrets import get_flask_auth_secrets
 
 logger = setup_logger(__name__)
 
-# Accounts session check
-_last_check = {"time": 0, "ok": False}
-
 AUTH_ENABLED = False
 
 ############################################
