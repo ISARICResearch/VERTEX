@@ -3,12 +3,16 @@
 # -- Standard libraries --
 import os
 import sys
+
+sys.path.insert(0, os.path.abspath("."))
+sys.path.insert(0, os.path.dirname(os.path.abspath(".")))
+
 from datetime import datetime
 
 # -- 3rd party libraries --
-
 # -- Internal libraries --
-
+import vertex
+from vertex import __version__
 
 # Configuration file for the Sphinx documentation builder.
 #
@@ -21,11 +25,6 @@ from datetime import datetime
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-sys.path.insert(0, os.path.abspath("."))
-sys.path.insert(0, os.path.dirname(os.path.abspath(".")))
-
-import vertex
-from vertex import __version__
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -33,14 +32,15 @@ from vertex import __version__
 author = "ISARIC"
 copyright = f"ISARIC, {datetime.now().year}"
 description = """
-              Dash-based VERTEX dashboard for ISARIC.
+              A web-based application designed to operationalize ISARIC ARC and tailor ISARIC CRFs to disease outbreaks.
               """
 github_url = "https://github.com"
 github_repo = f"{github_url}/ISARICResearch/VERTEX"
 github_version = "main"
 # pypi_project = ''
-project = vertex.__name__
-release = __version__
+project = vertex.__name__.upper()
+release = f"v{__version__}"
+public_app_url = f"https://{project}.isaric.org"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -57,15 +57,16 @@ language = "en"
 # Set primary domain to null
 primary_domain = None
 
-# Global substitutions
+# Global substitutions available in every source page - not all used
 rst_epilog = f"""
 .. |author|                 replace:: **{author}**
 .. |copyright|              replace:: **{copyright}**
-.. |docs_url|               replace:: ''
 .. |project|                replace:: **{project}**
 .. |project_description|    replace:: {description}
 .. |release|                replace:: **{release}**
-.. |github_release_target|  replace:: https://github.com/ISARICResearch/VERTEX/releases/tag/{release}
+.. |vrelease|               replace:: **{release}**
+.. |github_release_target|  replace:: https://github.com/ISARICResearch/{project.upper()}/releases/tag/{release}
+.. |public_app_url|         replace:: {public_app_url}
 """
 
 # Publish author(s)
@@ -82,6 +83,7 @@ extensions = [
     "sphinx.ext.autodoc",
     #'sphinx.ext.autosectionlabel',
     #'sphinx.ext.autosummary',
+    "sphinxcontrib.email",
     "sphinx.ext.coverage",
     "sphinx.ext.doctest",
     "sphinx.ext.duration",
@@ -92,6 +94,7 @@ extensions = [
     #'sphinx.ext.linkcode',
     "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
+    "sphinxext.remoteliteralinclude",
     "sphinx.ext.todo",
     "sphinx.ext.viewcode",
     "sphinx_copybutton",
@@ -118,23 +121,85 @@ numpydoc_class_members_toctree = False
 numpydoc_attributes_as_param_list = False
 numpydoc_xref_param_type = False
 
-# Intersphinx mappings to reference external documentation domains - no
-# current references, but these have been listed in case relevant new
-# new references are added.
+# Intersphinx mappings to reference external documentation domains - only
+# the Python
 intersphinx_mapping = {
     #'dash': ('https://dash.plotly.com/', None),
     "numpy": ("https://numpy.org/doc/stable/", None),
     "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
     "Python": ("https://docs.python.org/3", None),
-    "scikit-learn": ("https://scikit-learn.org/stable/", None),
     "scipy": ("https://docs.scipy.org/doc/scipy/", None),
     #'sphinx': ('https://www.sphinx-doc.org/en/master/', None),
-    "statsmodels": ("https://www.statsmodels.org/stable", None),
 }
+
+# Obfuscate all mailto links in the docs sources, instead using the `email`
+# role from `sphinxcontrib-email`.
+email_automode = True
+
+# Static template paths
+templates_path = ["_templates"]
+
+# The suffix of source filenames.
+source_suffix = ".rst"
+
+# The encoding of source files.
+source_encoding = "utf-8"
+
+# List of patterns, relative to source directory, that match files and
+# directories to ignore when looking for source files.
+# This pattern also affects html_static_path and html_extra_path.
+exclude_patterns = [
+    "_build",
+    "Thumbs.db",
+    ".DS_Store",
+]
+
+# The name of the Pygments (syntax highlighting) style to use.
+# pygments_style = "sphinx"
+
+# A list of prefixes that are ignored when creating the module index.
+# (new in Sphinx 0.6)
+modindex_common_prefix = ["vertex."]
+
+# Not currently required but will be useful later once all public
+# library docstrings are complete, with doctest examples
+doctest_global_setup = "import vertex"
+
+# If this is True, the ``todo`` and ``todolist`` extension directives
+# produce output, else they produce nothing. The default is ``False``.
+todo_include_todos = True
+
+# -- Project file data variables ---------------------------------------------
+
+html_title = f"{project.upper()} {release}"
+
+# HTML global context for templates
+html_context = {
+    "authors": author,
+    "copyright": copyright,
+    "default_mode": "dark",
+    "display_github": True,
+    "github_url": "https://github.com",
+    "github_user": "ISARICResearch",
+    "github_repo": f"{project.upper()}",
+    "github_version": "main",
+    "doc_path": "docs",
+    "conf_path": "docs/conf.py",
+    "project": project,
+    "project_description": description,
+    "release": release,
+    "release_target": f"https://github.com/ISARICResearch/{project.upper()}/releases/tag/{release}",
+}
+
+# -- Options for HTML output -------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
+
+# General (non-theme) HTML output options
+# Custom deployment domain required here
+# html_baseurl = ''
 
 # HTML theme options
 html_theme = "furo"
-
 html_theme_options = {
     # Customisation to make the site light-only (disable dark mode).
     "dark_css_variables": {
@@ -177,13 +242,13 @@ html_theme_options = {
     },
     "footer_icons": [
         {
-            "name": "VERTEX@GitHub",
-            "url": "https://github.com/ISARICResearch/VERTEX",
+            "name": "BRIDGE@GitHub",
+            "url": "https://github.com/ISARICResearch/BRIDGE",
             "html": """
                 <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16">
                     <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
                 </svg>
-            """,  # noqa : E501
+            """,
             "class": "",
         },
     ],
@@ -201,62 +266,9 @@ html_sidebars = {
     ]
 }
 
-# Static template paths
-templates_path = ["_templates"]
+# Force pygments style in dark mode back to the light variant
+pygments_dark_style = "tango"
 
-# The suffix of source filenames.
-source_suffix = ".rst"
-
-# The encoding of source files.
-source_encoding = "utf-8"
-
-# List of patterns, relative to source directory, that match files and
-# directories to ignore when looking for source files.
-# This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = [
-    "_build",
-    "Thumbs.db",
-    ".DS_Store",
-]
-
-# The name of the Pygments (syntax highlighting) style to use.
-pygments_style = "sphinx"
-
-# A list of prefixes that are ignored when creating the module index. (new in Sphinx 0.6)
-modindex_common_prefix = ["vertex."]
-
-doctest_global_setup = "import vertex"
-
-# If this is True, the ``todo`` and ``todolist`` extension directives
-# produce output, else they produce nothing. The default is ``False``.
-todo_include_todos = True
-
-# -- Project file data variables ---------------------------------------------
-
-# HTML global context for templates
-html_context = {
-    "authors": author,
-    "copyright": copyright,
-    "default_mode": "dark",
-    "display_github": True,
-    "github_url": "https://github.com",
-    "github_user": "ISARICResearch",
-    "github_repo": "VERTEX",
-    "github_version": "main",
-    "doc_path": "docs",
-    "conf_path": "docs/conf.py",
-    "project": project,
-    "project_description": description,
-    "release": release,
-    "release_target": f"https://github.com/ISARICResearch/VERTEX/releases/tag/{release}",
-}
-
-# -- Options for HTML output -------------------------------------------------
-# https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
-
-# General (non-theme) HTML output options
-# Custom deployment domain required here
-# html_baseurl = ''
 html_logo = "_static/isaric-logo.png"
 
 # Relative path (from the ``docs`` folder) to the static files folder - so

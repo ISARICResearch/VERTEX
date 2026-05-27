@@ -25,7 +25,11 @@ logger = setup_logger(__name__)
 
 
 @click.command()
-@click.argument("project-path")
+@click.option(
+    "--project-path",
+    required=True,
+    help="The (absolute or relative) path to the project."
+)
 def main(project_path: str | pathlib.Path) -> None:
     """:py:class:`NoneType` : The entrypoint function.
 

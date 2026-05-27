@@ -9,14 +9,15 @@
 
 **ISARIC VERTEX** is a web-based application designed for local use by users. It serves as an analysis tool for data captured through our complementary tools: [ISARIC ARC](https://github.com/ISARICResearch/ARC) and [ISARIC BRIDGE](https://github.com/ISARICResearch/BRIDGE).
 
-VERTEX is a web-based application designed to present graphs and tables based on key relevant research questions that need to be quickly answered during an outbreak. Currently, VERTEX performs descriptive analysis, which can identify the spectrum of clinical features in a disease outbreak. New research questions will be added by the ISARIC team and the wider scientific community, enabling the creation and sharing of additional analysis methods.
+VERTEX is designed to present graphs and tables based on key relevant research questions that need to be quickly answered during an outbreak. Currently, VERTEX performs descriptive analysis, which can identify the spectrum of clinical features in a disease outbreak. New research questions will be added by the ISARIC team and the wider scientific community, enabling the creation and sharing of additional analysis methods.
 
 ## About VERTEX
 
 **ISARIC VERTEX** enables users to connect with a REDCap database through an API call. For detailed instructions, please refer to our [Getting Started with VERTEX guide](https://isaricresearch.github.io/Training/vertex_starting.html).
 
 VERTEX has three main elements:
-  - **Main App**: A map that visually represents the number and country of patients in the REDCap database.
+
+  - **Global Map**: A map that visually represents the number and country of patients in the REDCap database.
   - **Menu**: A menu containing a series of buttons that open different insight panels.
   - **Insight Panels**: Sets of visuals, each related to specific research questions.
 
@@ -99,7 +100,7 @@ Any changes to the entrypoint definition or function implementing the entrypoint
 
 * `descriptive-analytics` - generates analytics outputs from a given project source folder and saving them to local folder (in an `outputs` subfolder of the project source folder), e.g. for the Dengue synthetic demo project
 ```shell
-$ descriptive-analytics demo-projects/ARChetypeCRF_dengue_synthetic/
+$ descriptive-analytics --project-path demo-projects/ARChetypeCRF_dengue_synthetic/
 2026-03-26 10:00:05 [INFO] vertex.descriptive_analytics: Loading project data from project path: "/Users/smurthy/Documents/srm/dev/VERTEX/demo-projects/ARChetypeCRF_dengue_synthetic"
 2026-03-26 10:00:13 [INFO] vertex.io: Retrieving data from redcap API
 ...
