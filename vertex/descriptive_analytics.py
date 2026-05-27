@@ -25,8 +25,8 @@ logger = setup_logger(__name__)
 
 
 @click.command()
-@click.option("--project-path", required=True, help="The (absolute or relative) path to the project.")
-def main(project_path: str | pathlib.Path) -> None:
+@click.option("--project-path", required=True, help="The (absolute or relative) path to the project.")  # pragma: no cover
+def main(project_path: str) -> None:
     """:py:class:`NoneType` : The entrypoint function.
 
     Parameters
@@ -35,8 +35,7 @@ def main(project_path: str | pathlib.Path) -> None:
         The project path as a plain string or :py:class:`pathlib.Path` object.
 
     """
-    if not isinstance(project_path, pathlib.Path):
-        project_path = pathlib.Path(project_path).resolve()
+    project_path = pathlib.Path(project_path).resolve()
 
     # 1. Get project data from the project path, which includes buttons,
     #    insight_panels, df_map, df_countries, df_forms_dict, dictionary,
