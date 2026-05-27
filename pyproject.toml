@@ -119,7 +119,6 @@ docs = [
 [project.scripts]
 run-vertex = "descriptive_dashboard:main"
 descriptive-analytics = "vertex.descriptive_analytics:main"
-convert-metadata-txt-to-json = "vertex.converter:convert_metadata_txt_to_json"
 
 [tool.setuptools.dynamic]
 version = {attr = "vertex.__version__"}
