@@ -101,3 +101,13 @@ while the static projects should omit the REDCap API fields (or leave them blank
               }
           ]
       }
+
+
+.. _insight-panels:
+
+Insight Panels
+--------------
+
+.. todo::
+
+   TODO

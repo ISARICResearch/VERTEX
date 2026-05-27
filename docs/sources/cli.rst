@@ -11,6 +11,16 @@ VERTEX provides a very simple command line interface (CLI) currently consisting 
 
 This will install the project locally in a package named ``isaric-vertex``, and set up the executable.
 
+After using the executables, it is advisable to uninstall the editable project installation using:
+
+.. code:: shell
+
+   pip uninstall -y isaric-vertex
+
+.. note::
+
+   For more information on project CLI executables see `this <https://setuptools.pypa.io/en/latest/userguide/entry_point.html>`_ and `this <https://packaging.python.org/en/latest/specifications/entry-points/#entry-points>`_.
+
 .. _cli-descriptive-analytics:
 
 Descriptive Analytics
