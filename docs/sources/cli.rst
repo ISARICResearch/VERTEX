@@ -103,3 +103,100 @@ An example run is given below for the **ARChetypeCRF_mpox_synthetic** demo MPox 
    2026-05-26 16:26:24 [INFO] vertex.io: 1 figure table CSVs copied to "/Users/smurthy/Documents/srm/dev/VERTEX/demo-projects/ARChetypeCRF_mpox_synthetic/outputs/visuals/outcomes_complications"
    2026-05-26 16:26:24 [INFO] vertex.io: Cleaning figure table CSVs
    2026-05-26 16:26:24 [INFO] vertex.io: Cleaning figure table CSV /Users/smurthy/Documents/srm/dev/VERTEX/demo-projects/ARChetypeCRF_mpox_synthetic/outputs/visuals/outcomes_complications/fig_table_data___0.csv
+
+The :file:`output` subfolder structure can be inspected by using a command line tool such as :program:`tree` (use :command:`brew install tree` on MacOS or :command:`apt install tree` on Linux):
+
+.. code:: shell
+
+   $ tree -L 4 demo-projects/ARChetypeCRF_mpox_synthetic/outputs/
+   demo-projects/ARChetypeCRF_mpox_synthetic/outputs/
+   ├── config_file.json
+   ├── dashboard_data.csv
+   ├── dashboard_metadata.json
+   ├── enrolment_details
+   │   ├── fig_sunburst_data___0.csv
+   │   ├── fig_sunburst_metadata.json
+   │   ├── fig_text_data___0.csv
+   │   └── fig_text_metadata.json
+   ├── lesion_assessment
+   │   ├── fig_table_data___0.csv
+   │   ├── fig_table_metadata.json
+   │   ├── fig_text_data___0.csv
+   │   └── fig_text_metadata.json
+   ├── outcomes_complications
+   │   ├── fig_frequency_chart_data___0.csv
+   │   ├── fig_frequency_chart_metadata.json
+   │   ├── fig_table_data___0.csv
+   │   ├── fig_table_metadata.json
+   │   ├── fig_text_data___0.csv
+   │   ├── fig_text_metadata.json
+   │   ├── fig_upset_data___0.csv
+   │   ├── fig_upset_data___1.csv
+   │   └── fig_upset_metadata.json
+   ├── presentation_demogcomor
+   │   ├── fig_dual_stack_pyramid_data___0.csv
+   │   ├── fig_dual_stack_pyramid_metadata.json
+   │   ├── fig_frequency_chart_data___0.csv
+   │   ├── fig_frequency_chart_metadata.json
+   │   ├── fig_table_data___0.csv
+   │   ├── fig_table_metadata.json
+   │   ├── fig_text_data___0.csv
+   │   ├── fig_text_metadata.json
+   │   ├── fig_upset_data___0.csv
+   │   ├── fig_upset_data___1.csv
+   │   └── fig_upset_metadata.json
+   ├── presentation_symptoms
+   │   ├── fig_frequency_chart_data___0.csv
+   │   ├── fig_frequency_chart_metadata.json
+   │   ├── fig_table_data___0.csv
+   │   ├── fig_table_metadata.json
+   │   ├── fig_text_data___0.csv
+   │   ├── fig_text_metadata.json
+   │   ├── fig_upset_data___0.csv
+   │   ├── fig_upset_data___1.csv
+   │   └── fig_upset_metadata.json
+   ├── treatments_interventions
+   │   ├── fig_frequency_chart_inter_data___0.csv
+   │   ├── fig_frequency_chart_inter_metadata.json
+   │   ├── fig_frequency_chart_treat_data___0.csv
+   │   ├── fig_frequency_chart_treat_metadata.json
+   │   ├── fig_table_data___0.csv
+   │   ├── fig_table_metadata.json
+   │   ├── fig_text_data___0.csv
+   │   ├── fig_text_metadata.json
+   │   ├── fig_upset_inter_data___0.csv
+   │   ├── fig_upset_inter_data___1.csv
+   │   ├── fig_upset_inter_metadata.json
+   │   ├── fig_upset_treat_data___0.csv
+   │   ├── fig_upset_treat_data___1.csv
+   │   └── fig_upset_treat_metadata.json
+   └── visuals
+       ├── enrolment_details
+       │   ├── fig_sunburst.png
+       │   └── fig_text.png
+       ├── lesion_assessment
+       │   ├── fig_table_data___0.csv
+       │   └── fig_text.png
+       ├── outcomes_complications
+       │   ├── fig_frequency_chart.png
+       │   ├── fig_table_data___0.csv
+       │   ├── fig_text.png
+       │   └── fig_upset.png
+       ├── presentation_demogcomor
+       │   ├── fig_dual_stack_pyramid.png
+       │   ├── fig_frequency_chart.png
+       │   ├── fig_table_data___0.csv
+       │   ├── fig_text.png
+       │   └── fig_upset.png
+       ├── presentation_symptoms
+       │   ├── fig_frequency_chart.png
+       │   ├── fig_table_data___0.csv
+       │   ├── fig_text.png
+       │   └── fig_upset.png
+       └── treatments_interventions
+           ├── fig_frequency_chart.png
+           ├── fig_table_data___0.csv
+           ├── fig_text.png
+           └── fig_upset.png
+
+   14 directories, 75 files
