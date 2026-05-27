@@ -106,6 +106,8 @@ docs = [
     "sphinx-copybutton",
     "sphinx-gallery",
     "sphinx-design",
+    "sphinxcontrib-email",
+    "sphinxext-remoteliteralinclude",
     "myst-parser",
     "pylint",
     "furo",
