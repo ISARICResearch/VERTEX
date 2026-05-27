@@ -6,4 +6,3 @@
 
 .. literalinclude:: ../../../vertex/descriptive_analytics.py
    :linenos:
-

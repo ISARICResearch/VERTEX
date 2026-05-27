@@ -31,7 +31,7 @@ Currently, there is a single executable, :program:`descriptive-analytics`, which
 
 The figures and tables are exported to a subfolder named :file:`output` in the working directory (wherever the command was run).
 
-The project path can be either a relative path (relative to the working directory) or an absolute path, and the project itself can either be an "analysis" project where the data is fetched from an associated REDCap project database via the REDCap API and figures and artifacts are dynamically generated, or a "static" project with pre-generated aggregated figure and artifact metadata files. 
+The project path can be either a relative path (relative to the working directory) or an absolute path, and the project itself can either be an "analysis" project where the data is fetched from an associated REDCap project database via the REDCap API and figures and artifacts are dynamically generated, or a "static" project with pre-generated aggregated figure and artifact metadata files.
 
 An example run is given below for the **ARChetypeCRF_mpox_synthetic** demo MPox analysis project with synthetic data:
 
