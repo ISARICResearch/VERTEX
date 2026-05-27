@@ -3,7 +3,7 @@
 Getting Started
 ---------------
 
-The latest release is |vrelease| - download the source code from `here <https://github.com/ISARICResearch/VERTEX/releases/tag/v2.0.0>`_, or clone the repository. There is also a `public app <https://vertex.isaric.org>`_ that is freely available to use. Or you can build and run your own local version in a standalone Docker container, as described :doc:`here <app>`.
+The latest release is |vrelease| - download the source code from `GitHub <https://github.com/ISARICResearch/VERTEX/releases/tag/v2.0.0>`_, or clone the repository. There is also a `public app <https://vertex.isaric.org>`_ that is freely available to use. Or you can build and run your own local version in a standalone Docker container, as described :doc:`here <app>`.
 
 
 .. _requirements:

@@ -16,6 +16,7 @@ Technical Expertise
 
 - Esteban Garcia-Gallo - :email:`esteban.garcia@ndm.ox.ac.uk`
 - Tom Edinburgh - :email:`tom.edinburgh@ndm.ox.ac.uk`
+- Alasdair Wilson - :email:`alasdair.wilson@dtc.ox.ac.uk`
 - Leonardo Bastos - :email:`lslbastos@puc-rio.br`
 - Igor Peres - :email:`igor.peres@puc-rio.br`
 - Luiz Eduardo Raffaini :email:`lemraffaini@gmail.com`

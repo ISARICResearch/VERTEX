@@ -16,7 +16,7 @@ This will install the project locally in a package named ``isaric-vertex``, and 
 Descriptive Analytics
 ---------------------
 
-Currently, there is a single executable, :program:`descriptive-analytics`, which exports all figures and tables from a project's insight panels, given the project path:
+Currently, there is a single executable, :program:`descriptive-analytics`, which exports all figures and tables from a project's insight panels, given the project path, to a subfolder named :file:`output` in the project folder:
 
 .. code:: shell
 
@@ -28,8 +28,6 @@ Currently, there is a single executable, :program:`descriptive-analytics`, which
      --project-path TEXT  The (absolute or relative) path to the project.
                           [required]
      --help               Show this message and exit.
-
-The figures and tables are exported to a subfolder named :file:`output` in the working directory (wherever the command was run).
 
 The project path can be either a relative path (relative to the working directory) or an absolute path, and the project itself can either be an "analysis" project where the data is fetched from an associated REDCap project database via the REDCap API and figures and artifacts are dynamically generated, or a "static" project with pre-generated aggregated figure and artifact metadata files.
 
