@@ -76,6 +76,22 @@ Both paths are configurable with:
 
 - `VERTEX_PROJECTS_DIR`
 
+Static projects can be sourced from an external repository (`ISARICResearch/VERTEX-projects`) and synced on deploy plus hourly via cron using:
+
+- `scripts/sync_projects_repo.sh`
+- `scripts/install_projects_sync_cron.sh`
+
+After each sync, VERTEX can ingest static project access metadata into the auth database (`public.projects` and `public.user_project_mapping`) using:
+
+- `python -m vertex.project_ingestion --projects-dir "$VERTEX_PROJECTS_DIR"`
+
+Ingestion behavior is:
+
+- inserts only projects that do not already exist by `vertex_id`/`project_id`
+- does not overwrite existing project rows
+- links `project_owner` to project when the owner user exists.
+- if owner user does not exist yet, logs and retries on the next run (non-blocking)
+
 For prebuilt/static projects, `config_file.json` should include:
 
 - `project_name`
