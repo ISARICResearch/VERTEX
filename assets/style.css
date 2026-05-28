@@ -2,3 +2,31 @@
     max-width: 95% !important; /* allows the modal to be wider */
     width: 95% !important; /* sets a specific width */
 }
+
+/* Keep modal body scroll behavior stable across first render. */
+#modal .modal-body {
+    overflow-y: auto !important;
+    scrollbar-gutter: stable;
+}
+
+/*
+NOTE(ADW): This gorgeous piece of CSS will keep tab panes measurable for Plotly even when inactive.
+Bootstrap hides inactive panes with display:none, which makes first render jump when the pane is shown.
+This keeps panes in layout while only the active one is visible.
+*/
+#modal .tab-content {
+    position: relative;
+}
+
+#modal .tab-content > .tab-pane {
+    display: block;
+    visibility: hidden;
+    height: 0;
+    overflow: hidden;
+}
+
+#modal .tab-content > .active {
+    visibility: visible;
+    height: auto;
+    overflow: visible;
+}

@@ -17,9 +17,17 @@ def create_modal(visuals, button, filter_options=None):
         insight_children = []
         about_str = ""
     else:
+        # NOTE(ADW): We keep all tab panes layout-measurable via CSS in assets/style.css.
+        # This prevents plotly resize jumps when inactive tabs become visible.
         insight_children = [
             dbc.Tabs(
-                [dbc.Tab(dbc.Row([dbc.Col(dcc.Graph(figure=figure), id=id)]), label=label) for figure, id, label, _ in visuals],
+                [
+                    dbc.Tab(
+                        dbc.Row([dbc.Col(dcc.Graph(figure=figure, style={"width": "100%", "height": "100%"}), id=id)]),
+                        label=label,
+                    )
+                    for figure, id, label, _ in visuals
+                ],
                 active_tab="tab-0",
             )
         ]
