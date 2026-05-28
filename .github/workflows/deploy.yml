@@ -95,6 +95,8 @@ jobs:
               PROJECTS_REPO_BRANCH="${PROJECTS_REPO_BRANCH:-main}"
               PROJECTS_GIT_SSH_KEY_PATH="${PROJECTS_GIT_SSH_KEY_PATH:-/root/.ssh/vertex_projects_deploy_key}"
               PROJECTS_GIT_KNOWN_HOSTS_PATH="${PROJECTS_GIT_KNOWN_HOSTS_PATH:-/root/.ssh/known_hosts}"
+              start_ts="$(date -u --iso-8601=seconds)"
+              echo "[${start_ts}] Sync started: repo=${PROJECTS_REPO_URL} branch=${PROJECTS_REPO_BRANCH} dir=${PROJECTS_DIR}"
               export GIT_SSH_COMMAND="ssh -i ${PROJECTS_GIT_SSH_KEY_PATH} -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=${PROJECTS_GIT_KNOWN_HOSTS_PATH}"
               mkdir -p "${PROJECTS_DIR}"
               if [ -d "${PROJECTS_DIR}/.git" ]; then
@@ -105,6 +107,8 @@ jobs:
                 rm -rf "${PROJECTS_DIR}"
                 git clone --branch "${PROJECTS_REPO_BRANCH}" "${PROJECTS_REPO_URL}" "${PROJECTS_DIR}"
               fi
+              end_ts="$(date -u --iso-8601=seconds)"
+              echo "[${end_ts}] Sync finished successfully"
               SYNC
               chmod +x "${SYNC_SCRIPT_PATH}"
 
@@ -119,7 +123,7 @@ jobs:
               PROJECTS_GIT_SSH_KEY_PATH=/root/.ssh/vertex_projects_deploy_key
               PROJECTS_GIT_KNOWN_HOSTS_PATH=/root/.ssh/known_hosts
               VERTEX_SYNC_CONTAINER_NAME=isaric-vertex
-              0 * * * * root ${SYNC_SCRIPT_PATH} && docker exec ${VERTEX_SYNC_CONTAINER_NAME} python -m vertex.project_ingestion --projects-dir ${VERTEX_PROJECTS_DIR} >> /var/log/vertex-projects-sync.log 2>&1
+              0 * * * * root { ts=$(date -u --iso-8601=seconds); echo "[${ts}] vertex-projects cron run started"; ${SYNC_SCRIPT_PATH}; sync_rc=$?; if [ ${sync_rc} -ne 0 ]; then ts=$(date -u --iso-8601=seconds); echo "[${ts}] sync failed rc=${sync_rc}"; exit ${sync_rc}; fi; ts=$(date -u --iso-8601=seconds); echo "[${ts}] ingestion started container=${VERTEX_SYNC_CONTAINER_NAME} projects_dir=${VERTEX_PROJECTS_DIR}"; docker exec ${VERTEX_SYNC_CONTAINER_NAME} python -m vertex.project_ingestion --projects-dir ${VERTEX_PROJECTS_DIR}; ingest_rc=$?; ts=$(date -u --iso-8601=seconds); echo "[${ts}] vertex-projects cron run finished rc=${ingest_rc}"; exit ${ingest_rc}; } >> /var/log/vertex-projects-sync.log 2>&1
               CRON
               chmod 644 /etc/cron.d/vertex-projects-sync
 
