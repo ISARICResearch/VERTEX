@@ -44,9 +44,6 @@ jobs:
         env:
           ECR_REPO: ${{ secrets.ECR_REPOSITORY }}
           INSTANCE_ID: ${{ secrets.EC2_INSTANCE_ID }}
-          PROJECTS_REPO_BRANCH: ${{ vars.PROJECTS_REPO_BRANCH }}
-          PROJECTS_GIT_SSH_KEY_PATH: ${{ vars.PROJECTS_GIT_SSH_KEY_PATH }}
-          PROJECTS_GIT_KNOWN_HOSTS_PATH: ${{ vars.PROJECTS_GIT_KNOWN_HOSTS_PATH }}
         run: |
           set -euo pipefail
 
@@ -57,10 +54,10 @@ jobs:
 
           PROJECTS_DIR="/opt/vertex-projects"
           PROJECTS_REPO_URL="git@github.com:ISARICResearch/VERTEX-projects.git"
-          PROJECTS_REPO_BRANCH="${PROJECTS_REPO_BRANCH:-main}"
+          PROJECTS_REPO_BRANCH="main"
           SYNC_SCRIPT_PATH="/usr/local/bin/vertex-sync-projects.sh"
-          PROJECTS_GIT_SSH_KEY_PATH="${PROJECTS_GIT_SSH_KEY_PATH:-/root/.ssh/vertex_projects_deploy_key}"
-          PROJECTS_GIT_KNOWN_HOSTS_PATH="${PROJECTS_GIT_KNOWN_HOSTS_PATH:-/root/.ssh/known_hosts}"
+          PROJECTS_GIT_SSH_KEY_PATH="/root/.ssh/vertex_projects_deploy_key"
+          PROJECTS_GIT_KNOWN_HOSTS_PATH="/root/.ssh/known_hosts"
 
           # 1) write the indented heredoc to a temp file (variables expanded on runner)
           cat > /tmp/ssm-script.indented <<INDENTED
@@ -94,7 +91,7 @@ jobs:
               #!/bin/bash
               set -euo pipefail
               PROJECTS_DIR="${VERTEX_PROJECTS_DIR:-/opt/vertex-projects}"
-              PROJECTS_REPO_URL="git@github.com:ISARICResearch/VERTEX-projects.git"
+              PROJECTS_REPO_URL="${PROJECTS_REPO_URL:-git@github.com:ISARICResearch/VERTEX-projects.git}"
               PROJECTS_REPO_BRANCH="${PROJECTS_REPO_BRANCH:-main}"
               PROJECTS_GIT_SSH_KEY_PATH="${PROJECTS_GIT_SSH_KEY_PATH:-/root/.ssh/vertex_projects_deploy_key}"
               PROJECTS_GIT_KNOWN_HOSTS_PATH="${PROJECTS_GIT_KNOWN_HOSTS_PATH:-/root/.ssh/known_hosts}"
@@ -111,21 +108,18 @@ jobs:
               SYNC
               chmod +x "${SYNC_SCRIPT_PATH}"
 
-              export PROJECTS_REPO_BRANCH
-              export VERTEX_PROJECTS_DIR="${PROJECTS_DIR}"
-              export PROJECTS_GIT_SSH_KEY_PATH
-              export PROJECTS_GIT_KNOWN_HOSTS_PATH
               "${SYNC_SCRIPT_PATH}"
 
               cat > /etc/cron.d/vertex-projects-sync <<CRON
               SHELL=/bin/bash
               PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
               PROJECTS_REPO_URL=git@github.com:ISARICResearch/VERTEX-projects.git
-              PROJECTS_REPO_BRANCH=${PROJECTS_REPO_BRANCH:-main}
-              VERTEX_PROJECTS_DIR=${PROJECTS_DIR}
-              PROJECTS_GIT_SSH_KEY_PATH=${PROJECTS_GIT_SSH_KEY_PATH:-/root/.ssh/vertex_projects_deploy_key}
-              PROJECTS_GIT_KNOWN_HOSTS_PATH=${PROJECTS_GIT_KNOWN_HOSTS_PATH:-/root/.ssh/known_hosts}
-              0 * * * * root ${SYNC_SCRIPT_PATH} >> /var/log/vertex-projects-sync.log 2>&1
+              PROJECTS_REPO_BRANCH=main
+              VERTEX_PROJECTS_DIR=/opt/vertex-projects
+              PROJECTS_GIT_SSH_KEY_PATH=/root/.ssh/vertex_projects_deploy_key
+              PROJECTS_GIT_KNOWN_HOSTS_PATH=/root/.ssh/known_hosts
+              VERTEX_SYNC_CONTAINER_NAME=isaric-vertex
+              0 * * * * root ${SYNC_SCRIPT_PATH} && docker exec ${VERTEX_SYNC_CONTAINER_NAME} python -m vertex.project_ingestion --projects-dir ${VERTEX_PROJECTS_DIR} >> /var/log/vertex-projects-sync.log 2>&1
               CRON
               chmod 644 /etc/cron.d/vertex-projects-sync
 
@@ -142,7 +136,6 @@ jobs:
               docker run -d --restart unless-stopped \
                 --env-file /etc/environment \
                 -e VERTEX_PROJECTS_DIR="${PROJECTS_DIR}" \
-                -e VERTEX_PRELOAD_PROJECTS="false" \
                 -v "${PROJECTS_DIR}:${PROJECTS_DIR}:ro" \
                 --name isaric-vertex \
                 -p 8050:8050 \
@@ -156,6 +149,8 @@ jobs:
                 docker logs --tail 200 isaric-vertex || true
                 exit 1
               fi
+
+              docker exec isaric-vertex python -m vertex.project_ingestion --projects-dir "${PROJECTS_DIR}"
 
               # cleanup images/volumes
               docker image prune -f || true

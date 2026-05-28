@@ -2,7 +2,7 @@
 set -euo pipefail
 
 PROJECTS_DIR="${VERTEX_PROJECTS_DIR:-/opt/vertex-projects}"
-PROJECTS_REPO_URL="git@github.com:ISARICResearch/VERTEX-projects.git"
+PROJECTS_REPO_URL="${PROJECTS_REPO_URL:-git@github.com:ISARICResearch/VERTEX-projects.git}"
 PROJECTS_REPO_BRANCH="${PROJECTS_REPO_BRANCH:-main}"
 PROJECTS_GIT_SSH_KEY_PATH="${PROJECTS_GIT_SSH_KEY_PATH:-/root/.ssh/vertex_projects_deploy_key}"
 PROJECTS_GIT_KNOWN_HOSTS_PATH="${PROJECTS_GIT_KNOWN_HOSTS_PATH:-/root/.ssh/known_hosts}"
