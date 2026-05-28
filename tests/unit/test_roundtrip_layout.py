@@ -94,7 +94,7 @@ def test_build_project_layout_analysis_smoke(copy_fixture_project, monkeypatch):
         }
     ]
 
-    layout = dashboard.build_project_layout(project_path, project_catalog, login_state=True)
+    layout = dashboard.build_project_layout(project_path, project_catalog, visible_projects=project_catalog)
 
     assert isinstance(layout, html.Div)
 
@@ -121,6 +121,6 @@ def test_build_project_layout_prebuilt_empty_countries_smoke(prebuilt_project_fa
         }
     ]
 
-    layout = dashboard.build_project_layout(project_path, project_catalog, login_state=False)
+    layout = dashboard.build_project_layout(project_path, project_catalog, visible_projects=project_catalog)
 
     assert isinstance(layout, html.Div)

@@ -1,24 +1,24 @@
 import json
 import os
-import uuid
-import webbrowser
 from urllib.parse import parse_qs, quote
 
 import dash
 import dash_bootstrap_components as dbc
 import pandas as pd
-from dash import ALL, Input, Output, State, callback_context, html, no_update
+from dash import ALL, Input, Output, State, callback_context, html
 from dash.exceptions import PreventUpdate
-from flask import request
-from flask_login import current_user, login_user, logout_user
-from flask_security import Security, SQLAlchemyUserDatastore
-from flask_security.utils import hash_password, verify_and_update_password
-from flask_sqlalchemy import SQLAlchemy
+from flask import g
 from plotly import graph_objs as go
-from sqlalchemy import MetaData, create_engine
-from sqlalchemy.orm import Session
 
-import vertex.vertex_secrets as vertex_secrets
+from vertex.auth import (
+    build_auth_controls,
+    configure_auth,
+    get_request_is_logged_in,
+    get_request_login_state,
+)
+from vertex.auth import (
+    should_enable_auth as check_auth_enabled,
+)
 from vertex.io import (
     config_defaults,
     get_config,
@@ -34,26 +34,20 @@ from vertex.layout.insight_panels import get_insight_panels, get_public_visuals
 from vertex.layout.modals import create_modal
 from vertex.logging.logger import setup_logger
 from vertex.map import create_map, filter_df_map, get_countries, get_public_countries, merge_data_with_countries
-from vertex.models import User
-from vertex.vertex_secrets import get_database_url, get_flask_auth_secrets
+from vertex.project_access import (
+    find_project_by_path,
+    get_default_project_path,
+    get_project_value,
+    get_visible_projects,
+    normalise_buttons,
+    resolve_project_request,
+    resolve_project_value,
+)
+from vertex.vertex_secrets import get_flask_auth_secrets
 
 logger = setup_logger(__name__)
 
-# are we running locally, i.e. no db:
-APP_ENV = os.getenv("APP_ENV")
-AUTH_ENABLED = bool(APP_ENV)
-############################################
-# DATABASE SETUP
-############################################
-
-DATABASE_URL = get_database_url()
-engine = create_engine(DATABASE_URL)
-metadata = MetaData()
-
-# Flask login
-
-db = SQLAlchemy()  # we will bind these to the app later
-security = Security()
+AUTH_ENABLED = False
 
 ############################################
 # CACHE DATA
@@ -94,101 +88,8 @@ def sync_project_type_map(project_catalog):
     PROJECT_TYPE_BY_PATH = {project["path"]: project.get("project_type") for project in project_catalog}
 
 
-def is_logged_in_session(login_state):
-    if not AUTH_ENABLED:
-        return True
-    return bool(login_state)
-
-
-def is_project_visible(project, login_state):
-    if project.get("project_type") == "analysis":
-        return True
-    if is_logged_in_session(login_state):
-        return True
-    return bool(project.get("is_public", False))
-
-
-def get_visible_projects(project_catalog, login_state):
-    return [project for project in project_catalog if is_project_visible(project, login_state)]
-
-
-def get_default_project_path(visible_projects):
-    for project in visible_projects:
-        if project.get("project_type") == "analysis" and project.get("data_source") == "files":
-            return project["path"]
-    for project in visible_projects:
-        if project.get("project_type") == "analysis":
-            return project["path"]
-    for project in visible_projects:
-        if project.get("project_type") == "prebuilt":
-            return project["path"]
-    return visible_projects[0]["path"] if visible_projects else None
-
-
-def get_project_value(project):
-    return project.get("project_id") or project["path"]
-
-
-def find_project_by_path(project_catalog, project_path):
-    for project in project_catalog:
-        if project["path"] == project_path:
-            return project
-    return None
-
-
-def normalise_buttons(buttons):
-    normalised = []
-    for button in buttons or []:
-        if not isinstance(button, dict):
-            continue
-        suffix = button.get("suffix")
-        if not suffix:
-            continue
-        normalised.append(
-            {
-                **button,
-                "suffix": suffix,
-                "item": button.get("item") or "Insights",
-                "label": button.get("label") or button.get("title") or suffix,
-            }
-        )
-    return normalised
-
-
-def resolve_project_value(selected_value, project_catalog):
-    if not selected_value:
-        return None
-    selected_norm = selected_value.rstrip("/")
-    for project in project_catalog:
-        if selected_norm == get_project_value(project).rstrip("/"):
-            return project["path"]
-        if selected_norm == project["path"].rstrip("/"):
-            return project["path"]
-    return None
-
-
-def resolve_project_request(query_value, project_catalog):
-    if not query_value:
-        return None
-
-    requested = query_value.strip()
-    if not requested:
-        return None
-
-    requested_norm = requested.rstrip("/")
-
-    requested_lower = requested_norm.lower()
-    for project in project_catalog:
-        if requested_norm == project["path"].rstrip("/"):
-            return project["path"]
-        if requested_norm == os.path.basename(os.path.normpath(project["path"])):
-            return project["path"]
-        if project.get("project_id") and requested_norm == project["project_id"]:
-            return project["path"]
-        if requested_lower == str(project["name"]).strip().lower():
-            return project["path"]
-
-    return None
+def _get_visible_projects_with_auth(project_catalog, login_state):
+    return get_visible_projects(project_catalog, AUTH_ENABLED, login_state)
 
 
 ############################################
@@ -196,12 +97,41 @@ def resolve_project_request(query_value, project_catalog):
 ############################################
 
 
-def register_callbacks(app):
-    def current_visible_projects(login_state):
+def _get_project_context_for_request():
+    """Compute and cache project context for the current Flask request only.
+
+    This cache lives in Flask ``g`` and is scoped to a single HTTP request.
+    It does not persist across callback requests.
+    """
+    cache_key = "_project_context"
+    if cache_key not in g:
+        auth_state = get_request_login_state(AUTH_ENABLED)
         catalog = get_projects_catalog()
         sync_project_type_map(catalog)
-        visible = get_visible_projects(catalog, login_state)
-        return catalog, visible
+        visible = _get_visible_projects_with_auth(catalog, auth_state)
+        g._project_context = {"catalog": catalog, "visible": visible, "auth_state": auth_state}
+    return g._project_context
+
+
+def _cached_visible_projects():
+    """Get projects visible to the current user."""
+    return _get_project_context_for_request()["visible"]
+
+
+def _cached_project_catalog():
+    """Get full project catalog."""
+    return _get_project_context_for_request()["catalog"]
+
+
+def register_callbacks(app):
+    @app.callback(
+        Output("login-state", "data"),
+        Input("url", "pathname"),
+        prevent_initial_call=False,
+    )
+    def refresh_login_state(pathname):
+        """Update login state from server on each page load/navigation."""
+        return get_request_is_logged_in(AUTH_ENABLED)
 
     @app.callback(
         Output("selected-project-path", "data", allow_duplicate=True),
@@ -219,7 +149,7 @@ def register_callbacks(app):
         if not query_project:
             raise PreventUpdate
 
-        _, visible_projects = current_visible_projects(login_state)
+        visible_projects = _cached_visible_projects()
         requested_project = resolve_project_request(query_project, visible_projects)
         if not requested_project or requested_project == current_project:
             raise PreventUpdate
@@ -235,14 +165,15 @@ def register_callbacks(app):
         if not project_path:
             raise PreventUpdate
 
-        project_catalog, visible_projects = current_visible_projects(login_state)
+        catalog = _cached_project_catalog()
+        visible_projects = _cached_visible_projects()
         if project_path not in [project["path"] for project in visible_projects]:
             if not visible_projects:
                 return html.Div([html.H4("No projects available")])
             project_path = get_default_project_path(visible_projects)
 
         try:
-            layout = build_project_layout(project_path, project_catalog, login_state)
+            layout = build_project_layout(project_path, catalog, visible_projects)
         except Exception as e:
             layout = html.Div([html.H4("Error loading project"), html.Pre(str(e))])
 
@@ -257,7 +188,7 @@ def register_callbacks(app):
     )
     def set_project_path(selected_value, login_state):
         logger.info(f"Selected project is: {selected_value}")
-        _, visible_projects = current_visible_projects(login_state)
+        visible_projects = _cached_visible_projects()
         project_value = resolve_project_value(selected_value, visible_projects)
         logger.debug(f"Mapped selected project to folder: {project_value}")
         if not selected_value or not project_value:
@@ -274,12 +205,13 @@ def register_callbacks(app):
         if not selected_value:
             raise PreventUpdate
 
-        project_catalog, visible_projects = current_visible_projects(login_state)
+        catalog = _cached_project_catalog()
+        visible_projects = _cached_visible_projects()
         project_path = resolve_project_value(selected_value, visible_projects)
         if not project_path:
             raise PreventUpdate
 
-        project = find_project_by_path(project_catalog, project_path)
+        project = find_project_by_path(catalog, project_path)
         project_key = project.get("project_id") if project else None
         if not project_key:
             project_key = os.path.basename(os.path.normpath(project_path))
@@ -293,10 +225,16 @@ def register_callbacks(app):
         prevent_initial_call=True,
     )
     def sync_project_options(login_state, selected_project_path):
-        _, visible_projects = current_visible_projects(login_state)
+        visible_projects = _cached_visible_projects()
         options = [{"label": project["name"], "value": get_project_value(project)} for project in visible_projects]
         if not options:
             return [], None
+
+        # On first render, selected-project-path can be briefly unset while URL-based
+        # resolution is still being applied. Avoid forcing a default selection that can
+        # overwrite the requested project.
+        if not selected_project_path:
+            return options, None
 
         selected_project = find_project_by_path(visible_projects, selected_project_path)
         if selected_project:
@@ -309,11 +247,22 @@ def register_callbacks(app):
         Output("selected-project-path", "data", allow_duplicate=True),
         Input("login-state", "data"),
         State("selected-project-path", "data"),
+        State("url", "search"),
         prevent_initial_call=True,
     )
-    def ensure_visible_project(login_state, selected_project_path):
-        _, visible_projects = current_visible_projects(login_state)
+    def ensure_visible_project(login_state, selected_project_path, search):
+        visible_projects = _cached_visible_projects()
         visible_paths = [project["path"] for project in visible_projects]
+
+        # If URL specifies a project, resolve that first and avoid overwriting it with defaults.
+        if search:
+            query = parse_qs(search.lstrip("?"))
+            query_project = (query.get("project") or query.get("param") or [None])[0]
+            if query_project:
+                requested_project = resolve_project_request(query_project, visible_projects)
+                if requested_project and requested_project != selected_project_path:
+                    return requested_project
+
         if selected_project_path in visible_paths:
             raise PreventUpdate
         if not visible_projects:
@@ -563,125 +512,6 @@ def register_callbacks(app):
             state = not is_in
         return state
 
-    @app.callback(Output("auth-button-container", "children"), Input("login-state", "data"))
-    def render_auth_button(is_logged_in):
-        if not AUTH_ENABLED:
-            return html.Div()  # No auth in local mode
-        return html.Div(
-            [
-                dbc.Button(
-                    "Login",
-                    id="open-login",
-                    color="primary",
-                    size="md",
-                    style={"display": "inline-block" if not is_logged_in else "none"},
-                ),
-                dbc.Button(
-                    "Logout",
-                    id="logout-button",
-                    color="danger",
-                    size="md",
-                    style={"display": "inline-block" if is_logged_in else "none"},
-                ),
-            ]
-        )
-
-    @app.callback(
-        Output("login-state", "data"),
-        Output("login-modal", "is_open"),
-        Output("login-output", "children"),
-        Input("open-login", "n_clicks"),
-        Input("login-submit", "n_clicks"),
-        Input("logout-button", "n_clicks"),
-        State("login-modal", "is_open"),
-        State("username", "value"),
-        State("password", "value"),
-        prevent_initial_call=True,
-    )
-    def handle_login_logout(open_clicks, submit_clicks, logout_clicks, is_open, username, password):
-        ctx = callback_context
-
-        if not ctx.triggered:
-            raise PreventUpdate
-
-        if (open_clicks == 0 or open_clicks is None) and (logout_clicks == 0 or logout_clicks is None):
-            return dash.no_update, False, ""
-
-        trigger = ctx.triggered[0]["prop_id"].split(".")[0]
-
-        if trigger == "open-login":
-            return dash.no_update, True, ""
-
-        if trigger == "logout-button":
-            logout_user()
-            return False, dash.no_update, ""
-
-        if trigger == "login-submit":
-            if not username or not password:
-                return False, True, "Please enter both username and password."
-
-            try:
-                with Session(engine) as session:
-                    user = session.query(User).filter_by(email=username.strip().lower()).first()
-                    logger.debug(f"User found: {user}")
-                    if user and verify_and_update_password(password, user):
-                        login_user(user)
-                        return True, False, ""
-                    logger.debug(f"Invalid login attempt for user: {username}")
-                    return False, True, "Invalid username or password."
-            except Exception as exc:
-                logger.exception(f"Login backend error for user {username}: {exc}")
-                return False, True, "Login service unavailable. Please try again."
-
-        return dash.no_update, is_open, ""
-
-    @app.callback(
-        Output("register-output", "children"),
-        Output("register-modal", "is_open"),
-        Input("open-register", "n_clicks"),
-        Input("register-submit", "n_clicks"),
-        State("register-modal", "is_open"),
-        State("register-email", "value"),
-        State("register-password", "value"),
-        State("register-confirm-password", "value"),
-        prevent_initial_call=True,
-    )
-    def handle_register(open_clicks, submit_clicks, is_open, email, password, confirm_password):
-        ctx = callback_context
-        triggered = ctx.triggered_id
-
-        if triggered == "open-register":
-            return no_update, True  # Open the modal
-
-        elif triggered == "register-submit":
-            if not email or not password or not confirm_password:
-                return "Please fill in all fields", True
-
-            if password != confirm_password:
-                return "Passwords do not match", True
-
-            try:
-                with Session(engine) as session:
-                    existing = session.query(User).filter_by(email=email.lower()).first()
-                    if existing:
-                        return "User already exists", True
-
-                    new_user = User(
-                        id=uuid.uuid4(),
-                        email=email.lower(),
-                        password=hash_password(password),
-                        fs_uniquifier=vertex_secrets.token_urlsafe(32),
-                        is_admin=False,
-                    )
-                    session.add(new_user)
-                    session.commit()
-                    return "", False  # Close modal on success
-            except Exception as exc:
-                logger.exception(f"Registration backend error for email {email}: {exc}")
-                return "Registration service unavailable. Please try again.", True
-
-        return no_update, is_open
-
     @app.callback(
         Output("country-display-modal", "children"),
         [Input("country-checkboxes-modal", "value")],
@@ -809,9 +639,8 @@ def register_callbacks(app):
 ############################################
 
 
-def build_project_layout(project_path, project_catalog, login_state):
+def build_project_layout(project_path, project_catalog, visible_projects):
     project_data = load_project_data(project_path)
-    visible_projects = get_visible_projects(project_catalog, login_state)
     project_options = [{"label": project["name"], "value": get_project_value(project)} for project in visible_projects]
     selected_project = find_project_by_path(project_catalog, project_path)
     map_layout_dict = dict(
@@ -957,6 +786,8 @@ def load_project_data(project_path):
 
 
 def main():
+    global AUTH_ENABLED
+
     logger.info("Starting VERTEX")
     app = dash.Dash(
         __name__,
@@ -968,21 +799,9 @@ def main():
 
     # Flask / DB config
     flask_auth_secrets = get_flask_auth_secrets()
-    app.server.config.update(
-        {
-            "SQLALCHEMY_DATABASE_URI": DATABASE_URL if AUTH_ENABLED else None,
-            "SECRET_KEY": flask_auth_secrets.get("SECRET_KEY"),
-            "SECURITY_PASSWORD_HASH": "bcrypt",
-            "SECURITY_PASSWORD_SALT": flask_auth_secrets.get("SECURITY_PASSWORD_SALT"),
-            "SECURITY_USER_IDENTITY_ATTRIBUTES": [{"email": {"mapper": "email", "case_insensitive": True}}],
-        }
-    )
-    if AUTH_ENABLED:
-        db.init_app(app.server)
-        with app.server.app_context():
-            global user_datastore
-            user_datastore = SQLAlchemyUserDatastore(db, User, None)
-            security.init_app(app.server, user_datastore)
+    AUTH_ENABLED = check_auth_enabled(flask_auth_secrets)
+    logger.info(f"Authentication enabled: {AUTH_ENABLED}")
+    configure_auth(app, AUTH_ENABLED, flask_auth_secrets)
 
     project_catalog = get_projects_catalog()
     sync_project_type_map(project_catalog)
@@ -990,28 +809,15 @@ def main():
     logger.debug(f" Found {len(project_paths)} projects: {project_paths}")
 
     def serve_layout():
-        # Prefer project= for new links, but keep param= for legacy one-off deployments.
-        project_catalog = get_projects_catalog()
-        sync_project_type_map(project_catalog)
-        login_state = current_user.is_authenticated if AUTH_ENABLED else True
-        visible_projects = get_visible_projects(project_catalog, login_state)
-        default_project = get_default_project_path(visible_projects)
-        requested_project = None
-
-        try:
-            query_project = request.args.get("project") or request.args.get("param")
-            if query_project:
-                requested_project = resolve_project_request(query_project, visible_projects)
-                if requested_project is None:
-                    logger.warning(f"Unknown project requested via query string: {query_project}")
-        except Exception as exc:
-            logger.debug(f"Unable to read request args for project selection: {exc}")
-
-        active_project = requested_project or default_project
-        initial_layout = (
-            build_project_layout(active_project, project_catalog, login_state) if active_project is not None else None
+        # Project selection is resolved by callbacks from url.search, not request.args.
+        auth_state = get_request_login_state(AUTH_ENABLED)
+        is_logged_in = auth_state.get("is_logged_in", False)
+        return define_shell_layout(
+            None,
+            initial_body=html.Div("Loading VERTEX..."),
+            auth_controls=build_auth_controls(AUTH_ENABLED, is_logged_in),
+            initial_login_state=is_logged_in,
         )
-        return define_shell_layout(active_project, initial_body=initial_layout)
 
     app.layout = serve_layout
 
@@ -1022,8 +828,7 @@ def main():
 
 if __name__ == "__main__":
     app = main()
-    webbrowser.open("http://127.0.0.1:8050", new=2, autoraise=True)
-    app.run(debug=True, host="0.0.0.0", port=8050, use_reloader=False)
+    app.run(debug=True, host="localhost", port=8051, use_reloader=False)
 else:
     app = main()
     server = app.server
