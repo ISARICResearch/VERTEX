@@ -29,7 +29,7 @@ VERTEX is a web-based Python application that presents graphs and tables relatin
 
 |VERTEX|
 
-VERTEX is open-source, which means that you can access and download the codebase from GitHub [#f1]_, and create new analysis projects for your analysis. At the moment, the VERTEX dashboard can display two types of projects.
+VERTEX is open-source, which means that you can access and download the codebase from `GitHub <https://github.com/ISARICResearch/VERTEX>`_, and create new analysis projects for your analysis. At the moment, the VERTEX dashboard can display two types of projects.
 
 **Analysis projects** retrieve data from a REDCap database using the API, preprocess this patient-level data [#f2]_ and execute analysis code to answer research questions from a statistical analysis plan. The output of this analysis code is a series of figures and tables, which are presented in the dashboard, grouped together in **insight panels**.
 
@@ -52,10 +52,12 @@ On the command line, navigate to the repository. Depending on how you cloned the
 
 We recommend using Docker if you want to run VERTEX at the command line. You can build and run a Docker container for VERTEX with the following:
 
-::
+.. code:: shell
 
+   # Build the image
    docker build -t isaric-vertex .
 
+   # Run the image in a container
    docker run -it --rm -v "$PWD":/app -p 8050:8050 isaric-vertex gunicorn --workers 1 --reload --bind 0.0.0.0:8050 vertex.descriptive_dashboard:server
 
 .. rubric:: VSCode without Docker
@@ -66,7 +68,7 @@ using the requirements listed in ``pyproject.toml``.
 
 Next, you need to add a file ``.vscode/launch.json`` with the following:
 
-::
+.. code:: json
 
 
    {
@@ -121,8 +123,6 @@ For more information about creating a new project in VERTEX, please refer to the
 
 .. rubric:: Footnotes
 
-.. [#f1] https://github.com/ISARICResearch/VERTEX/blob/main/README.md
-
 .. [#f2] We make some assumptions about the structure of the REDCap project and a core subset of the variables within the data, this is described further in the follow-up training guides listed at the end.
 
 .. [#f3] https://analysisfunction.civilservice.gov.uk/support/reproducible-analytical-pipelines/
@@ -144,8 +144,6 @@ For more information about creating a new project in VERTEX, please refer to the
 .. [#f11] https://code.visualstudio.com/docs/python/environments
 
 .. container:: footer
-
-   Licensed under a `Creative Commons Attribution-ShareAlike 4.0 <https://creativecommons.org/licenses/by-sa/4.0/>`__ International License by `ISARIC <https://isaric.org/>`__ on behalf of Oxford University.
 
 .. |VERTEX| image:: https://github.com/ISARICResearch/Training/raw/main/docs/assets/vertex_starting-insight-panel.png
 .. |VERTEX dashboard| image:: https://github.com/ISARICResearch/Training/raw/main/docs/assets/vertex_starting-dashboard.png

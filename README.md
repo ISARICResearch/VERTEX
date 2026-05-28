@@ -5,7 +5,7 @@
 [![Tests and Coverage](https://github.com/ISARICResearch/VERTEX/actions/workflows/test.yml/badge.svg)](https://github.com/ISARICResearch/VERTEX/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/ISARICResearch/VERTEX/graph/badge.svg?token=K68GVC44SJ)](https://codecov.io/gh/ISARICResearch/VERTEX)
 [![Docker Build and Test](https://github.com/ISARICResearch/VERTEX/actions/workflows/build.yaml/badge.svg)](https://github.com/ISARICResearch/VERTEX/actions/workflows/build.yaml)
-[![License: CC BY-SA 4.0](https://img.shields.io/badge/License-CC%20BY--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **ISARIC VERTEX** is a web-based application designed for local use by users. It serves as an analysis tool for data captured through our complementary tools: [ISARIC ARC](https://github.com/ISARICResearch/ARC) and [ISARIC BRIDGE](https://github.com/ISARICResearch/BRIDGE).
 
@@ -114,6 +114,16 @@ $ descriptive-analytics demo-projects/ARChetypeCRF_dengue_synthetic/
 > [!Note]
 The `descriptive-analytics` tool requires Google Chrome to be installed as some Chrome imaging functionality is used by the [`kaleido`](https://plotly.com/python/static-image-export/#kaleido) dependency when exporting/saving
 images - see [this](https://plotly.com/python/static-image-export/) for further information.
+
+## Documentation
+
+VERTEX project documentation is available at https://isaric-vertex.readthedocs.io/en/latest. It is built with [Sphinx](https://www.sphinx-doc.org/en/) from content and configuration defined in the [`docs`](https://github.com/ISARICResearch/VERTEX/tree/main/docs) subfolder. Deployment will be to [ReadTheDocs](https://readthedocs.org) on a custom ISARIC domain, and is the process of being implemented.
+
+The documentation can be built locally by running:
+```shell
+make -C docs html
+```
+from the project root and then using a browser to open the `index.html` page in `docs/_build`. Changes to content can be made in the `docs/.rst` or `docs/sources/*.rst` files, and changes in configuration can be made in the `docs/conf.py` file. Any changes should be staged and version controlled in the normal way as with changes to code.
 
 ## Contributors
 

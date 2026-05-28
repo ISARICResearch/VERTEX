@@ -36,6 +36,22 @@ maintainers = [
 
 readme = "README.md"
 requires-python = ">=3.11"
+license = { file = "LICENSE.md" }
+
+# These keywords have been taken from the available ISARIC documentation,
+# and arent't comprehensive or standardised.
+keywords = [
+    "isaric",
+    "vertex",
+    "infectious disease",
+    "pandemic",
+    "disease outbreak",
+    "clinical epidemiology",
+    "disease outbreak response",
+    "data analysis",
+    "data visualisation",
+]
+
 dependencies = [
     "boto3==1.39.1",
     "click>=8.1",
@@ -46,8 +62,8 @@ dependencies = [
     "Flask-SQLAlchemy==3.0.2",
     "Flask-Security-Too==5.6.2",
     "gunicorn",
-    "isaricanalytics@git+https://github.com/ISARICResearch/ISARICAnalytics",
-    "kaleido==1.0.0", # Kaleido v1.0.0 fixes an issue with image exports on Windows (see https://github.com/plotly/Kaleido/issues/300)
+    "isaricanalytics@git+https://github.com/ISARICResearch/ISARICAnalytics@8d24a8e945d29d15de8647e9e3f8a15d3f189646",
+    "kaleido==1.0.0",  # Kaleido v1.0.0 fixes an issue with image exports on Windows (see https://github.com/plotly/Kaleido/issues/300)
     "lifelines==0.30.0",
     "numpy==1.26.4",
     "pandas>=2.2.1",
