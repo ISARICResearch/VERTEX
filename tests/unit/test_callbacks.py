@@ -9,6 +9,13 @@ from plotly.graph_objs import Figure
 from vertex import descriptive_dashboard as dashboard
 
 
+@pytest.fixture
+def app_context():
+    """Provide Flask app context for tests that call callbacks needing request context, this is needed due to our use of g."""
+    with dashboard.app.server.app_context():
+        yield dashboard.app.server
+
+
 def _get_wrapped_callback(name):
     for item in dashboard.app.callback_map.values():
         callback = item.get("callback")
@@ -29,7 +36,7 @@ def clear_project_cache():
     dashboard.PROJECT_TYPE_BY_PATH.clear()
 
 
-def test_set_project_from_url_updates_selected_project(monkeypatch):
+def test_set_project_from_url_updates_selected_project(app_context, monkeypatch):
     callback = _get_wrapped_callback("set_project_from_url")
     visible_projects = [
         {
@@ -48,7 +55,7 @@ def test_set_project_from_url_updates_selected_project(monkeypatch):
     assert selected == "/tmp/analysis-a/"
 
 
-def test_set_project_from_url_raises_prevent_update_for_unknown_project(monkeypatch):
+def test_set_project_from_url_raises_prevent_update_for_unknown_project(app_context, monkeypatch):
     callback = _get_wrapped_callback("set_project_from_url")
     visible_projects = [
         {
@@ -66,7 +73,7 @@ def test_set_project_from_url_raises_prevent_update_for_unknown_project(monkeypa
         callback("?project=missing", "/tmp/other/", True)
 
 
-def test_update_url_for_project_uses_project_id(monkeypatch):
+def test_update_url_for_project_uses_project_id(app_context, monkeypatch):
     callback = _get_wrapped_callback("update_url_for_project")
     catalog = [
         {
@@ -85,7 +92,7 @@ def test_update_url_for_project_uses_project_id(monkeypatch):
     assert url_query == "?project=analysis-a"
 
 
-def test_sync_project_options_prefers_selected_project(monkeypatch):
+def test_sync_project_options_prefers_selected_project(app_context, monkeypatch):
     callback = _get_wrapped_callback("sync_project_options")
     catalog = [
         {
@@ -113,7 +120,7 @@ def test_sync_project_options_prefers_selected_project(monkeypatch):
     assert selected == "prebuilt-a"
 
 
-def test_sync_project_options_falls_back_to_default_visible_project(monkeypatch):
+def test_sync_project_options_falls_back_to_default_visible_project(app_context, monkeypatch):
     callback = _get_wrapped_callback("sync_project_options")
     catalog = [
         {
@@ -391,50 +398,10 @@ def test_update_figures_rebuilds_modal_when_filtered_data_present(monkeypatch):
     assert captured["visuals_kwargs"]["filepath"] == project_path
 
 
-def test_handle_login_logout_db_error_returns_graceful_message(monkeypatch):
-    callback = _get_wrapped_callback("handle_login_logout")
-    monkeypatch.setattr(
-        dashboard,
-        "callback_context",
-        SimpleNamespace(triggered=[{"prop_id": "login-submit.n_clicks"}]),
-    )
-
-    class BrokenSession:
-        def __init__(self, *_args, **_kwargs):
-            pass
-
-        def __enter__(self):
-            raise RuntimeError("db unavailable")
-
-        def __exit__(self, exc_type, exc, tb):
-            return False
-
-    monkeypatch.setattr(dashboard, "Session", BrokenSession)
-
-    result = callback(1, 1, 0, True, "user@example.com", "secret")
-
-    assert result == (False, True, "Login service unavailable. Please try again.")
+# test_handle_login_logout_db_error_returns_graceful_message removed: callback no longer exists (migrated to Cognito)
 
 
-def test_handle_register_db_error_returns_graceful_message(monkeypatch):
-    callback = _get_wrapped_callback("handle_register")
-    monkeypatch.setattr(dashboard, "callback_context", SimpleNamespace(triggered_id="register-submit"))
-
-    class BrokenSession:
-        def __init__(self, *_args, **_kwargs):
-            pass
-
-        def __enter__(self):
-            raise RuntimeError("db unavailable")
-
-        def __exit__(self, exc_type, exc, tb):
-            return False
-
-    monkeypatch.setattr(dashboard, "Session", BrokenSession)
-
-    result = callback(0, 1, True, "user@example.com", "secret", "secret")
-
-    assert result == ("Registration service unavailable. Please try again.", True)
+# test_handle_register_db_error_returns_graceful_message removed: callback no longer exists (migrated to Cognito)
 
 
 def test_update_country_display_handles_missing_options():
