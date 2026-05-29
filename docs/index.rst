@@ -10,7 +10,7 @@ VERTEX Documentation
    :height: 252.017
    :width:  304
 
-`ISARIC VERTEX <https://github.com/ISARICResearch/VERTEX>`_ is a web-based application designed for local use by users as an analysis tool for data captured through our complementary tools, `ISARIC ARC <https://github.com/ISARICResearch/ARC>`_ and `ISARIC BRIDGE <https://github.com/ISARICResearch/BRIDGE>`_.
+`ISARIC VERTEX <https://github.com/ISARICResearch/VERTEX>`_ is a web-based `application <https://vertex.isaric.org>`_ designed for local use by users as an analysis tool for data captured through our complementary tools, `ISARIC ARC <https://github.com/ISARICResearch/ARC>`_ and `ISARIC BRIDGE <https://github.com/ISARICResearch/BRIDGE>`_.
 
 VERTEX is designed to present graphs and tables based on key relevant research questions that need to be quickly answered during an outbreak. Currently, VERTEX performs descriptive analysis, which can identify the spectrum of clinical features in a disease outbreak. New research questions will be added by the ISARIC team and the wider scientific community, enabling the creation and sharing of additional analysis methods.
 

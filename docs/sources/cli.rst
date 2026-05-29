@@ -3,7 +3,7 @@
 Command Line Interface (CLI)
 ============================
 
-VERTEX provides a very simple command line interface (CLI) currently consisting of a single project entrypoint (executable or console script) named :program:`descriptive-analytics`, which becomes available once the project is installed in `editable mode <https://pip.pypa.io/en/stable/topics/local-project-installs/#editable-installs>`_:
+VERTEX provides a very simple command line interface (CLI) currently consisting of a single executable (also called a project entrypoint or console script) named :program:`descriptive-analytics`, which becomes available once the project is installed in `editable mode <https://pip.pypa.io/en/stable/topics/local-project-installs/#editable-installs>`_:
 
 .. code:: shell
 
@@ -26,7 +26,7 @@ After using the executables, it is advisable to uninstall the editable project i
 Descriptive Analytics
 ---------------------
 
-Currently, there is a single executable, :program:`descriptive-analytics`, which exports all figures and tables from a project's insight panels, given the project path, to a subfolder named :file:`output` in the project folder:
+The :program:`descriptive-analytics` executable exports the (meta)data files and PNGs for all the figures (including figure tables) in a project's insight panels to a subfolder named :file:`output` in the project folder:
 
 .. code:: shell
 
@@ -39,7 +39,7 @@ Currently, there is a single executable, :program:`descriptive-analytics`, which
                           [required]
      --help               Show this message and exit.
 
-The project path can be either a relative path (relative to the working directory) or an absolute path, and the project itself can either be an "analysis" project where the data is fetched from an associated REDCap project database via the REDCap API and figures and artifacts are dynamically generated, or a "static" project with pre-generated aggregated figure and artifact metadata files.
+The project path can be either a relative path (relative to the working directory) or an absolute path, and the project itself can either be an :ref:`analysis/dynamic project <analysis-projects>` where the data is fetched from an associated REDCap project database via the REDCap API and figures and artifacts are dynamically generated, or a :ref:`prebuilt/static <static-projects>` project where the figures and table are created from pre-generated (meta)data files.
 
 An example run is given below for the **ARChetypeCRF_mpox_synthetic** demo MPox analysis project with synthetic data:
 
@@ -210,3 +210,5 @@ The :file:`output` subfolder structure can be inspected by using a command line 
            └── fig_upset.png
 
    14 directories, 75 files
+
+As shown, the :file:`output` subfolder stores the figure data (CSV) and metadata (JSON) files by insight panel suffix/name, while the figure PNGs are stored in a separate :file:`visuals` subfolder within :file:`output` that is also organised by insight panel suffix.

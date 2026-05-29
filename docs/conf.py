@@ -124,9 +124,9 @@ numpydoc_xref_param_type = False
 # Intersphinx mappings to reference external documentation domains - only
 # the Python
 intersphinx_mapping = {
-    #'dash': ('https://dash.plotly.com/', None),
     "numpy": ("https://numpy.org/doc/stable/", None),
     "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
+    "plotly": ("https://plotly.com/python-api-reference/", None),
     "Python": ("https://docs.python.org/3", None),
     "scipy": ("https://docs.scipy.org/doc/scipy/", None),
     #'sphinx': ('https://www.sphinx-doc.org/en/master/', None),
