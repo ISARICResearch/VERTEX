@@ -5,6 +5,7 @@
 [![Tests and Coverage](https://github.com/ISARICResearch/VERTEX/actions/workflows/test.yml/badge.svg)](https://github.com/ISARICResearch/VERTEX/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/ISARICResearch/VERTEX/graph/badge.svg?token=K68GVC44SJ)](https://codecov.io/gh/ISARICResearch/VERTEX)
 [![Docker Build and Test](https://github.com/ISARICResearch/VERTEX/actions/workflows/build.yaml/badge.svg)](https://github.com/ISARICResearch/VERTEX/actions/workflows/build.yaml)
+[![Docs](https://app.readthedocs.org/projects/isaric-vertex/badge/?version=latest)](https://app.readthedocs.org/projects/isaric-vertex/builds/?version__slug=latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **ISARIC VERTEX** is a web-based application designed for local use by users. It serves as an analysis tool for data captured through our complementary tools: [ISARIC ARC](https://github.com/ISARICResearch/ARC) and [ISARIC BRIDGE](https://github.com/ISARICResearch/BRIDGE).
