@@ -3,7 +3,7 @@
 Using the VERTEX App
 ====================
 
-The VERTEX app can be used online at https://vertex.isaric.org, or you can build your own local version and run it (via Docker) using the following instructions.
+The VERTEX app can be used online at https://vertex.isaric.org, or you can build your own local version and run it (via `Docker <https://www.docker.com/products/docker-desktop/>`_) using the following instructions.
 
 
 .. docker:
@@ -11,7 +11,7 @@ The VERTEX app can be used online at https://vertex.isaric.org, or you can build
 Running the App
 ---------------
 
-As mentioned in the :doc:`Getting Started guide <getting-started>` the app can be run locally either as a Python (Plotly Dash) application or in Docker (recommended). The steps below represent the best way to run VERTEX in Docker:
+As mentioned in the :doc:`Getting Started guide <getting-started>`, the app can be run locally either as a Python (Plotly Dash) application or in Docker (recommended). The steps below represent the best way to run VERTEX in Docker (so first ensure that Docker desktop is installed for your system, and running):
 
 1. Checkout the local VERTEX Git branch on which you want to build and run the app - usually this will be the ``main`` branch, but it could also be any feature or fix branch. If you have access to a command line shell you can do this using:
 
@@ -51,6 +51,8 @@ The app will accessible at ``http://localhost:8050``.
 .. note::
 
    If you're also running a local version of BRIDGE make sure the ports don't conflict - use port ``80`` for BRIDGE and port ``8050`` for VERTEX.
+
+The app will be available as long as the container (and also the main Docker daemon) is running.
 
 You can also run the app directly (outside of Docker) just using Python, but this requires more precise control over the environment and VERTEX dependencies, as described :ref:`here <requirements>`.
 
