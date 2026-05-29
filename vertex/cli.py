@@ -1,0 +1,70 @@
+# -- IMPORTS --
+
+# -- Standard libraries --
+import pathlib
+
+# -- 3rd party libraries --
+import click
+
+# -- Internal libraries --
+from vertex import __version__
+from vertex.io import (
+    get_project_data,
+    save_insight_panel_visuals,
+    save_public_outputs,
+)
+from vertex.layout.insight_panels import (
+    get_public_visuals,
+)
+from vertex.logging.logger import setup_logger
+
+logger = setup_logger(__name__)
+
+
+@click.group("vertex-cli")
+def vertex_cli(): ...
+
+
+@vertex_cli.command("version", short_help="Displays the current VERTEX (GitHub) release version.")
+def version() -> str:
+    """Displays the current VERTEX (GitHub) release version.
+
+    Returns
+    -------
+    str
+        The latest VERTEX (GitHub) release version.
+    """
+    click.echo(__version__)
+
+
+@vertex_cli.command(
+    "descriptive-analytics",
+    short_help="Exports all project insight panel figures and tables to a local project subfolder (named `output`).",
+)
+@click.option("--project-path", required=True, help="The (absolute or relative) path to the project.")  # pragma: no cover
+def descriptive_analytics(project_path: str) -> None:
+    """Exports all project insight panel figures and tables to a local project subfolder (named `output`).
+
+    Parameters
+    ----------
+    project_path : str
+        The project path as a plain string or :py:class:`pathlib.Path` object.
+
+    """
+    project_path = pathlib.Path(project_path).resolve()
+
+    # 1. Get project data from the project path, which includes buttons,
+    #    insight_panels, df_map, df_countries, df_forms_dict, dictionary,
+    #    quality_report, project_path, config_dict
+    logger.info(f'Loading project data from project path: "{project_path}"')
+    project_data = get_project_data(project_path)
+
+    # 2. Save the public outputs to file (to an outputs subfolder inside
+    #    the project path)
+    project_outputs_path = project_path.joinpath(project_data["config_dict"]["outputs_path"])
+    logger.info(f'Saving public outputs to "{project_outputs_path}"')
+    save_public_outputs(**project_data)
+
+    logger.info(f'Saving all figures to "{project_outputs_path}"')
+    insight_panels, _ = get_public_visuals(project_outputs_path, project_data["buttons"])
+    save_insight_panel_visuals(insight_panels, project_outputs_path, project_outputs_path.joinpath("visuals"))
