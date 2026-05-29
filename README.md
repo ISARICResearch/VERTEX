@@ -14,7 +14,7 @@ VERTEX is designed to present graphs and tables based on key relevant research q
 
 ## About VERTEX
 
-**ISARIC VERTEX** enables users to connect with a REDCap database through an API call. For detailed instructions, please refer to our [Getting Started with VERTEX guide](https://isaricresearch.github.io/Training/vertex_starting.html).
+**ISARIC VERTEX** enables users to connect with a REDCap database through an API call. For detailed instructions, please refer to our [quickstart guide](https://isaric-vertex.readthedocs.io/en/latest/sources/getting-started.html).
 
 VERTEX has three main elements:
 
@@ -39,7 +39,7 @@ Additionally, if you want to create your own insight panel, please follow our [C
 
 ## How to Use VERTEX
 
-To get started with VERTEX, please refer to our [Getting Started with VERTEX guide](https://isaricresearch.github.io/Training/vertex_starting.html).
+To get started with VERTEX, please refer to our [quickstart guide](https://isaric-vertex.readthedocs.io/en/latest/sources/getting-started.html).
 
 ## Testing and Coverage
 
