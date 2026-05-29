@@ -29,7 +29,9 @@ As mentioned in the :doc:`Getting Started guide <getting-started>`, the app can 
 
    docker build -t isaric-vertex .
 
-3. Run the app in the container (named ``isaric-vertex``) using the image:
+where ``isaric-vertex`` is the name of the image (which could be something different if you want) and the ``.`` indicates the folder location containing all of the repository files and assets needed to build the Docker image (build context), which is usually the root of the repository and also the working directory where you run this command.
+
+3. Run the app in the container using the image:
 
 .. code:: shell
 
@@ -89,6 +91,10 @@ An example is given below of the `config JSON <https://github.com/ISARICResearch
 .. literalinclude:: ../../demo-projects/ARChetypeCRF_dengue_synthetic/config_file.json
    :linenos:
 
+.. _project-metadata:
+
+Project metadata fields such as the name (``"project_name"``), REDCap project database ID (``"project_id"``) and owner (``"project_owner"``) should also be defined. The ``"is_public"`` field indicates whether the public is intended to be public or private, and ``"save_outputs"`` indicates whether the insight panel artifacts (figures and tables) should be exported/saved locally during initial loading (to enable cached reloading).
+
 The insight panel files, which for analysis projects must be in the form of Python :file:`.py` files (modules), should be named appropriately in relation to the associated clinical characterisation stages or events, and the files must all be included together in a subfolder, typically named :file:`insight_panels`, that should correspond to the value of the ``"insight_panels_path"`` key in the configuration JSON. A typical organisation is illustrated below for the Dengue Synthetic demo project:
 
 .. code:: shell
@@ -123,7 +129,6 @@ For insight panel modules in this format there are two points to note:
 Every insight panel must define a button item and a button label, and multiple insight panels can share and are grouped by the same button item in the dashboard menu. But the combination of button item and button label must be unique for a given insight panel, to avoid conflicts.
 
 - the ``create_visuals`` function defines the creation of the figures and tables relevant for the insight panel, and must return an (ordered) tuple of Plotly :py:class:`~plotly.graph_objects.Figure` objects as created by the relevant function in the `ISARICAnalytics visualisation <https://isaricanalytics.readthedocs.io/en/latest/sources/isaricanalytics/visualisation.html#module-isaricanalytics.visualisation>`_  library.
-
 
 An alternative, slightly simpler format for the insight panel modules is given below from the ``enrolment_details`` insight panel of a local project variant of the same Dengue Synthetic demo project:
 
@@ -180,7 +185,9 @@ Here, the insight panel button item and label are defined not via a function but
 Prebuilt/Static Projects
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-The static projects configuration JSON file can omit the REDCap API fields entirely (or, alternatively, leave them blank) and instead define two additional fields for the VERTEX global map in the dashboard view and generating the figures and tables for the insight panels:
+The static projects configuration JSON file can omit the REDCap API fields and the insight panel-related fields entirely (or, alternatively, leave them blank). As with analysis projects, other :ref:`project metadata <project-metadata>` fields should also be defined appropriately.
+
+Static projects require two configuration-like files for the VERTEX dashboard view, namely, for the global map the appears first in the dashboard view, and for generating the figures and tables that appear in the insight panels, which are:
 
 - :file:`dashboard_data.csv` - defines the top-level country and patient count data for the affected country (or countries), e.g. for the Plague Bubo Images project:
 
@@ -238,4 +245,27 @@ The static projects configuration JSON file can omit the REDCap API fields entir
         ]
     }
 
-As insight panel figures and tables for static projects are generated from static data (CSV) and metadata (JSON) files no insight panel Python files are required or used. Instead, for each figure or table a data CSV and a metadata JSON file are required, and all these files should be organised according to some folder structure. This can be discussed with the :email:`ISARIC data team <data@isaric.org>` on request.
+As insight panel figures and tables for static projects are generated from static data (CSV) and metadata (JSON) files no insight panel Python files are required or used. Instead, for each figure or table a data CSV and a metadata JSON file are required, and all these files should be organised according to some folder structure. An example is given below of a folder listing for a private static project:
+
+.. code:: shell
+
+    ├── config_file.json
+    ├── dashboard_data.csv
+    ├── dashboard_metadata.json
+    └── day1
+        ├── COMORBIDITIES_data___0.csv
+        ├── COMORBIDITIES_metadata.json
+        ├── CONSENT_DETAILS_data___0.csv
+        ├── CONSENT_DETAILS_metadata.json
+        ├── DEMOGRAPHICS_data___0.csv
+        ├── DEMOGRAPHICS_metadata.json
+        ├── DEMOGRAPHICS_PYRAMID_data___0.csv
+        ├── DEMOGRAPHICS_PYRAMID_metadata.json
+        ├── EXPOSURE_HISTORY_data___0.csv
+        ├── EXPOSURE_HISTORY_metadata.json
+        ├── SYMPTOMS_ADMISSION_data___0.csv
+        └── SYMPTOMS_ADMISSION_metadata.json
+
+    2 directories, 15 files
+
+The  :email:`ISARIC data team <data@isaric.org>` can be contacted for assistance with creating an appropriate project structure.
