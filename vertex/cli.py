@@ -7,7 +7,7 @@ import pathlib
 import click
 
 # -- Internal libraries --
-from vertex import __version__
+from vertex import __version__  # pragma: no cover
 from vertex.io import (
     get_project_data,
     save_insight_panel_visuals,
@@ -25,7 +25,7 @@ logger = setup_logger(__name__)
 def vertex_cli(): ...
 
 
-@vertex_cli.command("version", short_help="Displays the current VERTEX (GitHub) release version.")
+@vertex_cli.command("version", short_help="Displays the current VERTEX (GitHub) release version.")  # pragma: no cover
 def version() -> str:
     """Displays the current VERTEX (GitHub) release version.
 
