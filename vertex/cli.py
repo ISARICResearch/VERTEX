@@ -1,7 +1,3 @@
-__all__ = [
-    "get_project_data",
-]
-
 # -- IMPORTS --
 
 # -- Standard libraries --
@@ -11,6 +7,7 @@ import pathlib
 import click
 
 # -- Internal libraries --
+from vertex import __version__  # pragma: no cover
 from vertex.io import (
     get_project_data,
     save_insight_panel_visuals,
@@ -24,19 +21,37 @@ from vertex.logging.logger import setup_logger
 logger = setup_logger(__name__)
 
 
-@click.command()
-@click.argument("project-path")
-def main(project_path: str | pathlib.Path) -> None:
-    """:py:class:`NoneType` : The entrypoint function.
+@click.group("vertex-cli")
+def vertex_cli(): ...
+
+
+@vertex_cli.command("version", short_help="Displays the current VERTEX (GitHub) release version.")  # pragma: no cover
+def version() -> str:
+    """Displays the current VERTEX (GitHub) release version.
+
+    Returns
+    -------
+    str
+        The latest VERTEX (GitHub) release version.
+    """
+    click.echo(__version__)
+
+
+@vertex_cli.command(
+    "descriptive-analytics",
+    short_help="Exports all project insight panel figures and tables to a local project subfolder (named `output`).",
+)
+@click.option("--project-path", required=True, help="The (absolute or relative) path to the project.")  # pragma: no cover
+def descriptive_analytics(project_path: str) -> None:
+    """Exports all project insight panel figures and tables to a local project subfolder (named `output`).
 
     Parameters
     ----------
-    project_path : str, pathlib.Path
+    project_path : str
         The project path as a plain string or :py:class:`pathlib.Path` object.
 
     """
-    if not isinstance(project_path, pathlib.Path):
-        project_path = pathlib.Path(project_path).resolve()
+    project_path = pathlib.Path(project_path).resolve()
 
     # 1. Get project data from the project path, which includes buttons,
     #    insight_panels, df_map, df_countries, df_forms_dict, dictionary,

@@ -62,7 +62,10 @@ dependencies = [
     "Flask-SQLAlchemy==3.0.2",
     "Flask-Security-Too==5.6.2",
     "gunicorn",
+
+    # PLEASE DO NOT REMOVE THIS PIN FOR `isaricanalytics`
     "isaricanalytics@git+https://github.com/ISARICResearch/ISARICAnalytics@8d24a8e945d29d15de8647e9e3f8a15d3f189646",
+
     "kaleido==1.0.0",  # Kaleido v1.0.0 fixes an issue with image exports on Windows (see https://github.com/plotly/Kaleido/issues/300)
     "lifelines==0.30.0",
     "numpy==1.26.4",
@@ -103,6 +106,8 @@ docs = [
     "sphinx-copybutton",
     "sphinx-gallery",
     "sphinx-design",
+    "sphinxcontrib-email",
+    "sphinxext-remoteliteralinclude",
     "myst-parser",
     "pylint",
     "furo",
@@ -113,7 +118,7 @@ docs = [
 
 [project.scripts]
 run-vertex = "descriptive_dashboard:main"
-descriptive-analytics = "vertex.descriptive_analytics:main"
+vertex-cli = "vertex.cli:vertex_cli"
 
 [tool.setuptools.dynamic]
 version = {attr = "vertex.__version__"}
