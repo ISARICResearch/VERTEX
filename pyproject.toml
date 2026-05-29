@@ -118,7 +118,7 @@ docs = [
 
 [project.scripts]
 run-vertex = "descriptive_dashboard:main"
-descriptive-analytics = "vertex.descriptive_analytics:main"
+vertex-cli = "vertex.cli:vertex_cli"
 
 [tool.setuptools.dynamic]
 version = {attr = "vertex.__version__"}

@@ -3,15 +3,15 @@
 Command Line Interface (CLI)
 ============================
 
-VERTEX provides a very simple command line interface (CLI) currently consisting of a single executable (also called a project entrypoint or console script) named :program:`descriptive-analytics`, which becomes available once the project is installed in `editable mode <https://pip.pypa.io/en/stable/topics/local-project-installs/#editable-installs>`_:
+VERTEX provides a very simple command line interface (CLI), named ``vertex-cli``, that becomes available once the project is installed in `editable mode <https://pip.pypa.io/en/stable/topics/local-project-installs/#editable-installs>`_:
 
 .. code:: shell
 
    pip install -e .
 
-This will install the project locally in a package named ``isaric-vertex``, and set up the executable.
+This will install the project locally in a package named ``isaric-vertex``, and set up the CLI main command group and all its (sub)commands (or executables).
 
-After using the executables, it is advisable to uninstall the editable project installation using:
+The editable project package will remain in your environment unless it is uninstalled - to avoid package conflicts when running, for example, unit tests, you may want to uninstall the package using:
 
 .. code:: shell
 
@@ -21,18 +21,44 @@ After using the executables, it is advisable to uninstall the editable project i
 
    For more information on project CLI executables see `this <https://setuptools.pypa.io/en/latest/userguide/entry_point.html>`_ and `this <https://packaging.python.org/en/latest/specifications/entry-points/#entry-points>`_.
 
+
+To see all available (sub)commands in the CLI run the following command:
+
+.. code:: shell
+
+   $ vertex-cli --help
+   Usage: vertex-cli [OPTIONS] COMMAND [ARGS]...
+
+   Options:
+     --help  Show this message and exit.
+
+   Commands:
+     descriptive-analytics  Exports all project insight panel figures and tables
+                            to a local project subfolder (named `output`).
+     version                Displays the current VERTEX (GitHub) release version.
+
+
+The main command here is ``descriptive-analytics``, which is described in more detail below. The ``version`` command simply displays the latest VERTEX release version.
+
+**All commands must be prefixed with** ``vertex-cli`` **and a space.**
+
 .. _cli-descriptive-analytics:
 
 Descriptive Analytics
 ---------------------
 
-The :program:`descriptive-analytics` executable exports the (meta)data files and PNGs for all the figures (including figure tables) in a project's insight panels to a subfolder named :file:`output` in the project folder:
+The :program:`descriptive-analytics` command exports the (meta)data files and PNGs for all the figures (including figure tables) in a project's insight panels to a subfolder named :file:`output` in the project folder:
 
 .. code:: shell
 
-   $ descriptive-analytics --help
+   $ vertex-cli descriptive-analytics --help
+   Usage: vertex-cli descriptive-analytics [OPTIONS]
 
-   ...
+     Exports all project insight panel figures and tables to a local project
+     subfolder (named `output`).
+
+     Parameters ---------- project_path : str     The project path as a plain
+     string or :py:class:`pathlib.Path` object.
 
    Options:
      --project-path TEXT  The (absolute or relative) path to the project.
@@ -45,7 +71,7 @@ An example run is given below for the **ARChetypeCRF_mpox_synthetic** demo MPox 
 
 .. code:: shell
 
-   $ descriptive-analytics --project-path demo-projects/ARChetypeCRF_mpox_synthetic/
+   $ vertex-cli descriptive-analytics --project-path demo-projects/ARChetypeCRF_mpox_synthetic/
    2026-05-26 16:25:24 [INFO] vertex.descriptive_analytics: Loading project data from project path: "/Users/smurthy/Documents/srm/dev/VERTEX/demo-projects/ARChetypeCRF_mpox_synthetic"
    2026-05-26 16:25:36 [WARNING] vertex.layout.insight_panels: The `define_button` function will not be supported in future VERTEX releases. Please use `RESEARCH_QUESTION_ITEM` and `RESEARCH_QUESTION_ITEM_LABEL` attributes to define the button instead.
    2026-05-26 16:25:36 [INFO] vertex.io: Loading data from /Users/smurthy/Documents/srm/dev/VERTEX/demo-projects/ARChetypeCRF_mpox_synthetic
@@ -212,3 +238,15 @@ The :file:`output` subfolder structure can be inspected by using a command line 
    14 directories, 75 files
 
 As shown, the :file:`output` subfolder stores the figure data (CSV) and metadata (JSON) files by insight panel suffix/name, while the figure PNGs are stored in a separate :file:`visuals` subfolder within :file:`output` that is also organised by insight panel suffix.
+
+.. _cli-version:
+
+Version
+-------
+
+The :program:`version` command displays the current VERTEX (GitHub) release version:
+
+.. code:: shell
+
+   $ vertex-cli version
+   2.0.0
