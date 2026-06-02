@@ -124,6 +124,10 @@ def _project_debug_summary(project: dict) -> str:
     )
 
 
+def _project_failure_message(project: dict, exc: Exception) -> str:
+    return f"Failed to ingest project: {exc}. Parsed config={_project_debug_summary(project)}"
+
+
 def _build_project_insert_values(project: dict, projects_table: Table, owner_id) -> dict:
     values = {
         "vertex_id": project["project_id"],
@@ -243,6 +247,7 @@ def ingest_static_projects(
         "projects_seen": len(projects),
         "projects_inserted": 0,
         "projects_existing": 0,
+        "projects_failed": 0,
         "projects_skipped": 0,
         "owner_links_inserted": 0,
         "owner_links_existing": 0,
@@ -263,45 +268,45 @@ def ingest_static_projects(
 
     with Session(engine) as session:
         for project in projects:
-            project_already_existed = False
-            existing_row = _find_project_by_vertex_id(session, projects_table, project["project_id"])
-            if existing_row is None:
-                owner_email = project.get("project_owner")
-                if not owner_email:
-                    raise RuntimeError(
-                        "Cannot insert project: config_file.json is missing project_owner. "
-                        f"Parsed config={_project_debug_summary(project)}"
-                    )
-
-                owner_row = _find_user_by_email(session, users_table, owner_email)
-                if owner_row is None:
-                    raise RuntimeError(
-                        f"Cannot insert project: owner user does not exist for {owner_email}. "
-                        f"Parsed config={_project_debug_summary(project)}"
-                    )
-
-                if not dry_run:
-                    insert_values = _build_project_insert_values(project, projects_table, owner_row["id"])
-                    session.execute(projects_table.insert().values(insert_values))
+            try:
+                with session.begin_nested():
+                    project_already_existed = False
                     existing_row = _find_project_by_vertex_id(session, projects_table, project["project_id"])
-                stats["projects_inserted"] += 1
-            else:
-                stats["projects_existing"] += 1
-                project_already_existed = True
+                    if existing_row is None:
+                        owner_email = project.get("project_owner")
+                        if not owner_email:
+                            raise RuntimeError("config_file.json is missing project_owner")
 
-            if existing_row is None:
-                stats["projects_skipped"] += 1
-                logger.warning(
-                    "Could not resolve projects row after insert attempt; skipping owner mapping for "
-                    f"project_id={project['project_id']}"
-                )
+                        owner_row = _find_user_by_email(session, users_table, owner_email)
+                        if owner_row is None:
+                            raise RuntimeError(f"owner user does not exist for {owner_email}")
+
+                        if not dry_run:
+                            insert_values = _build_project_insert_values(project, projects_table, owner_row["id"])
+                            session.execute(projects_table.insert().values(insert_values))
+                            existing_row = _find_project_by_vertex_id(session, projects_table, project["project_id"])
+                        stats["projects_inserted"] += 1
+                    else:
+                        stats["projects_existing"] += 1
+                        project_already_existed = True
+
+                    if existing_row is None:
+                        stats["projects_skipped"] += 1
+                        logger.warning(
+                            "Could not resolve projects row after insert attempt; skipping owner mapping for "
+                            f"project_id={project['project_id']}"
+                        )
+                        continue
+
+                    if not dry_run:
+                        if project_already_existed and _project_has_owner_mapping(session, tables, existing_row):
+                            stats["owner_immutable_skipped"] += 1
+                            continue
+                        _try_link_owner(session, tables, existing_row, project.get("project_owner"), stats)
+            except (RuntimeError, SQLAlchemyError) as exc:
+                stats["projects_failed"] += 1
+                logger.error(_project_failure_message(project, exc))
                 continue
-
-            if not dry_run:
-                if project_already_existed and _project_has_owner_mapping(session, tables, existing_row):
-                    stats["owner_immutable_skipped"] += 1
-                    continue
-                _try_link_owner(session, tables, existing_row, project.get("project_owner"), stats)
 
         if dry_run:
             session.rollback()
@@ -311,8 +316,9 @@ def ingest_static_projects(
     logger.info(
         "Static project ingestion summary: "
         f"seen={stats['projects_seen']} inserted={stats['projects_inserted']} existing={stats['projects_existing']} "
-        f"owner_links_inserted={stats['owner_links_inserted']} owner_links_existing={stats['owner_links_existing']} "
-        f"owner_pending_users={stats['owner_pending_users']} owner_immutable_skipped={stats['owner_immutable_skipped']}"
+        f"failed={stats['projects_failed']} owner_links_inserted={stats['owner_links_inserted']} "
+        f"owner_links_existing={stats['owner_links_existing']} owner_pending_users={stats['owner_pending_users']} "
+        f"owner_immutable_skipped={stats['owner_immutable_skipped']}"
     )
     return stats
 

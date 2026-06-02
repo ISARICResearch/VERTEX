@@ -1,7 +1,6 @@
 import json
 from pathlib import Path
 
-import pytest
 from sqlalchemy import Boolean, Column, DateTime, Integer, MetaData, String, Table, UniqueConstraint, create_engine, select
 from sqlalchemy.orm import Session
 
@@ -118,16 +117,52 @@ def test_ingest_static_projects_skips_completely_invalid_json_and_exits_early(tm
         assert session.execute(select(mapping.c.id)).first() is None
 
 
-def test_ingest_static_projects_errors_when_owner_user_is_missing_for_new_project(tmp_path):
+def test_ingest_static_projects_logs_failure_when_owner_user_is_missing_for_new_project(tmp_path):
     projects_dir = tmp_path / "vertex-projects"
     projects_dir.mkdir()
     _write_project(projects_dir, "proj-a", "vertex-a", "Vertex A", "owner-a@example.com")
 
     database_url = f"sqlite+pysqlite:///{tmp_path / 'auth.sqlite'}"
-    _prepare_schema(database_url)
+    engine, users, projects, mapping = _prepare_schema(database_url)
 
-    with pytest.raises(RuntimeError, match="owner user does not exist"):
-        ingest_static_projects(database_url=database_url, projects_dir=projects_dir, schema="public")
+    stats = ingest_static_projects(database_url=database_url, projects_dir=projects_dir, schema="public")
+
+    assert stats["projects_seen"] == 1
+    assert stats["projects_failed"] == 1
+    assert stats["projects_inserted"] == 0
+
+    with Session(engine) as session:
+        assert session.execute(select(projects.c.id)).first() is None
+        assert session.execute(select(mapping.c.id)).first() is None
+        assert session.execute(select(users.c.id)).first() is None
+
+
+def test_ingest_static_projects_continues_after_project_failure(tmp_path):
+    projects_dir = tmp_path / "vertex-projects"
+    projects_dir.mkdir()
+    _write_project(projects_dir, "proj-bad", "vertex-bad", "Vertex Bad", "missing-owner@example.com")
+    _write_project(projects_dir, "proj-good", "vertex-good", "Vertex Good", "owner-good@example.com")
+
+    database_url = f"sqlite+pysqlite:///{tmp_path / 'auth.sqlite'}"
+    engine, users, projects, mapping = _prepare_schema(database_url)
+
+    with Session(engine) as session:
+        session.execute(users.insert().values(email="owner-good@example.com", is_admin=False))
+        session.commit()
+
+    stats = ingest_static_projects(database_url=database_url, projects_dir=projects_dir, schema="public")
+
+    assert stats["projects_seen"] == 2
+    assert stats["projects_failed"] == 1
+    assert stats["projects_inserted"] == 1
+    assert stats["owner_links_inserted"] == 1
+
+    with Session(engine) as session:
+        db_projects = session.execute(select(projects.c.vertex_id)).scalars().all()
+        assert db_projects == ["vertex-good"]
+
+        mapping_rows = session.execute(select(mapping.c.user_id, mapping.c.project_id)).all()
+        assert len(mapping_rows) == 1
 
 
 def test_ingest_static_projects_keeps_existing_owner_mapping_immutable(tmp_path):
