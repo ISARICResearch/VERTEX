@@ -20,7 +20,7 @@ REQUIRED_USER_PROJECT_MAPPING_COLUMNS = ("user_id", "project_id")
 
 
 def _normalise_owner_email(value):
-    if value in (None, ""):
+    if not value:
         return None
     return str(value).strip().lower()
 
@@ -343,7 +343,7 @@ def parse_args(argv=None):
 def main(argv=None):
     args = parse_args(argv)
 
-    projects_dir = Path(args.projects_dir or os.getenv("VERTEX_PROJECTS_DIR") or "projects")
+    projects_dir = Path(args.projects_dir or os.getenv("VERTEX_PROJECTS_DIR") or "projects").resolve()
 
     database_url = args.database_url or get_database_url()
 
