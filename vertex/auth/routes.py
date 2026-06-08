@@ -46,7 +46,7 @@ def configure_auth(app, auth_enabled: bool, auth_settings: dict) -> None:
             logger.error("COGNITO_DOMAIN or COGNITO_CLIENT_ID not configured - cannot initiate login")
             return "Auth not configured", 500
 
-        callback_uri = url_for("auth_callback", _external=True)
+        callback_uri = url_for("auth_callback", _external=True, _scheme="https")
         session["auth_next"] = next_url
 
         authorize_url = (
@@ -68,7 +68,7 @@ def configure_auth(app, auth_enabled: bool, auth_settings: dict) -> None:
         cognito_domain = _normalise_cognito_domain(current_app.config.get("COGNITO_DOMAIN"))
         client_id = current_app.config.get("COGNITO_CLIENT_ID")
         client_secret = current_app.config.get("COGNITO_CLIENT_SECRET")
-        callback_uri = url_for("auth_callback", _external=True)
+        callback_uri = url_for("auth_callback", _external=True, _scheme="https")
 
         try:
             token_resp = requests.post(
