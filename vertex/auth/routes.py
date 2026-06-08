@@ -10,6 +10,18 @@ from vertex.logging.logger import setup_logger
 logger = setup_logger(__name__)
 
 
+def _normalise_cognito_domain(value: str | None) -> str:
+    domain = (value or "").strip().rstrip("/")
+    if not domain:
+        return ""
+
+    parsed = urlparse(domain)
+    if parsed.scheme:
+        return domain
+
+    return f"https://{domain}"
+
+
 def configure_auth(app, auth_enabled: bool, auth_settings: dict) -> None:
     app.server.config.update(
         {
@@ -27,7 +39,7 @@ def configure_auth(app, auth_enabled: bool, auth_settings: dict) -> None:
     @app.server.route("/auth/login")
     def auth_login():
         next_url = request.args.get("next", request.url_root)
-        cognito_domain = current_app.config.get("COGNITO_DOMAIN", "").rstrip("/")
+        cognito_domain = _normalise_cognito_domain(current_app.config.get("COGNITO_DOMAIN"))
         client_id = current_app.config.get("COGNITO_CLIENT_ID")
 
         if not cognito_domain or not client_id:
@@ -53,7 +65,7 @@ def configure_auth(app, auth_enabled: bool, auth_settings: dict) -> None:
             logger.warning("auth_callback called without code param")
             return redirect("/")
 
-        cognito_domain = current_app.config.get("COGNITO_DOMAIN", "").rstrip("/")
+        cognito_domain = _normalise_cognito_domain(current_app.config.get("COGNITO_DOMAIN"))
         client_id = current_app.config.get("COGNITO_CLIENT_ID")
         client_secret = current_app.config.get("COGNITO_CLIENT_SECRET")
         callback_uri = url_for("auth_callback", _external=True)
@@ -110,7 +122,7 @@ def configure_auth(app, auth_enabled: bool, auth_settings: dict) -> None:
 
     @app.server.route("/auth/logout")
     def auth_logout():
-        cognito_domain = current_app.config.get("COGNITO_DOMAIN", "").rstrip("/")
+        cognito_domain = _normalise_cognito_domain(current_app.config.get("COGNITO_DOMAIN"))
         client_id = current_app.config.get("COGNITO_CLIENT_ID")
         app_root = request.url_root.rstrip("/")
         next_url = request.args.get("next", "")
