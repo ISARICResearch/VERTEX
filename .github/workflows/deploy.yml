@@ -114,7 +114,7 @@ jobs:
 
               "${SYNC_SCRIPT_PATH}"
 
-              cat > /etc/cron.d/vertex-projects-sync <<CRON
+              cat > /etc/cron.d/vertex-projects-sync <<'CRON'
               SHELL=/bin/bash
               PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
               PROJECTS_REPO_URL=git@github.com:ISARICResearch/VERTEX-projects.git
