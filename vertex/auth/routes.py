@@ -124,7 +124,9 @@ def configure_auth(app, auth_enabled: bool, auth_settings: dict) -> None:
     def auth_logout():
         cognito_domain = _normalise_cognito_domain(current_app.config.get("COGNITO_DOMAIN"))
         client_id = current_app.config.get("COGNITO_CLIENT_ID")
-        app_root = request.url_root.rstrip("/")
+        callback_uri = url_for("auth_callback", _external=True, _scheme="https")
+        callback_parts = urlparse(callback_uri)
+        app_root = f"https://{callback_parts.netloc}"
         next_url = request.args.get("next", "")
         dash_internal = ("/_dash-", "/_reload-", "/auth/")
 
