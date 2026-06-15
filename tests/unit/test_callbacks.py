@@ -148,6 +148,28 @@ def test_sync_project_options_falls_back_to_default_visible_project(app_context,
     assert selected == "analysis-a"
 
 
+def test_sync_auth_controls_shows_logout_for_logged_in_user(app_context, monkeypatch):
+    callback = _get_wrapped_callback("sync_auth_controls")
+    monkeypatch.setattr(dashboard, "AUTH_ENABLED", True)
+
+    control = callback(True, "https://vertex.example.test/?project=analysis-a")
+
+    assert isinstance(control, html.A)
+    assert control.children == "Logout"
+    assert control.href == "http://localhost:8050/auth/logout?next=https%3A%2F%2Fvertex.example.test%2F%3Fproject%3Danalysis-a"
+
+
+def test_sync_auth_controls_shows_login_for_logged_out_user(app_context, monkeypatch):
+    callback = _get_wrapped_callback("sync_auth_controls")
+    monkeypatch.setattr(dashboard, "AUTH_ENABLED", True)
+
+    control = callback(False, "https://vertex.example.test/?project=analysis-a")
+
+    assert isinstance(control, html.A)
+    assert control.children == "Login"
+    assert control.href == "http://localhost:8050/auth/login?next=https%3A%2F%2Fvertex.example.test%2F%3Fproject%3Danalysis-a"
+
+
 def test_update_country_selection_select_all(monkeypatch):
     callback = _get_wrapped_callback("update_country_selection")
     monkeypatch.setattr(

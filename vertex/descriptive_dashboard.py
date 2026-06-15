@@ -134,6 +134,16 @@ def register_callbacks(app):
         return get_request_is_logged_in(AUTH_ENABLED)
 
     @app.callback(
+        Output("auth-button-container", "children"),
+        Input("login-state", "data"),
+        Input("url", "href"),
+        prevent_initial_call=False,
+    )
+    def sync_auth_controls(login_state, current_url):
+        is_logged_in = login_state if isinstance(login_state, bool) else bool(login_state)
+        return build_auth_controls(AUTH_ENABLED, is_logged_in, current_url=current_url)
+
+    @app.callback(
         Output("selected-project-path", "data", allow_duplicate=True),
         Input("url", "search"),
         State("selected-project-path", "data"),

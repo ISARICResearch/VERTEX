@@ -3,7 +3,7 @@ import threading
 import time
 import uuid
 from functools import lru_cache
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 
 import jwt
 import requests
@@ -291,13 +291,26 @@ def get_accounts_logout_url(next_url: str | None = None) -> str:
     return f"{logout_url}?next={quote(next_url, safe='')}"
 
 
-def build_auth_controls(auth_enabled: bool, is_logged_in: bool):
+def _normalise_next_url(current_url: str | None) -> str:
+    dash_internal = ("/_dash-", "/_reload-", "/auth/")
+
+    if current_url:
+        parsed = urlparse(current_url)
+        path = parsed.path or "/"
+        if not any(path.startswith(prefix) for prefix in dash_internal):
+            return current_url
+
+    raw_url = request.url
+    if any(request.path.startswith(prefix) for prefix in dash_internal):
+        return "/"
+    return raw_url
+
+
+def build_auth_controls(auth_enabled: bool, is_logged_in: bool, current_url: str | None = None):
     if not auth_enabled:
         return html.Div()
 
-    dash_internal = ("/_dash-", "/_reload-", "/auth/")
-    raw_url = request.url
-    next_url = "/" if any(request.path.startswith(prefix) for prefix in dash_internal) else raw_url
+    next_url = _normalise_next_url(current_url)
 
     if is_logged_in:
         return html.A("Logout", href=get_accounts_logout_url(next_url), className="btn btn-danger btn-md")
