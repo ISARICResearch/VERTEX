@@ -192,6 +192,50 @@ def get_user_project_ids_readonly(user_id: str) -> list[str]:
         return []
 
 
+def get_projects_access_readonly(project_ids: list[str]) -> dict[str, dict]:
+    if not project_ids:
+        return {}
+
+    if engine.dialect.name != "postgresql":
+        return {}
+
+    if not has_project_access_tables():
+        return {}
+
+    orm_classes = _get_auth_orm_classes()
+    if not orm_classes:
+        return {}
+
+    projects_cls = orm_classes.get("projects")
+    if not projects_cls:
+        return {}
+
+    unique_project_ids = sorted({str(project_id).strip() for project_id in project_ids if project_id})
+    if not unique_project_ids:
+        return {}
+
+    try:
+        with Session(engine) as db_session:
+            rows = db_session.execute(
+                select(projects_cls.vertex_id, projects_cls.is_public, projects_cls.owner_id).where(
+                    projects_cls.vertex_id.in_(unique_project_ids)
+                )
+            ).all()
+
+        result = {}
+        for vertex_id, is_public, owner_id in rows:
+            if not vertex_id:
+                continue
+            result[str(vertex_id)] = {
+                "is_public": bool(is_public),
+                "owner_id": str(owner_id) if owner_id is not None else None,
+            }
+        return result
+    except SQLAlchemyError as exc:
+        logger.warning(f"Unable to read project access metadata for project_ids={unique_project_ids}: {exc}")
+        return {}
+
+
 def _get_cached_db_user(email: str) -> dict | None:
     if not email:
         return None
@@ -259,14 +303,15 @@ def get_request_db_user(auth_enabled: bool) -> dict | None:
 
 def get_request_login_state(auth_enabled: bool) -> dict:
     if not auth_enabled:
-        return {"is_logged_in": True, "allowed_project_ids": []}
+        return {"is_logged_in": True, "user_id": None, "allowed_project_ids": []}
 
     db_user = get_request_db_user(auth_enabled)
     if not db_user:
-        return {"is_logged_in": False, "allowed_project_ids": []}
+        return {"is_logged_in": False, "user_id": None, "allowed_project_ids": []}
 
     return {
         "is_logged_in": True,
+        "user_id": db_user.get("id"),
         "allowed_project_ids": db_user.get("allowed_project_ids", []),
     }
 

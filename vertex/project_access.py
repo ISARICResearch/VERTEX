@@ -7,6 +7,29 @@ def is_project_visible(project, auth_enabled: bool, login_state):
     if project.get("project_type") == "analysis":
         return True
 
+    project_id = project.get("project_id")
+    db_project_access = {}
+    if isinstance(login_state, dict):
+        db_project_access = login_state.get("db_project_access") or {}
+
+    db_project = db_project_access.get(project_id) if project_id else None
+    if db_project is not None:
+        if db_project.get("is_public", False):
+            return True
+
+        if not auth_enabled:
+            return False
+
+        if not isinstance(login_state, dict) or not login_state.get("is_logged_in", False):
+            return False
+
+        current_user_id = str(login_state.get("user_id") or "")
+        owner_id = str(db_project.get("owner_id") or "")
+        if current_user_id and owner_id and current_user_id == owner_id:
+            return True
+
+        return project_id in login_state.get("allowed_project_ids", [])
+
     if project.get("is_public", False):
         return True
 

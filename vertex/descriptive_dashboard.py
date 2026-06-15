@@ -13,6 +13,7 @@ from plotly import graph_objs as go
 from vertex.auth import (
     build_auth_controls,
     configure_auth,
+    get_projects_access_readonly,
     get_request_is_logged_in,
     get_request_login_state,
 )
@@ -107,6 +108,12 @@ def _get_project_context_for_request():
     if cache_key not in g:
         auth_state = get_request_login_state(AUTH_ENABLED)
         catalog = get_projects_catalog()
+        if AUTH_ENABLED:
+            project_ids = [project.get("project_id") for project in catalog if project.get("project_id")]
+            auth_state = {
+                **auth_state,
+                "db_project_access": get_projects_access_readonly(project_ids),
+            }
         sync_project_type_map(catalog)
         visible = _get_visible_projects_with_auth(catalog, auth_state)
         g._project_context = {"catalog": catalog, "visible": visible, "auth_state": auth_state}
