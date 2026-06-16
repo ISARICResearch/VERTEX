@@ -809,6 +809,13 @@ def main():
     app = dash.Dash(
         __name__,
         external_stylesheets=[dbc.themes.BOOTSTRAP],
+        external_scripts=[
+            {
+                "src": "https://plausible-oxrse.fly.dev/js/script.js",
+                "defer": True,
+                "data-domain": "vertex.isaric.org",
+            }
+        ],
         assets_folder=os.path.join(os.path.dirname(__file__), "..", "assets"),
         title="Isaric VERTEX",
         suppress_callback_exceptions=True,
