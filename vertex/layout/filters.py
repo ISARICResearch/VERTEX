@@ -1,6 +1,10 @@
+import importlib.resources
+
 import dash_bootstrap_components as dbc
 import pandas as pd
 from dash import dcc, html
+
+CSV_PATH = importlib.resources.files("vertex") / "assets" / "data"
 
 
 def define_filters_controls(
@@ -322,7 +326,7 @@ def get_filter_options(df_map):
 
     outcome_options = [{"label": v, "value": v} for v in df_map["filters_outcome"].dropna().unique()]
 
-    countries = pd.read_csv("assets/countries.csv", encoding="latin-1")
+    countries = pd.read_csv(CSV_PATH.joinpath("countries.csv"), encoding="latin-1")
     country_dict = dict(zip(countries["Code"], countries["Country"]))
     country_options = [{"label": country_dict.get(c, None), "value": c} for c in df_map["filters_country"].dropna().unique()]
 
