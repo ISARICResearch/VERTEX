@@ -32,7 +32,7 @@ maintainers = [
 
 readme = "README.md"
 requires-python = ">=3.11"
-license = { file = "LICENSE.md" }
+license = "MIT"
 
 # These keywords have been taken from the available ISARIC documentation,
 # and arent't comprehensive or standardised.
