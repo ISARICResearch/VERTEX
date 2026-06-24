@@ -12,8 +12,7 @@ logger = logging.getLogger(__name__)
 
 def merge_data_with_countries(df_map, add_capital_location=False):
     """Add country variable to df_map and merge with country metadata."""
-    contries_path = "assets/countries.csv"
-    countries = pd.read_csv(contries_path, encoding="latin-1")
+    countries = pd.read_csv("assets/countries.csv", encoding="latin-1")
 
     geojson = os.path.join(
         "https://raw.githubusercontent.com/",
