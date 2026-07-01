@@ -638,8 +638,8 @@ def save_insight_panel_visuals(
         suffix_visuals = insight_panels[suffix].create_visuals()
         for idx in range(len(suffix_visuals)):
             fig, fig_text = suffix_visuals[idx][:2]
-            if "table" in fig_text:
-                continue
+            #if "table" in fig_text:
+            #    continue
             fig_text = f"{fig_text.split('/')[-1]}.png"
             filepath = suffix_visuals_path.joinpath(fig_text)
             filepath.touch()
