@@ -36,6 +36,7 @@ VERTEX is licensed under the `Open Source Initiative (OSI) <https://opensource.o
 
    sources/getting-started
    sources/app
+   sources/adding-a-project
    sources/cli
    sources/api-reference
    sources/contributors
