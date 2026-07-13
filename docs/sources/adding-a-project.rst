@@ -238,12 +238,12 @@ Removing a project
 ~~~~~~~~~~~~~~~~~~
 
 **Do not simply delete the project folder.**
-Instead, merge a PR that empties it, leaving only a :file:`delete.txt` marker that records the retired ``project_id``:
+Instead, merge a PR that empties it, leaving only a :file:`REMOVED.txt` marker that records the retired ``project_id``:
 
 .. code:: text
 
    My_Project/
-   └── delete.txt
+   └── REMOVED.txt
 
 with contents along the lines of:
 
@@ -257,6 +257,6 @@ A folder without a :file:`config_file.json` is ignored by both the VERTEX app an
 A maintainer should then delete the project's ``user_project_mapping`` rows and its ``projects`` row (matched on ``vertex_id``) from the access database.
 This removes the project from account.isaric.org and guarantees no new project can ever inherit the removed project's owner, visibility, or shared users.
 
-The retired folder is the permanent record that its name and ``project_id`` are taken — the id only existed in the deleted :file:`config_file.json`, hence writing it into :file:`delete.txt` for posterity.
+The retired folder is the permanent record that its name and ``project_id`` are taken — the id only existed in the deleted :file:`config_file.json`, hence writing it into :file:`REMOVED.txt` for posterity.
 Neither should be reused: VERTEX share links identify projects as ``?project=<project_id>``, but fall back to folder, so a new project reusing either would capture links to the removed project.
 Reviewers of PRs adding new projects should check the new id against the retired folders.
