@@ -85,6 +85,8 @@ Review the generated config before committing — in particular ``project_id`` (
      "is_public": false
    }
 
+Every pull request is checked automatically: the config is validated against :file:`config_file.schema.json` in the root of the VERTEX-projects repository, and the ``project_id`` is checked for uniqueness against all existing and retired projects.
+
 .. list-table::
    :header-rows: 1
    :widths: 15 15 70
