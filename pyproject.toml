@@ -9,7 +9,7 @@ packages = ["vertex"]
 [project]
 name = "isaric-vertex"
 dynamic = ["version"]
-description = "Dash-based VERTEX dashboard for ISARIC"
+description = "Analytics and visualisation dashboard for severe infectious disease outbreak response"
 
 # All current contributors
 authors = [

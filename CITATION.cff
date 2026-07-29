@@ -1,0 +1,57 @@
+cff-version: 1.2.0
+title: VERTEX
+message: Analytics and visualisation dashboard for severe infectious disease outbreak response.
+type: database
+authors:
+  - family-names: Bastos
+    given-names: Leonardo
+    email: lslbastos@puc-rio.br
+    orcid: 0000-0002-1406-0122
+  - family-names: Duque-Vallejo
+    given-names: Sara
+    email: sara.duquevallejo@ndm.ox.ac.uk
+    orcid: 0000-0002-6616-8354
+  - family-names: Edinburgh
+    given-names: Tom
+    orcid: 0000-0002-3599-7133
+  - family-names: Garcia-Gallo
+    given-names: Esteban
+    email: esteban.garcia@ndm.ox.ac.uk
+    orcid: 0000-0002-8030-9985
+  - family-names: Merson
+    given-names: Laura
+    email: laura.merson@ndm.ox.ac.uk
+    orcid: 0000-0002-4168-1960
+  - family-names: Murthy
+    given-names: Sandeep
+    email: sandeep.murthy@ndm.ox.ac.uk
+    orcid: 0009-0006-8277-9389
+  - family-names: Peres
+    given-names: Igor
+    email: igor.peres@puc-rio.br
+  - family-names: Pesonel
+    given-names: Elise
+    email: elise.pesonel@ndm.ox.ac.uk
+    orcid: 0009-0009-0133-5009
+  - family-names: Raffaini
+    given-names: Luiz Eduardo
+    email: lemraffaini@gmail.com
+repository-code: 'https://github.com/ISARICResearch/VERTXX'
+url: 'https://github.com/ISARICResearch/VERTEX'
+abstract: Analytics and visualisation dashboard for severe infectious disease outbreak response.
+keywords:
+    - isaric
+    - infectious disease
+    - pandemic
+    - disease outbreak
+    - clinical epidemiology
+    - disease outbreak response
+    - data analysis
+    - data visualisation
+license: MIT
+version: 2.0.0
+date-released: 2026-04-16
+identifiers:
+  - description: v2.0.0 release
+    type: doi
+    value: "10.5281/zenodo.14170824"
