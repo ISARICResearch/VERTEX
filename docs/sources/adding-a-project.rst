@@ -36,7 +36,7 @@ Pipeline overview
 
 Project **files** (dashboard data, figures, metadata) are served from the synced copy of the VERTEX-projects repository on the VERTEX server.
 Project **access rights** (owner, public/private, shared users) live in the RDS database and are managed through the account webapp.
-The config file in the repository only seeds the database entry the first time the project is ingested — after that, access is controlled entirely from `account.isaric.org <https://account.isaric.org>`_.
+The config file (:file:`config_file.json`) in the repository only seeds the database entry the first time the project is ingested — after that, access is controlled entirely from `account.isaric.org <https://account.isaric.org>`_.
 
 .. _generate-project-folder:
 
@@ -67,8 +67,8 @@ The generated folder is what you commit to VERTEX-projects as a new top-level di
 
 .. _project-config-file:
 
-config_file.json
-^^^^^^^^^^^^^^^^
+:file:`config_file.json`
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 Review the generated config before committing — in particular ``project_id`` (must be unique across VERTEX-projects), ``project_owner``, and ``is_public``:
 
@@ -85,6 +85,8 @@ Review the generated config before committing — in particular ``project_id`` (
      "is_public": false
    }
 
+This example is a private test project, hence ``"is_public": false`` — omit the field entirely to get the default of ``true`` (see the table below).
+
 Every pull request is checked automatically: the config is validated against :file:`config_file.schema.json` in the root of the VERTEX-projects repository, and the ``project_id`` is checked for uniqueness against all existing and retired projects.
 
 .. list-table::
@@ -96,7 +98,7 @@ Every pull request is checked automatically: the config is validated against :fi
      - Notes
    * - ``project_id``
      - yes
-     - Unique, stable, kebab-case identifier. This is the primary key used to match the project against the access database (``vertex_id`` column). It must not clash with any existing project and should never be changed after the first ingestion.
+     - Unique, stable, kebab-case identifier (lower-cased, hyphen-separated, e.g. ``my-project-id``). This is the primary key used to match the project against the access database (``vertex_id`` column). It must not clash with any existing project and should never be changed after the first ingestion.
    * - ``project_name``
      - recommended
      - Display name shown in VERTEX. Defaults to the folder name if omitted.
@@ -259,6 +261,6 @@ A folder without a :file:`config_file.json` is ignored by both the VERTEX app an
 A maintainer should then delete the project's ``user_project_mapping`` rows and its ``projects`` row (matched on ``vertex_id``) from the access database.
 This removes the project from account.isaric.org and guarantees no new project can ever inherit the removed project's owner, visibility, or shared users.
 
-The retired folder is the permanent record that its name and ``project_id`` are taken — the id only existed in the deleted :file:`config_file.json`, hence writing it into :file:`REMOVED.txt` for posterity.
+The retired folder is the permanent record that its name and ``project_id`` are taken — the ID only existed in the deleted :file:`config_file.json`, hence writing it into :file:`REMOVED.txt` for posterity.
 Neither should be reused: VERTEX share links identify projects as ``?project=<project_id>``, but fall back to folder, so a new project reusing either would capture links to the removed project.
-Reviewers of PRs adding new projects should check the new id against the retired folders.
+Reviewers of PRs adding new projects should check the new ID against the retired folders.
