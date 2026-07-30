@@ -93,7 +93,10 @@ An example is given below of the `config JSON <https://github.com/ISARICResearch
 
 .. _project-metadata:
 
-Project metadata fields such as the name (``"project_name"``), REDCap project database ID (``"project_id"``) and owner (``"project_owner"``) should also be defined. The ``"is_public"`` field indicates whether the public is intended to be public or private, and ``"save_outputs"`` indicates whether the insight panel artifacts (figures and tables) should be exported/saved locally during initial loading (to enable cached reloading).
+Project metadata fields such as the name (``"project_name"``), unique project identifier (``"project_id"``) and owner (``"project_owner"``) should also be defined.
+On the deployed app, ``"project_id"`` is the key that identifies the project in the access database, so it must be unique across all deployed projects and should not be changed once the project is deployed.
+The ``"is_public"`` field indicates whether the project is intended to be public or private; together with ``"project_owner"`` it sets the project's *initial* access rights when the project is first deployed — after that, visibility and sharing are managed from `account.isaric.org <https://account.isaric.org>`_ rather than the config file (see :ref:`adding-a-project`).
+Finally, ``"save_outputs"`` indicates whether the insight panel artifacts (figures and tables) should be exported/saved locally during initial loading (to enable cached reloading).
 
 The insight panel files, which for analysis projects must be in the form of Python :file:`.py` files (modules), should be named appropriately in relation to the associated clinical characterisation stages or events, and the files must all be included together in a subfolder, typically named :file:`insight_panels`, that should correspond to the value of the ``"insight_panels_path"`` key in the configuration JSON. A typical organisation is illustrated below for the Dengue Synthetic demo project:
 
