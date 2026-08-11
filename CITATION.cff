@@ -1,42 +1,50 @@
 cff-version: 1.2.0
 title: VERTEX
 message: Analytics and visualisation dashboard for severe infectious disease outbreak response.
-type: database
+type: software
 authors:
   - family-names: Bastos
     given-names: Leonardo
     email: lslbastos@puc-rio.br
-    orcid: 0000-0002-1406-0122
+    orcid: https://orcid.org/0000-0002-1406-0122
+
   - family-names: Duque-Vallejo
     given-names: Sara
     email: sara.duquevallejo@ndm.ox.ac.uk
-    orcid: 0000-0002-6616-8354
+    orcid: https://orcid.org/0000-0002-6616-8354
+
   - family-names: Edinburgh
     given-names: Tom
-    orcid: 0000-0002-3599-7133
+    orcid: https://orcid.org/0000-0002-3599-7133
+
   - family-names: Garcia-Gallo
     given-names: Esteban
     email: esteban.garcia@ndm.ox.ac.uk
-    orcid: 0000-0002-8030-9985
+    orcid: https://orcid.org/0000-0002-8030-9985
+
   - family-names: Merson
     given-names: Laura
     email: laura.merson@ndm.ox.ac.uk
-    orcid: 0000-0002-4168-1960
+    orcid: https://orcid.org/0000-0002-4168-1960
+
   - family-names: Murthy
-    given-names: Sandeep
+    given-names: Sandeep R.
     email: sandeep.murthy@ndm.ox.ac.uk
-    orcid: 0009-0006-8277-9389
+    orcid: https://orcid.org/0009-0006-8277-9389
+
   - family-names: Peres
     given-names: Igor
     email: igor.peres@puc-rio.br
+
   - family-names: Pesonel
     given-names: Elise
     email: elise.pesonel@ndm.ox.ac.uk
-    orcid: 0009-0009-0133-5009
+    orcid: https://orcid.org/0009-0009-0133-5009
+
   - family-names: Raffaini
     given-names: Luiz Eduardo
     email: lemraffaini@gmail.com
-repository-code: 'https://github.com/ISARICResearch/VERTXX'
+repository-code: 'https://github.com/ISARICResearch/VERTEX'
 url: 'https://github.com/ISARICResearch/VERTEX'
 abstract: Analytics and visualisation dashboard for severe infectious disease outbreak response.
 keywords:

@@ -31,6 +31,7 @@ from vertex import __version__
 
 author = "ISARIC"
 copyright = f"ISARIC, {datetime.now().year}"
+year = datetime.now().year
 description = """
               A web-based application designed to operationalize ISARIC ARC and tailor ISARIC CRFs to disease outbreaks.
               """
@@ -60,6 +61,7 @@ primary_domain = None
 # Global substitutions available in every source page - not all used
 rst_epilog = f"""
 .. |author|                 replace:: **{author}**
+.. |year|                   replace:: **{year}**
 .. |copyright|              replace:: **{copyright}**
 .. |project|                replace:: **{project}**
 .. |project_description|    replace:: {description}
