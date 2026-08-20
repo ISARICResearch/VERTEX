@@ -3,6 +3,8 @@
 Contributors
 ============
 
+Contributions are limited to members of the `ISARIC GitHub organisation <https://github.com/ISARICResearch>`_ and approved external collaborators. All current contributors are listed below.
+
 .. _conceptualisation:
 
 Conceptualization
