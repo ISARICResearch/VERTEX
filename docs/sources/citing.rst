@@ -9,7 +9,7 @@ VERTEX is **published** on `GitHub <https://github.com/ISARICResearch/VERTEX/rel
 
 VERTEX can be **cited** as follows:
 
-	Bastos L, Duque-Vallejo S, Edinburgh T, Garcia-Gallo E, Merson L, Murthy SR, Peres I, Pesonel E, Raffaini LE. ISARIC VERTEX (v2.0.0). *ISARIC* |year|. doi:`10.5281/zenodo.14170824 <https://doi.org/10.5281/zenodo.14170824>`_
+	Bastos L, Duque-Vallejo S, Edinburgh T, Garcia-Gallo E, Merson L, Murthy SR, Peres I, Pesonel E, Raffaini LE, Wilson AD. ISARIC VERTEX (v2.0.0). *ISARIC* |year|. doi:`10.5281/zenodo.14170824 <https://doi.org/10.5281/zenodo.14170824>`_
 
 .. _note-for-contributors:
 
