@@ -44,6 +44,11 @@ authors:
   - family-names: Raffaini
     given-names: Luiz Eduardo
     email: lemraffaini@gmail.com
+
+  - family-names: Wilson
+    given-names: Alasdair D
+    email: alasdair.wilson@dtc.ox.ac.uk
+    orcid: https://orcid.org/0000-0003-0820-8159
 repository-code: 'https://github.com/ISARICResearch/VERTEX'
 url: 'https://github.com/ISARICResearch/VERTEX'
 abstract: Analytics and visualisation dashboard for severe infectious disease outbreak response.
