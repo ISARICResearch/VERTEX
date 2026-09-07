@@ -116,6 +116,9 @@ docs = [
     "jupyter-sphinx"
 ]
 
+[tool.uv]
+  default-groups = "all"
+
 [project.scripts]
 run-vertex = "descriptive_dashboard:main"
 vertex-cli = "vertex.cli:vertex_cli"
