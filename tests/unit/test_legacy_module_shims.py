@@ -3,6 +3,8 @@ import sys
 
 import pytest
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.mark.parametrize(
     ("legacy_module", "target_module", "exported_name"),

@@ -13,7 +13,7 @@ VERTEX is essentially an app, and there is a `public version <https://vertex.isa
 Requirements
 ~~~~~~~~~~~~
 
-The main VERTEX requirements are Python ``3.11+`` and the
+The main VERTEX requirements are Python ``3.12+`` (although ``3.11`` should also be fine generally) and the
 specific dependencies listed in the ``[project]`` section of the `project TOML <https://github.com/ISARICResearch/VERTEX/blob/main/pyproject.toml>`_.
 
 If you're running VERTEX locally :doc:`in Docker <app>` then these dependencies (and their sub-dependencies) will be pre-installed inside the container, so no direct user installation is required.

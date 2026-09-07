@@ -1,4 +1,8 @@
+import pytest
+
 from vertex.project_access import is_project_visible
+
+pytestmark = pytest.mark.unit
 
 
 def _base_project(is_public=False):

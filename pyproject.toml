@@ -35,7 +35,7 @@ maintainers = [
 ]
 
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 license = { file = "LICENSE.md" }
 
 # These keywords have been taken from the available ISARIC documentation,
@@ -81,7 +81,7 @@ dependencies = [
     "cryptography>=46.0.7",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 # Deps specific to the pre-commit checks
 pre-commit = [
     "pre-commit",
@@ -90,7 +90,7 @@ pre-commit = [
 # Deps specific to the unit tests
 test = [
     "pytest>=8.0",
-    "pytest-cov>=5.0",
+    "pytest-cov>=7.1.0",
 ]
 
 # Deps specific to the frontend smoke tests
@@ -116,6 +116,11 @@ docs = [
     "jupyter-sphinx"
 ]
 
+[project.optional-dependencies]
+
+[tool.uv]
+  default-groups = "all"
+
 [project.scripts]
 run-vertex = "descriptive_dashboard:main"
 vertex-cli = "vertex.cli:vertex_cli"
@@ -126,7 +131,7 @@ version = {attr = "vertex.__version__"}
 [tool.ruff]
 
 line-length = 128
-target-version = "py311"
+target-version = "py312"
 
 lint.select = ["E", "F", "W", "I"]  # pycodestyle, pyflakes, warnings, import sorting
 
@@ -142,8 +147,32 @@ quote-style = "double"
 indent-style = "space"
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
-addopts = "-ra"
-markers = [
-    "e2e: browser-based end-to-end smoke tests",
-]
+  pythonpath = "vertex"
+  addopts = """\
+      -p pytest_cov \
+      --cache-clear \
+      --capture=no \
+      --code-highlight=yes \
+      --color=yes \
+      --cov=vertex \
+      --cov-config=pyproject.toml \
+      --cov-report=xml \
+      --cov-report=html \
+      --cov-report=term-missing:skip-covered \
+      -ra \
+      --tb=native \
+      --verbosity=3 \
+  """
+  filterwarnings = [
+      "ignore::DeprecationWarning"
+  ]
+  python_files = ["test_*.py",]
+  python_classes = ["Test",]
+  python_functions = ["test"]
+  testpaths = [
+      "tests/",
+  ]
+  markers = [
+      "e2e: browser-based end-to-end smoke tests",
+      "unit: unit tests",
+  ]

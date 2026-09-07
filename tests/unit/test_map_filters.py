@@ -1,7 +1,10 @@
 import pandas as pd
+import pytest
 
 from vertex.layout.filters import get_filter_options
 from vertex.map import filter_df_map
+
+pytestmark = pytest.mark.unit
 
 
 def test_filter_df_map_applies_expected_filters():

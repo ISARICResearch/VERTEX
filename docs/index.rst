@@ -23,12 +23,12 @@ VERTEX processes and visualizes data using the concept of **Reproducible Analyti
 
 See the :doc:`quickstart guide <sources/getting-started>` to start using VERTEX, and the linked pages below for more information on features and code.
 
-VERTEX is licensed under the `Open Source Initiative (OSI) <https://opensource.org>`_-compliant `MIT license <https://opensource.org/license/mit>`_.
+VERTEX is licensed under the `MIT license <https://opensource.org/license/mit>`_.
 
 .. image:: _static/osi-badge-light.svg
    :target: https://opensource.org/license/mit
-   :height: 200px
-   :width:  200px
+   :height: 100px
+   :width:  100px
 
 .. toctree::
    :maxdepth: 1
