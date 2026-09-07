@@ -1,7 +1,7 @@
 # VERTEX
 
 [![CodeQL](https://github.com/ISARICResearch/VERTEX/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/ISARICResearch/VERTEX/actions/workflows/github-code-scanning/codeql)
-[![pre-commit](https://github.com/ISARICResearch/VERTEX/actions/workflows/lint.yml/badge.svg)](https://github.com/ISARICResearch/VERTEX/actions/workflows/lint.yml)
+[![pre-commit](https://github.com/ISARICResearch/VERTEX/actions/workflows/pre-commit.yml/badge.svg)](https://github.com/ISARICResearch/VERTEX/actions/workflows/pre-commit.yml)
 [![Tests and Coverage](https://github.com/ISARICResearch/VERTEX/actions/workflows/test.yml/badge.svg)](https://github.com/ISARICResearch/VERTEX/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/ISARICResearch/VERTEX/graph/badge.svg?token=K68GVC44SJ)](https://codecov.io/gh/ISARICResearch/VERTEX)
 [![Docker Build and Test](https://github.com/ISARICResearch/VERTEX/actions/workflows/build.yaml/badge.svg)](https://github.com/ISARICResearch/VERTEX/actions/workflows/build.yaml)
