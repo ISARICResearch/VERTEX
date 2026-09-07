@@ -118,6 +118,8 @@ test: clean
 	                               --color=yes \
 	                               --cov=vertex \
 	                               --cov-report=term-missing:skip-covered \
+	                               --cov-report=xml \
+	                               --cov-report=html \
 	                               -ra \
 	                               --tb=native \
 	                               --verbosity=3 \
