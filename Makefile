@@ -74,7 +74,7 @@ sync-deps-exact:
 sync-deps-inexact:
 	@echo "$(PACKAGE_NAME)[$(BRANCH)@$(HEAD)]: Syncing all package + development dependencies with lockfile, preserving unrelated dependencies"
 	rm -f uv.lock && \
-	uv sync --verbose --all-groups --no-editable --no-install-project --no-cache --refresh --inexact
+	uv sync --verbose --all-groups --no-editable --no-install-project --no-cache --refresh --inexact --no-managed-python
 
 # --- Package artifacts ---
 #
