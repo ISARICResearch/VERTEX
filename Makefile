@@ -34,14 +34,9 @@ clean:
 
 # --- Version commands ---
 #
-# A simple file-based version check for the installed package (local, sdist or wheel)
-version-check:
-	@echo "$(PACKAGE_NAME)[$(BRANCH)@$(HEAD)]: Checking installed package version (if it is installed)"
-	python3 -c "import os; os.chdir('src/arc'); from __init__ import __version__; print(__version__); os.chdir('../')"
-
 # Just display the version
 version-extract:
-	echo "$(PACKAGE_VERSION)"
+	@echo "$(PACKAGE_VERSION)"
 
 # --- Member inspection of Python files ---
 #
@@ -62,7 +57,7 @@ version-extract:
 #
 # where the '|' represents an OR operator for grep that needs to be escaped with the backslash '\'.
 list-callables:
-	@echo "$(PACKAGE_NAME)[$(BRANCH)@$(HEAD)]: Lexicographical isting of all callable members ($(MEMBER_REGEX)) of a Python file"
+	@echo "$(PACKAGE_NAME)[$(BRANCH)@$(HEAD)]: Lexicographical listing of all callable members ($(MEMBER_REGEX)) of a Python file"
 	grep "$(MEMBER_REGEX)" $(FILE_PATH) | sort | cut -d ' ' -f 2 | cut -d '(' -f 1
 
 # --- Dependency management ---
