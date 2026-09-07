@@ -8,6 +8,8 @@ from plotly.graph_objs import Figure
 
 from vertex import descriptive_dashboard as dashboard
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.fixture
 def app_context():

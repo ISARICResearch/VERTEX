@@ -146,4 +146,5 @@ testpaths = ["tests"]
 addopts = "-ra"
 markers = [
     "e2e: browser-based end-to-end smoke tests",
+    "unit",
 ]

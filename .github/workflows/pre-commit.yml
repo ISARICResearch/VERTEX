@@ -18,10 +18,7 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install pre-commit
-        run: |
-          pip install pre-commit
-
       - name: Run pre-commit hooks
         run: |
-          pre-commit run --all-files
+          python3 -m pip install pre-commit
+          make pre-commit

@@ -6,6 +6,8 @@ import pytest
 from vertex import descriptive_dashboard as dashboard
 from vertex import io as vertex_io
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.mark.parametrize(
     ("value", "expected"),

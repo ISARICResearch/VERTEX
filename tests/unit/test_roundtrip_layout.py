@@ -1,8 +1,11 @@
 import json
 
+import pytest
 from dash import html
 
 from vertex import descriptive_dashboard as dashboard
+
+pytestmark = pytest.mark.unit
 
 
 def _write_roundtrip_panel(project_dir):
