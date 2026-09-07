@@ -110,12 +110,13 @@ pre-commit: clean
 test: clean
 	@echo "$(PACKAGE_NAME)[$(BRANCH)@$(HEAD)]: Running unit tests + measuring coverage"
 	PYTHONPATH=src uv run --verbose --active -m pytest \
+	                               -p pytest_cov \
 	                               -q -m "$(MARKER)" \
 	                               --cache-clear \
 	                               --capture=no \
 	                               --code-highlight=yes \
 	                               --color=yes \
-	                               --cov=src \
+	                               --cov=vertex \
 	                               --cov-report=term-missing:skip-covered \
 	                               -ra \
 	                               --tb=native \
