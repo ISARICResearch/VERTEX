@@ -17,7 +17,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Validate analysis project schema
         uses: ./.github/actions/validate-analysis-projects
@@ -47,11 +47,11 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Install project and unit test dependencies
         run: |
-          python -m pip install uv
+          python3 -m pip install uv
           make sync-deps-exact
 
       - name: Run unit tests and measure code coverage
@@ -87,7 +87,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Install frontend smoke test dependencies
         run: |

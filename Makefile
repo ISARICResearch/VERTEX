@@ -69,12 +69,12 @@ list-callables:
 sync-deps-exact:
 	@echo "$(PACKAGE_NAME)[$(BRANCH)@$(HEAD)]: Syncing all package + development dependencies with lockfile, removing unrelated dependencies"
 	rm -f uv.lock && \
-	uv sync --verbose --active --all-groups --no-install-project --no-cache --refresh
+	uv sync --verbose --all-groups --no-editable --no-install-project --no-cache --refresh --no-managed-python
 
 sync-deps-inexact:
 	@echo "$(PACKAGE_NAME)[$(BRANCH)@$(HEAD)]: Syncing all package + development dependencies with lockfile, preserving unrelated dependencies"
 	rm -f uv.lock && \
-	uv sync --verbose --active --all-groups --no-install-project --no-cache --refresh --inexact
+	uv sync --verbose --all-groups --no-editable --no-install-project --no-cache --refresh --inexact
 
 # --- Package artifacts ---
 #
@@ -91,7 +91,7 @@ uninstall: clean
 # --- Documentation ---
 .PHONY: clean
 docs: clean
-	@echo "$(PACKAGE_NAME)[$(BRANCH)@$(HEAD)]: Building Sphinx docs"
+	@echo "$(PACKAGE_NAME)[$(BRANCH)@$(HEAD)]: Building Sphinx docs (using the Sphinx Makefile in ./docs/)"
 	make -C docs html
 
 # --- Pre-commit ---
@@ -109,15 +109,15 @@ pre-commit: clean
 .PHONY: test
 test: clean
 	@echo "$(PACKAGE_NAME)[$(BRANCH)@$(HEAD)]: Running unit tests + measuring coverage"
-	PYTHONPATH=src uv run --verbose --active pytest \
-	                                           -q -m "$(MARKER)" \
-			                                   --cache-clear \
-				                               --capture=no \
-				                               --code-highlight=yes \
-				                               --color=yes \
-				                               --cov=src \
-				                               --cov-report=term-missing:skip-covered \
-				                               -ra \
-				                               --tb=native \
-				                               --verbosity=3 \
-				                               $(TESTS_PATH)
+	PYTHONPATH=src uv run --verbose --active -m pytest \
+	                               -q -m "$(MARKER)" \
+	                               --cache-clear \
+	                               --capture=no \
+	                               --code-highlight=yes \
+	                               --color=yes \
+	                               --cov=src \
+	                               --cov-report=term-missing:skip-covered \
+	                               -ra \
+	                               --tb=native \
+	                               --verbosity=3 \
+	                               $(TESTS_PATH)

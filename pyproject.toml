@@ -35,7 +35,7 @@ maintainers = [
 ]
 
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 license = { file = "LICENSE.md" }
 
 # These keywords have been taken from the available ISARIC documentation,
@@ -81,7 +81,7 @@ dependencies = [
     "cryptography>=46.0.7",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 # Deps specific to the pre-commit checks
 pre-commit = [
     "pre-commit",
@@ -116,6 +116,8 @@ docs = [
     "jupyter-sphinx"
 ]
 
+[project.optional-dependencies]
+
 [tool.uv]
   default-groups = "all"
 
@@ -129,7 +131,7 @@ version = {attr = "vertex.__version__"}
 [tool.ruff]
 
 line-length = 128
-target-version = "py311"
+target-version = "py312"
 
 lint.select = ["E", "F", "W", "I"]  # pycodestyle, pyflakes, warnings, import sorting
 
@@ -149,5 +151,5 @@ testpaths = ["tests"]
 addopts = "-ra"
 markers = [
     "e2e: browser-based end-to-end smoke tests",
-    "unit",
+    "unit: unit tests",
 ]
