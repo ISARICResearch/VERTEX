@@ -11,12 +11,12 @@ VERTEX can be **cited** as follows:
 
 	Bastos L, Duque-Vallejo S, Edinburgh T, Garcia-Gallo E, Merson L, Murthy SR, Peres I, Pesonel E, Raffaini LE, Wilson AD. ISARIC VERTEX (v2.0.0). *ISARIC* |year|. doi:`10.5281/zenodo.14170824 <https://doi.org/10.5281/zenodo.14170824>`_
 
-.. _note-for-contributors:
+.. _note-for-maintainers-and-contributors:
 
-A Note For Contributors
------------------------
+A Note For Maintainers & Contributors
+-------------------------------------
 
-Contributors should note that the `citation file <https://github.com/ISARICResearch/VERTEX/blob/main/CITATION.cff>`_ should be kept up-to-date with changes in authorship. The file can be validated on the command line using the `cffconvert <https://github.com/citation-file-format/cffconvert>`_ library using the following command run from the root of the BRIDGE repository:
+Maintainers and contributors should note that the `citation file <https://github.com/ISARICResearch/VERTEX/blob/main/CITATION.cff>`_ should be kept up-to-date with changes in authorship. The file can be validated on the command line using the `cffconvert <https://github.com/citation-file-format/cffconvert>`_ library using the following command run from the root of the VERTEX repository:
 
 .. code:: shell
 

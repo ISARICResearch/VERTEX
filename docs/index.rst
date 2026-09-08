@@ -38,6 +38,5 @@ VERTEX is licensed under the `MIT license <https://opensource.org/license/mit>`_
    sources/app
    sources/adding-a-project
    sources/cli
-   sources/api-reference
    sources/citing
    sources/contributors
