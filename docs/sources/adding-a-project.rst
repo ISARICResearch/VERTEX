@@ -120,15 +120,15 @@ Every pull request is checked automatically: the config is validated against :fi
 Commit the new folder on a branch and open a PR against ``main`` in ``ISARICResearch/VERTEX-projects``.
 The diff should contain only your project folder — here the config file plus the dashboard data and figure files:
 
-.. image:: images/01-file-structure.png
+.. image:: ../_static/01-file-structure.png
    :alt: Commit diff showing the new project files
 
-.. image:: images/02-pull-request.png
+.. image:: ../_static/02-pull-request.png
    :alt: The open pull request
 
 Once the PR is merged, no further manual action is needed — the server picks the change up automatically.
 
-.. image:: images/03-merged.png
+.. image:: ../_static/03-merged.png
    :alt: The merged pull request
 
 .. _project-sync-ingestion:
@@ -202,12 +202,12 @@ On `vertex.isaric.org <https://vertex.isaric.org>`_:
 
 Because this project was ingested with ``is_public: false``, it does not appear in the project selector for anyone else — the other (public) projects are listed, but the new one is absent:
 
-.. image:: images/04-no-public-access.png
+.. image:: ../_static/04-no-public-access.png
    :alt: Project selector without access — the private project is not listed
 
 Logged in as the owner, the project is available and opens like any other dashboard:
 
-.. image:: images/05-project-private.png
+.. image:: ../_static/05-project-private.png
    :alt: Owner view of the private project in VERTEX
 
 .. _project-manage-access:
@@ -217,7 +217,7 @@ Logged in as the owner, the project is available and opens like any other dashbo
 
 Once ingested, the project appears for the owner on `account.isaric.org <https://account.isaric.org>`_ under **Your projects**, with its current visibility:
 
-.. image:: images/06-owner-has-access.png
+.. image:: ../_static/06-owner-has-access.png
    :alt: Owner's project list on the account webapp
 
 Opening a project's details page (pencil icon) lets the owner:
@@ -227,13 +227,13 @@ Opening a project's details page (pencil icon) lets the owner:
 
 Here the project has been shared with a second account and then switched to Public:
 
-.. image:: images/07-can-share.png
+.. image:: ../_static/07-can-share.png
    :alt: Project details: sharing and visibility controls
 
 Access checks happen at page load: there is no extra sync delay, because both applications read the same access database.
 After the switch to Public above, the project immediately shows up in the VERTEX project selector without logging in:
 
-.. image:: images/08-public-access.png
+.. image:: ../_static/08-public-access.png
    :alt: After making the project public it appears in the selector
 
 .. _removing-a-project:

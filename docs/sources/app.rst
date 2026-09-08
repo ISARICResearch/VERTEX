@@ -6,12 +6,12 @@ Using the VERTEX App
 The VERTEX app can be used online at https://vertex.isaric.org, or you can build your own local version and run it (via `Docker <https://www.docker.com/products/docker-desktop/>`_) using the following instructions.
 
 
-.. docker:
+.. _docker:
 
 Running the App
 ---------------
 
-As mentioned in the :doc:`Getting Started guide <getting-started>`, the app can be run locally either as a Python (Plotly Dash) application or in Docker (recommended). The steps below represent the best way to run VERTEX in Docker (so first ensure that Docker desktop is installed for your system, and running):
+The best way of running VERTEX locally is in Docker, provided you have installed `Docker Desktop <https://www.docker.com/products/docker-desktop/>`_. The steps are described below:
 
 1. Checkout the local VERTEX Git branch on which you want to build and run the app - usually this will be the ``main`` branch, but it could also be any feature or fix branch. If you have access to a command line shell you can do this using:
 
