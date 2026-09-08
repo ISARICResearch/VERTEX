@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-VERTEX Documentation
-====================
+ISARIC VERTEX
+=============
 
 .. image:: _static/vertex-logo.png
    :height: 252.017
