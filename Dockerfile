@@ -3,7 +3,7 @@ FROM python:3.12-slim
 # Set the default number of Gunicorn workers - should be overridden
 # from Docker run command with number matching actual number of logical
 # cores on the runner
-GUNICORN_WORKERS=2
+ENV GUNICORN_WORKERS=2
 
 # Set the working directory
 WORKDIR /app
