@@ -33,12 +33,16 @@ jobs:
         run: |
           echo "APP_ENV=ci" >> $GITHUB_ENV
 
+      - name: Set CPU core count
+        run:  echo "CPU_CORES=$(nproc)" >> "$GITHUB_ENV"
+
       - name: Build Docker image
         run: docker build -t isaric-vertex .
 
       - name: Run Docker container (connected to postgres)
         run: |
           docker run -d -p 80:8050 \
+            -e GUNICORN_WORKERS=$CPU_CORES \
             -e APP_ENV=ci \
             -e DATABASE_URL=postgresql+psycopg2://test_user:test_password@host.docker.internal:5432/test_db \
             --name isaric-vertex isaric-vertex

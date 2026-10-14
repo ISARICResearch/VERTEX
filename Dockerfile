@@ -1,5 +1,10 @@
 FROM python:3.12-slim
 
+# Set the default number of Gunicorn workers - should be overridden
+# from Docker run command with number matching actual number of logical
+# cores on the runner
+ENV GUNICORN_WORKERS=2
+
 # Set the working directory
 WORKDIR /app
 
@@ -21,4 +26,4 @@ COPY . .
 
 EXPOSE 8050
 
-CMD ["gunicorn", "--workers", "1","--reload", "--bind", "0.0.0.0:8050", "vertex.descriptive_dashboard:server"]
+CMD ["sh", "-c", "exec gunicorn --workers \"$GUNICORN_WORKERS\" --reload --bind 0.0.0.0:8050 vertex.descriptive_dashboard:server"]
