@@ -12,7 +12,7 @@ def _write_roundtrip_panel(project_dir):
     panel_code = """
 import pandas as pd
 
-import isaricanalytics.IsaricDraw as idw
+import isaricanalytics.visualisation as idw
 
 
 def define_button():

@@ -10,7 +10,7 @@ import time
 import typing
 from pathlib import Path
 
-import isaricanalytics.getREDCapData as getRC
+import isaricanalytics.redcap_data as getRC
 import pandas as pd
 
 from vertex.layout.insight_panels import get_insight_panels, get_visuals

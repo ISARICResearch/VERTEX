@@ -1,5 +1,5 @@
-import isaricanalytics.IsaricAnalytics as ia
-import isaricanalytics.IsaricDraw as idw
+import isaricanalytics.analytics as ia
+import isaricanalytics.visualisation as idw
 import pandas as pd
 
 
@@ -75,7 +75,7 @@ def create_visuals(df_map, df_forms_dict, dictionary, quality_report, filepath, 
     section_name = "Interventions"
     df_upset = ia.get_descriptive_data(df_map, dictionary, include_sections=[section], include_types=["binary", "categorical"])
     proportions = ia.get_proportions(df_upset, dictionary)
-    counts_intersections = ia.get_upset_counts_intersections(df_upset, dictionary, proportions=proportions)
+    counts_intersections = ia.get_upset_counts_intersections(df_upset, dictionary)
 
     about = f"Frequency of the ten most common {section_name.lower()}"
     freq_chart_inter = idw.fig_frequency_chart(
