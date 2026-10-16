@@ -9,9 +9,9 @@ pytestmark = pytest.mark.unit
 @pytest.mark.parametrize(
     ("legacy_module", "target_module", "exported_name"),
     [
-        ("vertex.IsaricAnalytics", "IsaricAnalytics", "descriptive_table"),
-        ("vertex.IsaricDraw", "IsaricDraw", "fig_text"),
-        ("vertex.getREDCapData", "getREDCapData", "get_records"),
+        ("vertex.IsaricAnalytics", "analytics", "descriptive_table"),
+        ("vertex.IsaricDraw", "visualisation", "fig_text"),
+        ("vertex.getREDCapData", "redcap_data", "get_records"),
     ],
 )
 def test_legacy_vertex_module_shims_warn_and_reexport(monkeypatch, legacy_module, target_module, exported_name):

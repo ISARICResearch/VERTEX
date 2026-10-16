@@ -8,4 +8,4 @@ _warnings.warn(
     stacklevel=2,
 )
 
-from isaricanalytics.getREDCapData import *  # noqa: F401,F403,E402
+from isaricanalytics.redcap_data import *  # noqa: F401,F403,E402
