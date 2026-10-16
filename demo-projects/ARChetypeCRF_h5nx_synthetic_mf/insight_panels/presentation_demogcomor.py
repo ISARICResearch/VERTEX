@@ -1,5 +1,5 @@
-import isaricanalytics.IsaricAnalytics as ia
-import isaricanalytics.IsaricDraw as idw
+import isaricanalytics.analytics as ia
+import isaricanalytics.visualisation as idw
 import numpy as np
 import pandas as pd
 
