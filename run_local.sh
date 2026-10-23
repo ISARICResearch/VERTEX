@@ -62,6 +62,5 @@ docker run \
   -e DATABASE_HOST="$DATABASE_HOST" \
   -e DATABASE_PORT="$DATABASE_PORT" \
   -e VERTEX_PROJECTS_DIR="/app/projects" \
-  -e VERTEX_ENABLE_SAVE_OUTPUTS="true" \
   -w /app \
   -t vertex

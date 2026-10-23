@@ -132,17 +132,6 @@ def _validate_project_config(config, project_path, project_type):
         logger.warning(f"Analysis project missing insight_panels_path in {project_path}")
 
 
-def should_save_outputs(config_dict):
-    if not config_dict.get("save_outputs", False):
-        return False
-
-    # Prevent accidental rewrites of tracked output files; opt-in explicitly.
-    env_flag = os.getenv("VERTEX_ENABLE_SAVE_OUTPUTS")
-    if env_flag is None:
-        return False
-    return env_flag.strip().lower() in {"1", "true", "yes", "y"}
-
-
 def get_config(project_path, config_defaults):
     local_defaults = dict(config_defaults)
     config_file = os.path.join(project_path, "config_file.json")
@@ -569,7 +558,6 @@ def save_public_outputs(
         df_forms_dict=df_forms_dict,
         dictionary=dictionary,
         quality_report=quality_report,
-        filepath=os.path.join(outputs_path, ""),
     )
     os.makedirs(os.path.dirname(outputs_path), exist_ok=True)
     metadata_file = os.path.join(outputs_path, "dashboard_metadata.json")

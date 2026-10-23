@@ -274,7 +274,7 @@ def test_open_and_load_modal_prebuilt_uses_cached_button(monkeypatch):
     assert is_open is True
     assert modal_content == "modal-content"
     assert button["suffix"] == "panel_a"
-    assert captured["visuals_kwargs"] == {"suffix": "panel_a", "filepath": project_path}
+    assert captured["visuals_kwargs"] == {"suffix": "panel_a"}
     assert captured["filter_options"] is None
 
 
@@ -419,7 +419,6 @@ def test_update_figures_rebuilds_modal_when_filtered_data_present(monkeypatch):
     assert captured["button"] == {"suffix": "panel_a"}
     assert captured["filter_options"] == {"sex": ["Female", "Male"]}
     assert captured["visuals_kwargs"]["suffix"] == "panel_a"
-    assert captured["visuals_kwargs"]["filepath"] == project_path
 
 
 # test_handle_login_logout_db_error_returns_graceful_message removed: callback no longer exists (migrated to Cognito)
