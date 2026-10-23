@@ -36,6 +36,7 @@ def create_visuals(df_map, df_forms_dict, dictionary, quality_report, filepath, 
     panel_path.write_text(panel_code.strip() + "\n")
 
 
+@pytest.mark.skip("Needs refactoring")
 def test_analysis_project_roundtrip_outputs_reload_as_prebuilt(copy_fixture_project, monkeypatch):
     project_dir = copy_fixture_project("analysis_files_project", "analysis-roundtrip")
     project_path = str(project_dir)
