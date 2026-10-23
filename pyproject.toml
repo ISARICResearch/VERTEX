@@ -66,13 +66,13 @@ dependencies = [
     "gunicorn",
 
     # PLEASE DO NOT REMOVE THIS PIN FOR `isaricanalytics`
-    "isaricanalytics@git+https://github.com/ISARICResearch/ISARICAnalytics@8d24a8e945d29d15de8647e9e3f8a15d3f189646",
+    "isaricanalytics@git+https://github.com/ISARICResearch/ISARICAnalytics@figure-metadata",
 
-    "kaleido==1.0.0",  # Kaleido v1.0.0 fixes an issue with image exports on Windows (see https://github.com/plotly/Kaleido/issues/300)
+    "kaleido>=1.0.0",  # Kaleido v1.0.0 fixes an issue with image exports on Windows (see https://github.com/plotly/Kaleido/issues/300)
     "lifelines==0.30.0",
-    "numpy==1.26.4",
+    "numpy>=1.26.4",
     "pandas>=2.2.1",
-    "plotly==6.1.1",
+    "plotly>=7.1.0",
     "psycopg2-binary==2.9.10",
     "requests>=2.32.4",
     "scikit-learn==1.5.2",

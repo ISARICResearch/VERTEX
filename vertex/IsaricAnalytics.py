@@ -3,9 +3,9 @@
 import warnings as _warnings
 
 _warnings.warn(
-    "vertex.IsaricAnalytics is deprecated; import from isaricanalytics.IsaricAnalytics instead.",
+    "vertex.IsaricAnalytics is deprecated; import from isaricanalytics.analytics instead.",
     DeprecationWarning,
     stacklevel=2,
 )
 
-from isaricanalytics.IsaricAnalytics import *  # noqa: F401,F403,E402
+from isaricanalytics.analytics import *  # noqa: F401,F403,E402

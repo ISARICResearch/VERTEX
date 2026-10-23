@@ -10,7 +10,7 @@ import time
 import typing
 from pathlib import Path
 
-import isaricanalytics.getREDCapData as getRC
+import isaricanalytics.redcap_data as getRC
 import pandas as pd
 
 from vertex.layout.insight_panels import get_insight_panels, get_visuals
@@ -130,17 +130,6 @@ def _validate_project_config(config, project_path, project_type):
 
     if project_type == "analysis" and "insight_panels_path" not in config:
         logger.warning(f"Analysis project missing insight_panels_path in {project_path}")
-
-
-def should_save_outputs(config_dict):
-    if not config_dict.get("save_outputs", False):
-        return False
-
-    # Prevent accidental rewrites of tracked output files; opt-in explicitly.
-    env_flag = os.getenv("VERTEX_ENABLE_SAVE_OUTPUTS")
-    if env_flag is None:
-        return False
-    return env_flag.strip().lower() in {"1", "true", "yes", "y"}
 
 
 def get_config(project_path, config_defaults):
@@ -569,7 +558,6 @@ def save_public_outputs(
         df_forms_dict=df_forms_dict,
         dictionary=dictionary,
         quality_report=quality_report,
-        filepath=os.path.join(outputs_path, ""),
     )
     os.makedirs(os.path.dirname(outputs_path), exist_ok=True)
     metadata_file = os.path.join(outputs_path, "dashboard_metadata.json")

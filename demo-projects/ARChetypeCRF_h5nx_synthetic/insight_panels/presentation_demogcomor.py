@@ -1,5 +1,5 @@
-import isaricanalytics.IsaricAnalytics as ia
-import isaricanalytics.IsaricDraw as idw
+import isaricanalytics.analytics as ia
+import isaricanalytics.visualisation as idw
 import numpy as np
 import pandas as pd
 
@@ -16,7 +16,7 @@ def define_button():
     return output
 
 
-def create_visuals(df_map, df_forms_dict, dictionary, quality_report, filepath, suffix, save_inputs):
+def create_visuals(df_map, df_forms_dict, dictionary, quality_report, suffix):
     """
     Create all visuals in the insight panel from the RAP dataframe
     """
@@ -45,8 +45,6 @@ def create_visuals(df_map, df_forms_dict, dictionary, quality_report, filepath, 
         base_color_map=color_map,
         ylabel="Age group",
         suffix=suffix,
-        filepath=filepath,
-        save_inputs=save_inputs,
         graph_label="Demographics: Population Pyramid*",
         graph_about=about,
     )
@@ -62,8 +60,6 @@ def create_visuals(df_map, df_forms_dict, dictionary, quality_report, filepath, 
         table,
         table_key=table_key,
         suffix=suffix,
-        filepath=filepath,
-        save_inputs=save_inputs,
         graph_label="Descriptive Table*",
         graph_about="Summary of demographics and comorbidities.",
     )
@@ -85,8 +81,6 @@ def create_visuals(df_map, df_forms_dict, dictionary, quality_report, filepath, 
         table,
         table_key=table_key,
         suffix=suffix,
-        filepath=filepath,
-        save_inputs=save_inputs,
         graph_id="fig_table_comparison",
         graph_label="Descriptive Comparison Table*",
         graph_about="Summary of demographics and comorbidities.",
@@ -104,8 +98,6 @@ def create_visuals(df_map, df_forms_dict, dictionary, quality_report, filepath, 
         proportions,
         title=f"Frequency of {section_name}*",
         suffix=suffix,
-        filepath=filepath,
-        save_inputs=save_inputs,
         graph_label=section_name + ": Frequency*",
         graph_about=about,
     )
@@ -116,8 +108,6 @@ def create_visuals(df_map, df_forms_dict, dictionary, quality_report, filepath, 
         counts_intersections,
         title=f"Intersection sizes of {section_name.lower()}*",
         suffix=suffix,
-        filepath=filepath,
-        save_inputs=save_inputs,
         graph_label=section_name + ": Intersections*",
         graph_about=about,
     )
@@ -128,8 +118,6 @@ synthetic data. Results may not be clinically relevant or accurate."""
     disclaimer = idw.fig_text(
         disclaimer_df,
         suffix=suffix,
-        filepath=filepath,
-        save_inputs=save_inputs,
         graph_label="*DISCLAIMER: SYNTHETIC DATA*",
         graph_about=disclaimer_text,
     )

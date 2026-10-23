@@ -1,5 +1,5 @@
-import isaricanalytics.IsaricAnalytics as ia
-import isaricanalytics.IsaricDraw as idw
+import isaricanalytics.analytics as ia
+import isaricanalytics.visualisation as idw
 import pandas as pd
 
 
@@ -15,7 +15,7 @@ def define_button():
     return output
 
 
-def create_visuals(df_map, df_forms_dict, dictionary, quality_report, filepath, suffix, save_inputs):
+def create_visuals(df_map, df_forms_dict, dictionary, quality_report, suffix):
     """
     Create all visuals in the insight panel from the RAP dataframe
     """
@@ -86,8 +86,6 @@ def create_visuals(df_map, df_forms_dict, dictionary, quality_report, filepath, 
     feature_selection_table = idw.fig_table(
         df_features,
         suffix=suffix,
-        filepath=filepath,
-        save_inputs=save_inputs,
         graph_id="fig_table_features",
         graph_label="Feature Selection Table*",
         graph_about="""...""",
@@ -96,8 +94,6 @@ def create_visuals(df_map, df_forms_dict, dictionary, quality_report, filepath, 
     parameter_scores_table = idw.fig_table(
         scores_df_display,
         suffix=suffix,
-        filepath=filepath,
-        save_inputs=save_inputs,
         graph_id="fig_table_scores",
         graph_label="Hyperarameter Scores Table*",
         graph_about="""...""",
@@ -109,8 +105,6 @@ synthetic data. Results may not be clinically relevant or accurate."""
     disclaimer = idw.fig_text(
         disclaimer_df,
         suffix=suffix,
-        filepath=filepath,
-        save_inputs=save_inputs,
         graph_label="*DISCLAIMER: SYNTHETIC DATA*",
         graph_about=disclaimer_text,
     )

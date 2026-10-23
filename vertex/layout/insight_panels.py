@@ -63,7 +63,7 @@ def get_insight_panels(config_dict, insight_panels_path):
     return insight_panels, buttons
 
 
-def get_visuals(buttons, insight_panels, df_map, df_forms_dict, dictionary, quality_report, filepath):
+def get_visuals(buttons, insight_panels, df_map, df_forms_dict, dictionary, quality_report):
     warning_logged = False
 
     for ii in range(len(buttons)):
@@ -94,8 +94,6 @@ def get_visuals(buttons, insight_panels, df_map, df_forms_dict, dictionary, qual
                 dictionary=dictionary.copy(),
                 quality_report=quality_report,
                 suffix=suffix,
-                filepath=filepath,
-                save_inputs=True,
             )
         elif hasattr(insight_panels[suffix], "main"):
             visuals = insight_panels[suffix].main(
@@ -197,13 +195,12 @@ def get_public_visuals(path, buttons):
 
             # Now call figure builder
             try:
-                import isaricanalytics.IsaricDraw as idw
+                import isaricanalytics.visualisation as idw
 
                 if not hasattr(idw, fig_name):
                     logger.error(f"[get_public_visuals] Draw function not found: idw.{fig_name}")
                     continue
                 fig_fun = getattr(idw, fig_name)
-                fig_args["save_inputs"] = False
                 fig_ret = fig_fun(data, **fig_args)
                 logger.debug(
                     f"[get_public_visuals] fig_fun returned type={type(fig_ret)} "
