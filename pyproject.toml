@@ -4,7 +4,9 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 include-package-data = true
-packages = ["vertex"]
+
+[tool.setuptools.packages.find]
+include = ["vertex*"]
 
 [project]
 name = "isaric-vertex"
