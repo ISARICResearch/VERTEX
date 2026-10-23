@@ -64,11 +64,15 @@ list-callables:
 sync-deps-exact:
 	@echo "$(PACKAGE_NAME)[$(BRANCH)@$(HEAD)]: Syncing all package + development dependencies with lockfile, removing unrelated dependencies"
 	rm -f uv.lock && \
+	python3 -m pip install -U pip
+	python3 -m pip install -U uv
 	uv sync --verbose --all-groups --no-editable --no-install-project --no-cache --refresh --no-managed-python
 
 sync-deps-inexact:
 	@echo "$(PACKAGE_NAME)[$(BRANCH)@$(HEAD)]: Syncing all package + development dependencies with lockfile, preserving unrelated dependencies"
 	rm -f uv.lock && \
+	python3 -m pip install -U pip
+	python3 -m pip install -U uv
 	uv sync --verbose --all-groups --no-editable --no-install-project --no-cache --refresh --inexact --no-managed-python
 
 # --- Package artifacts ---
