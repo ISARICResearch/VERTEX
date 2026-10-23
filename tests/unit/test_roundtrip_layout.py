@@ -52,7 +52,6 @@ def test_analysis_project_roundtrip_outputs_reload_as_prebuilt(copy_fixture_proj
     dashboard.PROJECT_CACHE.clear()
     dashboard.PROJECT_CACHE_VERSION.clear()
     dashboard.PROJECT_TYPE_BY_PATH.clear()
-    monkeypatch.setenv("VERTEX_ENABLE_SAVE_OUTPUTS", "true")
     monkeypatch.setattr(dashboard, "get_project_version", lambda _: 100.0)
     monkeypatch.setitem(dashboard.PROJECT_TYPE_BY_PATH, project_path, "analysis")
 

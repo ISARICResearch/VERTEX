@@ -53,8 +53,6 @@ You do not write this folder by hand. VERTEX generates it from your analysis pro
 
 This writes the complete static project folder (and PNG exports of every figure) to the project's ``outputs_path`` (:file:`outputs/` by default).
 
-Alternatively, the running dashboard can save the outputs itself: set ``"save_outputs": true`` in your analysis project's :file:`config_file.json`, run VERTEX with the environment variable ``VERTEX_ENABLE_SAVE_OUTPUTS=1`` (both are required, to prevent accidental rewrites of tracked output files), and open the project's dashboard.
-
 The generated folder is what you commit to VERTEX-projects as a new top-level directory:
 
 .. code:: text
