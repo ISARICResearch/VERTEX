@@ -15,7 +15,7 @@ def define_button():
     return output
 
 
-def create_visuals(df_map, df_forms_dict, dictionary, quality_report, suffix):
+def create_visuals(df_map, df_forms_dict, dictionary, quality_report, filepath, suffix, save_inputs):
     """
     Create all visuals in the insight panel from the RAP dataframe
     """
@@ -136,6 +136,8 @@ def create_visuals(df_map, df_forms_dict, dictionary, quality_report, suffix):
         linr_results_table,
         table_key=table_key,
         suffix=suffix,
+        filepath=filepath,
+        save_inputs=save_inputs,
         graph_label="Linear Regression for hospital length of stay*",
         graph_about="""...""",
     )
@@ -146,6 +148,8 @@ synthetic data. Results may not be clinically relevant or accurate."""
     disclaimer = idw.fig_text(
         disclaimer_df,
         suffix=suffix,
+        filepath=filepath,
+        save_inputs=save_inputs,
         graph_label="*DISCLAIMER: SYNTHETIC DATA*",
         graph_about=disclaimer_text,
     )

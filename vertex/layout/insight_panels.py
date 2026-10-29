@@ -63,7 +63,7 @@ def get_insight_panels(config_dict, insight_panels_path):
     return insight_panels, buttons
 
 
-def get_visuals(buttons, insight_panels, df_map, df_forms_dict, dictionary, quality_report):
+def get_visuals(buttons, insight_panels, df_map, df_forms_dict, dictionary, quality_report, filepath):
     warning_logged = False
 
     for ii in range(len(buttons)):
@@ -94,6 +94,8 @@ def get_visuals(buttons, insight_panels, df_map, df_forms_dict, dictionary, qual
                 dictionary=dictionary.copy(),
                 quality_report=quality_report,
                 suffix=suffix,
+                filepath=filepath,
+                save_inputs=True,
             )
         elif hasattr(insight_panels[suffix], "main"):
             visuals = insight_panels[suffix].main(

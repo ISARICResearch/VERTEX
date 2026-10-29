@@ -274,7 +274,7 @@ def test_open_and_load_modal_prebuilt_uses_cached_button(monkeypatch):
     assert is_open is True
     assert modal_content == "modal-content"
     assert button["suffix"] == "panel_a"
-    assert captured["visuals_kwargs"] == {"suffix": "panel_a"}
+    assert captured["visuals_kwargs"] == {"suffix": "panel_a", "filepath": project_path}
     assert captured["filter_options"] is None
 
 
