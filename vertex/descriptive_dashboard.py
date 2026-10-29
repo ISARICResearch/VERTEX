@@ -452,7 +452,7 @@ def register_callbacks(app):
         # --- call create_visuals
         mode = project_data.get("mode", "analysis")
         if mode == "prebuilt":
-            visuals = insight_panel.create_visuals(suffix=suffix)
+            visuals = insight_panel.create_visuals(suffix=suffix, filepath=project_path)
             filter_options = None
         else:
             visuals = insight_panel.create_visuals(
@@ -461,6 +461,8 @@ def register_callbacks(app):
                 dictionary=project_data["dictionary"].copy(),
                 quality_report=project_data["quality_report"],
                 suffix=suffix,
+                filepath=project_path,
+                save_inputs=False,
             )
             filter_options = get_filter_options(project_data["df_map"])
 
@@ -626,7 +628,9 @@ def register_callbacks(app):
             df_forms_dict={k: v.copy() for k, v in df_forms_filtered.items()},
             dictionary=dictionary.copy(),
             quality_report=quality_report,
+            filepath=project_path,
             suffix=suffix,
+            save_inputs=False,
         )
         logger.debug(f"raw visuals type: {type(visuals)}; len? {len(visuals) if hasattr(visuals, '__len__') else 'no-len'}")
 

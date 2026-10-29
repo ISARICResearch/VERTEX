@@ -558,6 +558,7 @@ def save_public_outputs(
         df_forms_dict=df_forms_dict,
         dictionary=dictionary,
         quality_report=quality_report,
+        filepath=os.path.join(outputs_path, ""),
     )
     os.makedirs(os.path.dirname(outputs_path), exist_ok=True)
     metadata_file = os.path.join(outputs_path, "dashboard_metadata.json")
