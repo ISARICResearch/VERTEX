@@ -1465,7 +1465,7 @@ test = [
 [[package]]
 name = "isaricanalytics"
 version = "0.5.0"
-source = { git = "https://github.com/ISARICResearch/ISARICAnalytics?rev=figure-metadata#65f76a7a9bd7c1a42526407e6dd1c74fbc82a78b" }
+source = { git = "https://github.com/ISARICResearch/ISARICAnalytics?rev=figure-metadata#742fa1ad99e47b2e3cc4ad903900d0c382caa453" }
 dependencies = [
     { name = "adtl" },
     { name = "isaric-arc" },
