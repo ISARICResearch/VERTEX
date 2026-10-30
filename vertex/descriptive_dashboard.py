@@ -26,8 +26,6 @@ from vertex.io import (
     get_projects_catalog,
     load_public_dashboard,
     load_vertex_data,
-    save_public_outputs,
-    should_save_outputs,
 )
 from vertex.layout.app_layout import define_inner_layout, define_shell_layout
 from vertex.layout.filters import get_filter_options
@@ -192,7 +190,7 @@ def register_callbacks(app):
         try:
             layout = build_project_layout(project_path, catalog, visible_projects)
         except Exception as e:
-            layout = html.Div([html.H4("Error loading project"), html.Pre(str(e))])
+            layout = html.Div([html.H4(f"Error loading project: {project_path}"), html.Pre(str(e))])
 
         return layout
 
@@ -793,11 +791,6 @@ def load_project_data(project_path):
     PROJECT_CACHE[project_path] = project_data
     PROJECT_CACHE_VERSION[project_path] = current_version
 
-    if should_save_outputs(config_dict):
-        logger.info(f" Saving public outputs for project {project_path}")
-        save_public_outputs(
-            buttons, insight_panels, df_map, df_countries, df_forms_dict, dictionary, quality_report, project_path, config_dict
-        )
     logger.info(f" Project data loaded and cached for {project_path}")
     return project_data
 

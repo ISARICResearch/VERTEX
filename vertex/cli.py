@@ -64,7 +64,6 @@ def descriptive_analytics(project_path: str) -> None:
     project_outputs_path = project_path.joinpath(project_data["config_dict"]["outputs_path"])
     logger.info(f'Saving public outputs to "{project_outputs_path}"')
     save_public_outputs(**project_data)
-
     logger.info(f'Saving all figures to "{project_outputs_path}"')
     insight_panels, _ = get_public_visuals(project_outputs_path, project_data["buttons"])
     save_insight_panel_visuals(insight_panels, project_outputs_path, project_outputs_path.joinpath("visuals"))

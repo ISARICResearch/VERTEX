@@ -41,7 +41,6 @@ where ``isaric-vertex`` is the name of the image (which could be something diffe
      -v "$(pwd)/projects:/app/projects" \
      -p 8050:8050 \
      -e VERTEX_PROJECTS_DIR="/app/projects" \
-     -e VERTEX_ENABLE_SAVE_OUTPUTS="true" \
      -w /app isaric-vertex gunicorn \
      --workers 1 \
      --reload \
