@@ -197,13 +197,12 @@ def get_public_visuals(path, buttons):
 
             # Now call figure builder
             try:
-                import isaricanalytics.IsaricDraw as idw
+                import isaricanalytics.visualisation as idw
 
                 if not hasattr(idw, fig_name):
                     logger.error(f"[get_public_visuals] Draw function not found: idw.{fig_name}")
                     continue
                 fig_fun = getattr(idw, fig_name)
-                fig_args["save_inputs"] = False
                 fig_ret = fig_fun(data, **fig_args)
                 logger.debug(
                     f"[get_public_visuals] fig_fun returned type={type(fig_ret)} "

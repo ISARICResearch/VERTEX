@@ -12,12 +12,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
       - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Validate analysis project schema
         uses: ./.github/actions/validate-analysis-projects
@@ -42,35 +42,26 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
       - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Install project and unit test dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[test]"
+          python3 -m pip install uv
+          make sync-deps-exact
 
-      - name: Run pytest with coverage
+      - name: Run unit tests and measure code coverage
         env:
           PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
         run: |
-          python -m pytest \
-                    -m "not e2e" \
-                    --ignore=tests/frontend-smoke/ \
-                    --code-highlight=yes \
-                    --color=yes \
-                    --verbosity=3 \
-                    -p pytest_cov \
-                    --cov=vertex \
-                    --cov-report=term-missing \
-                    --cov-report=xml
+          make test MARKER="unit" TESTS_PATH=tests/unit
 
       - name: Upload coverage.xml artifact
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: coverage-xml
           path: coverage.xml
@@ -78,7 +69,7 @@ jobs:
 
       - name: Upload coverage report to Codecov (best effort)
         continue-on-error: true
-        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f
         with:
           files: ./coverage.xml
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -91,32 +82,28 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
       - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Install frontend smoke test dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[frontend-smoke-tests]"
+          python -m pip install uv
+          make sync-deps-exact
 
       - name: Run frontend smoke tests
         env:
           PLAYWRIGHT_ARTIFACTS_DIR: test-results/playwright
           PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
         run: |
-          python -m pytest \
-                    --code-highlight=yes \
-                    --color=yes \
-                    --verbosity=3 \
-                    tests/frontend-smoke/test_playwright_smoke.py
+          make test MARKER="e2e" TESTS_PATH=tests/frontend-smoke
 
       - name: Upload Playwright artifacts on failure
         if: failure()
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: playwright-artifacts
           path: test-results/playwright

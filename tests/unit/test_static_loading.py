@@ -1,5 +1,9 @@
+import pytest
+
 from vertex.io import load_public_dashboard
 from vertex.layout.insight_panels import get_public_visuals
+
+pytestmark = pytest.mark.unit
 
 
 def test_load_public_dashboard_reads_default_file(prebuilt_project_factory):

@@ -2,6 +2,10 @@ import json
 from pathlib import Path
 from typing import Optional
 
+import pytest
+
+pytestmark = pytest.mark.unit
+
 
 def _load_json(path: Path):
     return json.loads(path.read_text())

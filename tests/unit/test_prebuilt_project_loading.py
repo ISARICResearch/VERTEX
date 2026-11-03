@@ -2,6 +2,8 @@ import pytest
 
 from vertex import descriptive_dashboard as dashboard
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.fixture(autouse=True)
 def clear_project_cache():

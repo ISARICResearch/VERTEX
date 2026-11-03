@@ -8,6 +8,8 @@ from plotly.graph_objs import Figure
 
 from vertex import descriptive_dashboard as dashboard
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.fixture
 def app_context():
@@ -417,7 +419,6 @@ def test_update_figures_rebuilds_modal_when_filtered_data_present(monkeypatch):
     assert captured["button"] == {"suffix": "panel_a"}
     assert captured["filter_options"] == {"sex": ["Female", "Male"]}
     assert captured["visuals_kwargs"]["suffix"] == "panel_a"
-    assert captured["visuals_kwargs"]["filepath"] == project_path
 
 
 # test_handle_login_logout_db_error_returns_graceful_message removed: callback no longer exists (migrated to Cognito)

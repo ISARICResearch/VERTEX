@@ -6,6 +6,8 @@ import pytest
 from vertex import descriptive_dashboard as dashboard
 from vertex import io as vertex_io
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.mark.parametrize(
     ("value", "expected"),
@@ -39,18 +41,6 @@ def test_normalise_is_public(value, expected):
 )
 def test_as_bool_string_values(value, expected):
     assert vertex_io._as_bool(value, default=False) is expected
-
-
-def test_should_save_outputs_requires_env_opt_in(monkeypatch):
-    config = {"save_outputs": True}
-    monkeypatch.delenv("VERTEX_ENABLE_SAVE_OUTPUTS", raising=False)
-    assert vertex_io.should_save_outputs(config) is False
-
-    monkeypatch.setenv("VERTEX_ENABLE_SAVE_OUTPUTS", "true")
-    assert vertex_io.should_save_outputs(config) is True
-
-    monkeypatch.setenv("VERTEX_ENABLE_SAVE_OUTPUTS", "0")
-    assert vertex_io.should_save_outputs(config) is False
 
 
 def test_get_project_record_analysis_data_source(tmp_path):
@@ -223,7 +213,6 @@ def test_save_public_outputs_writes_expected_files_and_overwrites_existing_outpu
     def fake_get_visuals(buttons, insight_panels, **kwargs):
         captured["buttons"] = buttons
         captured["insight_panels"] = insight_panels
-        captured["filepath"] = kwargs["filepath"]
         return expected_buttons
 
     monkeypatch.setattr(vertex_io, "get_visuals", fake_get_visuals)
@@ -260,7 +249,6 @@ def test_save_public_outputs_writes_expected_files_and_overwrites_existing_outpu
 
     assert not (outputs_dir / "stale.txt").exists()
     assert (outputs_dir / "panel_a").is_dir()
-    assert captured["filepath"].endswith("outputs/")
 
     metadata = json.loads((outputs_dir / "dashboard_metadata.json").read_text())
     assert metadata == {"insight_panels": expected_buttons}

@@ -3,6 +3,10 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
+
+pytestmark = pytest.mark.unit
+
 
 def _load_validator_module():
     module_path = Path(".github/actions/validate-project-outputs/validate_project_outputs.py")

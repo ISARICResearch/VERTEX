@@ -3,19 +3,19 @@
 Command Line Interface (CLI)
 ============================
 
-VERTEX provides a very simple command line interface (CLI), named ``vertex-cli``, that becomes available once the project is installed in `editable mode <https://pip.pypa.io/en/stable/topics/local-project-installs/#editable-installs>`_:
+VERTEX provides a very simple command line interface (CLI), named ``vertex-cli``, that becomes available once the project is installed locally (from the project root):
 
 .. code:: shell
 
-   pip install -e .
+   python3 -m pip install .
 
 This will install the project locally in a package named ``isaric-vertex``, and set up the CLI main command group and all its (sub)commands (or executables).
 
-The editable project package will remain in your environment unless it is uninstalled - to avoid package conflicts when running, for example, unit tests, you may want to uninstall the package using:
+The installed package will remain in your environment unless it is uninstalled - to avoid package conflicts when running, for example, unit tests, you may want to uninstall the package after you have finished using it with:
 
 .. code:: shell
 
-   pip uninstall -y isaric-vertex
+   python3 -m pip uninstall -y isaric-vertex
 
 .. note::
 

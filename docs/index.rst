@@ -3,14 +3,17 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-VERTEX Documentation
-====================
+ISARIC VERTEX
+=============
 
 .. image:: _static/vertex-logo.png
    :height: 252.017
    :width:  304
 
-`ISARIC VERTEX <https://github.com/ISARICResearch/VERTEX>`_ is a web-based `application <https://vertex.isaric.org>`_ designed for local use by users as an analysis tool for data captured through our complementary tools, `ISARIC ARC <https://github.com/ISARICResearch/ARC>`_ and `ISARIC BRIDGE <https://github.com/ISARICResearch/BRIDGE>`_.
+.. role:: raw-html(raw)
+   :format: html
+
+`VERTEX <https://github.com/ISARICResearch/VERTEX>`_ is a web-based `application <https://vertex.isaric.org>`_ designed for local use by users as an analysis tool for data captured through our complementary tools, `ISARIC ARC <https://github.com/ISARICResearch/ARC>`_ and `ISARIC BRIDGE <https://github.com/ISARICResearch/BRIDGE>`_, and is a core component of the :raw-html:`<a href="https://docs.isaric.org" target="_blank">ISARIC Clinical Epidemiology Platform</a>`.
 
 VERTEX is designed to present graphs and tables based on key relevant research questions that need to be quickly answered during an outbreak. Currently, VERTEX performs descriptive analysis, which can identify the spectrum of clinical features in a disease outbreak. New research questions will be added by the ISARIC team and the wider scientific community, enabling the creation and sharing of additional analysis methods.
 
@@ -23,12 +26,12 @@ VERTEX processes and visualizes data using the concept of **Reproducible Analyti
 
 See the :doc:`quickstart guide <sources/getting-started>` to start using VERTEX, and the linked pages below for more information on features and code.
 
-VERTEX is licensed under the `Open Source Initiative (OSI) <https://opensource.org>`_-compliant `MIT license <https://opensource.org/license/mit>`_.
+VERTEX is licensed under the `MIT license <https://opensource.org/license/mit>`_.
 
 .. image:: _static/osi-badge-light.svg
    :target: https://opensource.org/license/mit
-   :height: 200px
-   :width:  200px
+   :height: 100px
+   :width:  100px
 
 .. toctree::
    :maxdepth: 1
@@ -38,6 +41,5 @@ VERTEX is licensed under the `Open Source Initiative (OSI) <https://opensource.o
    sources/app
    sources/adding-a-project
    sources/cli
-   sources/api-reference
    sources/citing
    sources/contributors

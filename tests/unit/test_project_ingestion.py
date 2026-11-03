@@ -1,10 +1,13 @@
 import json
 from pathlib import Path
 
+import pytest
 from sqlalchemy import Boolean, Column, DateTime, Integer, MetaData, String, Table, UniqueConstraint, create_engine, select
 from sqlalchemy.orm import Session
 
 from vertex.project_ingestion import ingest_static_projects
+
+pytestmark = pytest.mark.unit
 
 
 def _write_project(root: Path, folder: str, project_id: str, name: str, owner: str, is_public: bool = True):
