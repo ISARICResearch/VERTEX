@@ -40,8 +40,8 @@ The config file (:file:`config_file.json`) in the repository only seeds the data
 
 .. _generate-project-folder:
 
-1. Generate the project folder
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1. Generate your project
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Each project is a top-level folder in the VERTEX-projects repository containing the **public outputs** of a VERTEX analysis — aggregated data and prebuilt figure files only, never raw data.
 
@@ -110,88 +110,19 @@ Every pull request is checked automatically: the config is validated against :fi
      - no
      - Initial map viewport for map panels.
 
-.. _project-pull-request:
+.. _project-submit:
 
-2. Open a pull request and merge
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2. Deploying your project
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Commit the new folder on a branch and open a PR against ``main`` in ``ISARICResearch/VERTEX-projects``.
-The diff should contain only your project folder — here the config file plus the dashboard data and figure files:
+To deploy your project to VERTEX submit the project folder, preferably as a single ZIP or archive file containing all required files, to the ISARIC data team via email: :email:`data@isaric.org`. The data team will ensure that the project is deployed to VERTEX.
 
-.. image:: ../_static/01-file-structure.png
-   :alt: Commit diff showing the new project files
-
-.. image:: ../_static/02-pull-request.png
-   :alt: The open pull request
-
-Once the PR is merged, no further manual action is needed — the server picks the change up automatically.
-
-.. image:: ../_static/03-merged.png
-   :alt: The merged pull request
-
-.. _project-sync-ingestion:
-
-3. Automated server sync and ingestion
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-An hourly cron job on the VERTEX EC2 instance (at \*:00) does two things:
-
-1. **Sync** — pulls the ``main`` branch of VERTEX-projects into :file:`/opt/vertex-projects` using a read-only deploy key (:file:`scripts/sync_projects_repo.sh` in this repository).
-2. **Ingest** — runs :command:`python -m vertex.project_ingestion` inside the running VERTEX container, which scans every project folder and, for each ``project_id`` not yet in the database:
-
-   - looks up the ``project_owner`` email in the ``users`` table (fails for this project if the account does not exist yet — it will be retried every hour),
-   - inserts a row into ``projects`` (``vertex_id``, ``owner_id``, ``is_public``), and
-   - links the owner in ``user_project_mapping``.
-
-Ingestion is **insert-only and idempotent**: projects already in the database are left untouched, so ownership, visibility, and sharing changes made in the account webapp are never overwritten by subsequent syncs.
-
-Both steps log to :file:`/var/log/vertex-projects-sync.log` on the instance.
-A successful run for a new project looks like:
-
-.. code:: text
-
-   [2026-07-10T18:00:01+00:00] Sync started: repo=git@github.com:ISARICResearch/VERTEX-projects.git branch=main dir=/opt/vertex-projects
-   [2026-07-10T18:00:03+00:00] Sync finished successfully
-   2026-07-10 18:00:05 [INFO] __main__: Static project ingestion summary: seen=5 inserted=1 existing=1 failed=3 owner_links_inserted=1 ...
-
-(``inserted=1`` / ``owner_links_inserted=1`` is the new project; ``failed=3`` here are pre-existing projects whose owner has no account yet; see the troubleshooting table below.)
-
-.. _project-sync-maintainer-notes:
-
-Maintainer notes
-^^^^^^^^^^^^^^^^
-
-- The cron definition lives at :file:`/etc/cron.d/vertex-projects-sync` on the instance and is installed by :file:`scripts/install_projects_sync_cron.sh` in this repository.
-- To trigger a sync immediately instead of waiting for the top of the hour (via SSM):
-
-  .. code:: shell
-
-     /usr/local/bin/vertex-sync-projects.sh
-     docker exec isaric-vertex python -m vertex.project_ingestion --projects-dir /opt/vertex-projects
-
-- Common ingestion errors:
-
-  .. list-table::
-     :header-rows: 1
-     :widths: 40 30 30
-
-     * - Error
-       - Cause
-       - Fix
-     * - ``owner user does not exist for <email>``
-       - ``project_owner`` has no account
-       - Owner signs up at account.isaric.org; ingestion retries hourly
-     * - ``config_file.json is missing project_owner``
-       - Field absent/empty
-       - Add the field and merge a fix
-     * - ``Skipping folder without config_file.json``
-       - Folder has no config
-       - Add a config file (folders without one are ignored, not errors)
+There is a future enhancement being considered that would allows users to directly upload their project via a suitably secure cloud storage solution, which will trigger an automated deployment to VERTEX.
 
 .. _project-view-vertex:
 
-4. View the project in VERTEX
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3. View your project in VERTEX
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 On `vertex.isaric.org <https://vertex.isaric.org>`_:
 
@@ -210,8 +141,8 @@ Logged in as the owner, the project is available and opens like any other dashbo
 
 .. _project-manage-access:
 
-5. Manage access from the account webapp
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4. Manage access from the ISARIC Accounts app
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Once ingested, the project appears for the owner on `account.isaric.org <https://account.isaric.org>`_ under **Your projects**, with its current visibility:
 
@@ -236,29 +167,7 @@ After the switch to Public above, the project immediately shows up in the VERTEX
 
 .. _removing-a-project:
 
-Removing a project
-~~~~~~~~~~~~~~~~~~
+5. Removing a project
+~~~~~~~~~~~~~~~~~~~~~
 
-**Do not simply delete the project folder.**
-Instead, merge a PR that empties it, leaving only a :file:`REMOVED.txt` marker that records the retired ``project_id``:
-
-.. code:: text
-
-   My_Project/
-   └── REMOVED.txt
-
-with contents along the lines of:
-
-.. code:: text
-
-   Project "My Project" (project_id: my-project) has been removed from VERTEX-projects.
-   This folder name and project_id are retired and must not be reused.
-
-A folder without a :file:`config_file.json` is ignored by both the VERTEX app and ingestion, so the project disappears from `vertex.isaric.org <https://vertex.isaric.org>`_ at the next hourly sync.
-
-A maintainer should then delete the project's ``user_project_mapping`` rows and its ``projects`` row (matched on ``vertex_id``) from the access database.
-This removes the project from account.isaric.org and guarantees no new project can ever inherit the removed project's owner, visibility, or shared users.
-
-The retired folder is the permanent record that its name and ``project_id`` are taken — the ID only existed in the deleted :file:`config_file.json`, hence writing it into :file:`REMOVED.txt` for posterity.
-Neither should be reused: VERTEX share links identify projects as ``?project=<project_id>``, but fall back to folder, so a new project reusing either would capture links to the removed project.
-Reviewers of PRs adding new projects should check the new ID against the retired folders.
+For project removal please contact the ISARIC data team at :email:`data@isaric.org`. As with project deployment, there may be a future enhancement to allow users to do this in a more convenient way.
