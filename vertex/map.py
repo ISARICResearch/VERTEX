@@ -1,3 +1,4 @@
+import importlib.resources
 import json
 import logging
 import os
@@ -9,11 +10,12 @@ import requests
 
 logger = logging.getLogger(__name__)
 
+CSV_PATH = importlib.resources.files("vertex") / "assets" / "data"
+
 
 def merge_data_with_countries(df_map, add_capital_location=False):
     """Add country variable to df_map and merge with country metadata."""
-    contries_path = "assets/countries.csv"
-    countries = pd.read_csv(contries_path, encoding="latin-1")
+    countries = pd.read_csv(CSV_PATH.joinpath("countries.csv"), encoding="latin-1")
 
     geojson = os.path.join(
         "https://raw.githubusercontent.com/",
