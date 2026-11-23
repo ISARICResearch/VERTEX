@@ -115,9 +115,9 @@ Every pull request is checked automatically: the config is validated against :fi
 2. Deploying your project
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To deploy your project to VERTEX submit the project folder, preferably as a single ZIP or archive file containing all required files, to the ISARIC data team via email: :email:`data@isaric.org`. The data team will ensure that the project is deployed to VERTEX.
+To deploy your project to VERTEX, first, submit the project folder, preferably as a single ZIP or archive file containing all required files, to the ISARIC data team via email: :email:`data@isaric.org` for review. If the review is satisfactory the project will be deployed to VERTEX.
 
-There is a future enhancement being considered that would allows users to directly upload their project via a suitably secure cloud storage solution, which will trigger an automated deployment to VERTEX.
+This process may be automated in the future.
 
 .. _project-view-vertex:
 
@@ -170,4 +170,4 @@ After the switch to Public above, the project immediately shows up in the VERTEX
 5. Removing a project
 ~~~~~~~~~~~~~~~~~~~~~
 
-For project removal please contact the ISARIC data team at :email:`data@isaric.org`. As with project deployment, there may be a future enhancement to allow users to do this in a more convenient way.
+For project removal please contact the ISARIC data team at :email:`data@isaric.org`. As with project deployment, there may be automated.
