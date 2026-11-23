@@ -170,4 +170,4 @@ After the switch to Public above, the project immediately shows up in the VERTEX
 5. Removing a project
 ~~~~~~~~~~~~~~~~~~~~~
 
-For project removal please contact the ISARIC data team at :email:`data@isaric.org`. As with project deployment, there may be automated.
+For project removal please contact the ISARIC data team at :email:`data@isaric.org`. As with project deployment, this process may be automated in the future.
