@@ -52,7 +52,7 @@ AUTH_ENABLED = False
 # default is False, and this can be overridden by passing an environment
 # variable flag when running VERTEX, e.g. if using Docker run
 #
-#   docker run -it ... -e INCLUDE_DEMO_PROJECTS=1 ... -w /app isaric-vertex gunicorn   --workers 1   --reload   --bind 0.0.0.0:8050   vertex.descriptive_dashboard:server
+#   docker run -it ... -e INCLUDE_DEMO_PROJECTS=1 ... -w /app isaric-vertex gunicorn   --workers 1   --reload   --bind 0.0.0.0:8050   vertex.descriptive_dashboard:server  # noqa: E501
 #
 # or similarly with Python Plotly if running it directly
 INCLUDE_DEMO_PROJECTS = bool(os.getenv("INCLUDE_DEMO_PROJECTS", False))
