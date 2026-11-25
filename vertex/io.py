@@ -234,9 +234,13 @@ def get_project_record(project_path, project_type):
     }
 
 
-def get_projects_catalog():
+def get_projects_catalog(include_demo_projects: bool = False):
     project_catalog = []
-    roots = [("analysis", get_demo_projects_root()), ("prebuilt", get_static_projects_root())]
+    roots = [
+        ("prebuilt", get_static_projects_root()),
+    ]
+    if include_demo_projects:
+        roots.insert(0, ("analysis", get_demo_projects_root()))
     for project_type, root in roots:
         logger.info(f"Looking for {project_type} projects in: {root.resolve()}")
         if not root.exists():

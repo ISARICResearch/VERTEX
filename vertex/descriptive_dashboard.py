@@ -48,6 +48,15 @@ logger = setup_logger(__name__)
 
 AUTH_ENABLED = False
 
+# Controls whether local REDCap-based demo projects are loaded. The
+# default is False, and this can be overridden by passing an environment
+# variable flag when running VERTEX, e.g. if using Docker run
+#
+#   docker run -it ... -e INCLUDE_DEMO_PROJECTS=1 ... -w /app isaric-vertex gunicorn   --workers 1   --reload   --bind 0.0.0.0:8050   vertex.descriptive_dashboard:server
+#
+# or similarly with Python Plotly if running it directly
+INCLUDE_DEMO_PROJECTS = bool(os.getenv("INCLUDE_DEMO_PROJECTS", False))
+
 ############################################
 # CACHE DATA
 ############################################
@@ -105,7 +114,7 @@ def _get_project_context_for_request():
     cache_key = "_project_context"
     if cache_key not in g:
         auth_state = get_request_login_state(AUTH_ENABLED)
-        catalog = get_projects_catalog()
+        catalog = get_projects_catalog(include_demo_projects=INCLUDE_DEMO_PROJECTS)
         if AUTH_ENABLED:
             project_ids = [project.get("project_id") for project in catalog if project.get("project_id")]
             auth_state = {
@@ -705,7 +714,7 @@ def load_project_data(project_path):
     project_type = PROJECT_TYPE_BY_PATH.get(project_path)
     if project_type is None:
         # fallback for safety if the map has not been populated yet
-        project_catalog = get_projects_catalog()
+        project_catalog = get_projects_catalog(include_demo_projects=INCLUDE_DEMO_PROJECTS)
         sync_project_type_map(project_catalog)
         project_type = PROJECT_TYPE_BY_PATH.get(project_path)
 
@@ -820,7 +829,7 @@ def main():
     logger.info(f"Authentication enabled: {AUTH_ENABLED}")
     configure_auth(app, AUTH_ENABLED, flask_auth_secrets)
 
-    project_catalog = get_projects_catalog()
+    project_catalog = get_projects_catalog(include_demo_projects=INCLUDE_DEMO_PROJECTS)
     sync_project_type_map(project_catalog)
     project_paths = [project["path"] for project in project_catalog]
     logger.debug(f" Found {len(project_paths)} projects: {project_paths}")
