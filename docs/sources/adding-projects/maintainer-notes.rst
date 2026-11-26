@@ -120,8 +120,8 @@ Once the PR is merged, no further manual action is needed — the server picks t
 
 .. _maintainer-project-sync-ingestion:
 
-3. Automated server sync and ingestion
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Automated server sync and ingestion
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 An hourly cron job on the VERTEX EC2 instance (at \*:00) does two things:
 
@@ -173,8 +173,8 @@ Both steps log to :file:`/var/log/vertex-projects-sync.log` on the instance. A s
 
 .. _maintainer-project-manage-access:
 
-. Manage projects from ISARIC Accounts
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Manage projects from ISARIC Accounts
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Once ingested, the project appears for the owner on `account.isaric.org <https://account.isaric.org>`_ under **Your projects**, with its current visibility:
 

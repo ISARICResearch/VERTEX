@@ -86,7 +86,7 @@ Opening a project's details page (pencil icon) lets you:
 
 .. _removing-a-project:
 
-5. Removing a project
+Removing a project
 ~~~~~~~~~~~~~~~~~~~~~
 
 To remove a project please contact the ISARIC data team at :email:`data@isaric.org`. As with project deployment, this process may be automated in the future.
