@@ -50,7 +50,7 @@ def test_set_project_from_url_updates_selected_project(app_context, monkeypatch)
             "is_public": True,
         }
     ]
-    monkeypatch.setattr(dashboard, "get_projects_catalog", lambda: visible_projects)
+    monkeypatch.setattr(dashboard, "get_projects_catalog", lambda include_demo_projects=True: visible_projects)
 
     selected = callback("?project=analysis-a", "/tmp/other/", True)
 
@@ -69,7 +69,7 @@ def test_set_project_from_url_raises_prevent_update_for_unknown_project(app_cont
             "is_public": True,
         }
     ]
-    monkeypatch.setattr(dashboard, "get_projects_catalog", lambda: visible_projects)
+    monkeypatch.setattr(dashboard, "get_projects_catalog", lambda include_demo_projects=True: visible_projects)
 
     with pytest.raises(PreventUpdate):
         callback("?project=missing", "/tmp/other/", True)
@@ -87,7 +87,7 @@ def test_update_url_for_project_uses_project_id(app_context, monkeypatch):
             "is_public": True,
         }
     ]
-    monkeypatch.setattr(dashboard, "get_projects_catalog", lambda: catalog)
+    monkeypatch.setattr(dashboard, "get_projects_catalog", lambda include_demo_projects=True: catalog)
 
     url_query = callback("analysis-a", True)
 
@@ -114,7 +114,7 @@ def test_sync_project_options_prefers_selected_project(app_context, monkeypatch)
             "is_public": True,
         },
     ]
-    monkeypatch.setattr(dashboard, "get_projects_catalog", lambda: catalog)
+    monkeypatch.setattr(dashboard, "get_projects_catalog", lambda include_demo_projects=True: catalog)
 
     options, selected = callback(True, "/tmp/prebuilt-a/")
 
@@ -142,7 +142,7 @@ def test_sync_project_options_falls_back_to_default_visible_project(app_context,
             "is_public": True,
         },
     ]
-    monkeypatch.setattr(dashboard, "get_projects_catalog", lambda: catalog)
+    monkeypatch.setattr(dashboard, "get_projects_catalog", lambda include_demo_projects=True: catalog)
 
     options, selected = callback(True, "/tmp/missing/")
 

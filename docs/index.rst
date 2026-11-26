@@ -39,7 +39,7 @@ VERTEX is licensed under the `MIT license <https://opensource.org/license/mit>`_
 
    sources/getting-started
    sources/app
-   sources/adding-a-project
+   sources/adding-projects/index
    sources/cli
    sources/citing
    sources/contributors

@@ -126,7 +126,7 @@ def test_get_projects_catalog_reads_both_roots(tmp_path, monkeypatch):
     monkeypatch.setattr(vertex_io, "get_demo_projects_root", lambda: demo_root)
     monkeypatch.setattr(vertex_io, "get_static_projects_root", lambda: static_root)
 
-    catalog = vertex_io.get_projects_catalog()
+    catalog = vertex_io.get_projects_catalog(include_demo_projects=True)
     by_name = {item["name"]: item for item in catalog}
 
     assert len(catalog) == 2
