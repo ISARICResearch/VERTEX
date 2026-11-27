@@ -123,10 +123,10 @@ Once the PR is merged, no further manual action is needed — the server picks t
 Automated server sync and ingestion
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-An hourly cron job on the VERTEX EC2 instance (at \*:00) does two things:
+A cron job is scheduled to run **every 15 minutes** on the VERTEX EC2 instance (at \*:00) that:
 
-1. **Sync** — pulls the ``main`` branch of VERTEX-projects into :file:`/opt/vertex-projects` using a read-only deploy key (:file:`scripts/sync_projects_repo.sh` in this repository).
-2. **Ingest** — runs :command:`python -m vertex.project_ingestion` inside the running VERTEX container, which scans every project folder and, for each ``project_id`` not yet in the database:
+1. **Syncs** (pulls) the ``main`` branch of VERTEX-projects into :file:`/opt/vertex-projects` using a read-only deploy key (:file:`scripts/sync_projects_repo.sh` in this repository).
+2. **Ingests** new or updated project data by running the :command:`python -m vertex.project_ingestion` inside the running VERTEX container, which scans every project folder and, for each ``project_id`` not yet in the database:
 
    - looks up the ``project_owner`` email in the ``users`` table (fails for this project if the account does not exist yet — it will be retried every hour),
    - inserts a row into ``projects`` (``vertex_id``, ``owner_id``, ``is_public``), and
